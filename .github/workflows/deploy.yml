@@ -90,8 +90,7 @@ jobs:
           sleep 5
           
           # Run Lighthouse collect (without strict assertions)
-          lhci autorun --url=http://localhost:8080/special-palm-tree/ --numberOfRuns=3 || true
-          
+          lhci collect --url=http://localhost:8080/special-palm-tree/ --numberOfRuns=3 --settings.output=json --settings.outputPath=.lighthouseci
           # Parse scores from lighthouse results
           REPORT_JSON=$(find .lighthouseci -name "lhr-*.json" -type f | head -1)
           
