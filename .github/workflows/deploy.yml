@@ -85,12 +85,12 @@ jobs:
         id: lighthouse
         run: |
           # Start a local server to serve the built site
-          npx serve ./dist -l 8080 &
+          npx serve dist -l 8080 --single &
           SERVER_PID=$!
           sleep 5
           
           # Run Lighthouse and capture results
-          lhci collect --url=http://localhost:8080 --numberOfRuns=3
+          lhci autorun --collect.url=http://localhost:8080/special-palm-tree/ --numberOfRuns=3
           
           # Get the median scores from the results
           RESULTS=$(lhci upload --target=temporary-public-storage 2>&1 || true)
