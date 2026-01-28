@@ -71,8 +71,8 @@ const values = [
   <!-- Navigation -->
   <nav class="nav">
     <div class="nav-container">
-      <a href={`${base}/`} class="logo">
-        <img src={`${base}/HFNeon.png`} alt="Hackfluency" class="logo-img" />
+      <a href={`${base}/`} class="logo" aria-label="Hackfluency - Go to homepage">
+        <img src={`${base}/HFNeon.png`} alt="" width="40" height="40" class="logo-img" aria-hidden="true" />
         <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
       </a>
       <div class="nav-links">
@@ -98,7 +98,7 @@ const values = [
     </div>
     <div class="hero-content container">
       <div class="hero-logo">
-        <img src={`${base}/HFNeon.png`} alt="Hackfluency" class="hero-logo-img" />
+        <img src={`${base}/HFNeon.png`} alt="Hackfluency logo - neon HF symbol" width="120" height="120" class="hero-logo-img" />
       </div>
       <div class="hero-badge">
         <span class="badge-dot"></span>
@@ -151,17 +151,17 @@ const values = [
       </div>
       <div class="services-grid">
         {services.map((service, index) => (
-          <div class="service-card" style={`--delay: ${index * 0.1}s`}>
-            <div class="service-icon">{service.icon}</div>
+          <article class="service-card" style={`--delay: ${index * 0.1}s`}>
+            <div class="service-icon" aria-hidden="true">{service.icon}</div>
             <h3 class="service-title">{service.title}</h3>
             <p class="service-description">{service.description}</p>
-            <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="service-link">
-              Learn more
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="service-link" aria-label={`Book a consultation for ${service.title}`}>
+              Book consultation
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </a>
-          </div>
+          </article>
         ))}
       </div>
     </div>
@@ -311,8 +311,8 @@ const values = [
     <div class="container">
       <div class="footer-content">
         <div class="footer-brand">
-          <a href={`${base}/`} class="logo footer-logo">
-            <img src={`${base}/HFNeon.png`} alt="Hackfluency" class="footer-logo-img" />
+          <a href={`${base}/`} class="logo footer-logo" aria-label="Hackfluency - Go to homepage">
+            <img src={`${base}/HFNeon.png`} alt="" width="40" height="40" class="footer-logo-img" aria-hidden="true" />
             <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
           </a>
           <p class="footer-tagline">
@@ -320,34 +320,29 @@ const values = [
           </p>
         </div>
         <div class="footer-links">
-          <div class="footer-column">
-            <h4>Services</h4>
+          <nav class="footer-column" aria-label="Services navigation">
+            <h5>Services</h5>
             <a href="#services">Penetration Testing</a>
             <a href="#services">Security Architecture</a>
             <a href="#services">AI Security</a>
             <a href="#services">Incident Response</a>
-          </div>
-          <div class="footer-column">
-            <h4>Company</h4>
+          </nav>
+          <nav class="footer-column" aria-label="Company navigation">
+            <h5>Company</h5>
             <a href="#about">About Us</a>
             <a href="#values">Our Values</a>
             <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener">Book a Call</a>
-            <a href="#">Careers</a>
-          </div>
-          <div class="footer-column">
-            <h4>Connect</h4>
-            <a href="#">LinkedIn</a>
-            <a href="#">Twitter</a>
-            <a href="#">GitHub</a>
-          </div>
+          </nav>
+          <nav class="footer-column" aria-label="Social media links">
+            <h5>Connect</h5>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="Follow Hackfluency on LinkedIn">LinkedIn</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Follow Hackfluency on Twitter">Twitter</a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="View Hackfluency on GitHub">GitHub</a>
+          </nav>
         </div>
       </div>
       <div class="footer-bottom">
         <p>&copy; 2026 Hackfluency. All rights reserved.</p>
-        <div class="footer-legal">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-        </div>
       </div>
     </div>
   </footer>
@@ -419,6 +414,10 @@ const values = [
     font-size: 0.9rem;
     color: var(--gray-300);
     transition: color 0.3s ease;
+    padding: 12px 8px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
   .nav-links a:hover {
@@ -427,18 +426,21 @@ const values = [
 
   .nav-cta {
     display: none;
-    padding: 10px 24px;
+    padding: 12px 24px;
     background: var(--gradient-primary);
     border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 700;
     color: #000000;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 44px;
   }
 
   @media (min-width: 768px) {
     .nav-cta {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 
@@ -647,6 +649,8 @@ const values = [
     cursor: pointer;
     transition: all 0.3s ease;
     border: none;
+    min-height: 48px;
+    min-width: 48px;
   }
 
   .btn-primary {
@@ -897,6 +901,8 @@ const values = [
     font-size: 0.9rem;
     font-weight: 500;
     transition: gap 0.3s ease;
+    padding: 12px 0;
+    min-height: 44px;
   }
 
   .service-link:hover {
@@ -1186,11 +1192,12 @@ const values = [
     }
   }
 
-  .footer-column h4 {
+  .footer-column h5 {
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 20px;
     color: var(--white);
+    margin-top: 0;
   }
 
   .footer-column a {
@@ -1198,6 +1205,10 @@ const values = [
     color: var(--gray-500);
     font-size: 0.9rem;
     margin-bottom: 12px;
+    padding: 8px 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
     transition: color 0.3s ease;
   }
 
