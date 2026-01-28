@@ -2,6 +2,6 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://hackfluencylabs.github.io',
+  site: 'https://www.hackfluency.com',
   base: '/hackfluency.com',
 });
