@@ -91,13 +91,15 @@ jobs:
           
           # Run Lighthouse collect (without strict assertions)
           lhci collect --url=http://localhost:8080/special-palm-tree/ --numberOfRuns=3 --settings.output=json --settings.outputPath=.lighthouseci
-          # Parse scores from lighthouse results
-          REPORT_JSON=$(find .lighthouseci -name "lhr-*.json" -type f | head -1)
+          
+          # Parse scores from lighthouse results using absolute path
+          REPORT_JSON=$(find "$(pwd)/.lighthouseci" -name "lhr-*.json" -type f | head -1)
           
           if [ -f "$REPORT_JSON" ]; then
-            SEO_SCORE=$(node -e "console.log(Math.round(require('$REPORT_JSON').categories.seo.score * 100))")
-            PERF_SCORE=$(node -e "console.log(Math.round(require('$REPORT_JSON').categories.performance.score * 100))")
-            A11Y_SCORE=$(node -e "console.log(Math.round(require('$REPORT_JSON').categories.accessibility.score * 100))")
+            # Use node with fs.readFileSync for proper JSON parsing
+            SEO_SCORE=$(node -e "const data = JSON.parse(require('fs').readFileSync('$REPORT_JSON', 'utf8')); console.log(Math.round(data.categories.seo.score * 100))")
+            PERF_SCORE=$(node -e "const data = JSON.parse(require('fs').readFileSync('$REPORT_JSON', 'utf8')); console.log(Math.round(data.categories.performance.score * 100))")
+            A11Y_SCORE=$(node -e "const data = JSON.parse(require('fs').readFileSync('$REPORT_JSON', 'utf8')); console.log(Math.round(data.categories.accessibility.score * 100))")
             
             echo "seo_score=$SEO_SCORE" >> $GITHUB_OUTPUT
             echo "perf_score=$PERF_SCORE" >> $GITHUB_OUTPUT
