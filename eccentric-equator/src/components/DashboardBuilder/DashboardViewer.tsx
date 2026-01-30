@@ -27,11 +27,19 @@ interface DashboardViewerProps {
   dashboard: SavedDashboard;
 }
 
+// Fixed quarter layout constants (must match builder)
+const QUARTER_WIDTH = 300;
+const CANVAS_WIDTH = QUARTER_WIDTH * 4;
+
 // Quarter column overlay for viewer (matches builder layout)
 const QuarterColumnsViewer: React.FC = () => (
-  <div className="viewer-quarter-columns">
+  <div className="viewer-quarter-columns" style={{ width: `${CANVAS_WIDTH}px` }}>
     {(['q1', 'q2', 'q3', 'q4'] as Quarter[]).map((q) => (
-      <div key={q} className="viewer-quarter-column">
+      <div 
+        key={q} 
+        className="viewer-quarter-column"
+        style={{ width: `${QUARTER_WIDTH}px`, minWidth: `${QUARTER_WIDTH}px` }}
+      >
         <div className="viewer-quarter-label">
           <span className={`viewer-quarter-badge ${q}`}>{QUARTER_CONFIG[q].label}</span>
           <span className="viewer-quarter-name">{QUARTER_CONFIG[q].months}</span>

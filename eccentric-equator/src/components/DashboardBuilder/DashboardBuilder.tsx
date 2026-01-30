@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -12,6 +12,8 @@ import {
   type Edge,
   type Node,
   type NodeTypes,
+  type NodeChange,
+  applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './styles.css';
@@ -22,87 +24,127 @@ import { CATEGORY_CONFIG, STATUS_CONFIG, PRIORITY_CONFIG, QUARTER_CONFIG } from 
 import { saveDashboard, publishDashboard, type SavedDashboard } from './dashboardStorage';
 import { exportDashboardToPDF } from './pdfExport';
 
+// Fixed quarter layout - using fixed pixel widths for consistent positioning
+const QUARTERS: Quarter[] = ['q1', 'q2', 'q3', 'q4'];
+const QUARTER_WIDTH = 300; // Fixed width per quarter in pixels
+const CANVAS_WIDTH = QUARTER_WIDTH * 4; // Total canvas width
+const NODE_WIDTH = 200; // Approximate node width
+const QUARTER_PADDING = 20; // Padding from quarter edges
+
+// Get quarter boundaries (fixed positions, independent of canvas size)
+const getQuarterBounds = (quarter: Quarter) => {
+  const quarterIndex = QUARTERS.indexOf(quarter);
+  const minX = quarterIndex * QUARTER_WIDTH + QUARTER_PADDING;
+  const maxX = (quarterIndex + 1) * QUARTER_WIDTH - NODE_WIDTH - QUARTER_PADDING;
+  return { minX, maxX, quarterIndex };
+};
+
+// Get quarter from x position
+const getQuarterFromPosition = (x: number): Quarter => {
+  const centerX = x + NODE_WIDTH / 2;
+  const quarterIndex = Math.min(3, Math.max(0, Math.floor(centerX / QUARTER_WIDTH)));
+  return QUARTERS[quarterIndex];
+};
+
+// Constrain node position to its assigned quarter
+const constrainToQuarter = (x: number, quarter: Quarter): number => {
+  const { minX, maxX } = getQuarterBounds(quarter);
+  return Math.min(maxX, Math.max(minX, x));
+};
+
+// Get initial x position for a quarter (centered)
+const getQuarterCenterX = (quarter: Quarter): number => {
+  const { minX, maxX } = getQuarterBounds(quarter);
+  return minX + (maxX - minX) / 2;
+};
+
 // Register custom node types
 const nodeTypes: NodeTypes = {
   strategy: StrategyNode,
 };
 
-// Initial example data
+// Helper to create node position within quarter
+const createNodePosition = (quarter: Quarter, yOffset: number) => ({
+  x: getQuarterBounds(quarter).minX + 30,
+  y: 80 + yOffset,
+});
+
+// Initial example data with fixed quarter positions
 const initialNodes: Node<StrategyNodeData>[] = [
-  // Q1
+  // Q1 (x: 20 to 280)
   {
     id: '1',
     type: 'strategy',
-    position: { x: 50, y: 80 },
+    position: createNodePosition('q1', 0),
     data: { category: 'objective', quarter: 'q1', title: 'Security Assessment', description: 'Complete baseline security evaluation', status: 'done', priority: 'critical' },
   },
   {
     id: '2',
     type: 'strategy',
-    position: { x: 50, y: 240 },
+    position: createNodePosition('q1', 160),
     data: { category: 'initiative', quarter: 'q1', title: 'Asset Inventory', description: 'Catalog all digital assets', status: 'done', priority: 'high' },
   },
   {
     id: '3',
     type: 'strategy',
-    position: { x: 50, y: 400 },
+    position: createNodePosition('q1', 320),
     data: { category: 'risk', quarter: 'q1', title: 'Legacy Systems', description: 'Outdated systems lacking patches', status: 'active', priority: 'critical' },
   },
-  // Q2
+  // Q2 (x: 320 to 580)
   {
     id: '4',
     type: 'strategy',
-    position: { x: 330, y: 80 },
+    position: createNodePosition('q2', 0),
     data: { category: 'initiative', quarter: 'q2', title: 'Zero Trust Architecture', description: 'Implement ZTA framework', status: 'active', priority: 'critical' },
   },
   {
     id: '5',
     type: 'strategy',
-    position: { x: 330, y: 240 },
+    position: createNodePosition('q2', 160),
     data: { category: 'control', quarter: 'q2', title: 'MFA Deployment', description: 'Multi-factor auth for all users', status: 'active', priority: 'high' },
   },
   {
     id: '6',
     type: 'strategy',
-    position: { x: 330, y: 400 },
+    position: createNodePosition('q2', 320),
     data: { category: 'milestone', quarter: 'q2', title: 'SOC 2 Prep', description: 'Prepare audit documentation', status: 'planned', priority: 'high' },
   },
-  // Q3
+  // Q3 (x: 620 to 880)
   {
     id: '7',
     type: 'strategy',
-    position: { x: 610, y: 80 },
+    position: createNodePosition('q3', 0),
     data: { category: 'initiative', quarter: 'q3', title: 'SIEM Enhancement', description: 'Upgrade threat detection', status: 'planned', priority: 'high' },
   },
   {
     id: '8',
     type: 'strategy',
-    position: { x: 610, y: 240 },
+    position: createNodePosition('q3', 160),
     data: { category: 'control', quarter: 'q3', title: 'Incident Response', description: 'Automated IR playbooks', status: 'planned', priority: 'medium' },
   },
   {
     id: '9',
     type: 'strategy',
-    position: { x: 610, y: 400 },
+    position: createNodePosition('q3', 320),
     data: { category: 'metric', quarter: 'q3', title: 'MTTD', description: 'Mean time to detect', status: 'planned', priority: 'medium', value: '< 4h' },
   },
-  // Q4
+  // Q4 (x: 920 to 1180)
   {
     id: '10',
     type: 'strategy',
-    position: { x: 890, y: 80 },
+    position: createNodePosition('q4', 0),
     data: { category: 'objective', quarter: 'q4', title: 'SOC 2 Certification', description: 'Achieve compliance', status: 'planned', priority: 'critical' },
   },
   {
     id: '11',
     type: 'strategy',
-    position: { x: 890, y: 240 },
+    position: createNodePosition('q4', 160),
     data: { category: 'milestone', quarter: 'q4', title: 'Annual Review', description: 'Strategy effectiveness review', status: 'planned', priority: 'high' },
   },
   {
     id: '12',
     type: 'strategy',
-    position: { x: 890, y: 400 },
+    position: createNodePosition('q4', 320),
     data: { category: 'metric', quarter: 'q4', title: 'Security Score', description: 'Overall security rating', status: 'planned', priority: 'high', value: '85%' },
   },
 ];
@@ -149,11 +191,15 @@ const PaletteItem: React.FC<{
   );
 };
 
-// Quarter column overlay
+// Quarter column overlay - fixed width columns
 const QuarterColumns: React.FC = () => (
-  <div className="quarter-columns">
+  <div className="quarter-columns" style={{ width: `${CANVAS_WIDTH}px` }}>
     {(['q1', 'q2', 'q3', 'q4'] as Quarter[]).map((q) => (
-      <div key={q} className="quarter-column">
+      <div 
+        key={q} 
+        className="quarter-column"
+        style={{ width: `${QUARTER_WIDTH}px`, minWidth: `${QUARTER_WIDTH}px` }}
+      >
         <div className="quarter-label">
           <span className={`quarter-badge ${q}`}>{QUARTER_CONFIG[q].label}</span>
           <span className="quarter-name">{QUARTER_CONFIG[q].months}</span>
@@ -397,12 +443,46 @@ const SuccessToast: React.FC<{
 
 // Main Dashboard Builder Component
 const DashboardBuilder: React.FC = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishedDashboard, setPublishedDashboard] = useState<SavedDashboard | null>(null);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Custom onNodesChange that enforces quarter boundaries
+  const onNodesChange = useCallback(
+    (changes: NodeChange<Node<StrategyNodeData>>[]) => {
+      // Process changes and enforce quarter constraints
+      const constrainedChanges = changes.map((change) => {
+        if (change.type === 'position' && change.position) {
+          const node = nodes.find((n) => n.id === change.id);
+          if (node) {
+            const nodeData = node.data as StrategyNodeData;
+            const currentQuarter = nodeData.quarter;
+            
+            // Constrain x position to current quarter (fixed widths)
+            const constrainedX = constrainToQuarter(change.position.x, currentQuarter);
+            // Constrain y to stay within canvas (min 50px from top)
+            const constrainedY = Math.max(50, change.position.y);
+            
+            return {
+              ...change,
+              position: {
+                x: constrainedX,
+                y: constrainedY,
+              },
+            };
+          }
+        }
+        return change;
+      });
+
+      setNodes((nds) => applyNodeChanges(constrainedChanges, nds));
+    },
+    [nodes, setNodes]
+  );
 
   const selectedNode = useMemo(
     () => nodes.find((n) => n.id === selectedNodeId) || null,
@@ -444,23 +524,21 @@ const DashboardBuilder: React.FC = () => {
       const bounds = (event.target as HTMLElement).closest('.react-flow')?.getBoundingClientRect();
       if (!bounds) return;
 
-      const position = {
-        x: event.clientX - bounds.left - 100,
-        y: event.clientY - bounds.top - 50,
-      };
+      // Calculate position relative to the canvas
+      let positionX = event.clientX - bounds.left - 100;
+      const positionY = Math.max(80, event.clientY - bounds.top - 50);
 
-      // Determine quarter based on x position
-      const quarterWidth = bounds.width / 4;
-      let quarter: Quarter = 'q1';
-      if (position.x > quarterWidth * 3) quarter = 'q4';
-      else if (position.x > quarterWidth * 2) quarter = 'q3';
-      else if (position.x > quarterWidth) quarter = 'q2';
+      // Determine quarter based on x position (using fixed widths)
+      const quarter = getQuarterFromPosition(positionX);
+      
+      // Constrain position to quarter boundaries
+      positionX = constrainToQuarter(positionX, quarter);
 
       const config = CATEGORY_CONFIG[category];
       const newNode: Node<StrategyNodeData> = {
         id: `node-${Date.now()}`,
         type: 'strategy',
-        position,
+        position: { x: positionX, y: positionY },
         data: {
           category,
           quarter,
@@ -488,6 +566,23 @@ const DashboardBuilder: React.FC = () => {
             : node
         )
       );
+      
+      // If quarter changed, move node to the new quarter (centered)
+      if (updates.quarter && selectedNodeId) {
+        setNodes((nds) =>
+          nds.map((node) => {
+            if (node.id === selectedNodeId) {
+              const newQuarter = updates.quarter as Quarter;
+              const newX = getQuarterCenterX(newQuarter);
+              return {
+                ...node,
+                position: { ...node.position, x: newX },
+              };
+            }
+            return node;
+          })
+        );
+      }
     },
     [selectedNodeId, setNodes]
   );
@@ -638,15 +733,16 @@ const DashboardBuilder: React.FC = () => {
             <div className="sidebar-title">Tips</div>
             <div style={{ fontSize: '0.75rem', color: '#6a6a6a', lineHeight: 1.6 }}>
               <p>• Drag elements to canvas</p>
-              <p>• Drag between handles to connect</p>
-              <p>• Click node to edit properties</p>
-              <p>• Delete key removes selection</p>
+              <p>• Nodes stay in their quarter</p>
+              <p>• Change quarter in properties</p>
+              <p>• Drag handles to connect</p>
+              <p>• Delete key removes node</p>
             </div>
           </div>
         </aside>
 
         {/* Canvas */}
-        <div className="builder-canvas" onDragOver={onDragOver} onDrop={onDrop}>
+        <div className="builder-canvas" ref={canvasRef} onDragOver={onDragOver} onDrop={onDrop}>
           <QuarterColumns />
           <ReactFlow
             nodes={nodes}
@@ -658,8 +754,11 @@ const DashboardBuilder: React.FC = () => {
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             fitView
+            fitViewOptions={{ padding: 0.1, minZoom: 0.8, maxZoom: 1.2 }}
             snapToGrid
-            snapGrid={[20, 20]}
+            snapGrid={[10, 10]}
+            minZoom={0.5}
+            maxZoom={1.5}
             defaultEdgeOptions={{ animated: true, style: { stroke: '#00D26A', strokeWidth: 2 } }}
           >
             <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(255,255,255,0.03)" />
