@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { DashboardBuilder } from '../components/DashboardBuilder';
+---
+
+<Layout title="Strategy Dashboard Builder — Hackfluency" description="Design quarterly cybersecurity strategy dashboards with connected nodes.">
+  <DashboardBuilder client:only="react" />
+</Layout>
+
+<style is:global>
+  /* Override any body styles for full-screen builder */
+  body {
+    overflow: hidden;
+  }
+</style>
