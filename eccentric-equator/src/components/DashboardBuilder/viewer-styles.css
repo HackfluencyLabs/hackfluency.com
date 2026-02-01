@@ -11,9 +11,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
-  border-bottom: 1px solid #2a2a2a;
+  padding: 0 24px;
+  height: 60px;
+  background: #111111;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
 }
 
 .viewer-nav .nav-brand {
@@ -30,14 +32,15 @@
 }
 
 .viewer-nav .nav-brand img {
-  height: 32px;
-  width: auto;
+  height: 28px;
+  width: 28px;
+  filter: drop-shadow(0 0 6px rgba(0, 210, 106, 0.4));
 }
 
 .viewer-nav .logo-text {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .viewer-nav .logo-hack {
@@ -51,20 +54,21 @@
 .viewer-nav .nav-divider {
   width: 1px;
   height: 24px;
-  background: #3a3a3a;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 16px;
 }
 
-.nav-back {
+.nav-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #8a8a8a;
-  font-size: 0.85rem;
-  text-decoration: none;
-  transition: color 0.15s;
+  gap: 10px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #aaaaaa;
 }
 
-.nav-back:hover {
+.nav-title svg {
   color: #00D26A;
 }
 
@@ -95,153 +99,47 @@
   background: rgba(0, 210, 106, 0.1);
 }
 
-.viewer-nav .nav-btn.primary {
-  width: auto;
-  padding: 0 16px;
-  gap: 8px;
-  background: transparent;
-  border: 1px solid #00D26A;
-  color: #00D26A;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.viewer-nav .nav-btn.primary:hover {
-  background: rgba(0, 210, 106, 0.15);
-}
-
 .viewer-nav .nav-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Viewer Header */
-.viewer-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 32px 40px;
-  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
-  border-bottom: 1px solid #1a1a1a;
-  gap: 40px;
-}
-
-.viewer-header-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.viewer-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-badge.published {
-  background: rgba(0, 210, 106, 0.15);
-  color: #00D26A;
-}
-
-.status-badge.draft {
-  background: rgba(107, 114, 128, 0.15);
-  color: #9ca3af;
-}
-
-.status-badge.archived {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.viewer-date,
-.viewer-version {
-  font-size: 0.8rem;
-  color: #6a6a6a;
-}
-
-.viewer-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 8px;
-  line-height: 1.3;
-}
-
-.viewer-description {
-  font-size: 0.95rem;
-  color: #8a8a8a;
-  margin: 0;
-  max-width: 600px;
-  line-height: 1.5;
-}
-
-/* Stats */
-.viewer-stats {
+/* Compact Stats in Nav */
+.viewer-compact-stats {
   display: flex;
   gap: 16px;
-  flex-shrink: 0;
+  margin-right: 16px;
 }
 
-.stat-card {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 16px 20px;
-  min-width: 100px;
-  text-align: center;
-}
-
-.stat-card.progress {
-  min-width: 140px;
-}
-
-.stat-value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #00D26A;
-  margin-bottom: 4px;
-}
-
-.stat-label {
+.compact-stat {
   font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.compact-stat .label {
   color: #6a6a6a;
-  text-transform: uppercase;
+  font-weight: 500;
 }
 
-.stat-bar {
-  margin-top: 10px;
-  height: 4px;
-  background: #2a2a2a;
-  border-radius: 2px;
-  overflow: hidden;
+.compact-stat .value {
+  color: #00D26A;
+  font-weight: 700;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
-.stat-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #00D26A, #00a854);
-  border-radius: 2px;
-  transition: width 0.3s ease;
+/* Public Mode Styling */
+.dashboard-viewer.public-mode .viewer-nav {
+  border-top: 3px solid #00D26A;
 }
 
-/* Viewer Canvas */
+/* Viewer Canvas Area */
 .viewer-canvas {
   flex: 1;
   position: relative;
-  min-height: 600px;
-  height: calc(100vh - 220px);
+  min-height: 0; /* Allow flex shrinking */
+  background: #0a0a0a;
 }
 
 .react-flow-wrapper {
@@ -252,8 +150,10 @@
   bottom: 0;
   width: 100%;
   height: 100%;
+  z-index: 2;
 }
 
+/* Quarter Columns - visual guides */
 .viewer-quarter-columns {
   position: absolute;
   top: 0;
@@ -272,26 +172,10 @@
   box-sizing: border-box;
 }
 
-.viewer-quarter-column:nth-child(1) { 
-  background: linear-gradient(90deg, rgba(0, 210, 106, 0.03) 0%, rgba(0, 210, 106, 0.01) 50%, rgba(0, 210, 106, 0.03) 100%); 
-  border-right-color: rgba(0, 210, 106, 0.3);
-}
-.viewer-quarter-column:nth-child(2) { 
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.03) 0%, rgba(59, 130, 246, 0.01) 50%, rgba(59, 130, 246, 0.03) 100%); 
-  border-right-color: rgba(59, 130, 246, 0.3);
-}
-.viewer-quarter-column:nth-child(3) { 
-  background: linear-gradient(90deg, rgba(139, 92, 246, 0.03) 0%, rgba(139, 92, 246, 0.01) 50%, rgba(139, 92, 246, 0.03) 100%); 
-  border-right-color: rgba(139, 92, 246, 0.3);
-}
-.viewer-quarter-column:nth-child(4) { 
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.03) 0%, rgba(245, 158, 11, 0.01) 50%, rgba(245, 158, 11, 0.03) 100%); 
-  border-right: none;
-}
-
-.viewer-quarter-column:last-child {
-  border-right: none;
-}
+.viewer-quarter-column:nth-child(1) { background: linear-gradient(90deg, rgba(0, 210, 106, 0.03) 0%, rgba(0, 210, 106, 0.01) 50%, rgba(0, 210, 106, 0.03) 100%); border-right-color: rgba(0, 210, 106, 0.3); }
+.viewer-quarter-column:nth-child(2) { background: linear-gradient(90deg, rgba(59, 130, 246, 0.03) 0%, rgba(59, 130, 246, 0.01) 50%, rgba(59, 130, 246, 0.03) 100%); border-right-color: rgba(59, 130, 246, 0.3); }
+.viewer-quarter-column:nth-child(3) { background: linear-gradient(90deg, rgba(139, 92, 246, 0.03) 0%, rgba(139, 92, 246, 0.01) 50%, rgba(139, 92, 246, 0.03) 100%); border-right-color: rgba(139, 92, 246, 0.3); }
+.viewer-quarter-column:nth-child(4) { background: linear-gradient(90deg, rgba(245, 158, 11, 0.03) 0%, rgba(245, 158, 11, 0.01) 50%, rgba(245, 158, 11, 0.03) 100%); border-right: none; }
 
 .viewer-quarter-label {
   position: absolute;
@@ -301,7 +185,7 @@
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  background: rgba(17, 17, 17, 0.9);
+  background: rgba(17, 17, 17, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   backdrop-filter: blur(8px);
@@ -326,203 +210,309 @@
   color: #8a8a8a;
 }
 
-/* ReactFlow overrides for viewer - completely disable interactivity */
-.viewer-canvas .react-flow__node {
-  cursor: default !important;
-  pointer-events: none;
+/* Strategy Node Styles */
+.strategy-node {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 180px;
+  transition: border-color 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.viewer-canvas .react-flow__node:hover {
-  box-shadow: none;
+.strategy-node.selected {
+  border-color: #00D26A;
 }
 
-/* Keep handles in the DOM but make them invisible - needed for edge calculation */
-.viewer-canvas .react-flow__handle {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  width: 1px !important;
-  height: 1px !important;
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.viewer-canvas .react-flow__edge {
-  pointer-events: none;
+.node-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  flex-shrink: 0;
 }
 
-/* Edge path styles for viewer - handled dynamically by StrategyEdge */
-.viewer-canvas .react-flow__edge-path {
-  stroke-width: 2;
+.node-category {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Edge Animations - Flowing/Marching Ants Effect */
+.node-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.node-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 8px 0;
+  text-shadow: 0 0 20px currentColor;
+}
+
+.node-description {
+  font-size: 0.72rem;
+  color: #8a8a8a;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.node-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.node-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  color: #8a8a8a;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.node-priority {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* React Flow attribution & controls */
+.viewer-canvas .react-flow__attribution { display: none; }
+.viewer-canvas .react-flow__controls {
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.viewer-canvas .react-flow__controls-button {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  fill: #8a8a8a;
+}
+
+.viewer-canvas .react-flow__controls-button:hover {
+  background: rgba(0, 210, 106, 0.1);
+  fill: #00D26A;
+}
+
+/* PDF Export mode */
+.pdf-export-mode .strategy-node {
+  box-shadow: none !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Old Header removal */
+.viewer-header {
+  display: none !important;
+}
+
+/* Edge Animations - ENHANCED */
 @keyframes edgeFlow {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: -24;
-  }
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -24; }
 }
 
-/* Pulse animation for dependency and implements */
 @keyframes edgePulse {
-  0%, 100% {
-    opacity: 1;
-    filter: drop-shadow(0 0 1px currentColor);
-  }
-  50% {
-    opacity: 0.75;
-    filter: drop-shadow(0 0 3px currentColor);
-  }
+  0%, 100% { opacity: 1; stroke-width: 2.5; }
+  50% { opacity: 0.5; stroke-width: 1.5; }
 }
 
-/* Blink animation for mitigates (urgent/risk attention) */
 @keyframes edgeBlink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
+  0%, 100% { opacity: 1; stroke-width: 3; filter: drop-shadow(0 0 5px currentColor); }
+  50% { opacity: 0.2; stroke-width: 1.5; filter: none; }
 }
 
-/* Enhanced Glow animation for important edges */
 @keyframes edgeGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 2px currentColor);
+  0%, 100% { filter: drop-shadow(0 0 2px currentColor); stroke-width: 3; }
+  50% { filter: drop-shadow(0 0 10px currentColor); stroke-width: 4; }
+}
+
+/* Strategic Background Guide */
+.strategic-bg-guide {
+  position: absolute;
+  top: -5000px; /* Allow large vertical panning */
+  left: 0;
+  width: 1200px; 
+  height: 10000px;
+  display: flex;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.strategic-bg-column {
+  flex: 1;
+  border-right: 1px solid rgba(0, 210, 106, 0.1);
+  position: relative;
+}
+
+.strategic-bg-column:nth-child(1) { background: linear-gradient(90deg, rgba(0, 210, 106, 0.05) 0%, transparent 100%); }
+.strategic-bg-column:nth-child(2) { background: linear-gradient(90deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%); }
+.strategic-bg-column:nth-child(3) { background: linear-gradient(90deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%); }
+.strategic-bg-column:nth-child(4) { background: linear-gradient(90deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%); border-right: none; }
+
+.strategic-bg-label {
+  position: absolute;
+  top: 5020px; /* Offset because container starts at -5000 */
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0.3;
+}
+
+.strategic-bg-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 2.5rem; /* Larger labels */
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.strategic-bg-months {
+  font-size: 1rem;
+  color: #888;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Unified Node Style Overrides */
+.strategy-node {
+  background: #111111 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+}
+
+.strategy-node .node-title {
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+}
+
+.strategy-node .node-category {
+  font-size: 0.7rem !important;
+}
+
+.strategy-node .node-description {
+  color: #999 !important;
+}
+
+@keyframes edgePulse {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 1px currentColor); }
+  50% { opacity: 0.75; filter: drop-shadow(0 0 3px currentColor); }
+}
+
+@keyframes edgeBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes edgeGlow {
+  0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+  50% { filter: drop-shadow(0 0 8px currentColor); }
+}
+
+/* Edge Animations - RESTORED CLASSES */
+.edge-animation-edgeFlow {
+  animation: edgeFlow 1s linear infinite;
+}
+
+.edge-animation-edgePulse {
+  animation: edgePulse 2s ease-in-out infinite;
+}
+
+.edge-animation-edgeBlink {
+  animation: edgeBlink 0.8s ease-in-out infinite;
+}
+
+.edge-animation-edgeGlow {
+  animation: edgeGlow 1s ease-in-out infinite;
+}
+
+/* Base Edge overrides to ensure animation visibility */
+.viewer-canvas .react-flow__edge-path {
+  stroke-dasharray: inherit; /* Ensure StrategyEdge's dasharray is used */
+}
+
+/* Strategic Background Guide */
+.strategic-bg-guide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1200px; /* Fixed base width to match coordinate system */
+  height: 2000px; /* Large enough for scrolling */
+  display: flex;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.strategic-bg-column {
+  flex: 1;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+}
+
+.strategic-bg-column:nth-child(1) { background: linear-gradient(90deg, rgba(0, 210, 106, 0.02) 0%, transparent 100%); }
+.strategic-bg-column:nth-child(2) { background: linear-gradient(90deg, rgba(59, 130, 246, 0.02) 0%, transparent 100%); }
+.strategic-bg-column:nth-child(3) { background: linear-gradient(90deg, rgba(139, 92, 246, 0.02) 0%, transparent 100%); }
+.strategic-bg-column:nth-child(4) { background: linear-gradient(90deg, rgba(245, 158, 11, 0.02) 0%, transparent 100%); border-right: none; }
+
+.strategic-bg-label {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0.4;
+}
+
+.strategic-bg-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.strategic-bg-months {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .viewer-compact-stats {
+    display: none;
   }
-  50% {
-    filter: drop-shadow(0 0 8px currentColor);
-  }
-}
-
-/* PDF Export Mode - Disable animations and ensure visibility */
-.pdf-export-mode .react-flow__edge path {
-  animation: none !important;
-  stroke-opacity: 1 !important;
-  opacity: 1 !important;
-  fill: none !important;
-}
-
-/* Thicker edges for better PDF visibility */
-.pdf-export-mode .react-flow__edge path {
-  stroke-width: 2.5px !important;
-}
-
-/* Selected edges in export mode */
-.pdf-export-mode .react-flow__edge.selected path {
-  stroke-width: 3.5px !important;
-}
-
-/* Ensure SVG edges container is fully visible */
-.pdf-export-mode .react-flow__edges {
-  overflow: visible !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Ensure edge wrapper elements are visible */
-.pdf-export-mode .react-flow__edge {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Make all SVG elements visible during export */
-.pdf-export-mode svg {
-  overflow: visible !important;
-}
-
-/* Preserve dash arrays for different edge types in PDF export */
-.pdf-export-mode .react-flow__edge path[style*="strokeDasharray"],
-.pdf-export-mode .react-flow__edge path[stroke-dasharray] {
-  vector-effect: non-scaling-stroke !important;
-}
-
-/* Explicit dash array styles for PDF export by edge type */
-.pdf-export-mode .react-flow__edge [data-edge-type="supports"] path,
-.pdf-export-mode .react-flow__edge path[style*="8 4"] {
-  stroke-dasharray: 8 4 !important;
-}
-
-.pdf-export-mode .react-flow__edge [data-edge-type="implements"] path,
-.pdf-export-mode .react-flow__edge path[style*="2 4"] {
-  stroke-dasharray: 2 4 !important;
-}
-
-.pdf-export-mode .react-flow__edge [data-edge-type="mitigates"] path,
-.pdf-export-mode .react-flow__edge path[style*="6 3 2 3"] {
-  stroke-dasharray: 6 3 2 3 !important;
-}
-
-.pdf-export-mode .react-flow__edge [data-edge-type="mitigated-by"] path,
-.pdf-export-mode .react-flow__edge path[style*="12 6"] {
-  stroke-dasharray: 12 6 !important;
-}
-
-.pdf-export-mode .react-flow__edge [data-edge-type="measures"] path,
-.pdf-export-mode .react-flow__edge path[style*="4 4"] {
-  stroke-dasharray: 4 4 !important;
-}
-
-.pdf-export-mode .react-flow__edge [data-edge-type="dependency"] path {
-  stroke-dasharray: none !important;
-}
-
-/* Ensure edge labels are hidden in export mode */
-.pdf-export-mode .react-flow__edge .react-flow__edge-label {
-  display: none !important;
-}
-
-/* Hide controls in export mode */
-.pdf-export-mode .react-flow__controls,
-.pdf-export-mode .react-flow__minimap,
-.pdf-export-mode .react-flow__attribution {
-  display: none !important;
-}
-
-.viewer-canvas .react-flow__pane {
-  cursor: grab;
-}
-
-.viewer-canvas .react-flow__pane:active {
-  cursor: grabbing;
-}
-
-/* Disable selection styles in viewer */
-.viewer-canvas .react-flow__node.selected,
-.viewer-canvas .react-flow__node:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .viewer-header {
-    flex-direction: column;
-    padding: 24px;
-  }
-  
-  .viewer-stats {
-    width: 100%;
-    overflow-x: auto;
-  }
-  
-  .stat-card {
-    min-width: 80px;
-    padding: 12px 16px;
-  }
-  
-  .stat-value {
-    font-size: 1.25rem;
-  }
-}
-
-@media (max-width: 600px) {
-  .viewer-title {
-    font-size: 1.3rem;
-  }
-  
-  .viewer-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  .nav-title {
+    display: none;
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthWrapper } from '../Auth';
+import { useAuth } from '../Auth/AuthContext';
 import DashboardViewer from './DashboardViewer';
 import { getDashboardById, type SavedDashboard } from './dashboardStorage';
 import './viewer-styles.css';
@@ -8,11 +9,12 @@ interface DashboardViewerWrapperProps {
   dashboardId?: string;
 }
 
-const DashboardViewerWrapper: React.FC<DashboardViewerWrapperProps> = ({ dashboardId: propId }) => {
+const DashboardViewerContent: React.FC<DashboardViewerWrapperProps> = ({ dashboardId: propId }) => {
   const [dashboardId, setDashboardId] = useState<string | null>(propId || null);
   const [dashboard, setDashboard] = useState<SavedDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { isAuthorized } = useAuth();
 
   useEffect(() => {
     // If no propId, try to get from URL
@@ -31,53 +33,58 @@ const DashboardViewerWrapper: React.FC<DashboardViewerWrapperProps> = ({ dashboa
   useEffect(() => {
     if (!dashboardId) return;
 
+    // First check local existence
     const loaded = getDashboardById(dashboardId);
-    if (loaded) {
+    
+    // Then check server-side authorization
+    if (loaded && isAuthorized(dashboardId)) {
       setDashboard(loaded);
     } else {
-      setError(true);
+      setError(true); // Either not found locally OR not authorized
     }
     setLoading(false);
-  }, [dashboardId]);
+  }, [dashboardId, isAuthorized]);
 
   if (loading) {
     return (
-      <AuthWrapper>
-        <div className="viewer-loading">
-          <div className="loading-spinner" />
-          <div className="loading-text">Loading dashboard...</div>
-        </div>
-      </AuthWrapper>
+      <div className="viewer-loading">
+        <div className="loading-spinner" />
+        <div className="loading-text">Loading dashboard...</div>
+      </div>
     );
   }
 
   if (error || !dashboard) {
     return (
-      <AuthWrapper>
-        <div className="viewer-error">
-          <div className="error-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </div>
-          <h1 className="error-title">Dashboard Not Found</h1>
-          <p className="error-message">The dashboard you're looking for doesn't exist or has been deleted.</p>
-          <a href="/dashboards" className="error-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            Back to All Dashboards
-          </a>
+      <div className="viewer-error">
+        <div className="error-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
         </div>
-      </AuthWrapper>
+        <h1 className="error-title">Access Denied / Not Found</h1>
+        <p className="error-message">You do not have permission to view this dashboard, or it does not exist.</p>
+        <a href="/dashboards" className="error-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back to All Dashboards
+        </a>
+      </div>
     );
   }
 
   return (
-    <AuthWrapper>
-      <DashboardViewer dashboard={dashboard} />
+    <DashboardViewer dashboard={dashboard} />
+  );
+};
+
+const DashboardViewerWrapper: React.FC<DashboardViewerWrapperProps> = (props) => {
+  return (
+    <AuthWrapper allowPublic={true}>
+      <DashboardViewerContent {...props} />
     </AuthWrapper>
   );
 };

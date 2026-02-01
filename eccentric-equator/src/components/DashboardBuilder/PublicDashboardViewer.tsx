@@ -1,0 +1,15 @@
+import React from 'react';
+import DashboardViewer from './DashboardViewer';
+import sampleData from '../../assets/sample-dashboard.json';
+
+const PublicDashboardViewer: React.FC = () => {
+  // Directly render the viewer with sample data, no AuthWrapper
+  // We pass publicMode={true} to adjust navigation and banners
+  return (
+    <div className="public-viewer-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <DashboardViewer dashboard={sampleData as any} publicMode={true} />
+    </div>
+  );
+};
+
+export default PublicDashboardViewer;

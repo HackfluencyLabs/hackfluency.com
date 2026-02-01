@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Login from './Login';
 import type { Session } from '@supabase/supabase-js';
+import { AuthProvider } from './AuthContext';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -9,13 +10,38 @@ interface AuthWrapperProps {
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
+  const [authorizedDashboards, setAuthorizedDashboards] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [authChecking, setAuthChecking] = useState(false);
+
+  const isDev = import.meta.env.DEV;
 
   useEffect(() => {
+    if (isDev) {
+      console.log('Dev mode detected: Bypassing authentication');
+      setSession({
+        access_token: 'mock-token',
+        refresh_token: 'mock-refresh-token',
+        expires_in: 3600,
+        token_type: 'bearer',
+        user: {
+          id: 'dev-user',
+          aud: 'authenticated',
+          role: 'authenticated',
+          email: 'dev@example.com',
+          app_metadata: { provider: 'email' },
+          user_metadata: {},
+          created_at: new Date().toISOString(),
+        }
+      } as Session);
+      setLoading(false);
+      return;
+    }
+
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+      if (!session) setLoading(false);
     });
 
     // Listen for changes
@@ -23,9 +49,9 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setLoading(false);
+      if (!session) setLoading(false);
 
-      // Clean URL hash if we have a session (removes access_token from URL)
+      // Clean URL hash if we have a session
       if (session && window.location.hash && window.location.hash.includes('access_token')) {
         window.history.replaceState(
           null, 
@@ -36,10 +62,51 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isDev]);
 
-  if (loading) {
-    // Use the existing loading style from the app if possible, or a simple centered spinner
+  // Fetch authorized dashboards when session is active
+  useEffect(() => {
+    if (isDev) return;
+
+    const fetchAuthorizations = async () => {
+      if (!session) {
+        setAuthorizedDashboards(new Set());
+        return;
+      }
+
+      setAuthChecking(true);
+      try {
+        const { data, error } = await supabase
+          .from('dashboard_access')
+          .select('dashboard_id');
+        
+        if (error) {
+          console.error('Error fetching authorizations:', error);
+          setAuthorizedDashboards(new Set());
+        } else {
+          const authorizedIds = new Set(data.map(row => row.dashboard_id));
+          setAuthorizedDashboards(authorizedIds);
+        }
+      } catch (err) {
+        console.error('Authorization fetch failed:', err);
+        setAuthorizedDashboards(new Set());
+      } finally {
+        setAuthChecking(false);
+        setLoading(false);
+      }
+    };
+
+    if (session) {
+      fetchAuthorizations();
+    }
+  }, [session, isDev]);
+
+  const isAuthorized = (dashboardId: string) => {
+    if (isDev) return true;
+    return authorizedDashboards.has(dashboardId);
+  };
+
+  if (loading || authChecking) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -70,7 +137,11 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     return <Login />;
   }
 
-  return <>{children}</>;
+  return (
+    <AuthProvider value={{ session, authorizedDashboards, isAuthorized, loading }}>
+      {children}
+    </AuthProvider>
+  );
 };
 
 export default AuthWrapper;

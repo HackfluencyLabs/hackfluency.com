@@ -429,7 +429,7 @@ const SuccessToast: React.FC<{
 }> = ({ dashboard, onClose }) => {
   if (!dashboard) return null;
 
-  const viewUrl = `/dashboards/${dashboard.id}`;
+  const viewUrl = `/dashboards/view?id=${dashboard.id}`;
   
   return (
     <div className="toast-container">
@@ -739,6 +739,8 @@ const DashboardBuilder: React.FC = () => {
     }
   }, [setNodes, setEdges]);
 
+  const isDev = import.meta.env.DEV;
+
   const exportData = useCallback(() => {
     const data = { nodes, edges };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -746,6 +748,29 @@ const DashboardBuilder: React.FC = () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'strategy-dashboard.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [nodes, edges]);
+
+  const exportSampleJSON = useCallback(() => {
+    const now = new Date().toISOString();
+    const data: SavedDashboard = {
+      id: 'sample-dashboard',
+      name: 'Sample Strategy Dashboard',
+      description: 'A demonstration of the cybersecurity strategy mapping tool.',
+      nodes: nodes as Node<StrategyNodeData>[],
+      edges,
+      createdAt: now,
+      updatedAt: now,
+      publishedAt: now,
+      version: 1,
+      status: 'published',
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample-dashboard.json';
     a.click();
     URL.revokeObjectURL(url);
   }, [nodes, edges]);
@@ -819,6 +844,16 @@ const DashboardBuilder: React.FC = () => {
               <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
           </button>
+          {isDev && (
+            <button className="nav-btn" onClick={exportSampleJSON} title="Export as Sample JSON (Dev Only)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </button>
+          )}
           <a href="/dashboards" className="nav-btn" title="View All Dashboards">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="7" height="7" rx="1"/>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AuthWrapper } from '../Auth';
+import { useAuth } from '../Auth/AuthContext';
 import './list-styles.css';
 import type { SavedDashboard } from './dashboardStorage';
 import {
@@ -12,10 +13,12 @@ import {
 
 type ViewMode = 'active' | 'archived';
 
-const DashboardList: React.FC = () => {
+const DashboardListContent: React.FC = () => {
   const [dashboards, setDashboards] = useState<SavedDashboard[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('active');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const { isAuthorized } = useAuth();
+  const isDev = import.meta.env.DEV;
 
   const loadDashboards = useCallback(() => {
     const all = getAllDashboards();
@@ -26,9 +29,11 @@ const DashboardList: React.FC = () => {
     loadDashboards();
   }, [loadDashboards]);
 
-  const filteredDashboards = dashboards.filter((d) =>
-    viewMode === 'archived' ? d.status === 'archived' : d.status !== 'archived'
-  );
+  const filteredDashboards = dashboards.filter((d) => {
+    const isStatusMatch = viewMode === 'archived' ? d.status === 'archived' : d.status !== 'archived';
+    const authorized = isAuthorized(d.id);
+    return isStatusMatch && authorized;
+  });
 
   const handleArchive = (id: string) => {
     archiveDashboard(id);
@@ -47,7 +52,6 @@ const DashboardList: React.FC = () => {
       loadDashboards();
     } else {
       setDeleteConfirm(id);
-      // Auto-reset after 3 seconds
       setTimeout(() => setDeleteConfirm(null), 3000);
     }
   };
@@ -58,7 +62,9 @@ const DashboardList: React.FC = () => {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Recently';
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -75,7 +81,6 @@ const DashboardList: React.FC = () => {
   };
 
   return (
-    <AuthWrapper>
       <div className="dashboard-list-page">
         {/* Navigation */}
       <nav className="list-nav">
@@ -126,7 +131,7 @@ const DashboardList: React.FC = () => {
               </svg>
               Active
               <span className="tab-count">
-                {dashboards.filter((d) => d.status !== 'archived').length}
+                {dashboards.filter((d) => d.status !== 'archived' && isAuthorized(d.id)).length}
               </span>
             </button>
             <button
@@ -138,7 +143,7 @@ const DashboardList: React.FC = () => {
               </svg>
               Archived
               <span className="tab-count">
-                {dashboards.filter((d) => d.status === 'archived').length}
+                {dashboards.filter((d) => d.status === 'archived' && isAuthorized(d.id)).length}
               </span>
             </button>
           </div>
@@ -160,12 +165,23 @@ const DashboardList: React.FC = () => {
                 </svg>
               )}
             </div>
-            <h3>{viewMode === 'archived' ? 'No archived dashboards' : 'No dashboards yet'}</h3>
+            <h3>{viewMode === 'archived' ? 'No archived dashboards' : 'No dashboards found'}</h3>
             <p>
               {viewMode === 'archived'
-                ? 'Archived dashboards will appear here'
-                : 'Create your first strategy dashboard to get started'}
+                ? 'Archived dashboards you have access to will appear here'
+                : 'You do not have access to any dashboards, or haven\'t created any yet.'}
             </p>
+            {isDev && (
+              <div style={{ marginTop: '24px', borderTop: '1px solid #1a1a1a', paddingTop: '24px' }}>
+                <p style={{ color: '#666', fontSize: '0.8rem', marginBottom: '12px' }}>Developer Tools:</p>
+                <a href="/dashboards/sample" className="nav-btn" style={{ background: '#1a1a1a', border: '1px solid #333' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+                  </svg>
+                  View Public Sample
+                </a>
+              </div>
+            )}
             {viewMode === 'active' && (
               <a href="/dashboard-builder" className="empty-cta">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -216,6 +232,9 @@ const DashboardList: React.FC = () => {
                   {dashboard.publishedAt && (
                     <span>Published: {formatDate(dashboard.publishedAt)}</span>
                   )}
+                  <span style={{ display: 'block', marginTop: '4px', fontSize: '0.7em', color: '#444', fontFamily: 'monospace' }}>
+                    ID: {dashboard.id}
+                  </span>
                 </div>
 
                   <div className="card-actions">
@@ -281,6 +300,13 @@ const DashboardList: React.FC = () => {
         )}
       </main>
       </div>
+  );
+};
+
+const DashboardList: React.FC = () => {
+  return (
+    <AuthWrapper>
+      <DashboardListContent />
     </AuthWrapper>
   );
 };
