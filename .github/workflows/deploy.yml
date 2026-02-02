@@ -45,6 +45,11 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
 
       - name: Build with Astro
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_MODE: ${{ secrets.PUBLIC_MODE }}
+          PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
         run: |
           npm run build
         working-directory: ${{ env.BUILD_PATH }}
