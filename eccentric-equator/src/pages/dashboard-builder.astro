@@ -1,4 +1,11 @@
 ---
+const mode = import.meta.env.PUBLIC_MODE || 'public';
+const isPublic = mode === 'public';
+
+if (isPublic) {
+  return Astro.redirect('/404');
+}
+
 import Layout from '../layouts/Layout.astro';
 import { DashboardBuilder } from '../components/DashboardBuilder';
 ---
@@ -8,7 +15,6 @@ import { DashboardBuilder } from '../components/DashboardBuilder';
 </Layout>
 
 <style is:global>
-  /* Override any body styles for full-screen builder */
   body {
     overflow: hidden;
   }
