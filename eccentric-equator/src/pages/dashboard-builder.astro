@@ -1,18 +1,52 @@
 ---
+import Layout from '../layouts/Layout.astro';
+
 const mode = import.meta.env.PUBLIC_MODE || 'public';
 const isPublic = mode === 'public';
-
-if (isPublic) {
-  return Astro.redirect('/404');
-}
-
-import Layout from '../layouts/Layout.astro';
-import { DashboardBuilder } from '../components/DashboardBuilder';
+const homeUrl = 'https://www.hackfluency.com';
 ---
 
-<Layout title="Strategy Dashboard Builder — Hackfluency" description="Design quarterly cybersecurity strategy dashboards with connected nodes.">
-  <DashboardBuilder client:only="react" />
+<Layout title={isPublic ? "404 — Page Not Found" : "Strategy Dashboard Builder — Hackfluency"} description={isPublic ? "This page is not available." : "Design quarterly cybersecurity strategy dashboards with connected nodes.">
+  <div id="builder-container"></div>
 </Layout>
+
+<script define:vars={{ isPublic, homeUrl }}>
+  const container = document.getElementById('builder-container');
+  if (!container) return;
+  
+  if (isPublic) {
+    // Public mode: show 404 message
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px;">
+        <h1 style="font-size: 4rem; margin-bottom: 1rem; color: #00D26A;">404</h1>
+        <p style="color: #6a6a6a; font-size: 1.1rem;">This feature is available for business partners only.</p>
+        <a href="${homeUrl}" style="margin-top: 2rem; padding: 12px 24px; background: #00D26A; color: #000; text-decoration: none; border-radius: 8px; font-weight: 600;">
+          Return Home
+        </a>
+      </div>
+    `;
+    window.location.replace(homeUrl);
+  } else {
+    // Dev mode: dynamically load the builder
+    import('../components/DashboardBuilder').then(({ DashboardBuilder }) => {
+      if (typeof window !== 'undefined') {
+        Promise.all([
+          import('react'),
+          import('react-dom/client')
+        ]).then(([{ createElement }, { createRoot }]) => {
+          const reactRoot = createRoot(container);
+          reactRoot.render(createElement(DashboardBuilder));
+        }).catch(err => {
+          console.error('Failed to load React:', err);
+          container.innerHTML = '<div style="padding: 40px; text-align: center; color: #ef4444;">Failed to load builder. Please try refreshing.</div>';
+        });
+      }
+    }).catch(err => {
+      console.error('Failed to load DashboardBuilder:', err);
+      container.innerHTML = '<div style="padding: 40px; text-align: center; color: #ef4444;">Builder component not available.</div>';
+    });
+  }
+</script>
 
 <style is:global>
   body {
