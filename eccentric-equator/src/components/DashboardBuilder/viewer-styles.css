@@ -366,7 +366,7 @@
   height: 3000px; /* Tall enough for vertical roadmap scrolling */
   display: flex;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
 .strategic-bg-column {
