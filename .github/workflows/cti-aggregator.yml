@@ -73,12 +73,18 @@ jobs:
         if: ${{ inputs.run_scrapers }}
         run: npx playwright install chromium --with-deps
 
+      - name: Setup X Cookies
+        if: ${{ inputs.run_scrapers }}
+        run: |
+          mkdir -p ./DATA
+          echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
+
       - name: Run Scrapers
         if: ${{ inputs.run_scrapers }}
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
-          X_COOKIES_PATH: ${{ github.workspace }}/DATA/x.com_13-02-2026.json
+          X_COOKIES_PATH: ${{ github.workspace }}/DATA/x-cookies.json
           USE_CACHE: ${{ inputs.use_cache }}
         run: npx tsx src/index.ts scrape
 

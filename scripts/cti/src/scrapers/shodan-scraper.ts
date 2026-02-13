@@ -13,8 +13,8 @@ import {
 } from '../types/index.js';
 
 // Query única optimizada - máximo valor con 1 request
-// Combina CVEs recientes + servicios expuestos críticos
-const CTI_QUERY = 'vuln:CVE-2024 vuln:CVE-2025';
+// Servicios expuestos y potencialmente vulnerables (funciona con cuenta gratuita)
+const CTI_QUERY = 'port:22,23,3389,445,139 country:US,CN,RU';
 
 interface ShodanAPIHost {
   ip_str: string;
