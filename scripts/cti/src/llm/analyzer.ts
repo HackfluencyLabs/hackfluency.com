@@ -88,25 +88,30 @@ export class LLMAnalyzer {
   }
 
   /**
-   * Prompt ultra-compacto para modelo pequeño
-   * ~200 tokens de entrada máximo
+   * Prompt for CTI analyst-style response
+   * ~200 tokens input maximum for small models
    */
   private buildCompactPrompt(d: NormalizedData): string {
     const threatList = d.topThreats
       .map(t => `[${t.sev}] ${t.cat}: ${t.title}`)
       .join('\n');
 
-    return `CTI Report. Answer JSON only.
-Stats: ${d.threatCount} threats, ${d.critical} critical, ${d.high} high
-Top category: ${d.topCategory}
-CVEs: ${d.cves.join(', ') || 'none'}
-IOCs: ${Object.entries(d.iocCounts).map(([k,v]) => `${k}:${v}`).join(', ')}
+    const sourceNote = d.sources.includes('x.com') ? 'Social signals detected. ' : '';
+    const techNote = d.sources.includes('shodan') ? 'Infrastructure exposure observed. ' : '';
 
-Threats:
+    return `You are a CTI analyst. Summarize threats professionally. JSON only.
+
+Intel: ${d.threatCount} signals, ${d.critical} critical, ${d.high} high severity
+Category: ${d.topCategory}
+CVEs: ${d.cves.join(', ') || 'none'}
+Indicators: ${Object.entries(d.iocCounts).map(([k,v]) => `${v} ${k}`).join(', ')}
+Context: ${sourceNote}${techNote}
+
+Signals:
 ${threatList}
 
-Output format:
-{"risk":"critical|high|medium|low","summary":"1 sentence","action":"1 priority action"}`;
+Respond:
+{"risk":"critical|high|medium|low","summary":"Professional 1-2 sentence assessment","action":"Priority recommendation"}`;
   }
 
   private async callOllama(prompt: string): Promise<string> {
@@ -200,13 +205,34 @@ Output format:
   }
 
   private defaultSummary(d: NormalizedData): string {
-    return `${d.threatCount} amenazas detectadas, ${d.critical} críticas. Foco: ${d.topCategory}.`;
+    const sourceContext = d.sources.length > 1 
+      ? 'Multi-source intelligence analysis' 
+      : d.sources[0] === 'x.com' ? 'Social intelligence monitoring' : 'Technical reconnaissance';
+    
+    if (d.critical > 0) {
+      return `${sourceContext} identified ${d.threatCount} threat signals with ${d.critical} critical severity items requiring immediate attention. Primary threat vector: ${this.formatCategory(d.topCategory)}.`;
+    }
+    if (d.high > 0) {
+      return `${sourceContext} detected ${d.threatCount} security signals. ${d.high} high-severity indicators warrant prioritized review. ${this.formatCategory(d.topCategory)} activity represents the dominant threat category.`;
+    }
+    return `${sourceContext} identified ${d.threatCount} signals at moderate priority levels. Continue monitoring for escalation indicators in ${this.formatCategory(d.topCategory)} activity.`;
   }
 
   private defaultAction(d: NormalizedData): string {
-    if (d.critical > 0) return 'Revisar amenazas críticas inmediatamente';
-    if (d.high > 0) return 'Priorizar amenazas de severidad alta';
-    return 'Monitorear indicadores detectados';
+    if (d.critical > 0) return 'Initiate incident response review for critical findings';
+    if (d.high > 0) return 'Prioritize vulnerability assessment for high-severity items';
+    if (d.cves.length > 0) return `Review CVE exposure: ${d.cves.slice(0, 3).join(', ')}`;
+    return 'Continue routine threat monitoring and intelligence collection';
+  }
+
+  private formatCategory(cat: string): string {
+    const map: Record<string, string> = {
+      malware: 'Malware', ransomware: 'Ransomware', phishing: 'Phishing',
+      ddos: 'DDoS', apt: 'APT', vulnerability: 'Vulnerability',
+      data_breach: 'Data Breach', supply_chain: 'Supply Chain',
+      infrastructure: 'Infrastructure', other: 'General'
+    };
+    return map[cat] || cat;
   }
 
   private buildResult(
@@ -216,21 +242,40 @@ Output format:
     action: string,
     model: string
   ): LLMAnalysisResult {
+    // Build additional context-aware recommendations
+    const recommendations = [action];
+    if (data.cves.length > 0) {
+      recommendations.push(`Monitor CVE developments: ${data.cves.slice(0, 3).join(', ')}`);
+    }
+    if (data.critical > 0 || data.high > 1) {
+      recommendations.push('Review security controls and access policies');
+    }
+
+    // Technical context
+    const techParts: string[] = [];
+    if (Object.keys(data.iocCounts).length > 0) {
+      techParts.push(`Indicators: ${Object.entries(data.iocCounts).map(([k,v]) => `${v} ${k}`).join(', ')}`);
+    }
+    if (data.cves.length > 0) {
+      techParts.push(`CVE References: ${data.cves.join(', ')}`);
+    }
+    techParts.push(`Sources: ${data.sources.map(s => s === 'x.com' ? 'Social Intelligence' : 'Technical Recon').join(', ')}`);
+
     return {
       insights: [{
         id: `insight_${Date.now()}`,
         type: 'trend',
-        title: 'Análisis CTI',
+        title: 'Threat Landscape Assessment',
         content: summary,
         confidence: model === 'ollama' ? 75 : 70,
         relatedThreats: []
       }],
       executiveSummary: summary,
-      technicalSummary: `IOCs: ${Object.entries(data.iocCounts).map(([k,v]) => `${v} ${k}`).join(', ')}. CVEs: ${data.cves.length}. Fuentes: ${data.sources.join(', ')}.`,
-      recommendations: [action],
+      technicalSummary: techParts.join('. ') + '.',
+      recommendations: recommendations.slice(0, 4),
       trendingTopics: [{
-        topic: data.topCategory,
-        growth: 0,
+        topic: this.formatCategory(data.topCategory),
+        growth: data.critical > 0 ? 25 : (data.high > 0 ? 10 : 0),
         relevance: 100
       }],
       analysisTimestamp: new Date().toISOString(),
@@ -242,9 +287,9 @@ Output format:
   private emptyResult(): LLMAnalysisResult {
     return {
       insights: [],
-      executiveSummary: 'Sin datos para analizar.',
-      technicalSummary: 'Ejecutar scrapers primero.',
-      recommendations: ['Ejecutar pipeline con scrapers habilitados'],
+      executiveSummary: 'No threat intelligence data available for analysis. Intelligence collection may be pending or sources temporarily unavailable.',
+      technicalSummary: 'Awaiting data from configured intelligence sources.',
+      recommendations: ['Verify intelligence source connectivity', 'Check scraper configuration and credentials'],
       trendingTopics: [],
       analysisTimestamp: new Date().toISOString(),
       model: 'none',
