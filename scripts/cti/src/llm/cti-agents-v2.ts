@@ -48,10 +48,11 @@ export interface CTIAnalysis {
   
   // Extracted from data (code-based)
   extraction: {
-    ips: Array<{ value: string; port: number; service: string; url: string }>;
-    cves: Array<{ id: string; severity: string; url: string }>;
+    ips: Array<{ value: string; port: number; service: string; url: string; timestamp?: string }>;
+    cves: Array<{ id: string; severity: string; url: string; firstSeen?: string }>;
     ttps: Array<{ id: string; name: string; tactic: string; evidence: string }>;
-    socialPosts: Array<{ author: string; text: string; url: string; engagement: number }>;
+    socialPosts: Array<{ author: string; text: string; url: string; engagement: number; timestamp: string }>;
+    timelineEvents: Array<{ timestamp: string; source: 'shodan' | 'x.com' | 'cve'; description: string }>;
   };
   
   // LLM-generated analysis
@@ -62,6 +63,21 @@ export interface CTIAnalysis {
     riskScore: number;
     recommendations: string[];
     killChainPhase: string;
+  };
+  
+  // Temporal correlation analysis (LLM-generated)
+  correlation: {
+    narrative: string;
+    pattern: 'infra-first' | 'social-first' | 'simultaneous' | 'isolated';
+    timeWindow: string;
+    keyCorrelations: Array<{
+      socialEvent: string;
+      infraEvent: string;
+      timeDelta: string;
+      significance: string;
+    }>;
+    emergingThreats: string[];
+    confidence: number;
   };
 }
 
@@ -92,19 +108,20 @@ export class CTIAgentSystem {
     const extraction = this.extractIndicators(processed, shodan, xData);
     console.log(`[CTI-Agents] Extracted: ${extraction.ips.length} IPs, ${extraction.cves.length} CVEs, ${extraction.ttps.length} TTPs`);
     
-    // STEP 2: Build concise context for LLM
-    const context = this.buildContext(extraction, processed);
-    console.log(`[CTI-Agents] Context: ${context.length} chars`);
+    // STEP 2: Build temporal context for LLM
+    const context = this.buildTemporalContext(extraction, processed, shodan, xData);
+    console.log(`[CTI-Agents] Temporal context: ${context.length} chars`);
     
-    // STEP 3: Single LLM call for narrative analysis
-    console.log('[CTI-Agents] Running LLM analysis...');
-    const llmAnalysis = await this.runLLMAnalysis(context);
+    // STEP 3: LLM call for narrative + temporal correlation analysis
+    console.log('[CTI-Agents] Running LLM analysis with temporal correlation...');
+    const { analysis: llmAnalysis, correlation } = await this.runLLMAnalysis(context);
     
     const result: CTIAnalysis = {
       timestamp: new Date().toISOString(),
       model: CTI_MODEL,
       extraction,
-      analysis: llmAnalysis
+      analysis: llmAnalysis,
+      correlation
     };
 
     await this.saveResult(result);
@@ -159,7 +176,7 @@ export class CTIAgentSystem {
       if (ports.has(445)) ttps.push({ ...MITRE_MAPPINGS['port 445'], evidence: 'SMB exposed on port 445' });
     }
     
-    // Extract from X.com posts
+    // Extract from X.com posts with timestamps
     if (xData?.posts) {
       const sortedPosts = [...xData.posts]
         .sort((a, b) => (b.metrics.likes + b.metrics.reposts) - (a.metrics.likes + a.metrics.reposts))
@@ -170,7 +187,8 @@ export class CTIAgentSystem {
           author: `@${post.author.username}`,
           text: post.text.substring(0, 200),
           url: post.id ? `https://x.com/${post.author.username}/status/${post.id}` : '',
-          engagement: post.metrics.likes + post.metrics.reposts
+          engagement: post.metrics.likes + post.metrics.reposts,
+          timestamp: post.timestamp
         });
         
         // Extract TTPs from post content
@@ -196,110 +214,232 @@ export class CTIAgentSystem {
       }
     }
     
-    return { ips, cves, ttps, socialPosts };
+    // Build unified timeline of events
+    const timelineEvents: CTIAnalysis['extraction']['timelineEvents'] = [];
+    
+    // Add social posts to timeline
+    for (const post of socialPosts) {
+      timelineEvents.push({
+        timestamp: post.timestamp,
+        source: 'x.com',
+        description: `${post.author}: ${post.text.substring(0, 80)}...`
+      });
+    }
+    
+    // Add infrastructure events
+    if (shodan?.hosts) {
+      const hostsByTime = [...shodan.hosts]
+        .filter(h => h.lastUpdate)
+        .sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime());
+      
+      for (const host of hostsByTime.slice(0, 5)) {
+        timelineEvents.push({
+          timestamp: host.lastUpdate,
+          source: 'shodan',
+          description: `Host ${host.ip}:${host.port} (${host.product || 'unknown service'}) - ${host.vulns?.length || 0} vulns`
+        });
+      }
+    }
+    
+    // Sort timeline chronologically
+    timelineEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    return { ips, cves, ttps, socialPosts, timelineEvents };
   }
 
   /**
-   * Build concise context for LLM (just the facts)
+   * Build temporal context for LLM with chronological timeline
    */
-  private buildContext(extraction: CTIAnalysis['extraction'], processed: ProcessedData | null): string {
+  private buildTemporalContext(
+    extraction: CTIAnalysis['extraction'], 
+    processed: ProcessedData | null,
+    shodan: ShodanScrapedData | null,
+    xData: XScrapedData | null
+  ): string {
     const lines: string[] = [];
+    const now = new Date();
     
-    lines.push('=== THREAT INTELLIGENCE SUMMARY ===');
-    lines.push(`Date: ${new Date().toISOString().split('T')[0]}`);
+    lines.push('=== CYBER THREAT INTELLIGENCE REPORT ===');
+    lines.push(`Analysis Date: ${now.toISOString()}`);
     lines.push('');
     
-    // Infrastructure findings
-    if (extraction.ips.length > 0) {
-      lines.push(`INFRASTRUCTURE: ${extraction.ips.length} exposed hosts detected`);
+    // === CHRONOLOGICAL TIMELINE (KEY FOR CORRELATION) ===
+    lines.push('=== CHRONOLOGICAL EVENT TIMELINE ===');
+    lines.push('(Analyze temporal relationships between events)');
+    lines.push('');
+    
+    if (extraction.timelineEvents.length > 0) {
+      for (const event of extraction.timelineEvents) {
+        const eventDate = new Date(event.timestamp);
+        const hoursAgo = Math.round((now.getTime() - eventDate.getTime()) / (1000 * 60 * 60));
+        const sourceTag = event.source === 'x.com' ? '[SOCIAL]' : '[INFRA]';
+        lines.push(`${eventDate.toISOString()} ${sourceTag} (${hoursAgo}h ago): ${event.description}`);
+      }
+    }
+    
+    // === INFRASTRUCTURE DATA WITH TIMESTAMPS ===
+    lines.push('');
+    lines.push('=== INFRASTRUCTURE EXPOSURE ===');
+    if (shodan?.hosts && shodan.hosts.length > 0) {
+      lines.push(`Total: ${shodan.hosts.length} hosts scanned`);
+      
+      // Group by timestamp windows
+      const recentHosts = shodan.hosts.filter(h => {
+        const hostDate = new Date(h.lastUpdate);
+        return (now.getTime() - hostDate.getTime()) < 24 * 60 * 60 * 1000; // Last 24h
+      });
+      lines.push(`Recent (24h): ${recentHosts.length} hosts`);
+      
+      // Port summary
       const portCounts: Record<number, number> = {};
-      extraction.ips.forEach(ip => portCounts[ip.port] = (portCounts[ip.port] || 0) + 1);
-      for (const [port, count] of Object.entries(portCounts).slice(0, 5)) {
+      shodan.hosts.forEach(h => portCounts[h.port] = (portCounts[h.port] || 0) + 1);
+      lines.push('Exposed ports:');
+      for (const [port, count] of Object.entries(portCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
         lines.push(`  - Port ${port}: ${count} hosts`);
       }
-    }
-    
-    // Vulnerabilities
-    if (extraction.cves.length > 0) {
-      lines.push(`\nVULNERABILITIES: ${extraction.cves.length} CVEs identified`);
-      for (const cve of extraction.cves.slice(0, 5)) {
-        lines.push(`  - ${cve.id} (${cve.severity})`);
+      
+      // Vulnerabilities with dates
+      const vulnCounts = new Map<string, number>();
+      shodan.hosts.forEach(h => h.vulns?.forEach(v => vulnCounts.set(v, (vulnCounts.get(v) || 0) + 1)));
+      if (vulnCounts.size > 0) {
+        lines.push('Vulnerabilities found:');
+        for (const [cve, count] of [...vulnCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+          lines.push(`  - ${cve}: ${count} hosts affected`);
+        }
       }
+    } else {
+      lines.push('No infrastructure data available');
     }
     
-    // TTPs
+    // === SOCIAL INTELLIGENCE WITH TIMESTAMPS ===
+    lines.push('');
+    lines.push('=== SOCIAL INTELLIGENCE (X.COM) ===');
+    if (xData?.posts && xData.posts.length > 0) {
+      lines.push(`Total: ${xData.posts.length} posts analyzed`);
+      
+      // Sort by time and show with timestamps
+      const sortedPosts = [...xData.posts]
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 8);
+      
+      lines.push('Recent discussions (sorted by time):');
+      for (const post of sortedPosts) {
+        const postDate = new Date(post.timestamp);
+        const hoursAgo = Math.round((now.getTime() - postDate.getTime()) / (1000 * 60 * 60));
+        lines.push(`  [${hoursAgo}h ago] @${post.author.username}: "${post.text.substring(0, 100)}..."`);
+        lines.push(`    Engagement: ${post.metrics.likes} likes, ${post.metrics.reposts} reposts`);
+      }
+      
+      // Trending topics
+      const topics = new Map<string, number>();
+      xData.posts.forEach(p => p.hashtags.forEach(h => topics.set(h, (topics.get(h) || 0) + 1)));
+      if (topics.size > 0) {
+        lines.push('Trending topics:');
+        for (const [topic, count] of [...topics.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+          lines.push(`  - #${topic}: ${count} mentions`);
+        }
+      }
+    } else {
+      lines.push('No social data available');
+    }
+    
+    // === MITRE TECHNIQUES ===
     if (extraction.ttps.length > 0) {
-      lines.push(`\nTECHNIQUES (MITRE ATT&CK):`);
+      lines.push('');
+      lines.push('=== MITRE ATT&CK TECHNIQUES ===');
       for (const ttp of extraction.ttps) {
         lines.push(`  - ${ttp.id}: ${ttp.name} (${ttp.tactic})`);
+        lines.push(`    Evidence: ${ttp.evidence}`);
       }
     }
     
-    // Social intel
-    if (extraction.socialPosts.length > 0) {
-      lines.push(`\nSOCIAL INTELLIGENCE: ${extraction.socialPosts.length} relevant posts`);
-      for (const post of extraction.socialPosts.slice(0, 3)) {
-        lines.push(`  - ${post.author}: "${post.text.substring(0, 100)}..."`);
-      }
-    }
-    
-    // Threat summary
+    // === THREAT SUMMARY ===
     if (processed?.summary) {
-      lines.push(`\nTHREAT COUNTS: ${processed.summary.totalThreats} total`);
+      lines.push('');
+      lines.push('=== THREAT SUMMARY ===');
+      lines.push(`Total threats: ${processed.summary.totalThreats}`);
       lines.push(`  Critical: ${processed.summary.bySeverity?.critical || 0}`);
       lines.push(`  High: ${processed.summary.bySeverity?.high || 0}`);
       lines.push(`  Medium: ${processed.summary.bySeverity?.medium || 0}`);
+      lines.push(`  Low: ${processed.summary.bySeverity?.low || 0}`);
     }
     
     return lines.join('\n');
   }
 
   /**
-   * Single LLM call for narrative analysis
+   * LLM analysis with temporal correlation
    */
-  private async runLLMAnalysis(context: string): Promise<CTIAnalysis['analysis']> {
-    const prompt = `You are a cybersecurity analyst. Analyze this threat intelligence and provide a brief assessment.
+  private async runLLMAnalysis(context: string): Promise<{ analysis: CTIAnalysis['analysis']; correlation: CTIAnalysis['correlation'] }> {
+    const prompt = `You are a senior threat intelligence analyst specializing in temporal correlation analysis.
 
 ${context}
 
-Write a SHORT analysis (max 500 words) with these sections:
+Analyze this intelligence data and produce a comprehensive assessment. Pay special attention to TEMPORAL CORRELATIONS between social media discussions and infrastructure exposure.
 
-SUMMARY: One paragraph overview of the threat landscape.
+Write your analysis with these sections:
 
-KEY FINDINGS: List 3-5 bullet points of the most important findings.
+SUMMARY: Overview of the current threat landscape (2-3 sentences).
 
-RISK LEVEL: State if risk is CRITICAL, HIGH, MEDIUM, or LOW with a score 0-100.
+KEY FINDINGS: 3-5 bullet points of most critical findings.
 
-RECOMMENDATIONS: List 3-5 actionable security recommendations.
+TEMPORAL CORRELATION ANALYSIS:
+Analyze the relationship between social media discussions and infrastructure findings:
+- Did social discussions precede infrastructure exposure? Or vice versa?
+- What is the time window between related events?
+- Are there CVEs being discussed on social media that match infrastructure vulnerabilities?
+- Which events appear causally related vs coincidental?
 
-Be concise and factual. Base analysis only on the data provided.`;
+CORRELATION PATTERN: State one of: INFRA-FIRST (infrastructure exposure preceded social discussion), SOCIAL-FIRST (social discussion preceded infrastructure findings), SIMULTANEOUS (events occurred together), or ISOLATED (no clear correlation).
+
+KEY CORRELATIONS: List specific correlations found:
+- Social event: [what was discussed]
+- Infra event: [what was found]  
+- Time delta: [hours/days between]
+- Significance: [why this matters]
+
+EMERGING THREATS: List 2-3 threats that appear to be developing based on temporal patterns.
+
+RISK LEVEL: CRITICAL/HIGH/MEDIUM/LOW with score 0-100.
+
+RECOMMENDATIONS: 3-5 prioritized actions based on temporal urgency.
+
+Be specific about timestamps and temporal relationships. Correlation analysis is the primary objective.`;
 
     try {
       const response = await this.callOllama(prompt);
-      return this.parseTextResponse(response);
+      return this.parseTemporalResponse(response);
     } catch (err) {
       console.error('[CTI-Agents] LLM analysis failed:', err);
-      return this.fallbackAnalysis(context);
+      return {
+        analysis: this.fallbackAnalysis(context),
+        correlation: this.fallbackCorrelation()
+      };
     }
   }
 
   /**
-   * Parse text response into structured sections
+   * Parse LLM response including temporal correlation
    */
-  private parseTextResponse(text: string): CTIAnalysis['analysis'] {
-    // Extract sections by headers
-    const summaryMatch = text.match(/SUMMARY[:\s]*([^]*?)(?=KEY FINDINGS|RISK|$)/i);
-    const findingsMatch = text.match(/KEY FINDINGS[:\s]*([^]*?)(?=RISK|RECOMMENDATIONS|$)/i);
-    const riskMatch = text.match(/RISK[:\s]*([^]*?)(?=RECOMMENDATIONS|$)/i);
+  private parseTemporalResponse(text: string): { analysis: CTIAnalysis['analysis']; correlation: CTIAnalysis['correlation'] } {
+    // Parse standard analysis sections
+    const summaryMatch = text.match(/SUMMARY[:\s]*([^]*?)(?=KEY FINDINGS|TEMPORAL|$)/i);
+    const findingsMatch = text.match(/KEY FINDINGS[:\s]*([^]*?)(?=TEMPORAL|RISK|RECOMMENDATIONS|$)/i);
+    const riskMatch = text.match(/RISK\s*LEVEL[:\s]*([^]*?)(?=RECOMMENDATIONS|$)/i);
     const recsMatch = text.match(/RECOMMENDATIONS[:\s]*([^]*?)$/i);
     
-    // Parse bullet points
+    // Parse temporal correlation sections
+    const correlationMatch = text.match(/TEMPORAL CORRELATION[^:]*:[:\s]*([^]*?)(?=CORRELATION PATTERN|KEY CORRELATIONS|$)/i);
+    const patternMatch = text.match(/CORRELATION PATTERN[:\s]*([^]*?)(?=KEY CORRELATIONS|EMERGING|$)/i);
+    const keyCorrelationsMatch = text.match(/KEY CORRELATIONS[:\s]*([^]*?)(?=EMERGING|RISK|$)/i);
+    const emergingMatch = text.match(/EMERGING THREATS[:\s]*([^]*?)(?=RISK|$)/i);
+    
     const parseBullets = (text: string): string[] => {
       const bullets = text.match(/[-•*]\s*(.+)/g) || [];
       return bullets.map(b => b.replace(/^[-•*]\s*/, '').trim()).filter(b => b.length > 0);
     };
     
-    // Parse risk level
+    // Parse risk
     let riskLevel: 'critical' | 'high' | 'medium' | 'low' = 'medium';
     let riskScore = 50;
     if (riskMatch) {
@@ -307,27 +447,80 @@ Be concise and factual. Base analysis only on the data provided.`;
       if (riskText.includes('critical')) { riskLevel = 'critical'; riskScore = 85; }
       else if (riskText.includes('high')) { riskLevel = 'high'; riskScore = 70; }
       else if (riskText.includes('low')) { riskLevel = 'low'; riskScore = 25; }
-      
-      // Try to extract score
       const scoreMatch = riskText.match(/(\d+)/);
       if (scoreMatch) riskScore = Math.min(100, Math.max(0, parseInt(scoreMatch[1])));
     }
     
-    // Determine kill chain phase from content
+    // Parse correlation pattern
+    let pattern: 'infra-first' | 'social-first' | 'simultaneous' | 'isolated' = 'isolated';
+    if (patternMatch) {
+      const patternText = patternMatch[1].toLowerCase();
+      if (patternText.includes('infra-first') || patternText.includes('infrastructure first')) pattern = 'infra-first';
+      else if (patternText.includes('social-first') || patternText.includes('social first')) pattern = 'social-first';
+      else if (patternText.includes('simultaneous')) pattern = 'simultaneous';
+    }
+    
+    // Parse key correlations
+    const keyCorrelations: CTIAnalysis['correlation']['keyCorrelations'] = [];
+    if (keyCorrelationsMatch) {
+      const corrText = keyCorrelationsMatch[1];
+      // Try to extract structured correlations
+      const socialMatches = corrText.match(/social\s*event[:\s]*([^\n]+)/gi) || [];
+      const infraMatches = corrText.match(/infra\s*event[:\s]*([^\n]+)/gi) || [];
+      const deltaMatches = corrText.match(/time\s*delta[:\s]*([^\n]+)/gi) || [];
+      const sigMatches = corrText.match(/significance[:\s]*([^\n]+)/gi) || [];
+      
+      for (let i = 0; i < Math.min(socialMatches.length, infraMatches.length); i++) {
+        keyCorrelations.push({
+          socialEvent: socialMatches[i]?.replace(/social\s*event[:\s]*/i, '').trim() || '',
+          infraEvent: infraMatches[i]?.replace(/infra\s*event[:\s]*/i, '').trim() || '',
+          timeDelta: deltaMatches[i]?.replace(/time\s*delta[:\s]*/i, '').trim() || 'Unknown',
+          significance: sigMatches[i]?.replace(/significance[:\s]*/i, '').trim() || 'Requires investigation'
+        });
+      }
+    }
+    
+    // Kill chain phase
     const allText = text.toLowerCase();
     let killChainPhase = 'Reconnaissance';
     if (allText.includes('exploit') || allText.includes('vulnerab')) killChainPhase = 'Exploitation';
     else if (allText.includes('malware') || allText.includes('payload')) killChainPhase = 'Delivery';
     else if (allText.includes('c2') || allText.includes('command')) killChainPhase = 'Command & Control';
-    else if (allText.includes('exfil') || allText.includes('data theft')) killChainPhase = 'Actions on Objectives';
     
     return {
-      summary: (summaryMatch?.[1] || 'Analysis completed based on available data.').trim(),
-      keyFindings: parseBullets(findingsMatch?.[1] || ''),
-      riskLevel,
-      riskScore,
-      recommendations: parseBullets(recsMatch?.[1] || ''),
-      killChainPhase
+      analysis: {
+        summary: (summaryMatch?.[1] || 'Analysis completed.').trim(),
+        keyFindings: parseBullets(findingsMatch?.[1] || ''),
+        riskLevel,
+        riskScore,
+        recommendations: parseBullets(recsMatch?.[1] || ''),
+        killChainPhase
+      },
+      correlation: {
+        narrative: (correlationMatch?.[1] || '').trim(),
+        pattern,
+        timeWindow: this.extractTimeWindow(text),
+        keyCorrelations,
+        emergingThreats: parseBullets(emergingMatch?.[1] || ''),
+        confidence: keyCorrelations.length > 0 ? 75 : 40
+      }
+    };
+  }
+
+  private extractTimeWindow(text: string): string {
+    const windowMatch = text.match(/(\d+)\s*(hour|day|week)s?\s*(window|period|timeframe)/i);
+    if (windowMatch) return `${windowMatch[1]} ${windowMatch[2]}(s)`;
+    return '24-48 hours';
+  }
+
+  private fallbackCorrelation(): CTIAnalysis['correlation'] {
+    return {
+      narrative: 'Insufficient data for detailed temporal correlation analysis.',
+      pattern: 'isolated',
+      timeWindow: 'Unknown',
+      keyCorrelations: [],
+      emergingThreats: [],
+      confidence: 20
     };
   }
 

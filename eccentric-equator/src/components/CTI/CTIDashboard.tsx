@@ -561,10 +561,10 @@ const InfrastructurePanel: React.FC<{ infrastructure: NonNullable<DashboardData[
           </div>
         )}
         
-        {/* Sample Vulnerable Hosts */}
+        {/* Vulnerable Hosts Detected */}
         {infrastructure.sampleHosts.length > 0 && (
           <div className="cti-infra-samples">
-            <h4>Sample Vulnerable Hosts</h4>
+            <h4>Vulnerable Hosts Detected</h4>
             <div className="cti-sample-list">
               {infrastructure.sampleHosts.map((host, i) => (
                 <div key={i} className="cti-sample-host">
@@ -790,7 +790,7 @@ const CorrelationPanel: React.FC<{ correlation: CorrelationData }> = ({ correlat
  * CTI Analysis Panel - Multi-agent analysis with TTPs, MITRE mapping, and evidence
  */
 const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnalysis']> }> = ({ analysis }) => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['findings', 'ttps']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['findings', 'ttps', 'patterns', 'cross']));
 
   const toggleSection = (section: string) => {
     const newSet = new Set(expandedSections);

@@ -306,7 +306,7 @@ export class DashboardGenerator {
   }
 
   /**
-   * Build CTI analysis section from analysis system v2
+   * Build CTI analysis section from analysis system v2 with temporal correlation
    */
   private buildCTIAnalysisSection(ctiAnalysis?: CTIAnalysis | null): PublicDashboard['ctiAnalysis'] | undefined {
     if (!ctiAnalysis) return undefined;
@@ -317,6 +317,75 @@ export class DashboardGenerator {
       const techniques = tacticMap.get(ttp.tactic) || [];
       techniques.push(`${ttp.id}: ${ttp.name}`);
       tacticMap.set(ttp.tactic, techniques);
+    }
+
+    // Build temporal patterns from correlation analysis
+    type TemporalPattern = {
+      pattern: string;
+      description: string;
+      timeframe: string;
+      confidence: number;
+      evidence: Array<{ source: string; excerpt: string; url: string }>;
+    };
+    const temporalPatterns: TemporalPattern[] = [];
+    if (ctiAnalysis.correlation) {
+      // Add main correlation narrative as pattern
+      if (ctiAnalysis.correlation.narrative) {
+        temporalPatterns.push({
+          pattern: `${ctiAnalysis.correlation.pattern.toUpperCase()} correlation detected`,
+          description: ctiAnalysis.correlation.narrative,
+          timeframe: ctiAnalysis.correlation.timeWindow,
+          confidence: ctiAnalysis.correlation.confidence / 100,
+          evidence: ctiAnalysis.extraction.timelineEvents?.slice(0, 3).map(e => ({
+            source: e.source === 'x.com' ? 'X.com' : 'Shodan',
+            excerpt: e.description,
+            url: ''
+          })) || []
+        });
+      }
+      
+      // Add emerging threats as patterns
+      for (const threat of ctiAnalysis.correlation.emergingThreats || []) {
+        temporalPatterns.push({
+          pattern: 'Emerging Threat',
+          description: threat,
+          timeframe: 'Active',
+          confidence: 0.7,
+          evidence: []
+        });
+      }
+    }
+
+    // Build cross-source links from correlation
+    type CrossSourceLink = {
+      infraSignal: string;
+      socialSignal: string;
+      relationship: string;
+      timeDelta: string;
+      significance: string;
+    };
+    const crossSourceLinks: CrossSourceLink[] = [];
+    if (ctiAnalysis.correlation?.keyCorrelations) {
+      for (const corr of ctiAnalysis.correlation.keyCorrelations) {
+        crossSourceLinks.push({
+          infraSignal: corr.infraEvent,
+          socialSignal: corr.socialEvent,
+          relationship: ctiAnalysis.correlation.pattern,
+          timeDelta: corr.timeDelta,
+          significance: corr.significance
+        });
+      }
+    }
+    
+    // Fallback if no correlations found
+    if (crossSourceLinks.length === 0 && ctiAnalysis.extraction.socialPosts.length > 0) {
+      crossSourceLinks.push(...ctiAnalysis.extraction.socialPosts.slice(0, 3).map(p => ({
+        infraSignal: ctiAnalysis.extraction.ips[0]?.service || 'Network exposure',
+        socialSignal: `${p.author}: ${p.text.substring(0, 50)}...`,
+        relationship: 'Concurrent activity',
+        timeDelta: 'Within analysis window',
+        significance: 'Temporal proximity detected'
+      })));
     }
 
     // Transform v2 structure to dashboard format
@@ -342,14 +411,8 @@ export class DashboardGenerator {
         evidence: t.evidence,
         confidence: 0.8
       })),
-      temporalPatterns: [],
-      crossSourceLinks: ctiAnalysis.extraction.socialPosts.slice(0, 3).map(p => ({
-        infraSignal: ctiAnalysis.extraction.ips[0]?.service || 'Network exposure',
-        socialSignal: `${p.author}: ${p.text.substring(0, 50)}...`,
-        relationship: 'Concurrent activity',
-        timeDelta: 'Within 24h',
-        significance: 'Potential correlation between infrastructure and social signals'
-      })),
+      temporalPatterns,
+      crossSourceLinks,
       immediateActions: ctiAnalysis.analysis.recommendations.slice(0, 3),
       strategicRecommendations: ctiAnalysis.analysis.recommendations.slice(3),
       sourcesAndReferences: [

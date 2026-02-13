@@ -104,6 +104,19 @@ const SEVERITY_KEYWORDS: Record<ThreatSeverity, string[]> = {
   [ThreatSeverity.INFO]: ['info', 'informational', 'fyi', 'awareness']
 };
 
+// Patterns to detect spam/noise posts that should be filtered out
+const SPAM_PATTERNS = [
+  /quiz\s*time/i,                    // Quiz posts
+  /what\s+is\s+.*\?\s*[A-D]\)/i,     // Multiple choice questions
+  /^\d+[A-Za-z]+\s+\w+\d+/i,         // Spam patterns like "18Lv PUC465th"
+  /fusion\s*mix/i,                   // Music/playlist spam
+  /one-day\s*fusion/i,               // Music titles
+  /🎵|🎧|🎤|🎶/,                     // Music emojis
+  /\(one-day\)/i,                    // Music terminology
+  /\bfree\s+download\b/i,            // Promotional spam
+  /\bwin\s+\$?\d+/i,                 // Giveaway spam
+];
+
 // ==================== DATA PROCESSOR CLASS ====================
 
 export class DataProcessor {
