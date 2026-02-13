@@ -179,6 +179,7 @@ export interface ProcessedThreat {
 export interface ProcessedData {
   threats: ProcessedThreat[];
   indicators: ThreatIndicator[];
+  correlation: CorrelatedData;
   summary: {
     totalThreats: number;
     bySeverity: Record<ThreatSeverity, number>;
@@ -253,6 +254,52 @@ export interface CTIDashboard {
     cacheHits: number;
     processingTimeMs: number;
   };
+}
+
+// ==================== Correlation Types ====================
+
+/**
+ * Señales correlacionables entre fuentes
+ * No dependemos de CVEs - usamos puertos, servicios, keywords
+ */
+export interface CorrelationSignal {
+  id: string;
+  type: 'port' | 'service' | 'keyword' | 'protocol' | 'country';
+  value: string;
+  label: string; // Human readable: "SSH", "RDP", "ransomware"
+  sources: Array<{
+    source: DataSource;
+    count: number;
+    firstSeen: string;
+    lastSeen: string;
+    sampleData?: string[]; // IPs, posts excerpts, etc
+  }>;
+  temporalAnalysis?: {
+    infraPrecedesSocial: boolean;
+    timeDeltaHours: number;
+    pattern: 'scanning' | 'exploitation' | 'discussion' | 'unknown';
+  };
+}
+
+export interface TemporalCorrelation {
+  signal: string;
+  infraTimestamp: string | null;
+  socialTimestamp: string | null;
+  deltahours: number | null;
+  interpretation: string;
+}
+
+export interface CorrelatedData {
+  signals: CorrelationSignal[];
+  temporalCorrelations: TemporalCorrelation[];
+  summary: {
+    totalSignals: number;
+    infraOnlySignals: number;
+    socialOnlySignals: number;
+    correlatedSignals: number;
+    avgTimeDelta: number | null;
+  };
+  dominantPattern: 'infra-first' | 'social-first' | 'simultaneous' | 'insufficient-data';
 }
 
 // ==================== Scraper Configuration ====================

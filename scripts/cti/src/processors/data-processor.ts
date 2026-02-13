@@ -1,6 +1,7 @@
 /**
  * Data Processor - Pre-procesa y normaliza datos de todas las fuentes
  * Extrae indicadores, categoriza amenazas y prepara datos para el LLM
+ * Implementa correlación temporal cross-source (infraestructura vs social)
  */
 
 import * as fs from 'fs/promises';
@@ -16,7 +17,10 @@ import {
   XPost,
   ShodanScrapedData,
   ShodanHost,
-  ShodanExploit
+  ShodanExploit,
+  CorrelationSignal,
+  CorrelatedData,
+  TemporalCorrelation
 } from '../types/index.js';
 
 // Patrones para extracción de IOCs (Indicators of Compromise)
@@ -31,23 +35,49 @@ const IOC_PATTERNS = {
 
 // Patrones para normalizar texto scrapeado
 const TEXT_CLEANUP_PATTERNS = {
-  // Emojis y símbolos especiales
   emojis: /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}]/gu,
-  // URLs largas (mantener solo dominio)
   longUrls: /https?:\/\/([^\s\/]+)[^\s]*/g,
-  // Menciones de Twitter
   mentions: /@[\w]+/g,
-  // Hashtags duplicados o excesivos (mantener primeros 3)
   hashtags: /#[\w]+/g,
-  // Múltiples espacios o líneas
   multipleSpaces: /\s{2,}/g,
-  // Caracteres de control
   controlChars: /[\x00-\x1F\x7F]/g,
-  // RT prefix
   rtPrefix: /^RT\s+/i,
-  // Thread markers
   threadMarkers: /\(\d+\/\d+\)|\d+\/\d+|🧵/g
 };
+
+// ==================== CORRELATION MAPPINGS ====================
+
+/**
+ * Mapeo de puertos a señales correlacionables
+ * Estos servicios son comúnmente discutidos en social cuando hay scanning/exploitation
+ */
+const PORT_TO_SIGNAL: Record<number, { id: string; label: string; keywords: string[] }> = {
+  22: { id: 'ssh', label: 'SSH', keywords: ['ssh', 'openssh', 'secure shell', 'ssh brute', 'ssh scan'] },
+  23: { id: 'telnet', label: 'Telnet', keywords: ['telnet', 'telnet scan'] },
+  25: { id: 'smtp', label: 'SMTP', keywords: ['smtp', 'mail server', 'email server'] },
+  80: { id: 'http', label: 'HTTP', keywords: ['http', 'web server', 'apache', 'nginx'] },
+  443: { id: 'https', label: 'HTTPS', keywords: ['https', 'ssl', 'tls', 'certificate'] },
+  445: { id: 'smb', label: 'SMB', keywords: ['smb', 'samba', 'windows share', 'eternalblue', 'wannacry'] },
+  1433: { id: 'mssql', label: 'MSSQL', keywords: ['mssql', 'sql server', 'microsoft sql'] },
+  3306: { id: 'mysql', label: 'MySQL', keywords: ['mysql', 'mariadb', 'database'] },
+  3389: { id: 'rdp', label: 'RDP', keywords: ['rdp', 'remote desktop', 'bluekeep', 'windows rdp'] },
+  5432: { id: 'postgres', label: 'PostgreSQL', keywords: ['postgres', 'postgresql', 'pgsql'] },
+  5900: { id: 'vnc', label: 'VNC', keywords: ['vnc', 'remote access', 'vnc scan'] },
+  6379: { id: 'redis', label: 'Redis', keywords: ['redis', 'redis scan', 'redis exposed'] },
+  8080: { id: 'http-alt', label: 'HTTP-Alt', keywords: ['proxy', 'http proxy', 'web proxy'] },
+  27017: { id: 'mongodb', label: 'MongoDB', keywords: ['mongodb', 'mongo', 'nosql'] }
+};
+
+/**
+ * Keywords de amenazas que pueden aparecer en social y correlacionarse con infra
+ */
+const THREAT_SIGNALS: Array<{ id: string; label: string; keywords: string[] }> = [
+  { id: 'scanning', label: 'Scanning Activity', keywords: ['scan', 'scanning', 'port scan', 'mass scan', 'shodan'] },
+  { id: 'bruteforce', label: 'Brute Force', keywords: ['brute force', 'brute-force', 'password spray', 'credential stuffing'] },
+  { id: 'ransomware', label: 'Ransomware', keywords: ['ransomware', 'ransom', 'lockbit', 'blackcat', 'encrypt'] },
+  { id: 'botnet', label: 'Botnet', keywords: ['botnet', 'mirai', 'ddos', 'zombie', 'c2'] },
+  { id: 'exploit', label: 'Exploitation', keywords: ['exploit', 'rce', 'remote code', 'zero-day', '0day'] }
+];
 
 // Keywords para categorización de amenazas
 const THREAT_KEYWORDS: Record<ThreatCategory, string[]> = {
@@ -73,10 +103,18 @@ const SEVERITY_KEYWORDS: Record<ThreatSeverity, string[]> = {
   [ThreatSeverity.INFO]: ['info', 'informational', 'fyi', 'awareness']
 };
 
+// ==================== DATA PROCESSOR CLASS ====================
+
 export class DataProcessor {
   private outputDir: string;
   private indicators: Map<string, ThreatIndicator> = new Map();
   private threats: ProcessedThreat[] = [];
+  
+  // Correlation tracking
+  private signalTracker: Map<string, {
+    infraData: { count: number; firstSeen: string; lastSeen: string; samples: string[] };
+    socialData: { count: number; firstSeen: string; lastSeen: string; samples: string[] };
+  }> = new Map();
 
   constructor() {
     this.outputDir = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
@@ -84,32 +122,278 @@ export class DataProcessor {
 
   /**
    * Procesa todos los datos de las fuentes disponibles
+   * Implementa correlación temporal cross-source
    */
   async process(): Promise<ProcessedData> {
-    console.log('[DataProcessor] Starting data processing...');
+    console.log('[DataProcessor] Starting data processing with correlation...');
 
     // Cargar datos de cada fuente
     const xData = await this.loadSourceData<XScrapedData>('x-data.json');
     const shodanData = await this.loadSourceData<ShodanScrapedData>('shodan-data.json');
 
-    // Procesar cada fuente
-    if (xData) {
-      await this.processXData(xData);
-    }
-
+    // Procesar infraestructura primero (Shodan) para extraer señales
     if (shodanData) {
       await this.processShodanData(shodanData);
+      this.extractInfraSignals(shodanData);
     }
 
+    // Procesar social (X.com) y extraer señales
+    if (xData) {
+      await this.processXData(xData);
+      this.extractSocialSignals(xData);
+    }
+
+    // Generar correlación temporal
+    const correlation = this.buildCorrelation();
+    console.log(`[DataProcessor] Correlation: ${correlation.summary.correlatedSignals} cross-source signals, pattern: ${correlation.dominantPattern}`);
+
     // Consolidar y generar resumen
-    const processedData = this.consolidate();
+    const processedData = this.consolidate(correlation);
 
     // Guardar datos procesados
     await this.saveProcessedData(processedData);
 
-    console.log(`[DataProcessor] Processed ${processedData.threats.length} threats and ${processedData.indicators.length} indicators`);
+    console.log(`[DataProcessor] Processed ${processedData.threats.length} threats, ${processedData.indicators.length} indicators, ${correlation.signals.length} correlation signals`);
     
     return processedData;
+  }
+
+  /**
+   * Extrae señales de infraestructura (puertos, servicios) de Shodan
+   */
+  private extractInfraSignals(data: ShodanScrapedData): void {
+    if (!data.hosts || data.hosts.length === 0) return;
+
+    // Agrupar por puerto/servicio
+    const portCounts = new Map<number, { count: number; firstSeen: string; lastSeen: string; ips: string[] }>();
+    
+    for (const host of data.hosts) {
+      const existing = portCounts.get(host.port) || { 
+        count: 0, 
+        firstSeen: host.lastUpdate, 
+        lastSeen: host.lastUpdate,
+        ips: [] 
+      };
+      
+      existing.count++;
+      if (host.lastUpdate < existing.firstSeen) existing.firstSeen = host.lastUpdate;
+      if (host.lastUpdate > existing.lastSeen) existing.lastSeen = host.lastUpdate;
+      if (existing.ips.length < 5) existing.ips.push(host.ip);
+      
+      portCounts.set(host.port, existing);
+    }
+
+    // Convertir a señales
+    for (const [port, stats] of portCounts) {
+      const signalDef = PORT_TO_SIGNAL[port];
+      if (signalDef) {
+        this.trackSignal(signalDef.id, 'infra', {
+          count: stats.count,
+          firstSeen: stats.firstSeen,
+          lastSeen: stats.lastSeen,
+          samples: stats.ips
+        });
+      }
+    }
+
+    console.log(`[DataProcessor] Extracted ${portCounts.size} infrastructure signals from Shodan`);
+  }
+
+  /**
+   * Extrae señales sociales (keywords, topics) de X.com
+   */
+  private extractSocialSignals(data: XScrapedData): void {
+    if (!data.posts || data.posts.length === 0) return;
+
+    const signalMatches = new Map<string, { count: number; firstSeen: string; lastSeen: string; excerpts: string[] }>();
+
+    for (const post of data.posts) {
+      const text = post.text.toLowerCase();
+      const timestamp = post.timestamp;
+
+      // Buscar señales de puertos/servicios
+      for (const [, signalDef] of Object.entries(PORT_TO_SIGNAL)) {
+        if (signalDef.keywords.some(kw => text.includes(kw))) {
+          this.updateSignalMatch(signalMatches, signalDef.id, timestamp, post.text.substring(0, 100));
+        }
+      }
+
+      // Buscar señales de amenazas
+      for (const signalDef of THREAT_SIGNALS) {
+        if (signalDef.keywords.some(kw => text.includes(kw))) {
+          this.updateSignalMatch(signalMatches, signalDef.id, timestamp, post.text.substring(0, 100));
+        }
+      }
+    }
+
+    // Registrar señales sociales
+    for (const [signalId, stats] of signalMatches) {
+      this.trackSignal(signalId, 'social', {
+        count: stats.count,
+        firstSeen: stats.firstSeen,
+        lastSeen: stats.lastSeen,
+        samples: stats.excerpts
+      });
+    }
+
+    console.log(`[DataProcessor] Extracted ${signalMatches.size} social signals from X.com`);
+  }
+
+  private updateSignalMatch(
+    map: Map<string, { count: number; firstSeen: string; lastSeen: string; excerpts: string[] }>,
+    signalId: string,
+    timestamp: string,
+    excerpt: string
+  ): void {
+    const existing = map.get(signalId) || { count: 0, firstSeen: timestamp, lastSeen: timestamp, excerpts: [] };
+    existing.count++;
+    if (timestamp < existing.firstSeen) existing.firstSeen = timestamp;
+    if (timestamp > existing.lastSeen) existing.lastSeen = timestamp;
+    if (existing.excerpts.length < 3) existing.excerpts.push(excerpt);
+    map.set(signalId, existing);
+  }
+
+  private trackSignal(
+    signalId: string, 
+    source: 'infra' | 'social', 
+    data: { count: number; firstSeen: string; lastSeen: string; samples: string[] }
+  ): void {
+    const existing = this.signalTracker.get(signalId) || {
+      infraData: { count: 0, firstSeen: '', lastSeen: '', samples: [] },
+      socialData: { count: 0, firstSeen: '', lastSeen: '', samples: [] }
+    };
+
+    if (source === 'infra') {
+      existing.infraData = data;
+    } else {
+      existing.socialData = data;
+    }
+
+    this.signalTracker.set(signalId, existing);
+  }
+
+  /**
+   * Construye datos de correlación temporal
+   */
+  private buildCorrelation(): CorrelatedData {
+    const signals: CorrelationSignal[] = [];
+    const temporalCorrelations: TemporalCorrelation[] = [];
+    let infraOnly = 0, socialOnly = 0, correlated = 0;
+    const deltas: number[] = [];
+
+    for (const [signalId, tracker] of this.signalTracker) {
+      const hasInfra = tracker.infraData.count > 0;
+      const hasSocial = tracker.socialData.count > 0;
+
+      // Get label
+      const portSignal = Object.values(PORT_TO_SIGNAL).find(s => s.id === signalId);
+      const threatSignal = THREAT_SIGNALS.find(s => s.id === signalId);
+      const label = portSignal?.label || threatSignal?.label || signalId;
+
+      const sources: CorrelationSignal['sources'] = [];
+      if (hasInfra) {
+        sources.push({
+          source: DataSource.SHODAN,
+          count: tracker.infraData.count,
+          firstSeen: tracker.infraData.firstSeen,
+          lastSeen: tracker.infraData.lastSeen,
+          sampleData: tracker.infraData.samples
+        });
+      }
+      if (hasSocial) {
+        sources.push({
+          source: DataSource.X_COM,
+          count: tracker.socialData.count,
+          firstSeen: tracker.socialData.firstSeen,
+          lastSeen: tracker.socialData.lastSeen,
+          sampleData: tracker.socialData.samples
+        });
+      }
+
+      let temporalAnalysis: CorrelationSignal['temporalAnalysis'];
+      
+      if (hasInfra && hasSocial) {
+        correlated++;
+        const infraTime = new Date(tracker.infraData.firstSeen).getTime();
+        const socialTime = new Date(tracker.socialData.firstSeen).getTime();
+        const deltaHours = (socialTime - infraTime) / (1000 * 60 * 60);
+        deltas.push(deltaHours);
+
+        const infraPrecedesSocial = deltaHours > 0;
+        const pattern = this.interpretPattern(deltaHours);
+
+        temporalAnalysis = {
+          infraPrecedesSocial,
+          timeDeltaHours: Math.abs(deltaHours),
+          pattern
+        };
+
+        temporalCorrelations.push({
+          signal: label,
+          infraTimestamp: tracker.infraData.firstSeen,
+          socialTimestamp: tracker.socialData.firstSeen,
+          deltahours: deltaHours,
+          interpretation: this.interpretCorrelation(label, deltaHours, infraPrecedesSocial)
+        });
+      } else if (hasInfra) {
+        infraOnly++;
+      } else {
+        socialOnly++;
+      }
+
+      signals.push({
+        id: signalId,
+        type: portSignal ? 'port' : 'keyword',
+        value: portSignal ? signalId : signalId,
+        label,
+        sources,
+        temporalAnalysis
+      });
+    }
+
+    const avgDelta = deltas.length > 0 ? deltas.reduce((a, b) => a + b, 0) / deltas.length : null;
+    
+    return {
+      signals,
+      temporalCorrelations,
+      summary: {
+        totalSignals: signals.length,
+        infraOnlySignals: infraOnly,
+        socialOnlySignals: socialOnly,
+        correlatedSignals: correlated,
+        avgTimeDelta: avgDelta
+      },
+      dominantPattern: this.determineDominantPattern(deltas)
+    };
+  }
+
+  private interpretPattern(deltaHours: number): 'scanning' | 'exploitation' | 'discussion' | 'unknown' {
+    if (deltaHours > 12) return 'scanning'; // Infra mucho antes → scanning early
+    if (deltaHours > 0 && deltaHours <= 12) return 'exploitation'; // Infra un poco antes → posible exploit
+    if (deltaHours < -6) return 'discussion'; // Social primero → discusión previa
+    return 'unknown';
+  }
+
+  private interpretCorrelation(signal: string, deltaHours: number, infraFirst: boolean): string {
+    const absHours = Math.abs(deltaHours).toFixed(1);
+    if (infraFirst && deltaHours > 6) {
+      return `Infrastructure exposure of ${signal} preceded social discussion by ~${absHours}h, suggesting early scanning activity`;
+    }
+    if (infraFirst && deltaHours <= 6) {
+      return `${signal} activity detected in infrastructure shortly before social mentions (~${absHours}h), possible active exploitation`;
+    }
+    if (!infraFirst && Math.abs(deltaHours) > 6) {
+      return `Social discussion of ${signal} preceded infrastructure detection by ~${absHours}h, threat awareness preceded exposure`;
+    }
+    return `${signal} signals appeared nearly simultaneously across sources`;
+  }
+
+  private determineDominantPattern(deltas: number[]): CorrelatedData['dominantPattern'] {
+    if (deltas.length === 0) return 'insufficient-data';
+    const avg = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+    if (avg > 3) return 'infra-first';
+    if (avg < -3) return 'social-first';
+    return 'simultaneous';
   }
 
   /**
@@ -536,9 +820,9 @@ export class DataProcessor {
   }
 
   /**
-   * Consolida todos los datos procesados
+   * Consolida todos los datos procesados incluyendo correlación
    */
-  private consolidate(): ProcessedData {
+  private consolidate(correlation: CorrelatedData): ProcessedData {
     const indicators = Array.from(this.indicators.values());
     
     // Ordenar amenazas por severidad y confianza
@@ -561,6 +845,7 @@ export class DataProcessor {
     return {
       threats: sortedThreats,
       indicators,
+      correlation,
       summary,
       processingTimestamp: new Date().toISOString()
     };

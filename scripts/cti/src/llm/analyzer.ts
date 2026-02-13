@@ -49,16 +49,16 @@ export class LLMAnalyzer {
    * Normaliza y reduce datos para modelo pequeño
    * - Limita cantidad de elementos
    * - Extrae solo campos esenciales
-   * - Calcula métricas agregadas
+   * - Incluye datos de correlación temporal
    */
   private normalizeForLLM(data: ProcessedData): NormalizedData {
-    const { threats, indicators, summary } = data;
+    const { threats, indicators, summary, correlation } = data;
     
     // Top 5 amenazas por severidad
     const topThreats = threats
       .slice(0, 5)
       .map(t => ({
-        sev: t.severity[0].toUpperCase(), // c/h/m/l/i
+        sev: t.severity[0].toUpperCase(),
         cat: this.shortCategory(t.category),
         title: this.truncate(t.title, 40)
       }));
@@ -74,6 +74,16 @@ export class LLMAnalyzer {
       indicators.filter(i => i.type === 'cve').map(i => i.value)
     )].slice(0, 5);
 
+    // Extraer datos de correlación
+    const correlationSignals = correlation?.signals?.slice(0, 5).map(s => ({
+      label: s.label,
+      infraCount: s.sources.find(src => src.source === 'shodan')?.count || 0,
+      socialCount: s.sources.find(src => src.source === 'x.com')?.count || 0,
+      deltaHours: s.temporalAnalysis?.timeDeltaHours ?? null
+    })) || [];
+
+    const topCorr = correlation?.temporalCorrelations?.[0];
+
     return {
       threatCount: summary.totalThreats,
       critical: summary.bySeverity.critical || 0,
@@ -83,35 +93,61 @@ export class LLMAnalyzer {
       topThreats,
       iocCounts,
       cves,
-      sources: Object.keys(summary.bySource)
+      sources: Object.keys(summary.bySource),
+      correlation: {
+        signals: correlationSignals,
+        pattern: correlation?.dominantPattern || 'insufficient-data',
+        topCorrelation: topCorr?.interpretation || null
+      }
     };
   }
 
   /**
-   * Prompt for CTI analyst-style response
-   * ~200 tokens input maximum for small models
+   * Prompt for CTI analyst-style response with STRICT GROUNDING
+   * CRITICAL: Model can ONLY reference data provided in prompt
+   * No hallucination, no invented data, no assumptions
    */
   private buildCompactPrompt(d: NormalizedData): string {
+    // Build ONLY factual data points
+    const facts: string[] = [];
+    
+    // Fact 1: Signal counts (verifiable)
+    facts.push(`FACT: ${d.threatCount} total signals collected`);
+    facts.push(`FACT: Severity breakdown - ${d.critical} critical, ${d.high} high, ${d.medium} medium`);
+    
+    // Fact 2: Sources used
+    facts.push(`FACT: Sources - ${d.sources.join(', ')}`);
+    
+    // Fact 3: Correlation data (only if exists)
+    const corrSignals = d.correlation.signals.filter(s => s.infraCount > 0 && s.socialCount > 0);
+    if (corrSignals.length > 0) {
+      for (const sig of corrSignals.slice(0, 3)) {
+        const delta = sig.deltaHours !== null ? `${sig.deltaHours.toFixed(1)}h apart` : 'timing unknown';
+        facts.push(`FACT: ${sig.label} detected in infrastructure (${sig.infraCount}x) AND social (${sig.socialCount}x), ${delta}`);
+      }
+      facts.push(`FACT: Temporal pattern - ${d.correlation.pattern}`);
+    } else {
+      facts.push(`FACT: No cross-source correlation detected`);
+    }
+    
+    // Fact 4: Specific signals detected
     const threatList = d.topThreats
-      .map(t => `[${t.sev}] ${t.cat}: ${t.title}`)
+      .map(t => `SIGNAL: [${t.sev}] ${t.cat} - ${t.title}`)
       .join('\n');
 
-    const sourceNote = d.sources.includes('x.com') ? 'Social signals detected. ' : '';
-    const techNote = d.sources.includes('shodan') ? 'Infrastructure exposure observed. ' : '';
+    return `STRICT GROUNDING RULES:
+1. ONLY reference data labeled FACT or SIGNAL below
+2. Do NOT invent CVEs, IPs, or specific numbers not provided
+3. Do NOT assume causation - only state temporal observations
+4. If data insufficient, say "insufficient data"
 
-    return `You are a CTI analyst. Summarize threats professionally. JSON only.
+VERIFIED DATA:
+${facts.join('\n')}
 
-Intel: ${d.threatCount} signals, ${d.critical} critical, ${d.high} high severity
-Category: ${d.topCategory}
-CVEs: ${d.cves.join(', ') || 'none'}
-Indicators: ${Object.entries(d.iocCounts).map(([k,v]) => `${v} ${k}`).join(', ')}
-Context: ${sourceNote}${techNote}
-
-Signals:
 ${threatList}
 
-Respond:
-{"risk":"critical|high|medium|low","summary":"Professional 1-2 sentence assessment","action":"Priority recommendation"}`;
+OUTPUT JSON (use ONLY facts above):
+{"risk":"critical|high|medium|low","summary":"1-2 sentences using ONLY facts provided. Example: 'SSH activity detected in infrastructure (X hosts) preceded social discussion by Y hours, suggesting reconnaissance rather than exploitation.'","action":"Specific action based on facts"}`;
   }
 
   private async callOllama(prompt: string): Promise<string> {
@@ -128,9 +164,12 @@ Respond:
           prompt,
           stream: false,
           options: {
-            temperature: 0.1,
-            num_predict: 100,
-            top_p: 0.9,
+            // GROUNDING: Minimize creativity, maximize factual adherence
+            temperature: 0.01,      // Near-zero for deterministic output
+            num_predict: 150,       // Allow slightly more for proper JSON
+            top_p: 0.5,             // Narrow token selection
+            top_k: 10,              // Very limited vocabulary
+            repeat_penalty: 1.2,    // Discourage repetition
             stop: ['}', '\n\n']
           }
         })
@@ -205,24 +244,59 @@ Respond:
   }
 
   private defaultSummary(d: NormalizedData): string {
-    const sourceContext = d.sources.length > 1 
-      ? 'Multi-source intelligence analysis' 
-      : d.sources[0] === 'x.com' ? 'Social intelligence monitoring' : 'Technical reconnaissance';
+    // STRICT GROUNDING: Use ONLY data from normalized input
+    const hasCorrelation = d.correlation.signals.some(s => s.infraCount > 0 && s.socialCount > 0);
     
-    if (d.critical > 0) {
-      return `${sourceContext} identified ${d.threatCount} threat signals with ${d.critical} critical severity items requiring immediate attention. Primary threat vector: ${this.formatCategory(d.topCategory)}.`;
+    if (hasCorrelation) {
+      const topSignal = d.correlation.signals.find(s => s.infraCount > 0 && s.socialCount > 0);
+      const pattern = d.correlation.pattern;
+      
+      if (topSignal) {
+        // Use exact numbers from data
+        const infraCount = topSignal.infraCount;
+        const socialCount = topSignal.socialCount;
+        const hours = topSignal.deltaHours !== null ? topSignal.deltaHours.toFixed(0) : null;
+        
+        if (pattern === 'infra-first' && hours) {
+          return `Both infrastructure exposure (${infraCount} signals) and social discussion (${socialCount} mentions) around ${topSignal.label} increased today. Infrastructure signals preceded social discussion by approximately ${hours} hours, suggesting early scanning activity rather than confirmed exploitation.`;
+        } else if (pattern === 'social-first' && hours) {
+          return `Social discussion of ${topSignal.label} (${socialCount} mentions) preceded infrastructure detection (${infraCount} signals) by ${hours} hours, indicating threat awareness before observable exposure.`;
+        } else {
+          return `${topSignal.label} detected across infrastructure (${infraCount}) and social (${socialCount}) sources. Temporal pattern: ${pattern}.`;
+        }
+      }
     }
-    if (d.high > 0) {
-      return `${sourceContext} detected ${d.threatCount} security signals. ${d.high} high-severity indicators warrant prioritized review. ${this.formatCategory(d.topCategory)} activity represents the dominant threat category.`;
+
+    // No correlation - use only counts from data
+    const sources = d.sources.join(' and ');
+    
+    if (d.threatCount === 0) {
+      return `No threat signals detected from ${sources}. Intelligence collection completed without actionable findings.`;
     }
-    return `${sourceContext} identified ${d.threatCount} signals at moderate priority levels. Continue monitoring for escalation indicators in ${this.formatCategory(d.topCategory)} activity.`;
+    
+    // Build factual statement from exact counts
+    const severityParts: string[] = [];
+    if (d.critical > 0) severityParts.push(`${d.critical} critical`);
+    if (d.high > 0) severityParts.push(`${d.high} high`);
+    if (d.medium > 0) severityParts.push(`${d.medium} medium`);
+    
+    const severityText = severityParts.length > 0 ? ` (${severityParts.join(', ')})` : '';
+    
+    return `Intelligence collection from ${sources} identified ${d.threatCount} signals${severityText}. Primary category: ${this.formatCategory(d.topCategory)}.`;
   }
 
   private defaultAction(d: NormalizedData): string {
+    // Correlation-aware recommendations
+    const hasCorrelation = d.correlation.signals.some(s => s.infraCount > 0 && s.socialCount > 0);
+    
+    if (hasCorrelation && d.correlation.pattern === 'infra-first') {
+      const topSignal = d.correlation.signals.find(s => s.infraCount > 0 && s.socialCount > 0);
+      return `Verify ${topSignal?.label || 'affected services'} exposure and assess scanning activity scope`;
+    }
+    
     if (d.critical > 0) return 'Initiate incident response review for critical findings';
-    if (d.high > 0) return 'Prioritize vulnerability assessment for high-severity items';
-    if (d.cves.length > 0) return `Review CVE exposure: ${d.cves.slice(0, 3).join(', ')}`;
-    return 'Continue routine threat monitoring and intelligence collection';
+    if (d.high > 0) return 'Prioritize assessment of high-severity infrastructure exposure';
+    return 'Continue routine threat monitoring across infrastructure and social channels';
   }
 
   private formatCategory(cat: string): string {
@@ -244,40 +318,71 @@ Respond:
   ): LLMAnalysisResult {
     // Build additional context-aware recommendations
     const recommendations = [action];
-    if (data.cves.length > 0) {
-      recommendations.push(`Monitor CVE developments: ${data.cves.slice(0, 3).join(', ')}`);
+    
+    // Add correlation-based recommendations
+    const correlatedSignals = data.correlation.signals.filter(s => s.infraCount > 0 && s.socialCount > 0);
+    if (correlatedSignals.length > 0) {
+      const topSignal = correlatedSignals[0];
+      recommendations.push(`Monitor ${topSignal.label} activity across both infrastructure and social channels`);
     }
     if (data.critical > 0 || data.high > 1) {
       recommendations.push('Review security controls and access policies');
     }
 
-    // Technical context
+    // Technical context including correlation
     const techParts: string[] = [];
+    if (correlatedSignals.length > 0) {
+      techParts.push(`Cross-source correlation: ${correlatedSignals.map(s => s.label).join(', ')}`);
+      techParts.push(`Temporal pattern: ${data.correlation.pattern}`);
+    }
     if (Object.keys(data.iocCounts).length > 0) {
       techParts.push(`Indicators: ${Object.entries(data.iocCounts).map(([k,v]) => `${v} ${k}`).join(', ')}`);
     }
-    if (data.cves.length > 0) {
-      techParts.push(`CVE References: ${data.cves.join(', ')}`);
-    }
-    techParts.push(`Sources: ${data.sources.map(s => s === 'x.com' ? 'Social Intelligence' : 'Technical Recon').join(', ')}`);
+    techParts.push(`Sources: ${data.sources.map(s => s === 'x.com' ? 'Social Intelligence' : 'Infrastructure Recon').join(', ')}`);
 
-    return {
-      insights: [{
-        id: `insight_${Date.now()}`,
+    // Build insights array with correlation insight
+    const insights: LLMAnalysisResult['insights'] = [{
+      id: `insight_${Date.now()}`,
+      type: 'correlation',
+      title: 'Cross-Source Correlation Analysis',
+      content: summary,
+      confidence: model === 'ollama' ? 75 : 70,
+      relatedThreats: []
+    }];
+
+    // Add temporal pattern insight if correlation exists
+    if (data.correlation.topCorrelation) {
+      insights.push({
+        id: `insight_temporal_${Date.now()}`,
         type: 'trend',
-        title: 'Threat Landscape Assessment',
-        content: summary,
-        confidence: model === 'ollama' ? 75 : 70,
+        title: 'Temporal Pattern Detection',
+        content: data.correlation.topCorrelation,
+        confidence: 65,
         relatedThreats: []
-      }],
-      executiveSummary: summary,
-      technicalSummary: techParts.join('. ') + '.',
-      recommendations: recommendations.slice(0, 4),
-      trendingTopics: [{
+      });
+    }
+
+    // Build trending topics from correlated signals
+    const trendingTopics = correlatedSignals.slice(0, 3).map(s => ({
+      topic: s.label,
+      growth: s.deltaHours !== null && s.deltaHours > 0 ? 20 : 5,
+      relevance: Math.min(s.infraCount + s.socialCount, 100)
+    }));
+    
+    if (trendingTopics.length === 0) {
+      trendingTopics.push({
         topic: this.formatCategory(data.topCategory),
         growth: data.critical > 0 ? 25 : (data.high > 0 ? 10 : 0),
         relevance: 100
-      }],
+      });
+    }
+
+    return {
+      insights,
+      executiveSummary: summary,
+      technicalSummary: techParts.join('. ') + '.',
+      recommendations: recommendations.slice(0, 4),
+      trendingTopics,
       analysisTimestamp: new Date().toISOString(),
       model: `${OLLAMA_MODEL}-${model}`,
       tokenUsage: { input: 0, output: 0, total: 0 }
@@ -344,6 +449,12 @@ interface NormalizedData {
   iocCounts: Record<string, number>;
   cves: string[];
   sources: string[];
+  // Correlation data
+  correlation: {
+    signals: Array<{ label: string; infraCount: number; socialCount: number; deltaHours: number | null }>;
+    pattern: string;
+    topCorrelation: string | null;
+  };
 }
 
 export default LLMAnalyzer;
