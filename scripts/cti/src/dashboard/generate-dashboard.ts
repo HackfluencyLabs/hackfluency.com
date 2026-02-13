@@ -6,6 +6,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ProcessedData, LLMAnalysisResult, ThreatSeverity, ThreatCategory, DataSource, EvidenceLink, CorrelationSignal, ShodanScrapedData, XScrapedData } from '../types/index.js';
+import { CTIAnalysis } from '../llm/cti-agents.js';
 
 // Frontend-optimized dashboard format with evidence and correlation
 export interface PublicDashboard {
@@ -108,6 +109,51 @@ export interface PublicDashboard {
     }>;
     sentiment: 'alarming' | 'neutral' | 'informational';
   };
+  // NEW: Multi-agent CTI analysis results
+  ctiAnalysis?: {
+    model: string;
+    killChainPhase: string;
+    threatLandscape: string;
+    mitreAttack: Array<{
+      tactic: string;
+      techniques: string[];
+      mitigations: string[];
+    }>;
+    keyFindings: Array<{
+      finding: string;
+      severity: string;
+      evidence: string;
+      recommendation: string;
+    }>;
+    ttps: Array<{
+      technique: string;
+      techniqueId: string;
+      tactic: string;
+      evidence: string;
+      confidence: number;
+    }>;
+    temporalPatterns: Array<{
+      pattern: string;
+      description: string;
+      timeframe: string;
+      confidence: number;
+      evidence: Array<{ source: string; excerpt: string; url: string }>;
+    }>;
+    crossSourceLinks: Array<{
+      infraSignal: string;
+      socialSignal: string;
+      relationship: string;
+      timeDelta: string;
+      significance: string;
+    }>;
+    immediateActions: string[];
+    strategicRecommendations: string[];
+    sourcesAndReferences: Array<{
+      source: string;
+      url: string;
+      relevance: string;
+    }>;
+  };
 }
 
 export class DashboardGenerator {
@@ -127,11 +173,16 @@ export class DashboardGenerator {
     // Load raw source data for detailed sections
     const shodanData = await this.loadJson<ShodanScrapedData>('shodan-data.json');
     const xData = await this.loadJson<XScrapedData>('x-data.json');
+    // Load multi-agent CTI analysis if available
+    const ctiAnalysis = await this.loadJson<CTIAnalysis>('cti-analysis.json');
 
-    const dashboard = this.buildDashboard(processedData, llmAnalysis, shodanData, xData);
+    const dashboard = this.buildDashboard(processedData, llmAnalysis, shodanData, xData, ctiAnalysis);
     
     await this.saveDashboard(dashboard);
     console.log(`[Dashboard] Generated - Risk: ${dashboard.status.riskLevel}, Signals: ${dashboard.metrics.totalSignals}`);
+    if (ctiAnalysis) {
+      console.log(`[Dashboard] CTI Analysis: ${ctiAnalysis.report.keyFindings.length} findings, ${ctiAnalysis.extraction.ttps.length} TTPs`);
+    }
     
     return dashboard;
   }
@@ -140,7 +191,8 @@ export class DashboardGenerator {
     data: ProcessedData | null, 
     llm: LLMAnalysisResult | null,
     shodanData?: ShodanScrapedData | null,
-    xData?: XScrapedData | null
+    xData?: XScrapedData | null,
+    ctiAnalysis?: CTIAnalysis | null
   ): PublicDashboard {
     const now = new Date();
     const validUntil = new Date(now.getTime() + 6 * 60 * 60 * 1000); // 6 hours validity
@@ -206,6 +258,22 @@ export class DashboardGenerator {
     const infrastructure = this.buildInfrastructureSection(shodanData);
     const socialIntel = this.buildSocialIntelSection(xData);
 
+    // Build CTI analysis section from multi-agent system
+    const ctiAnalysisSection = this.buildCTIAnalysisSection(ctiAnalysis);
+
+    // If CTI analysis is available, enhance executive summary
+    const enhancedExecutive = ctiAnalysis 
+      ? this.enhanceExecutiveWithCTI(executive, ctiAnalysis)
+      : executive;
+
+    // Use CTI analysis risk assessment if available, mapping CTI levels to dashboard levels
+    const finalRiskScore = ctiAnalysis?.analysis.riskAssessment.score ?? riskScore;
+    const ctiLevel = ctiAnalysis?.analysis.riskAssessment.level;
+    const mappedLevel = ctiLevel 
+      ? { critical: 'critical', high: 'elevated', medium: 'moderate', low: 'low' }[ctiLevel] as 'critical' | 'elevated' | 'moderate' | 'low'
+      : null;
+    const finalRiskLevel = mappedLevel ?? riskLevel;
+
     return {
       meta: {
         version: '2.0.0',
@@ -213,12 +281,12 @@ export class DashboardGenerator {
         validUntil: validUntil.toISOString()
       },
       status: {
-        riskLevel,
-        riskScore,
+        riskLevel: finalRiskLevel,
+        riskScore: finalRiskScore,
         trend: this.determineTrend(threats),
         confidenceLevel
       },
-      executive,
+      executive: enhancedExecutive,
       metrics: {
         totalSignals: totalThreats,
         criticalCount,
@@ -232,7 +300,50 @@ export class DashboardGenerator {
       indicators: displayIndicators,
       correlation,
       infrastructure,
-      socialIntel
+      socialIntel,
+      ctiAnalysis: ctiAnalysisSection
+    };
+  }
+
+  /**
+   * Build CTI analysis section from multi-agent system output
+   */
+  private buildCTIAnalysisSection(ctiAnalysis?: CTIAnalysis | null): PublicDashboard['ctiAnalysis'] | undefined {
+    if (!ctiAnalysis) return undefined;
+
+    return {
+      model: ctiAnalysis.model,
+      killChainPhase: ctiAnalysis.analysis.killChainPhase,
+      threatLandscape: ctiAnalysis.analysis.threatLandscape,
+      mitreAttack: ctiAnalysis.analysis.mitreMapping,
+      keyFindings: ctiAnalysis.report.keyFindings,
+      ttps: ctiAnalysis.extraction.ttps,
+      temporalPatterns: ctiAnalysis.correlation.temporalPatterns,
+      crossSourceLinks: ctiAnalysis.correlation.crossSourceLinks,
+      immediateActions: ctiAnalysis.report.immediateActions,
+      strategicRecommendations: ctiAnalysis.report.strategicRecommendations,
+      sourcesAndReferences: ctiAnalysis.report.sourcesAndReferences
+    };
+  }
+
+  /**
+   * Enhance executive summary with CTI multi-agent analysis
+   */
+  private enhanceExecutiveWithCTI(
+    executive: PublicDashboard['executive'], 
+    ctiAnalysis: CTIAnalysis
+  ): PublicDashboard['executive'] {
+    const report = ctiAnalysis.report;
+
+    return {
+      headline: report.headline || executive.headline,
+      summary: report.situationSummary || executive.summary,
+      keyFindings: report.keyFindings.length > 0 
+        ? report.keyFindings.map(f => `[${f.severity.toUpperCase()}] ${f.finding}`)
+        : executive.keyFindings,
+      recommendedActions: report.immediateActions.length > 0
+        ? report.immediateActions
+        : executive.recommendedActions
     };
   }
 

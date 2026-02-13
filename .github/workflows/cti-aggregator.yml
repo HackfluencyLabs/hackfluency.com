@@ -22,9 +22,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CTI_CACHE_DIR: ./DATA/cti-cache
-  CTI_OUTPUT_DIR: ./DATA/cti-output
-  OLLAMA_MODEL: qwen2:0.5b
+  CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
+  CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
+  # Use mistral:7b-instruct for CTI - good balance of capability and container size
+  OLLAMA_MODEL: mistral:7b-instruct
 
 jobs:
   cti-pipeline:
@@ -92,12 +93,12 @@ jobs:
         working-directory: ./scripts/cti
         run: npx tsx src/index.ts process
 
-      - name: LLM Analysis (Local Ollama)
+      - name: LLM Analysis (Multi-Agent CTI System)
         working-directory: ./scripts/cti
         env:
           OLLAMA_HOST: http://localhost:11434
           OLLAMA_MODEL: ${{ env.OLLAMA_MODEL }}
-        run: npx tsx src/index.ts analyze
+        run: npx tsx src/index.ts agents
 
       - name: Generate Dashboard
         working-directory: ./scripts/cti
@@ -118,6 +119,7 @@ jobs:
           name: cti-report-${{ github.run_number }}
           path: ${{ env.CTI_OUTPUT_DIR }}/
           retention-days: 14
+          if-no-files-found: warn
 
       - name: Commit Dashboard Update
         run: |

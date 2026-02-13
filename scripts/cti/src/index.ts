@@ -22,9 +22,10 @@ import DataProcessor from './processors/data-processor.js';
 import LLMAnalyzer from './llm/analyzer.js';
 import DashboardGenerator from './dashboard/generate-dashboard.js';
 import QueryGenerator from './llm/query-generator.js';
+import CTIAgentSystem from './llm/cti-agents.js';
 
 const OUTPUT_DIR = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
-const COMMANDS = ['scrape', 'process', 'analyze', 'dashboard', 'query', 'smart', 'all'] as const;
+const COMMANDS = ['scrape', 'process', 'analyze', 'agents', 'dashboard', 'query', 'smart', 'all'] as const;
 type Command = typeof COMMANDS[number];
 
 async function saveData(filename: string, data: unknown): Promise<void> {
@@ -83,6 +84,22 @@ async function runAnalyzer(): Promise<void> {
   const analyzer = new LLMAnalyzer();
   const result = await analyzer.analyze();
   console.log(`[LLM] ✓ Analysis complete (${result.model})`);
+}
+
+/**
+ * Run multi-agent CTI analysis system
+ * Uses specialized agents for extraction, correlation, analysis, and reporting
+ */
+async function runCTIAgents(): Promise<void> {
+  console.log('\n========== CTI MULTI-AGENT SYSTEM ==========\n');
+  const agents = new CTIAgentSystem();
+  const analysis = await agents.analyze();
+  console.log(`[CTI-Agents] ✓ Analysis complete`);
+  console.log(`  - IOCs: ${analysis.extraction.iocs.cves.length} CVEs, ${analysis.extraction.iocs.ips.length} IPs`);
+  console.log(`  - TTPs: ${analysis.extraction.ttps.length} techniques identified`);
+  console.log(`  - Correlations: ${analysis.correlation.temporalPatterns.length} patterns, ${analysis.correlation.crossSourceLinks.length} cross-source links`);
+  console.log(`  - Risk: ${analysis.analysis.riskAssessment.level} (score: ${analysis.analysis.riskAssessment.score})`);
+  console.log(`  - Findings: ${analysis.report.keyFindings.length} key findings`);
 }
 
 async function runDashboard(): Promise<void> {
@@ -188,6 +205,9 @@ async function main(): Promise<void> {
       case 'analyze':
         await runAnalyzer();
         break;
+      case 'agents':
+        await runCTIAgents();
+        break;
       case 'dashboard':
         await runDashboard();
         break;
@@ -200,7 +220,7 @@ async function main(): Promise<void> {
       case 'all':
         await runScrapers();
         await runProcessor();
-        await runAnalyzer();
+        await runCTIAgents();  // Use multi-agent system for comprehensive analysis
         await runDashboard();
         break;
     }
