@@ -83,31 +83,18 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      - name: Run Scrapers
-        if: ${{ inputs.run_scrapers }}
+      # Single pipeline execution with context-aware flow:
+      # 1. X.com scrape → 2. QueryGenerator → 3. Contextual Shodan → 4. Process → 5. CTI Analysis → 6. Dashboard
+      - name: Run CTI Pipeline (Context-Aware)
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
           X_COOKIES_PATH: ${{ github.workspace }}/DATA/x-cookies.json
           USE_CACHE: ${{ inputs.use_cache }}
-        run: npx tsx src/index.ts scrape
-
-      - name: Process Data
-        working-directory: ./scripts/cti
-        run: npx tsx src/index.ts process
-
-      - name: LLM Analysis (Multi-Agent CTI System)
-        working-directory: ./scripts/cti
-        env:
           OLLAMA_HOST: http://localhost:11434
           OLLAMA_MODEL: ${{ env.OLLAMA_MODEL }}
-        run: npx tsx src/index.ts agents
-
-      - name: Generate Dashboard
-        working-directory: ./scripts/cti
-        env:
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
-        run: npx tsx src/index.ts dashboard
+        run: npx tsx src/index.ts all
 
       - name: Save Cache
         uses: actions/cache/save@v4
