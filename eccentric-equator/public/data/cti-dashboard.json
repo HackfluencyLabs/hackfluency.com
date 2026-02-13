@@ -1,8 +1,8 @@
 {
   "meta": {
     "version": "2.0.0",
-    "generatedAt": "2026-02-13T13:24:02.354Z",
-    "validUntil": "2026-02-13T19:24:02.354Z"
+    "generatedAt": "2026-02-13T20:14:07.165Z",
+    "validUntil": "2026-02-14T02:14:07.165Z"
   },
   "status": {
     "riskLevel": "critical",
@@ -12,10 +12,11 @@
   },
   "executive": {
     "headline": "Critical Threat Activity Detected",
-    "summary": "The vulnerability is critical and high risk of being exploited.",
+    "summary": "The vulnerability is critical or high severity with a medium to low impact.",
     "keyFindings": [
-      "Report to management as soon as possible.",
-      "Review security controls and access policies"
+      "51 CVE references identified in collected intelligence",
+      "5 critical severity signals require immediate attention",
+      "Vulnerability represents primary threat vector"
     ],
     "recommendedActions": [
       "Initiate incident response procedures",
@@ -26,80 +27,80 @@
   },
   "metrics": {
     "totalSignals": 14,
-    "criticalCount": 6,
-    "highCount": 0,
-    "mediumCount": 2,
-    "lowCount": 6,
+    "criticalCount": 5,
+    "highCount": 1,
+    "mediumCount": 3,
+    "lowCount": 5,
     "categories": [
       {
         "name": "Vulnerability",
-        "count": 7,
-        "percentage": 50
-      },
-      {
-        "name": "Ransomware",
         "count": 6,
         "percentage": 43
       },
       {
+        "name": "Ransomware",
+        "count": 5,
+        "percentage": 36
+      },
+      {
         "name": "APT",
-        "count": 1,
-        "percentage": 7
+        "count": 3,
+        "percentage": 21
       }
     ]
   },
   "timeline": [
     {
-      "id": "threat_mlkx5a1h_8p31p5",
-      "title": "Vulnerable Infrastructure Detected (22 hosts)",
+      "id": "threat_mllbsn48_dbjc0d",
+      "title": "Vulnerable Infrastructure Detected (24 hosts)",
       "severity": "critical",
       "category": "Vulnerability",
-      "timestamp": "2026-02-13T13:23:41.151Z"
+      "timestamp": "2026-02-13T20:13:45.409Z"
     },
     {
-      "id": "threat_mlkx5a1k_xb5lcc",
+      "id": "threat_mllbsn4b_v62w55",
       "title": "Threat: CVE-2026-21509",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-10T19:17:33.000Z"
     },
     {
-      "id": "threat_mlkx5a1i_396eyz",
+      "id": "threat_mllbsn4b_fib5p2",
       "title": "Apple 0-Day Vulnerability Actively Exploited Sophisticated...",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-12T05:42:00.000Z"
     },
     {
-      "id": "threat_mlkx5a1j_mt9i89",
+      "id": "threat_mllbsn4b_806cky",
       "title": "Quiz Time! What zero-day vulnerability cybersecurity?...",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-11T18:06:01.000Z"
     },
     {
-      "id": "threat_mlkx5a1k_7fwyir",
+      "id": "threat_mllbsn4b_k3myqb",
       "title": "18Lv PUC465th Zero-Day Exploit(One-Day Fusion Mix)...",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-11T07:25:14.000Z"
     },
     {
-      "id": "threat_mlkx5a1l_1cplrm",
-      "title": "Dutch Authorities Confirm Ivanti Zero-Day Exploit...",
-      "severity": "critical",
-      "category": "Vulnerability",
-      "timestamp": "2026-02-10T09:48:27.000Z"
+      "id": "threat_mllbsn4b_ho9c9t",
+      "title": "Forcepoint researchers look into high-volume Phorpiex...",
+      "severity": "high",
+      "category": "APT",
+      "timestamp": "2026-02-12T11:01:52.000Z"
     },
     {
-      "id": "threat_mlkx5a1k_3ippwa",
+      "id": "threat_mllbsn4c_prj2op",
       "title": "Threat: CVE-2026-1731",
       "severity": "medium",
       "category": "Vulnerability",
       "timestamp": "2026-02-10T17:19:25.000Z"
     },
     {
-      "id": "threat_mlkx5a1k_t9550a",
+      "id": "threat_mllbsn4c_qqe88p",
       "title": "Threat: CVE-2025-68947",
       "severity": "medium",
       "category": "Ransomware",
@@ -110,34 +111,34 @@
     {
       "name": "Technical Reconnaissance",
       "signalCount": 1,
-      "lastUpdate": "2026-02-13T13:24:02.354Z"
+      "lastUpdate": "2026-02-13T20:14:07.165Z"
     },
     {
       "name": "Social Intelligence (X)",
       "signalCount": 13,
-      "lastUpdate": "2026-02-13T13:24:02.354Z"
+      "lastUpdate": "2026-02-13T20:14:07.165Z"
     }
   ],
   "indicators": {
     "cves": [
       "CVE-2008-3844",
-      "CVE-2025-26466",
-      "CVE-2025-26465",
-      "CVE-2023-51767",
-      "CVE-2007-2768",
-      "CVE-2025-32728",
-      "CVE-2024-6387",
       "CVE-2019-6110",
       "CVE-2016-20012",
-      "CVE-2018-15919"
+      "CVE-2018-15919",
+      "CVE-2018-15473",
+      "CVE-2021-36368",
+      "CVE-2025-26465",
+      "CVE-2017-15906",
+      "CVE-2018-20685",
+      "CVE-2020-14145"
     ],
     "domains": [],
     "ips": [
-      "103.248.49.21",
-      "34.50.161.189",
-      "129.213.99.83",
-      "35.226.172.144",
-      "212.162.151.197"
+      "154.44.21.174",
+      "34.171.79.35",
+      "128.14.24.39",
+      "35.233.168.226",
+      "162.245.239.6"
     ],
     "keywords": []
   }
