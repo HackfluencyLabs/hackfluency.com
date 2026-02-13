@@ -16,7 +16,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DataSource, ScraperConfig } from './types/index.js';
-import ShodanScraper from './scrapers/shodan-scraper.js';
+import ShodanScraper, { setContextualQueries } from './scrapers/shodan-scraper.js';
 import XScraper from './scrapers/x-scraper.js';
 import DataProcessor from './processors/data-processor.js';
 import LLMAnalyzer from './llm/analyzer.js';
@@ -128,38 +128,53 @@ async function runQueryGenerator(): Promise<void> {
 }
 
 /**
- * Smart pipeline: X.com -> LLM Query Generation -> Shodan
+ * Smart pipeline: X.com -> LLM Query Generation -> Contextual Shodan -> Analysis
+ * This is the main pipeline that provides context-aware infrastructure discovery
  */
 async function runSmartPipeline(): Promise<void> {
-  console.log('\n========== SMART PIPELINE ==========\n');
-  console.log('[Smart] Phase 1: Collecting social intelligence...');
+  console.log('\n========== CONTEXT-AWARE CTI PIPELINE ==========\n');
+  console.log('[CTI] Phase 1: Collecting social intelligence from X.com...');
   
   const baseConfig: Omit<ScraperConfig, 'source'> = {
     enabled: true,
-    rateLimit: { requestsPerMinute: 3, cooldownMs: 5000 }, // Extra conservative for X.com
+    rateLimit: { requestsPerMinute: 3, cooldownMs: 5000 },
     cache: { enabled: true, ttlHours: 24 },
     queries: []
   };
 
-  // Phase 1: X.com scraping
+  // Phase 1: X.com scraping - understand current threat landscape
   if (process.env.X_COOKIES_PATH) {
     const xScraper = new XScraper({ ...baseConfig, source: DataSource.X_COM });
     const result = await xScraper.execute();
     if (result.success) {
       await saveData('x-data.json', result.data);
-      console.log(`[Smart] X.com: ${result.data.posts.length} posts collected`);
+      console.log(`[CTI] Social intel: ${result.data.posts.length} posts collected`);
     }
+  } else {
+    console.log('[CTI] WARNING: No X.com cookies - social context unavailable');
   }
 
-  // Phase 2: LLM query generation from social intel
-  console.log('[Smart] Phase 2: Analyzing social intel for Shodan queries...');
+  // Phase 2: LLM generates contextual Shodan queries based on social intel
+  console.log('[CTI] Phase 2: Generating context-aware Shodan queries...');
   const queryGen = new QueryGenerator();
-  const queryResult = await queryGen.generateQueries(true); // Use cache if available
+  const queryResult = await queryGen.generateQueries(false); // Don't use cache for fresh queries
   
-  // Phase 3: Shodan with dynamic queries
-  if (process.env.SHODAN_API_KEY && queryResult.queries.length > 0) {
-    console.log('[Smart] Phase 3: Running targeted Shodan queries...');
-    // For now, run default scraper - in future, could pass queries to scraper
+  if (queryResult.queries.length > 0) {
+    console.log(`[CTI] Generated ${queryResult.queries.length} contextual queries:`);
+    for (const q of queryResult.queries.slice(0, 3)) {
+      console.log(`  → ${q.query}`);
+      console.log(`    (${q.rationale.substring(0, 80)}...)`);
+    }
+    
+    // Pass contextual queries to Shodan scraper
+    setContextualQueries(queryResult.queries.map(q => q.query));
+  } else {
+    console.log('[CTI] No contextual queries generated - Shodan will use fallback');
+  }
+  
+  // Phase 3: Shodan with context-aware queries from social intel
+  if (process.env.SHODAN_API_KEY) {
+    console.log('[CTI] Phase 3: Running context-aware infrastructure discovery...');
     const shodan = new ShodanScraper({ 
       ...baseConfig, 
       source: DataSource.SHODAN,
@@ -168,16 +183,25 @@ async function runSmartPipeline(): Promise<void> {
     const result = await shodan.execute();
     if (result.success) {
       await saveData('shodan-data.json', result.data);
-      console.log(`[Smart] Shodan: ${result.data.hosts.length} hosts found`);
+      console.log(`[CTI] Infrastructure: ${result.data.hosts.length} hosts found`);
     }
+  } else {
+    console.log('[CTI] WARNING: No Shodan API key - infrastructure intel unavailable');
   }
 
-  // Phase 4: Process and analyze
+  // Phase 4: Process and correlate data
+  console.log('[CTI] Phase 4: Processing and correlating data...');
   await runProcessor();
-  await runAnalyzer();
+  
+  // Phase 5: CTI Analysis with temporal correlation
+  console.log('[CTI] Phase 5: Running CTI analysis with temporal correlation...');
+  await runCTIAgents();
+  
+  // Phase 6: Generate dashboard
+  console.log('[CTI] Phase 6: Generating dashboard...');
   await runDashboard();
   
-  console.log('\n[Smart] Pipeline complete!');
+  console.log('\n[CTI] ✓ Context-aware pipeline complete!');
 }
 
 async function main(): Promise<void> {
@@ -218,10 +242,12 @@ async function main(): Promise<void> {
         await runSmartPipeline();
         break;
       case 'all':
-        await runScrapers();
-        await runProcessor();
-        await runCTIAgents();  // Use multi-agent system for comprehensive analysis
-        await runDashboard();
+        // Smart pipeline: Context-aware infrastructure discovery
+        // 1. First collect social intelligence from X.com
+        // 2. Generate contextual Shodan queries based on social intel
+        // 3. Run Shodan with context-aware queries
+        // 4. Process, analyze, and generate dashboard
+        await runSmartPipeline();
         break;
     }
 

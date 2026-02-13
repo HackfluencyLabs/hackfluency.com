@@ -12,15 +12,28 @@ import {
   ScraperConfig
 } from '../types/index.js';
 
-// Queries por tier de suscripción
+// Queries por tier de suscripción - estos son fallbacks si no hay contexto social
+// El pipeline principal usa QueryGenerator para queries contextuales
 const QUERIES = {
-  // Free tier: solo búsquedas básicas por puerto/país
-  free: 'port:22,3389,445 country:US',
+  // Free tier fallback - solo usado si QueryGenerator no genera queries
+  free: 'port:22,445 country:US',
   // Paid tier: puede usar filtros avanzados
   paid: 'vuln:CVE-2024 vuln:CVE-2025',
   // Fallback: búsqueda simple
   fallback: 'port:22'
 };
+
+// Variable global para queries contextuales del QueryGenerator
+let contextualQueries: string[] = [];
+
+/**
+ * Set contextual queries from QueryGenerator before running Shodan
+ * This enables context-aware infrastructure discovery based on social intel
+ */
+export function setContextualQueries(queries: string[]): void {
+  contextualQueries = queries;
+  console.log(`[ShodanScraper] Set ${queries.length} contextual queries from social intel`);
+}
 
 interface ShodanAPIInfo {
   scan_credits: number;
@@ -234,22 +247,35 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
 
     const hosts: ShodanHost[] = [];
     const exploits: ShodanExploit[] = [];
-    const query = this.capabilities.recommendedQuery;
+    
+    // Use contextual queries from QueryGenerator if available, otherwise fallback
+    const queriesToRun = contextualQueries.length > 0 
+      ? contextualQueries.slice(0, 3)  // Limit to 3 queries to stay within rate limits
+      : [this.capabilities.recommendedQuery];
+    
+    console.log(`[ShodanScraper] Running ${queriesToRun.length} queries (contextual: ${contextualQueries.length > 0})`);
 
-    console.log(`[ShodanScraper] Using query (${this.capabilities.plan} plan): ${query}`);
-
-    // Una sola búsqueda optimizada
-    try {
-      const searchResults = await this.searchHosts(query);
-      hosts.push(...searchResults);
-      console.log(`[ShodanScraper] Found ${searchResults.length} hosts`);
-    } catch (error) {
-      console.error(`[ShodanScraper] Search failed:`, error);
-      // Si la búsqueda falla, retornar datos vacíos - no generamos datos falsos
-      if (hosts.length === 0) {
-        console.log('[ShodanScraper] No data available - returning empty dataset');
-        return this.getEmptyData(error instanceof Error ? error.message : 'Search failed');
+    // Execute all contextual queries
+    for (const query of queriesToRun) {
+      try {
+        console.log(`[ShodanScraper] Executing: ${query}`);
+        const searchResults = await this.searchHosts(query);
+        hosts.push(...searchResults);
+        console.log(`[ShodanScraper] Query returned ${searchResults.length} hosts`);
+        
+        // Small delay between queries to respect rate limits
+        if (queriesToRun.length > 1 && queriesToRun.indexOf(query) < queriesToRun.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      } catch (error) {
+        console.error(`[ShodanScraper] Query "${query}" failed:`, error);
       }
+    }
+    
+    // If no hosts found from any query
+    if (hosts.length === 0) {
+      console.log('[ShodanScraper] No hosts found - returning empty dataset');
+      return this.getEmptyData('No results from queries');
     }
 
     // Generar exploits desde CVEs encontrados (sin request adicional)
@@ -278,7 +304,7 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
       rawData: { hosts, exploits, capabilities: this.capabilities },
       hosts: this.deduplicateHosts(hosts),
       exploits,
-      query
+      query: queriesToRun.join(' | ')  // Join all executed queries
     };
   }
 

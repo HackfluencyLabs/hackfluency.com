@@ -232,37 +232,15 @@ const CTIDashboard: React.FC = () => {
       <Header />
       
       <main className="cti-main">
-        {/* Risk Status Banner */}
-        <RiskBanner status={data.status} meta={data.meta} />
-        
-        {/* Executive Summary */}
-        <ExecutiveSummary executive={data.executive} />
-        
-        {/* Metrics Grid */}
-        <MetricsGrid metrics={data.metrics} />
-        
-        {/* Correlation Analysis - Cross-source intelligence */}
-        {data.correlation && <CorrelationPanel correlation={data.correlation} />}
-        
-        {/* Multi-Agent CTI Analysis - Key findings, TTPs, MITRE mapping */}
-        {data.ctiAnalysis && <CTIAnalysisPanel analysis={data.ctiAnalysis} />}
-        
-        {/* Infrastructure and Social Intelligence */}
-        <div className="cti-intel-sections">
-          {data.infrastructure && <InfrastructurePanel infrastructure={data.infrastructure} />}
-          {data.socialIntel && <SocialIntelPanel socialIntel={data.socialIntel} />}
-        </div>
-        
-        {/* Two Column Layout */}
-        <div className="cti-columns">
-          <div className="cti-column">
-            <TimelinePanel timeline={data.timeline} />
+        {/* CTI Analysis Report - The core value: temporal correlation analysis */}
+        {data.ctiAnalysis ? (
+          <CTIAnalysisPanel analysis={data.ctiAnalysis} />
+        ) : (
+          <div className="cti-section cti-no-analysis">
+            <h2>Intelligence Analysis</h2>
+            <p>Analysis data is being collected. CTI correlation will appear when social and infrastructure data are available.</p>
           </div>
-          <div className="cti-column">
-            <SourcesPanel sources={data.sources} />
-            <IndicatorsPanel indicators={data.indicators} />
-          </div>
-        </div>
+        )}
       </main>
       
       <Footer generatedAt={data.meta.generatedAt} />
@@ -277,8 +255,8 @@ const Header: React.FC = () => (
         <span className="cti-logo-icon">◆</span>
         <span className="cti-logo-text">HACKFLUENCY</span>
       </div>
-      <h1 className="cti-title">Security Intelligence Dashboard</h1>
-      <p className="cti-subtitle">Automated Threat Intelligence Collection & Analysis</p>
+      <h1 className="cti-title">Threat Intelligence Correlation</h1>
+      <p className="cti-subtitle">Context-aware analysis: Social signals → Infrastructure exposure</p>
     </div>
   </header>
 );
@@ -790,7 +768,7 @@ const CorrelationPanel: React.FC<{ correlation: CorrelationData }> = ({ correlat
  * CTI Analysis Panel - Multi-agent analysis with TTPs, MITRE mapping, and evidence
  */
 const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnalysis']> }> = ({ analysis }) => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['findings', 'ttps', 'patterns', 'cross']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['patterns', 'cross', 'ttps']));
 
   const toggleSection = (section: string) => {
     const newSet = new Set(expandedSections);
@@ -802,24 +780,19 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
     setExpandedSections(newSet);
   };
 
-  const severityColors: Record<string, string> = {
-    critical: '#E31B23',
-    high: '#FF6B35',
-    medium: '#FFB800',
-    low: '#00D26A'
-  };
-
   return (
     <section className="cti-section cti-analysis">
       <div className="cti-analysis-header">
-        <h2 className="cti-section-title">🔬 CTI Analysis Report</h2>
+        <h2 className="cti-section-title">CTI Correlation Analysis</h2>
         <div className="cti-analysis-meta">
           <span className="cti-analysis-model" title="Analysis model">
-            🤖 {analysis.model}
+            {analysis.model}
           </span>
-          <span className="cti-analysis-phase" title="Kill Chain Phase">
-            📍 {analysis.killChainPhase}
-          </span>
+          {analysis.killChainPhase && (
+            <span className="cti-analysis-phase" title="Kill Chain Phase">
+              {analysis.killChainPhase}
+            </span>
+          )}
         </div>
       </div>
 
@@ -830,136 +803,14 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
         </div>
       )}
 
-      {/* Key Findings Section */}
-      <div className="cti-analysis-section">
-        <button 
-          className="cti-section-toggle"
-          onClick={() => toggleSection('findings')}
-        >
-          <span>📋 Key Findings ({analysis.keyFindings.length})</span>
-          <span className="cti-toggle-icon">{expandedSections.has('findings') ? '▼' : '▶'}</span>
-        </button>
-        
-        {expandedSections.has('findings') && analysis.keyFindings.length > 0 && (
-          <div className="cti-findings-list">
-            {analysis.keyFindings.map((finding, i) => (
-              <div 
-                key={i} 
-                className="cti-finding-card"
-                style={{ borderLeftColor: severityColors[finding.severity.toLowerCase()] || '#6B7280' }}
-              >
-                <div className="cti-finding-header">
-                  <span 
-                    className="cti-finding-severity"
-                    style={{ color: severityColors[finding.severity.toLowerCase()] || '#6B7280' }}
-                  >
-                    {finding.severity.toUpperCase()}
-                  </span>
-                </div>
-                <p className="cti-finding-text">{finding.finding}</p>
-                {finding.evidence && (
-                  <div className="cti-finding-evidence">
-                    <span className="cti-evidence-label">Evidence:</span>
-                    <span className="cti-evidence-value">{finding.evidence}</span>
-                  </div>
-                )}
-                {finding.recommendation && (
-                  <div className="cti-finding-recommendation">
-                    <span className="cti-rec-label">→ Recommendation:</span>
-                    <span className="cti-rec-value">{finding.recommendation}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* TTPs Section */}
-      <div className="cti-analysis-section">
-        <button 
-          className="cti-section-toggle"
-          onClick={() => toggleSection('ttps')}
-        >
-          <span>⚔️ TTPs - MITRE ATT&CK ({analysis.ttps.length})</span>
-          <span className="cti-toggle-icon">{expandedSections.has('ttps') ? '▼' : '▶'}</span>
-        </button>
-        
-        {expandedSections.has('ttps') && analysis.ttps.length > 0 && (
-          <div className="cti-ttps-list">
-            {analysis.ttps.map((ttp, i) => (
-              <a
-                key={i}
-                href={`https://attack.mitre.org/techniques/${ttp.techniqueId}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="cti-ttp-card"
-              >
-                <div className="cti-ttp-header">
-                  <span className="cti-ttp-id">{ttp.techniqueId}</span>
-                  <span className="cti-ttp-tactic">{ttp.tactic}</span>
-                </div>
-                <p className="cti-ttp-name">{ttp.technique}</p>
-                <div className="cti-ttp-confidence">
-                  <div 
-                    className="cti-confidence-bar"
-                    style={{ width: `${ttp.confidence * 100}%` }}
-                  />
-                </div>
-                {ttp.evidence && (
-                  <p className="cti-ttp-evidence">{ttp.evidence}</p>
-                )}
-                <span className="cti-ttp-link-icon">↗</span>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* MITRE ATT&CK Mapping */}
-      {analysis.mitreAttack && analysis.mitreAttack.length > 0 && (
-        <div className="cti-analysis-section">
-          <button 
-            className="cti-section-toggle"
-            onClick={() => toggleSection('mitre')}
-          >
-            <span>🎯 MITRE ATT&CK Mapping ({analysis.mitreAttack.length} tactics)</span>
-            <span className="cti-toggle-icon">{expandedSections.has('mitre') ? '▼' : '▶'}</span>
-          </button>
-          
-          {expandedSections.has('mitre') && (
-            <div className="cti-mitre-grid">
-              {analysis.mitreAttack.map((mapping, i) => (
-                <div key={i} className="cti-mitre-card">
-                  <h4 className="cti-mitre-tactic">{mapping.tactic}</h4>
-                  <div className="cti-mitre-techniques">
-                    {mapping.techniques.map((tech, j) => (
-                      <span key={j} className="cti-mitre-technique">{tech}</span>
-                    ))}
-                  </div>
-                  {mapping.mitigations.length > 0 && (
-                    <div className="cti-mitre-mitigations">
-                      <span className="cti-mitigations-label">Mitigations:</span>
-                      {mapping.mitigations.map((mit, k) => (
-                        <span key={k} className="cti-mitigation">{mit}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Temporal Patterns with Evidence */}
+      {/* Temporal Patterns - THE CORE VALUE */}
       {analysis.temporalPatterns && analysis.temporalPatterns.length > 0 && (
-        <div className="cti-analysis-section">
+        <div className="cti-analysis-section cti-correlation-primary">
           <button 
             className="cti-section-toggle"
             onClick={() => toggleSection('patterns')}
           >
-            <span>⏱️ Temporal Patterns ({analysis.temporalPatterns.length})</span>
+            <span>⏱️ Temporal Correlation ({analysis.temporalPatterns.length})</span>
             <span className="cti-toggle-icon">{expandedSections.has('patterns') ? '▼' : '▶'}</span>
           </button>
           
@@ -1002,7 +853,7 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
             className="cti-section-toggle"
             onClick={() => toggleSection('cross')}
           >
-            <span>🔗 Cross-Source Correlations ({analysis.crossSourceLinks.length})</span>
+            <span>🔗 Infrastructure ↔ Social Links ({analysis.crossSourceLinks.length})</span>
             <span className="cti-toggle-icon">{expandedSections.has('cross') ? '▼' : '▶'}</span>
           </button>
           
@@ -1033,29 +884,42 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
         </div>
       )}
 
-      {/* Actions and Recommendations */}
-      <div className="cti-actions-grid">
-        {analysis.immediateActions && analysis.immediateActions.length > 0 && (
-          <div className="cti-actions-card cti-actions-immediate">
-            <h4>⚡ Immediate Actions</h4>
-            <ul>
-              {analysis.immediateActions.map((action, i) => (
-                <li key={i}>{action}</li>
+      {/* TTPs Section - Relevant techniques */}
+      {analysis.ttps && analysis.ttps.length > 0 && (
+        <div className="cti-analysis-section">
+          <button 
+            className="cti-section-toggle"
+            onClick={() => toggleSection('ttps')}
+          >
+            <span>⚔️ Observed TTPs ({analysis.ttps.length})</span>
+            <span className="cti-toggle-icon">{expandedSections.has('ttps') ? '▼' : '▶'}</span>
+          </button>
+          
+          {expandedSections.has('ttps') && (
+            <div className="cti-ttps-list">
+              {analysis.ttps.map((ttp, i) => (
+                <a
+                  key={i}
+                  href={`https://attack.mitre.org/techniques/${ttp.techniqueId}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cti-ttp-card"
+                >
+                  <div className="cti-ttp-header">
+                    <span className="cti-ttp-id">{ttp.techniqueId}</span>
+                    <span className="cti-ttp-tactic">{ttp.tactic}</span>
+                  </div>
+                  <p className="cti-ttp-name">{ttp.technique}</p>
+                  {ttp.evidence && (
+                    <p className="cti-ttp-evidence">{ttp.evidence}</p>
+                  )}
+                  <span className="cti-ttp-link-icon">↗</span>
+                </a>
               ))}
-            </ul>
-          </div>
-        )}
-        {analysis.strategicRecommendations && analysis.strategicRecommendations.length > 0 && (
-          <div className="cti-actions-card cti-actions-strategic">
-            <h4>📈 Strategic Recommendations</h4>
-            <ul>
-              {analysis.strategicRecommendations.map((rec, i) => (
-                <li key={i}>{rec}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Sources and References */}
       {analysis.sourcesAndReferences && analysis.sourcesAndReferences.length > 0 && (
