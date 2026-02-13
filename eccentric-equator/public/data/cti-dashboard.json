@@ -1,28 +1,28 @@
 {
   "meta": {
     "version": "2.0.0",
-    "generatedAt": "2026-02-13T22:27:11.794Z",
-    "validUntil": "2026-02-14T04:27:11.794Z"
+    "generatedAt": "2026-02-13T22:54:01.890Z",
+    "validUntil": "2026-02-14T04:54:01.890Z"
   },
   "status": {
-    "riskLevel": "critical",
-    "riskScore": 100,
+    "riskLevel": "moderate",
+    "riskScore": 50,
     "trend": "decreasing",
     "confidenceLevel": 85
   },
   "executive": {
-    "headline": "Threat Level: CRITICAL",
-    "summary": "The threat intelligence indicates that a sophisticated cyberattack targeting individuals has been detected across multiple hosts, primarily using SSH (Port 22), RDP (Port 3389), and SMB (Port 445) protocols. The attack leverages known vulnerabilities such as CVE-2008-3844, CVE-2019-16905, CVE-2016-20012, CVE-2021-36368, and the critical CVE-2025-26465. The attackers are employing a variety of techniques including brute force attacks (T1041), credential access (T1110), user execution (T1204), and data exfiltration over command-and-control channels (T1078). This attack is particularly concerning due to its sophistication, targeting individuals with high-value payloads.\n\n###",
+    "headline": "Threat Level: MEDIUM",
+    "summary": "The current threat landscape indicates a complex interplay between social media discussions and infrastructure exposure, suggesting ongoing cyber threats with potential for lateral movement and data exfiltration. The timeline reveals both proactive measures by organizations to patch vulnerabilities as well as active exploitation of known vulnerabilities.\n\n###",
     "keyFindings": [
-      "**Multiple Exposed Ports**: 12 hosts are exposed on Port 22 for SSH, which can be exploited for lateral movement and credential access.",
-      "**Critical Vulnerability Exposure**: The critical CVE-2025-26465 is present in 7 hosts, indicating a significant"
+      "*Multiple CVEs Being Exploited**: Multiple CVEs such as CVE-2020-0796, CVE-2008-3844, and CVE-2025-26465 are being actively exploited.",
+      "*Ransomware Activity**: The Qilin hacking group is claiming responsibility for a ransomware attack against Anabuki Kosan Inc., indicating ongoing threat activity.",
+      "*SSH Exposure**: Multiple hosts have SSH exposed on port 22, suggesting potential lateral movement and credential access."
     ],
     "recommendedActions": [
-      "*Patch Critical Vulnerabilities**: Immediately patch all hosts with CVE-2025-26465 to mitigate the risk of exploitation.",
-      "*Implement Network Segmentation**: Segment the exposed infrastructure from other parts of the network to limit lateral movement and reduce attack surface.",
-      "*Enhance Authentication Controls**: Strengthen authentication mechanisms, especially for SSH and RDP services, including multi-factor authentication (MFA).",
-      "*Monitor and Log Activity**: Increase monitoring on all exposed ports and implement logging policies to detect unusual activity early.",
-      "*Update Security Software**: Ensure that all security software, such as firewalls and intrusion detection systems, are up-to-date with the latest signatures and configurations."
+      "Initiate incident response procedures",
+      "Review and patch critical vulnerabilities immediately",
+      "Increase monitoring on affected systems",
+      "Brief security leadership on current threat status"
     ]
   },
   "metrics": {
@@ -51,56 +51,56 @@
   },
   "timeline": [
     {
-      "id": "threat_mllgi2wo_nuc50t",
+      "id": "threat_mllhd3s5_dkrk5k",
       "title": "Vulnerable Infrastructure Detected (29 hosts)",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-13T21:31:06.180Z"
     },
     {
-      "id": "threat_mllgi2ws_vtnmzk",
+      "id": "threat_mllhd3sa_7ety99",
       "title": "Threat: CVE-2026-21509",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-10T19:17:33.000Z"
     },
     {
-      "id": "threat_mllgi2wr_wogxep",
+      "id": "threat_mllhd3s9_6nqco4",
       "title": "Apple 0-Day Vulnerability Actively Exploited Sophisticated...",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-12T05:42:00.000Z"
     },
     {
-      "id": "threat_mllgi2ws_o3c3gz",
+      "id": "threat_mllhd3sa_rqocz0",
       "title": "Quiz Time! What zero-day vulnerability cybersecurity?...",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-11T18:06:01.000Z"
     },
     {
-      "id": "threat_mllgi2ws_wrx6uw",
+      "id": "threat_mllhd3sa_6npv5o",
       "title": "18Lv PUC465th Zero-Day Exploit(One-Day Fusion Mix)...",
       "severity": "critical",
       "category": "Vulnerability",
       "timestamp": "2026-02-11T07:25:14.000Z"
     },
     {
-      "id": "threat_mllgi2wr_93llky",
+      "id": "threat_mllhd3s9_45i5ui",
       "title": "Forcepoint researchers look into high-volume Phorpiex...",
       "severity": "high",
       "category": "APT",
       "timestamp": "2026-02-12T11:01:52.000Z"
     },
     {
-      "id": "threat_mllgi2ws_7oy1ks",
+      "id": "threat_mllhd3sa_2w772a",
       "title": "Threat: CVE-2026-1731",
       "severity": "medium",
       "category": "Vulnerability",
       "timestamp": "2026-02-10T17:19:25.000Z"
     },
     {
-      "id": "threat_mllgi2ws_j0o8ci",
+      "id": "threat_mllhd3sb_cooxwz",
       "title": "Threat: CVE-2025-68947",
       "severity": "medium",
       "category": "Ransomware",
@@ -111,12 +111,12 @@
     {
       "name": "Technical Reconnaissance",
       "signalCount": 1,
-      "lastUpdate": "2026-02-13T22:27:11.794Z"
+      "lastUpdate": "2026-02-13T22:54:01.890Z"
     },
     {
       "name": "Social Intelligence (X)",
       "signalCount": 13,
-      "lastUpdate": "2026-02-13T22:27:11.794Z"
+      "lastUpdate": "2026-02-13T22:54:01.890Z"
     }
   ],
   "indicators": {
@@ -291,7 +291,7 @@
   "ctiAnalysis": {
     "model": "qwen2.5:3b",
     "killChainPhase": "Exploitation",
-    "threatLandscape": "The threat intelligence indicates that a sophisticated cyberattack targeting individuals has been detected across multiple hosts, primarily using SSH (Port 22), RDP (Port 3389), and SMB (Port 445) protocols. The attack leverages known vulnerabilities such as CVE-2008-3844, CVE-2019-16905, CVE-2016-20012, CVE-2021-36368, and the critical CVE-2025-26465. The attackers are employing a variety of techniques including brute force attacks (T1041), credential access (T1110), user execution (T1204), and data exfiltration over command-and-control channels (T1078). This attack is particularly concerning due to its sophistication, targeting individuals with high-value payloads.\n\n###",
+    "threatLandscape": "The current threat landscape indicates a complex interplay between social media discussions and infrastructure exposure, suggesting ongoing cyber threats with potential for lateral movement and data exfiltration. The timeline reveals both proactive measures by organizations to patch vulnerabilities as well as active exploitation of known vulnerabilities.\n\n###",
     "mitreAttack": [
       {
         "tactic": "Lateral Movement",
@@ -369,16 +369,22 @@
     ],
     "keyFindings": [
       {
-        "finding": "**Multiple Exposed Ports**: 12 hosts are exposed on Port 22 for SSH, which can be exploited for lateral movement and credential access.",
+        "finding": "*Multiple CVEs Being Exploited**: Multiple CVEs such as CVE-2020-0796, CVE-2008-3844, and CVE-2025-26465 are being actively exploited.",
         "severity": "high",
         "evidence": "Based on collected intelligence data",
-        "recommendation": "*Patch Critical Vulnerabilities**: Immediately patch all hosts with CVE-2025-26465 to mitigate the risk of exploitation."
+        "recommendation": "Review and assess risk"
       },
       {
-        "finding": "**Critical Vulnerability Exposure**: The critical CVE-2025-26465 is present in 7 hosts, indicating a significant",
+        "finding": "*Ransomware Activity**: The Qilin hacking group is claiming responsibility for a ransomware attack against Anabuki Kosan Inc., indicating ongoing threat activity.",
         "severity": "medium",
         "evidence": "Based on collected intelligence data",
-        "recommendation": "*Implement Network Segmentation**: Segment the exposed infrastructure from other parts of the network to limit lateral movement and reduce attack surface."
+        "recommendation": "Review and assess risk"
+      },
+      {
+        "finding": "*SSH Exposure**: Multiple hosts have SSH exposed on port 22, suggesting potential lateral movement and credential access.",
+        "severity": "medium",
+        "evidence": "Based on collected intelligence data",
+        "recommendation": "Review and assess risk"
       }
     ],
     "ttps": [
@@ -453,39 +459,77 @@
         "confidence": 0.8
       }
     ],
-    "temporalPatterns": [],
+    "temporalPatterns": [
+      {
+        "pattern": "INFRA-FIRST correlation detected",
+        "description": "The analysis of the timeline reveals that social media discussions often precede infrastructure findings by a few hours to a day. This indicates that attackers are likely using social platforms to disseminate information about vulnerabilities or attacks before exploiting them on their targets' systems.\n\n- **Social Discussion Preceding Infrastructure Exposure**: The discussion around the Qilin hacking group's ransomware attack against Anabuki Kosan Inc. (2026-02-10T11:12:42.000Z) precedes the SSH exposure on port 22 by about 78 hours.\n  \n- **Infrastructure Exposure Preceding Social Discussion**: The SSH exposed hosts (2026-02-13T21:14:31.598Z) do not directly correlate with any specific social discussion, but the exposure of multiple vulnerabilities and services might be a result of ongoing exploitation.\n\n###",
+        "timeframe": "24-48 hours",
+        "confidence": 0.4,
+        "evidence": [
+          {
+            "source": "X.com",
+            "excerpt": "@H4ckmanac: Cyberattack Update\n\nJapan - Anabuki Kosan Inc.\n\nQilin hacking group claims respo...",
+            "url": ""
+          },
+          {
+            "source": "X.com",
+            "excerpt": "@TheDFIRReport:  DFIR Labs | BlueSky Ransomware Lab\n\nDive into a real investigation where a SQL ...",
+            "url": ""
+          },
+          {
+            "source": "X.com",
+            "excerpt": "@TheHackersNews:  Ransomware Persists — But Encryption Is No Longer the Main Signal of Attack!\n\nP...",
+            "url": ""
+          }
+        ]
+      },
+      {
+        "pattern": "Emerging Threat",
+        "description": "*APT Activity**: The ongoing discussion about the Qilin hacking group and its ransomware attack suggests that APT activity is persistent, indicating potential for further attacks or data exfiltration attempts.",
+        "timeframe": "Active",
+        "confidence": 0.7,
+        "evidence": []
+      },
+      {
+        "pattern": "Emerging Threat",
+        "description": "*CVE-2025-26465 Exploitation**: Multiple hosts are affected by CVE-2025-26465, a vulnerability in the SMB protocol. Given its widespread exposure and recent social media discussion about it, this threat is likely to continue as more systems become vulnerable.",
+        "timeframe": "Active",
+        "confidence": 0.7,
+        "evidence": []
+      },
+      {
+        "pattern": "Emerging Threat",
+        "description": "*Phorpiex Campaign**: The ongoing Phorpiex campaign (discussed on 2026-02-12T11:01:52.000Z) suggests that attackers are actively exploiting the vulnerabilities in this malware, indicating a potential for further data exfiltration or lateral movement.",
+        "timeframe": "Active",
+        "confidence": 0.7,
+        "evidence": []
+      }
+    ],
     "crossSourceLinks": [
       {
         "infraSignal": "OpenSSH",
         "socialSignal": "@The_Cyber_News:  Apple 0-Day Vulnerability Actively Exploited in S...",
         "relationship": "Concurrent activity",
-        "timeDelta": "Within 24h",
-        "significance": "Potential correlation between infrastructure and social signals"
+        "timeDelta": "Within analysis window",
+        "significance": "Temporal proximity detected"
       },
       {
         "infraSignal": "OpenSSH",
         "socialSignal": "@rootxharsh: The exploit for CVE-2026-1731 is out.\n\nThe APT of ...",
         "relationship": "Concurrent activity",
-        "timeDelta": "Within 24h",
-        "significance": "Potential correlation between infrastructure and social signals"
+        "timeDelta": "Within analysis window",
+        "significance": "Temporal proximity detected"
       },
       {
         "infraSignal": "OpenSSH",
         "socialSignal": "@TheHackersNews:  Reynolds ransomware embeds its own BYOVD evasion,...",
         "relationship": "Concurrent activity",
-        "timeDelta": "Within 24h",
-        "significance": "Potential correlation between infrastructure and social signals"
+        "timeDelta": "Within analysis window",
+        "significance": "Temporal proximity detected"
       }
     ],
-    "immediateActions": [
-      "*Patch Critical Vulnerabilities**: Immediately patch all hosts with CVE-2025-26465 to mitigate the risk of exploitation.",
-      "*Implement Network Segmentation**: Segment the exposed infrastructure from other parts of the network to limit lateral movement and reduce attack surface.",
-      "*Enhance Authentication Controls**: Strengthen authentication mechanisms, especially for SSH and RDP services, including multi-factor authentication (MFA)."
-    ],
-    "strategicRecommendations": [
-      "*Monitor and Log Activity**: Increase monitoring on all exposed ports and implement logging policies to detect unusual activity early.",
-      "*Update Security Software**: Ensure that all security software, such as firewalls and intrusion detection systems, are up-to-date with the latest signatures and configurations."
-    ],
+    "immediateActions": [],
+    "strategicRecommendations": [],
     "sourcesAndReferences": [
       {
         "source": "Shodan",
