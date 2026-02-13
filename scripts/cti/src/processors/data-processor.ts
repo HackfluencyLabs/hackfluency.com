@@ -29,6 +29,26 @@ const IOC_PATTERNS = {
   url: /https?:\/\/[^\s<>\[\]"']+/gi
 };
 
+// Patrones para normalizar texto scrapeado
+const TEXT_CLEANUP_PATTERNS = {
+  // Emojis y símbolos especiales
+  emojis: /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}]/gu,
+  // URLs largas (mantener solo dominio)
+  longUrls: /https?:\/\/([^\s\/]+)[^\s]*/g,
+  // Menciones de Twitter
+  mentions: /@[\w]+/g,
+  // Hashtags duplicados o excesivos (mantener primeros 3)
+  hashtags: /#[\w]+/g,
+  // Múltiples espacios o líneas
+  multipleSpaces: /\s{2,}/g,
+  // Caracteres de control
+  controlChars: /[\x00-\x1F\x7F]/g,
+  // RT prefix
+  rtPrefix: /^RT\s+/i,
+  // Thread markers
+  threadMarkers: /\(\d+\/\d+\)|\d+\/\d+|🧵/g
+};
+
 // Keywords para categorización de amenazas
 const THREAT_KEYWORDS: Record<ThreatCategory, string[]> = {
   [ThreatCategory.MALWARE]: ['malware', 'virus', 'trojan', 'worm', 'backdoor', 'rat', 'infostealer'],
@@ -113,27 +133,30 @@ export class DataProcessor {
     console.log(`[DataProcessor] Processing ${data.posts.length} X.com posts...`);
 
     for (const post of data.posts) {
-      // Extraer indicadores del texto
-      const extractedIndicators = this.extractIndicators(post.text, DataSource.X_COM);
+      // Normalizar texto antes de procesar
+      const normalizedText = this.normalizeScrapedText(post.text);
+      
+      // Extraer indicadores del texto normalizado
+      const extractedIndicators = this.extractIndicators(normalizedText, DataSource.X_COM);
       
       // Determinar categoría y severidad
-      const category = this.categorize(post.text);
-      const severity = this.determineSeverity(post.text, post.metrics);
+      const category = this.categorize(normalizedText);
+      const severity = this.determineSeverity(normalizedText, post.metrics);
 
       // Si el post tiene contenido CTI relevante
       if (category !== ThreatCategory.OTHER || extractedIndicators.length > 0) {
         const threat: ProcessedThreat = {
           id: this.generateId('threat'),
-          title: this.generateTitle(post.text),
-          description: post.text,
+          title: this.generateTitle(normalizedText),
+          description: normalizedText,
           category,
           severity,
           indicators: extractedIndicators,
           sources: [DataSource.X_COM],
           socialContext: {
-            sentiment: this.analyzeSentiment(post.text),
+            sentiment: this.analyzeSentiment(normalizedText),
             engagement: post.metrics.likes + post.metrics.reposts + post.metrics.replies,
-            keyPhrases: this.extractKeyPhrases(post.text),
+            keyPhrases: this.extractKeyPhrases(normalizedText),
             influencers: post.metrics.likes > 100 ? [post.author.username] : []
           },
           timestamp: post.timestamp,
@@ -230,6 +253,61 @@ export class DataProcessor {
         this.mergeIndicator(cveIndicator);
       }
     }
+  }
+
+  /**
+   * Normaliza texto scrapeado para procesamiento LLM
+   * Limpia emojis, URLs largas, menciones excesivas, etc.
+   */
+  private normalizeScrapedText(text: string): string {
+    let normalized = text;
+    
+    // Remover RT prefix
+    normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.rtPrefix, '');
+    
+    // Remover emojis
+    normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.emojis, '');
+    
+    // Simplificar URLs largas a solo dominio
+    normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.longUrls, (_, domain) => `[${domain}]`);
+    
+    // Remover thread markers
+    normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.threadMarkers, '');
+    
+    // Limitar hashtags a primeros 3
+    const hashtags = normalized.match(TEXT_CLEANUP_PATTERNS.hashtags) || [];
+    if (hashtags.length > 3) {
+      const keepHashtags = hashtags.slice(0, 3);
+      normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.hashtags, (match) => {
+        if (keepHashtags.includes(match)) {
+          keepHashtags.splice(keepHashtags.indexOf(match), 1);
+          return match;
+        }
+        return '';
+      });
+    }
+    
+    // Limitar menciones a primeras 2
+    const mentions = normalized.match(TEXT_CLEANUP_PATTERNS.mentions) || [];
+    if (mentions.length > 2) {
+      const keepMentions = mentions.slice(0, 2);
+      normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.mentions, (match) => {
+        if (keepMentions.includes(match)) {
+          keepMentions.splice(keepMentions.indexOf(match), 1);
+          return match;
+        }
+        return '';
+      });
+    }
+    
+    // Remover caracteres de control
+    normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.controlChars, '');
+    
+    // Colapsar múltiples espacios
+    normalized = normalized.replace(TEXT_CLEANUP_PATTERNS.multipleSpaces, ' ');
+    
+    // Trim final
+    return normalized.trim();
   }
 
   /**

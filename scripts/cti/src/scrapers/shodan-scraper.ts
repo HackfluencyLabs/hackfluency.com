@@ -228,8 +228,8 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
 
     if (!this.capabilities.isValid) {
       console.warn(`[ShodanScraper] API validation failed: ${this.capabilities.error}`);
-      console.log('[ShodanScraper] Returning empty dataset with fallback data');
-      return this.getFallbackData();
+      console.log('[ShodanScraper] Returning empty dataset - no fake data');
+      return this.getEmptyData();
     }
 
     const hosts: ShodanHost[] = [];
@@ -245,10 +245,10 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
       console.log(`[ShodanScraper] Found ${searchResults.length} hosts`);
     } catch (error) {
       console.error(`[ShodanScraper] Search failed:`, error);
-      // Si la búsqueda falla, retornar datos de fallback
+      // Si la búsqueda falla, retornar datos vacíos - no generamos datos falsos
       if (hosts.length === 0) {
-        console.log('[ShodanScraper] Using fallback data due to search failure');
-        return this.getFallbackData();
+        console.log('[ShodanScraper] No data available - returning empty dataset');
+        return this.getEmptyData(error instanceof Error ? error.message : 'Search failed');
       }
     }
 
@@ -269,10 +269,8 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
     }));
     exploits.push(...exploitList);
 
-    // Si no hay CVEs, agregar exploits de referencia
-    if (exploits.length === 0) {
-      exploits.push(...this.generateSampleExploits());
-    }
+    // No agregamos datos falsos - solo reportamos lo que encontramos
+    console.log(`[ShodanScraper] Real data: ${hosts.length} hosts, ${exploits.length} CVEs found`);
 
     return {
       source: DataSource.SHODAN,
@@ -285,16 +283,17 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
   }
 
   /**
-   * Retorna datos de fallback cuando la API no está disponible
+   * Retorna datos vacíos cuando la API no está disponible
+   * No genera datos falsos - solo reporta el error
    */
-  private getFallbackData(): ShodanScrapedData {
+  private getEmptyData(error?: string): ShodanScrapedData {
     return {
       source: DataSource.SHODAN,
       timestamp: new Date().toISOString(),
-      rawData: { error: this.capabilities?.error || 'API unavailable' },
+      rawData: { error: error || this.capabilities?.error || 'API unavailable', dataAvailable: false },
       hosts: [],
-      exploits: this.generateSampleExploits(),
-      query: 'fallback'
+      exploits: [],
+      query: 'none'
     };
   }
 
@@ -362,8 +361,8 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
     
     if (!response.ok) {
       // Exploits API puede no estar disponible en todos los planes
-      console.warn('[ShodanScraper] Exploits API not available, using fallback');
-      return this.generateSampleExploits();
+      console.warn('[ShodanScraper] Exploits API not available - returning empty (no fake data)');
+      return [];
     }
 
     const data = await response.json() as ShodanAPIExploitsResult;
@@ -375,28 +374,6 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
       platform: exploit.platform,
       type: exploit.type,
       source: exploit.source
-    }));
-  }
-
-  /**
-   * Genera exploits de muestra cuando la API no está disponible
-   */
-  private generateSampleExploits(): ShodanExploit[] {
-    const recentCVEs = [
-      { cve: 'CVE-2024-21887', desc: 'Ivanti Connect Secure Command Injection' },
-      { cve: 'CVE-2024-1709', desc: 'ConnectWise ScreenConnect Authentication Bypass' },
-      { cve: 'CVE-2024-27198', desc: 'TeamCity Authentication Bypass' },
-      { cve: 'CVE-2024-3400', desc: 'Palo Alto PAN-OS Command Injection' },
-      { cve: 'CVE-2024-4577', desc: 'PHP CGI Argument Injection' }
-    ];
-
-    return recentCVEs.map((item, idx) => ({
-      id: this.generateId('exp'),
-      cve: item.cve,
-      description: item.desc,
-      platform: 'Multiple',
-      type: 'remote',
-      source: 'shodan-fallback'
     }));
   }
 
