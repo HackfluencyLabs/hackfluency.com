@@ -30,7 +30,6 @@ env:
   # Prefer cybersecurity-specialized model; fallback to qwen2.5:3b if unavailable
   OLLAMA_MODEL_PRIMARY: WhoIsShe/Llama3.2-3b-cybersecurity-abliterated
   OLLAMA_MODEL_FALLBACK: qwen2.5:3b
-  OLLAMA_MODEL: qwen2.5:3b
 
 jobs:
   cti-pipeline:
@@ -51,7 +50,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ollama
-          key: ollama-${{ env.OLLAMA_MODEL }}
+          key: ollama-${{ env.OLLAMA_MODEL_PRIMARY }}-${{ env.OLLAMA_MODEL_FALLBACK }}
 
       - name: Install Ollama
         run: |
@@ -104,7 +103,6 @@ jobs:
           X_COOKIES_PATH: ${{ github.workspace }}/DATA/x-cookies.json
           USE_CACHE: ${{ inputs.use_cache }}
           OLLAMA_HOST: http://localhost:11434
-          OLLAMA_MODEL: ${{ env.OLLAMA_MODEL }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 

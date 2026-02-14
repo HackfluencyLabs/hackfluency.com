@@ -673,16 +673,121 @@ Write for a non-technical executive audience while maintaining technical accurac
    * Parse JSON from LLM response with fallback
    */
   private parseJsonResponse<T>(raw: string, fallback: T): T {
-    try {
-      // Try to find JSON in response
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]) as T;
+    const candidates = this.extractJsonObjectCandidates(raw);
+    for (const candidate of candidates) {
+      try {
+        return JSON.parse(candidate) as T;
+      } catch {
+        // keep trying
       }
-    } catch (err) {
-      console.log('[CTI-Agents] Failed to parse JSON response');
     }
+
+    console.log('[CTI-Agents] Failed to parse JSON response');
     return fallback;
+  }
+
+  /**
+   * Extract JSON object substrings from LLM output.
+   *
+   * LLMs sometimes wrap JSON in markdown fences or add pre/post text.
+   * This routine tries to find one or more balanced JSON objects and returns them
+   * in likely-best-first order.
+   */
+  private extractJsonObjectCandidates(raw: string): string[] {
+    const text = raw.trim();
+    if (!text) return [];
+
+    const candidates: string[] = [];
+
+    // Prefer fenced ```json blocks when present.
+    const fenced = Array.from(text.matchAll(/```json\s*([\s\S]*?)\s*```/gi));
+    for (const match of fenced) {
+      const inner = match[1]?.trim();
+      if (inner && inner.startsWith('{') && inner.endsWith('}')) {
+        candidates.push(inner);
+      }
+    }
+
+    // Then try to extract balanced objects from the whole text.
+    const balanced = this.findBalancedJsonObjects(text, 5);
+    for (const obj of balanced) candidates.push(obj);
+
+    // Lastly, fall back to the greedy match as a final attempt.
+    const greedy = text.match(/\{[\s\S]*\}/);
+    if (greedy?.[0]) candidates.push(greedy[0]);
+
+    // De-duplicate while preserving order.
+    return [...new Set(candidates)].slice(0, 8);
+  }
+
+  private findBalancedJsonObjects(text: string, maxObjects: number): string[] {
+    const objects: string[] = [];
+    const starts: number[] = [];
+
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '{') starts.push(i);
+    }
+
+    // Try a few starting points (earliest first), stop once we have enough.
+    for (const start of starts.slice(0, 10)) {
+      const extracted = this.extractBalancedObjectFrom(text, start);
+      if (extracted) {
+        objects.push(extracted);
+        if (objects.length >= maxObjects) break;
+      }
+    }
+
+    // Also try from the end (sometimes the first '{' is part of explanatory text).
+    if (objects.length === 0 && starts.length > 0) {
+      for (const start of starts.slice(-10).reverse()) {
+        const extracted = this.extractBalancedObjectFrom(text, start);
+        if (extracted) {
+          objects.push(extracted);
+          if (objects.length >= maxObjects) break;
+        }
+      }
+    }
+
+    return objects;
+  }
+
+  private extractBalancedObjectFrom(text: string, startIndex: number): string | null {
+    if (text[startIndex] !== '{') return null;
+
+    let depth = 0;
+    let inString = false;
+    let escapeNext = false;
+
+    for (let i = startIndex; i < text.length; i++) {
+      const ch = text[i];
+
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+
+      if (ch === '\\' && inString) {
+        escapeNext = true;
+        continue;
+      }
+
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (inString) continue;
+
+      if (ch === '{') depth++;
+      if (ch === '}') {
+        depth--;
+        if (depth === 0) {
+          return text.slice(startIndex, i + 1).trim();
+        }
+      }
+    }
+
+    return null;
   }
 
   private portToService(port: number): string {
