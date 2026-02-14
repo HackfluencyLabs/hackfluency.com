@@ -1,67 +1,49 @@
 /**
- * CTI Minimal Orchestrator - Sequential Two-Model Architecture
+ * CTI Minimal Orchestrator - Refactored Sequential Two-Model Architecture
  * 
- * Based on: "Minimal Multi-LLM Threat Signal Correlation Architecture"
- * 
- * Models:
- * - STRATEGIC (Mistral/Phi): Context understanding + hypothesis generation
- * - TECHNICAL (Qwen 3B): Technical validation + exploit reasoning
+ * Refactors Applied:
+ * 1. Token guardrails (approximate token counting)
+ * 2. Structured X signals (not narrative)
+ * 3. Compact input for technical model
+ * 4. Deterministic dashboard classification (no LLM for categorical fields)
+ * 5. Model-specific num_predict limits
  * 
  * Sequential Workflow:
- * 1. X Signal Digest (Strategic)
- * 2. Shodan Snapshot Digest (Pre-process)
- * 3. Technical Validation (Qwen)
- * 4. Strategic Synthesis (Strategic)
- * 5. Dashboard JSON Structuring (Strategic)
+ * 1. X Structured Signal Extraction (Strategic)
+ * 2. Shodan Deterministic Aggregation (No LLM)
+ * 3. Technical Validation (Technical Model - compact input)
+ * 4. Strategic Executive Synthesis (Strategic)
+ * 5. Deterministic Dashboard Structuring (No LLM)
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { XScrapedData, XPost, ShodanScrapedData, ShodanHost } from '../types/index.js';
+import { XScrapedData, XPost, ShodanScrapedData } from '../types/index.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || 'mistral:7b-instruct-q4_0';
-const TECHNICAL_MODEL = process.env.OLLAMA_MODEL_TECHNICAL || 'saki007ster/CybersecurityRiskAnalyst';
+const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || process.env.OLLAMA_MODEL_REASONER || 'mistral:7b-instruct-q4_0';
+const TECHNICAL_MODEL = process.env.OLLAMA_MODEL_TECHNICAL || process.env.OLLAMA_MODEL_SPECIALIST || 'saki007ster/CybersecurityRiskAnalyst';
 // 10 minutes timeout for CPU inference in GitHub Actions
 const REQUEST_TIMEOUT = parseInt(process.env.CTI_REQUEST_TIMEOUT || '600000', 10);
 const MAX_RETRIES = parseInt(process.env.CTI_MAX_RETRIES || '2', 10);
 
-// Token budget (~20k context strategy)
-const MAX_X_SUMMARY_TOKENS = 3000;
-const MAX_SHODAN_DIGEST_TOKENS = 4000;
-const MAX_VALIDATION_TOKENS = 3000;
+// Token budget limits (safe zones)
+const STRATEGIC_TOKEN_LIMIT = 6000;
+const TECHNICAL_TOKEN_LIMIT = 4000;
 
-export interface CTIDashboardOutput {
-  date: string;
-  summary: string;
-  confidence: 'low' | 'moderate' | 'high';
-  observed_cves: string[];
-  infrastructure_signals: Array<{
-    type: string;
-    count: number;
-    description: string;
-  }>;
-  correlation_strength: 'weak' | 'moderate' | 'strong';
-  risk_level: 'low' | 'medium' | 'high' | 'critical';
-  // Additional context for dashboard
-  x_intel_summary: string;
-  shodan_summary: string;
-  technical_assessment: string;
-  recommended_actions: string[];
+// ==================== Interfaces ====================
+
+/** Structured signals extracted from X posts (Refactor 2) */
+interface XStructuredSignals {
+  themes: string[];
+  cves: string[];
+  iocs: { ips: string[]; domains: string[]; hashes: string[] };
+  exploitationClaims: string[];
+  tone: 'speculative' | 'confirmed' | 'mixed';
+  topPosts: Array<{ author: string; excerpt: string; engagement: number; url?: string }>;
 }
 
-export interface OrchestratorResult {
-  success: boolean;
-  dashboard: CTIDashboardOutput;
-  intermediateOutputs: {
-    xDigest: string;
-    shodanDigest: ShodanDigest;
-    technicalValidation: string;
-    strategicSynthesis: string;
-  };
-  error?: string;
-}
-
+/** Shodan preprocessed digest */
 interface ShodanDigest {
   totalHosts: number;
   topPorts: Array<{ port: number; service: string; count: number }>;
@@ -69,8 +51,109 @@ interface ShodanDigest {
   vulnerableHosts: number;
   uniqueCVEs: string[];
   bannerPatterns: string[];
-  deltaVsYesterday?: string;
+  sampleHosts: Array<{ ip: string; port: number; service: string; vulns: string[] }>;
 }
+
+/** Technical validation output (Refactor 3) */
+interface TechnicalAssessment {
+  exploitAlignment: string;
+  infrastructurePatterns: string;
+  tacticalClassification: 'opportunistic' | 'targeted' | 'unknown';
+  confidenceLevel: 'low' | 'moderate' | 'high';
+  rawResponse: string;
+}
+
+/** Strategic synthesis output */
+interface StrategicSynthesis {
+  executiveSummary: string;
+  correlationReasoning: string;
+  recommendedActions: string[];
+  rawResponse: string;
+}
+
+/** Final dashboard output aligned with frontend */
+export interface CTIDashboardOutput {
+  meta: {
+    version: string;
+    generatedAt: string;
+    validUntil: string;
+  };
+  status: {
+    riskLevel: 'critical' | 'elevated' | 'moderate' | 'low';
+    riskScore: number;
+    trend: 'increasing' | 'stable' | 'decreasing';
+    confidenceLevel: number;
+  };
+  executive: {
+    headline: string;
+    summary: string;
+    keyFindings: string[];
+    recommendedActions: string[];
+  };
+  metrics: {
+    totalSignals: number;
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    lowCount: number;
+    categories: Array<{ name: string; count: number; percentage: number }>;
+  };
+  timeline: Array<{
+    id: string;
+    title: string;
+    severity: string;
+    category: string;
+    timestamp: string;
+    sourceUrl?: string;
+  }>;
+  sources: Array<{
+    name: string;
+    signalCount: number;
+    lastUpdate: string;
+  }>;
+  indicators: {
+    cves: string[];
+    domains: string[];
+    ips: string[];
+    keywords: string[];
+  };
+  infrastructure: {
+    totalHosts: number;
+    exposedPorts: Array<{ port: number; service: string; count: number; percentage: number }>;
+    topCountries: Array<{ country: string; count: number }>;
+    vulnerableHosts: number;
+    sampleHosts: Array<{ ip: string; port: number; service: string; vulns: string[] }>;
+  };
+  socialIntel?: {
+    totalPosts: number;
+    themes: string[];
+    tone: string;
+    topPosts: Array<{ excerpt: string; author: string; engagement: number; url?: string }>;
+  };
+  ctiAnalysis: {
+    model: string;
+    killChainPhase: string;
+    threatLandscape: string;
+    analystBrief: string;
+    correlationStrength: string;
+    technicalAssessment: string;
+    methodologies: string[];
+  };
+}
+
+export interface OrchestratorResult {
+  success: boolean;
+  dashboard: CTIDashboardOutput;
+  intermediateOutputs: {
+    xSignals: XStructuredSignals;
+    shodanDigest: ShodanDigest;
+    technicalAssessment: TechnicalAssessment;
+    strategicSynthesis: StrategicSynthesis;
+  };
+  error?: string;
+}
+
+// ==================== Orchestrator Class ====================
 
 export class CTIOrchestrator {
   private outputDir: string;
@@ -80,69 +163,50 @@ export class CTIOrchestrator {
   }
 
   /**
-   * Main orchestration - Sequential two-model workflow
+   * Main orchestration - Refactored sequential workflow
    */
   async run(): Promise<OrchestratorResult> {
-    console.log('[Orchestrator] Starting minimal CTI pipeline...');
+    console.log('[Orchestrator] Starting refactored CTI pipeline...');
     console.log(`  Strategic: ${STRATEGIC_MODEL}`);
     console.log(`  Technical: ${TECHNICAL_MODEL}`);
 
     try {
-      // Load raw data from scrapers
+      // Load raw data
       const xData = await this.loadJson<XScrapedData>('x-data.json');
       const shodanData = await this.loadJson<ShodanScrapedData>('shodan-data.json');
 
-      // Step 1: X Signal Digest (Strategic Model)
-      console.log('\n[Step 1] X Signal Digest...');
-      const xDigest = await this.generateXDigest(xData);
-      console.log(`  ✓ X digest generated (${xDigest.length} chars)`);
+      // Step 1: Extract Structured X Signals (Strategic Model)
+      console.log('\n[Step 1] X Structured Signal Extraction...');
+      const xSignals = await this.extractXSignals(xData);
+      console.log(`  ✓ Extracted: ${xSignals.cves.length} CVEs, ${xSignals.themes.length} themes`);
 
-      // Step 2: Shodan Snapshot Digest (Pre-process - no LLM needed)
-      console.log('\n[Step 2] Shodan Snapshot Digest...');
-      const shodanDigest = this.preprocessShodanData(shodanData);
-      console.log(`  ✓ Shodan digest: ${shodanDigest.totalHosts} hosts, ${shodanDigest.uniqueCVEs.length} CVEs`);
+      // Step 2: Shodan Deterministic Aggregation (No LLM)
+      console.log('\n[Step 2] Shodan Deterministic Aggregation...');
+      const shodanDigest = this.aggregateShodanData(shodanData);
+      console.log(`  ✓ Aggregated: ${shodanDigest.totalHosts} hosts, ${shodanDigest.vulnerableHosts} vulnerable`);
 
-      // Step 3: Technical Validation (Qwen 3B)
+      // Step 3: Technical Validation (Technical Model - compact input)
       console.log('\n[Step 3] Technical Validation...');
-      const technicalValidation = await this.generateTechnicalValidation(xDigest, shodanDigest);
-      console.log(`  ✓ Technical validation complete (${technicalValidation.length} chars)`);
+      const technicalAssessment = await this.runTechnicalValidation(xSignals, shodanDigest);
+      console.log(`  ✓ Assessment: ${technicalAssessment.tacticalClassification}, confidence: ${technicalAssessment.confidenceLevel}`);
 
-      // Step 4: Strategic Synthesis (Strategic Model)
+      // Step 4: Strategic Executive Synthesis
       console.log('\n[Step 4] Strategic Synthesis...');
-      const strategicSynthesis = await this.generateStrategicSynthesis(
-        xDigest, 
-        shodanDigest, 
-        technicalValidation
-      );
-      console.log(`  ✓ Strategic synthesis complete (${strategicSynthesis.length} chars)`);
+      const strategicSynthesis = await this.runStrategicSynthesis(xSignals, shodanDigest, technicalAssessment);
+      console.log(`  ✓ Synthesis complete (${strategicSynthesis.executiveSummary.length} chars)`);
 
-      // Step 5: Dashboard JSON Structuring (Strategic Model)
-      console.log('\n[Step 5] Dashboard JSON Generation...');
-      const dashboard = await this.generateDashboardJSON(
-        strategicSynthesis,
-        xDigest,
-        shodanDigest,
-        technicalValidation
-      );
-      console.log(`  ✓ Dashboard JSON generated`);
+      // Step 5: Deterministic Dashboard Structuring (No LLM)
+      console.log('\n[Step 5] Deterministic Dashboard Generation...');
+      const dashboard = this.buildDashboardDeterministic(xSignals, shodanDigest, technicalAssessment, strategicSynthesis);
+      console.log(`  ✓ Dashboard: Risk=${dashboard.status.riskLevel}, Score=${dashboard.status.riskScore}`);
 
-      // Save intermediate outputs for debugging
-      await this.saveIntermediateOutputs({
-        xDigest,
-        shodanDigest,
-        technicalValidation,
-        strategicSynthesis
-      });
+      // Save debug outputs
+      await this.saveIntermediateOutputs({ xSignals, shodanDigest, technicalAssessment, strategicSynthesis });
 
       return {
         success: true,
         dashboard,
-        intermediateOutputs: {
-          xDigest,
-          shodanDigest,
-          technicalValidation,
-          strategicSynthesis
-        }
+        intermediateOutputs: { xSignals, shodanDigest, technicalAssessment, strategicSynthesis }
       };
 
     } catch (error) {
@@ -151,65 +215,131 @@ export class CTIOrchestrator {
         success: false,
         dashboard: this.getEmptyDashboard(),
         intermediateOutputs: {
-          xDigest: '',
+          xSignals: this.getEmptyXSignals(),
           shodanDigest: this.getEmptyShodanDigest(),
-          technicalValidation: '',
-          strategicSynthesis: ''
+          technicalAssessment: this.getEmptyTechnicalAssessment(),
+          strategicSynthesis: this.getEmptyStrategicSynthesis()
         },
         error: String(error)
       };
     }
   }
 
+  // ==================== Step 1: X Structured Signal Extraction ====================
+
   /**
-   * Step 1: X Signal Digest using Strategic Model
-   * Summarizes X posts into emerging themes, IoCs, CVEs, campaign intent
+   * Extract structured signals from X posts using Strategic Model
+   * Returns structured object instead of narrative (Refactor 2)
    */
-  private async generateXDigest(xData: XScrapedData | null): Promise<string> {
+  private async extractXSignals(xData: XScrapedData | null): Promise<XStructuredSignals> {
     if (!xData || xData.posts.length === 0) {
-      return 'No X.com social intelligence available for analysis.';
+      return this.getEmptyXSignals();
     }
 
-    // Pre-filter: Remove replies, retweets without commentary, deduplicate
     const filteredPosts = this.filterXPosts(xData.posts);
     
-    // Compress into token-efficient format
+    // Pre-extract IoCs and CVEs from posts (code-based extraction)
+    const codeExtracted = this.extractIoCsFromPosts(filteredPosts);
+
+    // Build compact prompt for LLM to extract themes and tone
     const postsText = filteredPosts
-      .slice(0, 20) // Max 20 posts for context efficiency
-      .map((p, i) => `[${i + 1}] @${p.author.username}: ${this.truncate(p.text, 200)}`)
+      .slice(0, 15)
+      .map((p, i) => `[${i + 1}] ${this.truncateTokenSafe(p.text, 150)}`)
       .join('\n');
 
-    const prompt = `You are a cyber threat intelligence analyst. Analyze the following X.com posts for threat signals.
+    const prompt = `Extract threat intelligence signals from these posts. Return ONLY a JSON object.
 
 POSTS:
 ${postsText}
 
-Provide a structured analysis in natural language:
+Return JSON (no markdown):
+{"themes":["theme1","theme2"],"exploitation_claims":["claim1"],"tone":"speculative|confirmed|mixed"}`;
 
-1. EMERGING THEMES: What threat topics are being discussed?
-2. MENTIONED CVEs: List any CVE identifiers found (CVE-XXXX-XXXXX format)
-3. MENTIONED IoCs: IPs, domains, hashes mentioned
-4. EXPLOITATION TRENDS: Any active exploitation claims?
-5. TONE ASSESSMENT: Speculative vs confirmed intelligence
-6. CAMPAIGN INDICATORS: Any signs of coordinated activity?
+    // Check token budget
+    this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'X Signal Extraction');
 
-Keep your response under 800 words. Focus on actionable intelligence.`;
+    let extracted: { themes?: string[]; exploitation_claims?: string[]; tone?: string } = {};
+    try {
+      const response = await this.callOllama(STRATEGIC_MODEL, prompt, false);
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        extracted = JSON.parse(jsonMatch[0]);
+      }
+    } catch {
+      console.log('    Warning: LLM extraction partial, using code-extracted data');
+    }
 
-    return await this.callOllama(STRATEGIC_MODEL, prompt);
+    // Build top posts for dashboard
+    const topPosts = filteredPosts.slice(0, 5).map(p => ({
+      author: p.author.username,
+      excerpt: this.truncateTokenSafe(p.text, 100),
+      engagement: p.metrics.likes + p.metrics.reposts * 2,
+      url: p.permalink
+    }));
+
+    return {
+      themes: extracted.themes || this.inferThemesFromPosts(filteredPosts),
+      cves: codeExtracted.cves,
+      iocs: codeExtracted.iocs,
+      exploitationClaims: extracted.exploitation_claims || [],
+      tone: this.validateTone(extracted.tone || 'mixed'),
+      topPosts
+    };
   }
 
-  /**
-   * Step 2: Pre-process Shodan data without LLM
-   * Aggregates and compresses infrastructure data
-   */
-  private preprocessShodanData(shodanData: ShodanScrapedData | null): ShodanDigest {
+  /** Code-based IoC extraction (no LLM needed) */
+  private extractIoCsFromPosts(posts: XPost[]): { cves: string[]; iocs: { ips: string[]; domains: string[]; hashes: string[] } } {
+    const allText = posts.map(p => p.text).join(' ');
+    
+    // CVE pattern
+    const cves = [...new Set((allText.match(/CVE-\d{4}-\d{4,7}/gi) || []))];
+    
+    // IP pattern (simple v4)
+    const ips = [...new Set((allText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || []))]
+      .filter(ip => !ip.startsWith('0.') && !ip.startsWith('127.'));
+    
+    // Domain pattern (simple)
+    const domains = [...new Set((allText.match(/\b[a-z0-9][-a-z0-9]*\.[a-z]{2,}\b/gi) || []))]
+      .filter(d => !d.includes('twitter') && !d.includes('x.com'));
+    
+    // Hash patterns (MD5, SHA1, SHA256)
+    const hashes = [...new Set((allText.match(/\b[a-f0-9]{32,64}\b/gi) || []))];
+
+    return { cves, iocs: { ips: ips.slice(0, 10), domains: domains.slice(0, 10), hashes: hashes.slice(0, 5) } };
+  }
+
+  /** Infer themes from post content (fallback) */
+  private inferThemesFromPosts(posts: XPost[]): string[] {
+    const themes = new Set<string>();
+    const keywords = {
+      'Ransomware': /ransomware|ransom|encrypt/i,
+      'Vulnerability': /CVE-|vuln|exploit|zero-day/i,
+      'APT': /APT|nation-state|espionage/i,
+      'Data Breach': /breach|leak|exposed/i,
+      'Malware': /malware|trojan|backdoor/i,
+      'Phishing': /phish|credential|social engineering/i
+    };
+    
+    posts.forEach(p => {
+      Object.entries(keywords).forEach(([theme, pattern]) => {
+        if (pattern.test(p.text)) themes.add(theme);
+      });
+    });
+    
+    return Array.from(themes).slice(0, 5);
+  }
+
+  // ==================== Step 2: Shodan Deterministic Aggregation ====================
+
+  /** Aggregate Shodan data without LLM (deterministic) */
+  private aggregateShodanData(shodanData: ShodanScrapedData | null): ShodanDigest {
     if (!shodanData || shodanData.hosts.length === 0) {
       return this.getEmptyShodanDigest();
     }
 
     const hosts = shodanData.hosts;
 
-    // Aggregate port frequency
+    // Port aggregation
     const portCounts: Record<string, { port: number; service: string; count: number }> = {};
     hosts.forEach(h => {
       const key = `${h.port}`;
@@ -217,241 +347,383 @@ Keep your response under 800 words. Focus on actionable intelligence.`;
         portCounts[key] = { port: h.port, service: h.product || 'unknown', count: 0 };
       }
       portCounts[key].count++;
-      // Update service name if more specific
       if (h.product && h.product !== 'unknown') {
         portCounts[key].service = h.product;
       }
     });
 
-    // Aggregate country frequency
+    // Country aggregation
     const countryCounts: Record<string, number> = {};
     hosts.forEach(h => {
       const country = h.country || 'Unknown';
       countryCounts[country] = (countryCounts[country] || 0) + 1;
     });
 
-    // Collect unique CVEs
+    // CVE collection
     const allCVEs = new Set<string>();
-    hosts.forEach(h => {
-      if (h.vulns) {
-        h.vulns.forEach(cve => allCVEs.add(cve));
-      }
-    });
+    hosts.forEach(h => h.vulns?.forEach(cve => allCVEs.add(cve)));
 
-    // Collect banner patterns (unique services/versions)
+    // Banner patterns
     const bannerPatterns = new Set<string>();
     hosts.forEach(h => {
-      if (h.product && h.version) {
-        bannerPatterns.add(`${h.product} ${h.version}`);
-      }
+      if (h.product && h.version) bannerPatterns.add(`${h.product} ${h.version}`);
     });
 
-    // Count vulnerable hosts
+    // Vulnerable hosts count
     const vulnerableHosts = hosts.filter(h => h.vulns && h.vulns.length > 0).length;
+
+    // Sample hosts for dashboard (anonymize IPs)
+    const sampleHosts = hosts
+      .filter(h => h.vulns && h.vulns.length > 0)
+      .slice(0, 5)
+      .map(h => ({
+        ip: this.anonymizeIP(h.ip),
+        port: h.port,
+        service: h.product || 'unknown',
+        vulns: (h.vulns || []).slice(0, 3)
+      }));
+
+    const topPorts = Object.values(portCounts).sort((a, b) => b.count - a.count).slice(0, 10);
 
     return {
       totalHosts: hosts.length,
-      topPorts: Object.values(portCounts)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10),
+      topPorts,
       topCountries: Object.entries(countryCounts)
         .map(([country, count]) => ({ country, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 5),
       vulnerableHosts,
       uniqueCVEs: Array.from(allCVEs).slice(0, 20),
-      bannerPatterns: Array.from(bannerPatterns).slice(0, 10)
+      bannerPatterns: Array.from(bannerPatterns).slice(0, 10),
+      sampleHosts
     };
   }
 
+  // ==================== Step 3: Technical Validation ====================
+
   /**
-   * Step 3: Technical Validation using Qwen 3B
-   * Evaluates correlation between X intel and Shodan infrastructure
+   * Technical validation using Technical Model with compact structured input (Refactor 3)
    */
-  private async generateTechnicalValidation(
-    xDigest: string, 
+  private async runTechnicalValidation(
+    xSignals: XStructuredSignals,
     shodanDigest: ShodanDigest
-  ): Promise<string> {
-    // Format Shodan digest as text
-    const shodanText = this.formatShodanDigest(shodanDigest);
+  ): Promise<TechnicalAssessment> {
+    // Build compact structured input (not narrative)
+    const compactInput = `SOCIAL SIGNALS:
+CVEs: [${xSignals.cves.slice(0, 5).join(', ')}]
+IoCs: ${xSignals.iocs.ips.length} IPs, ${xSignals.iocs.domains.length} domains
+Themes: [${xSignals.themes.join(', ')}]
+Exploitation Claims: ${xSignals.exploitationClaims.length > 0 ? xSignals.exploitationClaims.slice(0, 3).join('; ') : 'None observed'}
+Tone: ${xSignals.tone}
 
-    const prompt = `You are a technical cybersecurity analyst. Analyze the correlation between social intelligence and infrastructure data.
+INFRASTRUCTURE:
+Total Hosts: ${shodanDigest.totalHosts}
+Vulnerable: ${shodanDigest.vulnerableHosts}/${shodanDigest.totalHosts} (${((shodanDigest.vulnerableHosts / Math.max(shodanDigest.totalHosts, 1)) * 100).toFixed(1)}%)
+Top Ports: [${shodanDigest.topPorts.slice(0, 5).map(p => `${p.port}/${p.service}`).join(', ')}]
+Infrastructure CVEs: [${shodanDigest.uniqueCVEs.slice(0, 5).join(', ')}]`;
 
-SOCIAL INTELLIGENCE SUMMARY:
-${this.truncate(xDigest, 2000)}
+    const prompt = `Analyze correlation between social intelligence and infrastructure. Be concise.
 
-INFRASTRUCTURE DATA:
-${shodanText}
+${compactInput}
 
-Evaluate and respond with:
+Respond with:
+1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services?
+2. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign?
+3. CONFIDENCE: low/moderate/high
 
-1. EXPLOIT PLAUSIBILITY: Do the CVEs mentioned socially match exposed infrastructure?
-2. SERVICE-CVE ALIGNMENT: Which exposed services could be vulnerable to mentioned exploits?
-3. INFRASTRUCTURE REUSE LIKELIHOOD: Any patterns suggesting coordinated infrastructure?
-4. TACTICAL ASSESSMENT: Is this opportunistic scanning or targeted campaign?
-5. CONFIDENCE LEVEL: Rate your assessment (low/moderate/high)
+Under 300 words.`;
 
-Be concise and technical. Under 500 words.`;
+    // Check token budget
+    this.assertTokenBudget(prompt, TECHNICAL_TOKEN_LIMIT, 'Technical Validation');
 
-    return await this.callOllama(TECHNICAL_MODEL, prompt);
-  }
+    const response = await this.callOllama(TECHNICAL_MODEL, prompt, true);
 
-  /**
-   * Step 4: Strategic Synthesis using Strategic Model
-   * Combines all analysis into executive-ready summary
-   */
-  private async generateStrategicSynthesis(
-    xDigest: string,
-    shodanDigest: ShodanDigest,
-    technicalValidation: string
-  ): Promise<string> {
-    const shodanText = this.formatShodanDigest(shodanDigest);
-
-    const prompt = `You are a senior threat intelligence analyst. Synthesize the following intelligence into an executive summary.
-
-SOCIAL INTELLIGENCE (X.com):
-${this.truncate(xDigest, 1500)}
-
-INFRASTRUCTURE PATTERNS (Shodan):
-${shodanText}
-
-TECHNICAL ASSESSMENT:
-${this.truncate(technicalValidation, 1500)}
-
-Produce a synthesis with:
-
-1. EXECUTIVE SUMMARY: 2-3 sentence overview for leadership
-2. CORRELATION REASONING: How social chatter relates to infrastructure exposure
-3. CONFIDENCE ESTIMATE: low / moderate / high - and why
-4. RISK INTERPRETATION: What does this mean for defensive posture?
-5. RECOMMENDED ACTIONS: Top 3 immediate actions
-
-Write in clear, professional English. Under 600 words.`;
-
-    return await this.callOllama(STRATEGIC_MODEL, prompt);
-  }
-
-  /**
-   * Step 5: Generate Dashboard JSON
-   * Final structured output for visualization
-   */
-  private async generateDashboardJSON(
-    synthesis: string,
-    xDigest: string,
-    shodanDigest: ShodanDigest,
-    technicalValidation: string
-  ): Promise<CTIDashboardOutput> {
-    // Extract CVEs from both sources
-    const cvePattern = /CVE-\d{4}-\d{4,7}/gi;
-    const allText = `${xDigest} ${technicalValidation} ${synthesis}`;
-    const mentionedCVEs = [...new Set(allText.match(cvePattern) || [])];
-    const combinedCVEs = [...new Set([...mentionedCVEs, ...shodanDigest.uniqueCVEs])];
-
-    // Use LLM to structure final JSON
-    const prompt = `Convert the following threat intelligence synthesis into a JSON structure.
-
-SYNTHESIS:
-${this.truncate(synthesis, 2000)}
-
-Return ONLY valid JSON with this exact structure (no markdown, no explanation):
-{
-  "summary": "1-2 sentence executive summary",
-  "confidence": "low|moderate|high",
-  "correlation_strength": "weak|moderate|strong",
-  "risk_level": "low|medium|high|critical",
-  "recommended_actions": ["action1", "action2", "action3"]
-}`;
-
-    let llmStructure: Record<string, unknown> = {};
-    try {
-      const response = await this.callOllama(STRATEGIC_MODEL, prompt);
-      // Extract JSON from response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        llmStructure = JSON.parse(jsonMatch[0]);
-      }
-    } catch {
-      console.log('  Warning: LLM JSON extraction failed, using defaults');
+    // Parse response for classification
+    const tacticalMatch = response.toLowerCase();
+    let tactical: 'opportunistic' | 'targeted' | 'unknown' = 'unknown';
+    if (tacticalMatch.includes('targeted') || tacticalMatch.includes('campaign')) {
+      tactical = 'targeted';
+    } else if (tacticalMatch.includes('opportunistic') || tacticalMatch.includes('scanning')) {
+      tactical = 'opportunistic';
     }
 
-    // Build final dashboard output with fallbacks
-    const dashboard: CTIDashboardOutput = {
-      date: new Date().toISOString(),
-      summary: String(llmStructure.summary || 'Threat intelligence analysis completed. See detailed sections for findings.'),
-      confidence: this.validateConfidence(String(llmStructure.confidence || 'moderate')),
-      observed_cves: combinedCVEs.slice(0, 15),
-      infrastructure_signals: shodanDigest.topPorts.slice(0, 5).map(p => ({
-        type: 'exposed_service',
-        count: p.count,
-        description: `${p.service} on port ${p.port}`
-      })),
-      correlation_strength: this.validateCorrelation(String(llmStructure.correlation_strength || 'moderate')),
-      risk_level: this.validateRiskLevel(String(llmStructure.risk_level || 'medium')),
-      x_intel_summary: this.truncate(xDigest, 500),
-      shodan_summary: `${shodanDigest.totalHosts} hosts scanned, ${shodanDigest.vulnerableHosts} vulnerable, ${shodanDigest.uniqueCVEs.length} unique CVEs`,
-      technical_assessment: this.truncate(technicalValidation, 500),
-      recommended_actions: Array.isArray(llmStructure.recommended_actions) 
-        ? llmStructure.recommended_actions.slice(0, 5)
-        : ['Monitor threat feeds', 'Patch critical vulnerabilities', 'Review exposed services']
+    let confidence: 'low' | 'moderate' | 'high' = 'moderate';
+    if (tacticalMatch.includes('high confidence') || tacticalMatch.includes('confidence: high')) {
+      confidence = 'high';
+    } else if (tacticalMatch.includes('low confidence') || tacticalMatch.includes('confidence: low')) {
+      confidence = 'low';
+    }
+
+    return {
+      exploitAlignment: this.extractSection(response, 'alignment', 'CVE-service analysis pending'),
+      infrastructurePatterns: this.extractSection(response, 'pattern', 'Infrastructure patterns analyzed'),
+      tacticalClassification: tactical,
+      confidenceLevel: confidence,
+      rawResponse: response
     };
-
-    return dashboard;
   }
 
-  // ========== Helper Methods ==========
+  // ==================== Step 4: Strategic Synthesis ====================
 
-  private filterXPosts(posts: XPost[]): XPost[] {
-    return posts
-      // Filter out likely replies (start with @)
-      .filter(p => !p.text.startsWith('@'))
-      // Filter out very short posts
-      .filter(p => p.text.length > 50)
-      // Sort by engagement
-      .sort((a, b) => {
-        const engA = a.metrics.likes + a.metrics.reposts * 2;
-        const engB = b.metrics.likes + b.metrics.reposts * 2;
-        return engB - engA;
-      });
+  /**
+   * Strategic synthesis using Strategic Model
+   */
+  private async runStrategicSynthesis(
+    xSignals: XStructuredSignals,
+    shodanDigest: ShodanDigest,
+    technical: TechnicalAssessment
+  ): Promise<StrategicSynthesis> {
+    // Build concise input using structured signals
+    const prompt = `Synthesize threat intelligence for executive briefing.
+
+SOCIAL INTEL:
+- Themes: ${xSignals.themes.join(', ') || 'None identified'}
+- CVEs discussed: ${xSignals.cves.length}
+- Tone: ${xSignals.tone}
+
+INFRASTRUCTURE:
+- ${shodanDigest.totalHosts} hosts, ${shodanDigest.vulnerableHosts} vulnerable
+- Top services: ${shodanDigest.topPorts.slice(0, 3).map(p => p.service).join(', ')}
+
+TECHNICAL ASSESSMENT:
+- Classification: ${technical.tacticalClassification}
+- Confidence: ${technical.confidenceLevel}
+
+Provide:
+1. EXECUTIVE SUMMARY (2-3 sentences)
+2. KEY FINDING (most important observation)
+3. RECOMMENDED ACTIONS (top 3)
+
+Under 400 words.`;
+
+    // Check token budget
+    this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'Strategic Synthesis');
+
+    const response = await this.callOllama(STRATEGIC_MODEL, prompt, false);
+
+    // Extract executive summary (first paragraph or after "EXECUTIVE SUMMARY")
+    const summaryMatch = response.match(/(?:EXECUTIVE SUMMARY[:\s]*)?([^.]+\.[^.]+\.)/i);
+    const executiveSummary = summaryMatch?.[1]?.trim() || response.split('\n')[0] || 'Threat analysis completed.';
+
+    // Extract recommended actions
+    const actionsMatch = response.match(/(?:RECOMMENDED|ACTIONS?)[:\s]*\n?([\s\S]*?)(?:\n\n|$)/i);
+    let recommendedActions = ['Monitor threat indicators', 'Review exposed services', 'Update security controls'];
+    if (actionsMatch) {
+      const actionLines = actionsMatch[1].match(/[-•\d.]\s*(.+)/g);
+      if (actionLines && actionLines.length > 0) {
+        recommendedActions = actionLines.map(a => a.replace(/^[-•\d.]\s*/, '').trim()).slice(0, 5);
+      }
+    }
+
+    return {
+      executiveSummary,
+      correlationReasoning: this.extractSection(response, 'correlation', 'Cross-source correlation analyzed'),
+      recommendedActions,
+      rawResponse: response
+    };
   }
 
-  private formatShodanDigest(digest: ShodanDigest): string {
-    const lines: string[] = [
-      `Total Hosts Scanned: ${digest.totalHosts}`,
-      `Vulnerable Hosts: ${digest.vulnerableHosts}`,
-      `\nTop Exposed Ports:`,
-      ...digest.topPorts.map(p => `  - Port ${p.port} (${p.service}): ${p.count} hosts`),
-      `\nTop Countries:`,
-      ...digest.topCountries.map(c => `  - ${c.country}: ${c.count} hosts`),
-      `\nUnique CVEs Found: ${digest.uniqueCVEs.length}`,
-      digest.uniqueCVEs.slice(0, 5).map(c => `  - ${c}`).join('\n'),
-      `\nService Patterns:`,
-      ...digest.bannerPatterns.slice(0, 5).map(b => `  - ${b}`)
-    ];
-    return lines.join('\n');
+  // ==================== Step 5: Deterministic Dashboard Building ====================
+
+  /**
+   * Build dashboard with deterministic classification (Refactor 4)
+   * NO LLM for categorical fields
+   */
+  private buildDashboardDeterministic(
+    xSignals: XStructuredSignals,
+    shodanDigest: ShodanDigest,
+    technical: TechnicalAssessment,
+    synthesis: StrategicSynthesis
+  ): CTIDashboardOutput {
+    const now = new Date();
+    const validUntil = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+
+    // Deterministic Risk Level (Refactor 4)
+    const vulnerabilityRatio = shodanDigest.vulnerableHosts / Math.max(shodanDigest.totalHosts, 1);
+    let riskLevel: 'critical' | 'elevated' | 'moderate' | 'low';
+    let riskScore: number;
+    
+    if (vulnerabilityRatio > 0.5 || xSignals.tone === 'confirmed') {
+      riskLevel = 'critical';
+      riskScore = 85 + Math.min(vulnerabilityRatio * 15, 15);
+    } else if (vulnerabilityRatio > 0.25 || technical.tacticalClassification === 'targeted') {
+      riskLevel = 'elevated';
+      riskScore = 60 + vulnerabilityRatio * 40;
+    } else if (vulnerabilityRatio > 0.1 || xSignals.cves.length > 3) {
+      riskLevel = 'moderate';
+      riskScore = 40 + vulnerabilityRatio * 40;
+    } else {
+      riskLevel = 'low';
+      riskScore = 20 + vulnerabilityRatio * 40;
+    }
+
+    // Deterministic Correlation Strength (Refactor 4)
+    const cveOverlap = this.countOverlap(xSignals.cves, shodanDigest.uniqueCVEs);
+    let correlationStrength: string;
+    if (cveOverlap > 5) {
+      correlationStrength = 'strong';
+    } else if (cveOverlap > 2) {
+      correlationStrength = 'moderate';
+    } else {
+      correlationStrength = 'weak';
+    }
+
+    // Deterministic Confidence (based on technical assessment)
+    const confidenceMap = { high: 85, moderate: 60, low: 35 };
+    const confidenceLevel = confidenceMap[technical.confidenceLevel];
+
+    // Build key findings
+    const keyFindings: string[] = [];
+    if (shodanDigest.uniqueCVEs.length > 0) {
+      keyFindings.push(`${shodanDigest.uniqueCVEs.length} CVE references identified in infrastructure`);
+    }
+    if (shodanDigest.vulnerableHosts > 0) {
+      keyFindings.push(`${shodanDigest.vulnerableHosts} vulnerable hosts detected (${(vulnerabilityRatio * 100).toFixed(1)}%)`);
+    }
+    if (xSignals.themes.length > 0) {
+      keyFindings.push(`Active social discussion: ${xSignals.themes.slice(0, 2).join(', ')}`);
+    }
+    if (cveOverlap > 0) {
+      keyFindings.push(`${cveOverlap} CVEs appear in both social intel and infrastructure`);
+    }
+    if (keyFindings.length === 0) {
+      keyFindings.push('Baseline threat monitoring active');
+    }
+
+    // Build timeline events
+    const timeline = this.buildTimeline(xSignals, shodanDigest);
+
+    // Calculate metrics
+    const totalSignals = xSignals.cves.length + shodanDigest.vulnerableHosts + xSignals.exploitationClaims.length;
+    const severityDist = this.calculateSeverityDistribution(riskLevel, totalSignals);
+
+    // Build categories
+    const categories: Array<{ name: string; count: number; percentage: number }> = [];
+    if (shodanDigest.uniqueCVEs.length > 0) {
+      categories.push({ name: 'Vulnerability', count: shodanDigest.uniqueCVEs.length, percentage: 0 });
+    }
+    if (shodanDigest.vulnerableHosts > 0) {
+      categories.push({ name: 'Infrastructure', count: shodanDigest.vulnerableHosts, percentage: 0 });
+    }
+    if (xSignals.themes.length > 0) {
+      categories.push({ name: 'Threat Intel', count: xSignals.themes.length, percentage: 0 });
+    }
+    if (categories.length === 0) {
+      categories.push({ name: 'General', count: 1, percentage: 100 });
+    }
+    const catTotal = categories.reduce((s, c) => s + c.count, 0);
+    categories.forEach(c => c.percentage = Math.round((c.count / catTotal) * 100));
+
+    // Infer kill chain phase
+    const killChainPhase = technical.tacticalClassification === 'targeted' 
+      ? 'Weaponization' 
+      : (shodanDigest.vulnerableHosts > 0 ? 'Reconnaissance' : 'Pre-Attack');
+
+    return {
+      meta: {
+        version: '3.0.0',
+        generatedAt: now.toISOString(),
+        validUntil: validUntil.toISOString()
+      },
+      status: {
+        riskLevel,
+        riskScore: Math.round(riskScore),
+        trend: this.inferTrend(xSignals, shodanDigest),
+        confidenceLevel
+      },
+      executive: {
+        headline: this.generateHeadline(riskLevel),
+        summary: synthesis.executiveSummary,
+        keyFindings,
+        recommendedActions: synthesis.recommendedActions
+      },
+      metrics: {
+        totalSignals: Math.max(totalSignals, 1),
+        ...severityDist,
+        categories
+      },
+      timeline,
+      sources: [
+        { name: 'X.com Social Intel', signalCount: xSignals.topPosts.length, lastUpdate: now.toISOString() },
+        { name: 'Shodan Infrastructure', signalCount: shodanDigest.totalHosts, lastUpdate: now.toISOString() }
+      ],
+      indicators: {
+        cves: [...new Set([...xSignals.cves, ...shodanDigest.uniqueCVEs])].slice(0, 15),
+        domains: xSignals.iocs.domains,
+        ips: xSignals.iocs.ips.map(ip => this.anonymizeIP(ip)),
+        keywords: xSignals.themes
+      },
+      infrastructure: {
+        totalHosts: shodanDigest.totalHosts,
+        exposedPorts: shodanDigest.topPorts.slice(0, 5).map(p => ({
+          ...p,
+          percentage: Math.round((p.count / Math.max(shodanDigest.totalHosts, 1)) * 100)
+        })),
+        topCountries: shodanDigest.topCountries,
+        vulnerableHosts: shodanDigest.vulnerableHosts,
+        sampleHosts: shodanDigest.sampleHosts
+      },
+      socialIntel: xSignals.topPosts.length > 0 ? {
+        totalPosts: xSignals.topPosts.length,
+        themes: xSignals.themes,
+        tone: xSignals.tone,
+        topPosts: xSignals.topPosts
+      } : undefined,
+      ctiAnalysis: {
+        model: TECHNICAL_MODEL,
+        killChainPhase,
+        threatLandscape: synthesis.executiveSummary,
+        analystBrief: `Classification: ${technical.tacticalClassification}. Confidence: ${technical.confidenceLevel}. Correlation: ${correlationStrength}.`,
+        correlationStrength,
+        technicalAssessment: technical.rawResponse.slice(0, 500),
+        methodologies: [
+          'Deterministic risk scoring (vulnerability ratio)',
+          'Code-based IoC extraction',
+          'Cross-source CVE correlation',
+          'Structured signal analysis'
+        ]
+      }
+    };
   }
 
-  private async callOllama(model: string, prompt: string, retryCount = 0): Promise<string> {
+  // ==================== Helper Methods ====================
+
+  /** Token budget assertion (Refactor 1) */
+  private assertTokenBudget(text: string, limit: number, context: string): void {
+    const approxTokens = Math.ceil(text.length / 4);
+    if (approxTokens > limit) {
+      console.log(`    Warning: ${context} prompt (${approxTokens} tokens) exceeds safe limit (${limit})`);
+    }
+  }
+
+  /** Token-safe truncation */
+  private truncateTokenSafe(text: string, maxTokens: number): string {
+    const maxChars = maxTokens * 4;
+    if (text.length <= maxChars) return text;
+    return text.substring(0, maxChars - 3) + '...';
+  }
+
+  /** Call Ollama with model-specific settings (Refactor 5) */
+  private async callOllama(model: string, prompt: string, isTechnical: boolean, retryCount = 0): Promise<string> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
     try {
-      console.log(`    [Ollama] Calling ${model} (attempt ${retryCount + 1}/${MAX_RETRIES + 1})...`);
+      console.log(`    [Ollama] Calling ${model.split('/').pop()} (attempt ${retryCount + 1}/${MAX_RETRIES + 1})...`);
       const startTime = Date.now();
-      
+
+      // Model-specific settings (Refactor 5)
+      const options = {
+        temperature: isTechnical ? 0.2 : 0.3,
+        num_predict: isTechnical ? 600 : 900,
+        top_p: 0.9
+      };
+
       const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
-        body: JSON.stringify({
-          model,
-          prompt,
-          stream: false,
-          options: {
-            temperature: 0.3,
-            num_predict: 1024,
-            top_p: 0.9
-          }
-        })
+        body: JSON.stringify({ model, prompt, stream: false, options })
       });
 
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -461,18 +733,17 @@ Return ONLY valid JSON with this exact structure (no markdown, no explanation):
       }
 
       const data = await res.json() as { response: string };
-      console.log(`    [Ollama] Response received in ${elapsed}s`);
+      console.log(`    [Ollama] Response in ${elapsed}s`);
       return data.response || '';
     } catch (error) {
       clearTimeout(timeout);
-      
-      // Retry on timeout or network errors
+
       if (retryCount < MAX_RETRIES) {
         const isTimeout = error instanceof Error && error.name === 'AbortError';
-        const waitTime = Math.pow(2, retryCount) * 5000; // Exponential backoff: 5s, 10s
-        console.log(`    [Ollama] ${isTimeout ? 'Timeout' : 'Error'}, retrying in ${waitTime/1000}s...`);
+        const waitTime = Math.pow(2, retryCount) * 5000;
+        console.log(`    [Ollama] ${isTimeout ? 'Timeout' : 'Error'}, retrying in ${waitTime / 1000}s...`);
         await this.sleep(waitTime);
-        return this.callOllama(model, prompt, retryCount + 1);
+        return this.callOllama(model, prompt, isTechnical, retryCount + 1);
       }
       throw error;
     } finally {
@@ -483,6 +754,107 @@ Return ONLY valid JSON with this exact structure (no markdown, no explanation):
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  private filterXPosts(posts: XPost[]): XPost[] {
+    return posts
+      .filter(p => !p.text.startsWith('@'))
+      .filter(p => p.text.length > 50)
+      .sort((a, b) => (b.metrics.likes + b.metrics.reposts * 2) - (a.metrics.likes + a.metrics.reposts * 2));
+  }
+
+  private anonymizeIP(ip: string): string {
+    const parts = ip.split('.');
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.xxx.xxx`;
+    }
+    return ip;
+  }
+
+  private countOverlap(arr1: string[], arr2: string[]): number {
+    const set2 = new Set(arr2.map(s => s.toUpperCase()));
+    return arr1.filter(s => set2.has(s.toUpperCase())).length;
+  }
+
+  private validateTone(tone: string): 'speculative' | 'confirmed' | 'mixed' {
+    const t = tone.toLowerCase();
+    if (t.includes('confirm')) return 'confirmed';
+    if (t.includes('specul')) return 'speculative';
+    return 'mixed';
+  }
+
+  private extractSection(text: string, keyword: string, fallback: string): string {
+    const lines = text.split('\n');
+    for (const line of lines) {
+      if (line.toLowerCase().includes(keyword)) {
+        return line.replace(/^[\d.\-:*]+\s*/, '').trim() || fallback;
+      }
+    }
+    return fallback;
+  }
+
+  private generateHeadline(riskLevel: string): string {
+    const headlines: Record<string, string> = {
+      critical: 'CRITICAL: Immediate action required',
+      elevated: 'ELEVATED: Active threats detected',
+      moderate: 'MODERATE: Monitor and assess',
+      low: 'LOW: Routine monitoring active'
+    };
+    return headlines[riskLevel] || 'Threat Level: MODERATE';
+  }
+
+  private inferTrend(xSignals: XStructuredSignals, shodanDigest: ShodanDigest): 'increasing' | 'stable' | 'decreasing' {
+    if (xSignals.tone === 'confirmed' || xSignals.exploitationClaims.length > 2) {
+      return 'increasing';
+    }
+    if (shodanDigest.vulnerableHosts > shodanDigest.totalHosts * 0.3) {
+      return 'increasing';
+    }
+    return 'stable';
+  }
+
+  private calculateSeverityDistribution(riskLevel: string, total: number): { criticalCount: number; highCount: number; mediumCount: number; lowCount: number } {
+    const t = Math.max(total, 1);
+    switch (riskLevel) {
+      case 'critical':
+        return { criticalCount: Math.ceil(t * 0.4), highCount: Math.ceil(t * 0.3), mediumCount: Math.ceil(t * 0.2), lowCount: Math.floor(t * 0.1) };
+      case 'elevated':
+        return { criticalCount: Math.ceil(t * 0.15), highCount: Math.ceil(t * 0.35), mediumCount: Math.ceil(t * 0.35), lowCount: Math.floor(t * 0.15) };
+      case 'moderate':
+        return { criticalCount: Math.ceil(t * 0.05), highCount: Math.ceil(t * 0.2), mediumCount: Math.ceil(t * 0.5), lowCount: Math.floor(t * 0.25) };
+      default:
+        return { criticalCount: 0, highCount: Math.ceil(t * 0.1), mediumCount: Math.ceil(t * 0.3), lowCount: Math.floor(t * 0.6) };
+    }
+  }
+
+  private buildTimeline(xSignals: XStructuredSignals, shodanDigest: ShodanDigest): Array<{ id: string; title: string; severity: string; category: string; timestamp: string; sourceUrl?: string }> {
+    const timeline: Array<{ id: string; title: string; severity: string; category: string; timestamp: string; sourceUrl?: string }> = [];
+    const now = new Date();
+
+    if (shodanDigest.vulnerableHosts > 0) {
+      timeline.push({
+        id: `infra_${Date.now()}`,
+        title: `Vulnerable Infrastructure Detected (${shodanDigest.vulnerableHosts} hosts)`,
+        severity: shodanDigest.vulnerableHosts > 10 ? 'critical' : 'high',
+        category: 'Infrastructure',
+        timestamp: now.toISOString()
+      });
+    }
+
+    xSignals.topPosts.slice(0, 3).forEach((post, i) => {
+      timeline.push({
+        id: `social_${Date.now()}_${i}`,
+        title: post.excerpt.slice(0, 60) + '...',
+        severity: 'medium',
+        category: 'Social Intel',
+        timestamp: now.toISOString(),
+        sourceUrl: post.url
+      });
+    });
+
+    return timeline.slice(0, 5);
+  }
+
+  // ==================== Data Loading ====================
 
   private async loadJson<T>(filename: string): Promise<T | null> {
     try {
@@ -498,66 +870,40 @@ Return ONLY valid JSON with this exact structure (no markdown, no explanation):
   private async saveIntermediateOutputs(outputs: Record<string, unknown>): Promise<void> {
     try {
       await fs.mkdir(this.outputDir, { recursive: true });
-      await fs.writeFile(
-        path.join(this.outputDir, 'orchestrator-debug.json'),
-        JSON.stringify(outputs, null, 2)
-      );
-    } catch {
-      // Non-critical, ignore
-    }
+      await fs.writeFile(path.join(this.outputDir, 'orchestrator-debug.json'), JSON.stringify(outputs, null, 2));
+    } catch { /* non-critical */ }
   }
 
-  private truncate(text: string, maxLen: number): string {
-    if (text.length <= maxLen) return text;
-    return text.substring(0, maxLen - 3) + '...';
-  }
+  // ==================== Empty State Factories ====================
 
-  private validateConfidence(value: string): 'low' | 'moderate' | 'high' {
-    const v = value.toLowerCase();
-    if (v.includes('high')) return 'high';
-    if (v.includes('low')) return 'low';
-    return 'moderate';
-  }
-
-  private validateCorrelation(value: string): 'weak' | 'moderate' | 'strong' {
-    const v = value.toLowerCase();
-    if (v.includes('strong')) return 'strong';
-    if (v.includes('weak')) return 'weak';
-    return 'moderate';
-  }
-
-  private validateRiskLevel(value: string): 'low' | 'medium' | 'high' | 'critical' {
-    const v = value.toLowerCase();
-    if (v.includes('critical')) return 'critical';
-    if (v.includes('high')) return 'high';
-    if (v.includes('low')) return 'low';
-    return 'medium';
-  }
-
-  private getEmptyDashboard(): CTIDashboardOutput {
-    return {
-      date: new Date().toISOString(),
-      summary: 'Insufficient data for analysis.',
-      confidence: 'low',
-      observed_cves: [],
-      infrastructure_signals: [],
-      correlation_strength: 'weak',
-      risk_level: 'low',
-      x_intel_summary: 'No social intelligence available.',
-      shodan_summary: 'No infrastructure data available.',
-      technical_assessment: 'Unable to perform technical validation.',
-      recommended_actions: ['Configure data sources', 'Verify API credentials']
-    };
+  private getEmptyXSignals(): XStructuredSignals {
+    return { themes: [], cves: [], iocs: { ips: [], domains: [], hashes: [] }, exploitationClaims: [], tone: 'mixed', topPosts: [] };
   }
 
   private getEmptyShodanDigest(): ShodanDigest {
+    return { totalHosts: 0, topPorts: [], topCountries: [], vulnerableHosts: 0, uniqueCVEs: [], bannerPatterns: [], sampleHosts: [] };
+  }
+
+  private getEmptyTechnicalAssessment(): TechnicalAssessment {
+    return { exploitAlignment: '', infrastructurePatterns: '', tacticalClassification: 'unknown', confidenceLevel: 'low', rawResponse: '' };
+  }
+
+  private getEmptyStrategicSynthesis(): StrategicSynthesis {
+    return { executiveSummary: 'Insufficient data for analysis.', correlationReasoning: '', recommendedActions: ['Configure data sources'], rawResponse: '' };
+  }
+
+  private getEmptyDashboard(): CTIDashboardOutput {
+    const now = new Date();
     return {
-      totalHosts: 0,
-      topPorts: [],
-      topCountries: [],
-      vulnerableHosts: 0,
-      uniqueCVEs: [],
-      bannerPatterns: []
+      meta: { version: '3.0.0', generatedAt: now.toISOString(), validUntil: new Date(now.getTime() + 6 * 3600000).toISOString() },
+      status: { riskLevel: 'low', riskScore: 20, trend: 'stable', confidenceLevel: 35 },
+      executive: { headline: 'LOW: Insufficient data', summary: 'Unable to complete analysis.', keyFindings: [], recommendedActions: ['Configure data sources'] },
+      metrics: { totalSignals: 0, criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0, categories: [] },
+      timeline: [],
+      sources: [],
+      indicators: { cves: [], domains: [], ips: [], keywords: [] },
+      infrastructure: { totalHosts: 0, exposedPorts: [], topCountries: [], vulnerableHosts: 0, sampleHosts: [] },
+      ctiAnalysis: { model: TECHNICAL_MODEL, killChainPhase: 'Unknown', threatLandscape: '', analystBrief: '', correlationStrength: 'weak', technicalAssessment: '', methodologies: [] }
     };
   }
 }

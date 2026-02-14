@@ -96,10 +96,10 @@ async function runAnalysis(): Promise<OrchestratorResult> {
   
   if (result.success) {
     console.log('\n[Analysis] ✓ Pipeline complete');
-    console.log(`  Risk Level: ${result.dashboard.risk_level}`);
-    console.log(`  Confidence: ${result.dashboard.confidence}`);
-    console.log(`  Correlation: ${result.dashboard.correlation_strength}`);
-    console.log(`  CVEs: ${result.dashboard.observed_cves.length}`);
+    console.log(`  Risk Level: ${result.dashboard.status.riskLevel}`);
+    console.log(`  Confidence: ${result.dashboard.status.confidenceLevel}`);
+    console.log(`  Correlation: ${result.dashboard.ctiAnalysis.correlationStrength}`);
+    console.log(`  CVEs: ${result.dashboard.indicators.cves.length}`);
   } else {
     console.log(`\n[Analysis] ✗ Failed: ${result.error}`);
   }
@@ -116,33 +116,11 @@ async function runDashboard(analysisResult?: OrchestratorResult): Promise<void> 
   
   const generator = new MinimalDashboardGenerator();
   
-  // If no analysis result provided, try to load from file
-  let dashboardData = analysisResult?.dashboard;
+  // Use analysis result dashboard or abort
+  const dashboardData = analysisResult?.dashboard;
   if (!dashboardData) {
-    try {
-      const debugFile = await fs.readFile(
-        path.join(OUTPUT_DIR, 'orchestrator-debug.json'), 
-        'utf-8'
-      );
-      const debug = JSON.parse(debugFile);
-      // Reconstruct minimal dashboard data
-      dashboardData = {
-        date: new Date().toISOString(),
-        summary: 'Analysis loaded from cache.',
-        confidence: 'moderate' as const,
-        observed_cves: [],
-        infrastructure_signals: [],
-        correlation_strength: 'moderate' as const,
-        risk_level: 'medium' as const,
-        x_intel_summary: debug.xDigest || '',
-        shodan_summary: `${debug.shodanDigest?.totalHosts || 0} hosts`,
-        technical_assessment: debug.technicalValidation || '',
-        recommended_actions: ['Review latest analysis']
-      };
-    } catch {
-      console.log('[Dashboard] No analysis data found - run "analyze" first');
-      return;
-    }
+    console.log('[Dashboard] No analysis data found - run "analyze" first');
+    return;
   }
   
   const dashboard = await generator.generate(dashboardData);
