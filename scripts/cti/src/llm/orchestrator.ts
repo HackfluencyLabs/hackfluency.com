@@ -18,9 +18,9 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { 
-  XScrapedData, 
-  XPost, 
+import {
+  XScrapedData,
+  XPost,
   ShodanScrapedData,
   SignalLayer,
   StructuredSignals,
@@ -33,10 +33,11 @@ import {
   ThreatClassification,
   ModelMetadata
 } from '../types/index.js';
+import HistoricalCache from '../cache/historical-cache.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || process.env.OLLAMA_MODEL_REASONER || 'mistral:7b-instruct-q4_0';
-const TECHNICAL_MODEL = process.env.OLLAMA_MODEL_TECHNICAL || process.env.OLLAMA_MODEL_SPECIALIST || 'saki007ster/CybersecurityRiskAnalyst';
+const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || process.env.OLLAMA_MODEL_REASONER || 'phi4-mini';
+const TECHNICAL_MODEL = process.env.OLLAMA_MODEL_TECHNICAL || process.env.OLLAMA_MODEL_SPECIALIST || 'ALIENTELLIGENCE/cybersecuritythreatanalysisv2';
 // 10 minutes timeout for CPU inference in GitHub Actions
 const REQUEST_TIMEOUT = parseInt(process.env.CTI_REQUEST_TIMEOUT || '600000', 10);
 const MAX_RETRIES = parseInt(process.env.CTI_MAX_RETRIES || '2', 10);
@@ -177,9 +178,11 @@ export interface OrchestratorResult {
 
 export class CTIOrchestrator {
   private outputDir: string;
+  private historicalCache: HistoricalCache;
 
   constructor() {
     this.outputDir = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
+    this.historicalCache = new HistoricalCache();
   }
 
   /**
@@ -245,26 +248,42 @@ export class CTIOrchestrator {
       );
       console.log(`  ✓ Dashboard: Risk=${dashboard.status.riskLevel}, Score=${dashboard.status.riskScore}`);
 
+      await this.historicalCache.saveAnalysis({
+        timestamp: new Date().toISOString(),
+        riskScore: dashboard.status.riskScore,
+        riskLevel: dashboard.status.riskLevel,
+        correlationScore: assessmentLayer.correlation.score,
+        threatType: assessmentLayer.classification.type,
+        cves: dashboard.indicators.cves,
+        indicators: {
+          uniqueCVECount: assessmentLayer.iocStats.uniqueCVECount,
+          uniqueDomainCount: assessmentLayer.iocStats.uniqueDomainCount,
+          uniqueIPCount: assessmentLayer.iocStats.uniqueIPCount,
+          totalIndicators: assessmentLayer.iocStats.totalIndicators
+        },
+        keyFindings: dashboard.executive.keyFindings
+      });
+
       // Save debug outputs
-      await this.saveIntermediateOutputs({ 
-        xSignals, 
-        shodanDigest, 
-        technicalAssessment, 
+      await this.saveIntermediateOutputs({
+        xSignals,
+        shodanDigest,
+        technicalAssessment,
         strategicSynthesis,
         signalLayer,
-        assessmentLayer 
+        assessmentLayer
       });
 
       return {
         success: true,
         dashboard,
-        intermediateOutputs: { 
-          xSignals, 
-          shodanDigest, 
-          technicalAssessment, 
+        intermediateOutputs: {
+          xSignals,
+          shodanDigest,
+          technicalAssessment,
           strategicSynthesis,
           signalLayer,
-          assessmentLayer 
+          assessmentLayer
         }
       };
 
@@ -308,12 +327,25 @@ export class CTIOrchestrator {
       .map((p, i) => `[${i + 1}] ${this.truncateTokenSafe(p.text, 150)}`)
       .join('\n');
 
-    const prompt = `Extract threat intelligence signals from these posts. Return ONLY a JSON object.
+    const prompt = `Analyze these security-related social media posts and extract threat intelligence signals.
 
 POSTS:
 ${postsText}
 
-Return JSON (no markdown):
+<thinking>
+Step 1: Read through all posts and identify the main security topics being discussed.
+Step 2: Look for mentions of specific attack types, vulnerabilities, or threat actors.
+Step 3: Assess the confidence level - are these confirmed incidents or speculation?
+Step 4: Extract any exploitation claims or evidence of active attacks.
+Step 5: Summarize the key themes and overall tone.
+</thinking>
+
+Based on your analysis, provide:
+1. Key themes (2-5 main topics)
+2. Any exploitation claims mentioned
+3. Overall tone: speculative, confirmed, or mixed
+
+Return as JSON:
 {"themes":["theme1","theme2"],"exploitation_claims":["claim1"],"tone":"speculative|confirmed|mixed"}`;
 
     // Check token budget
@@ -550,10 +582,18 @@ TECHNICAL ASSESSMENT:
 - Classification: ${technical.tacticalClassification}
 - Confidence: ${technical.confidenceLevel}
 
-Provide:
-1. EXECUTIVE SUMMARY (2-3 sentences)
-2. KEY FINDING (most important observation)
-3. RECOMMENDED ACTIONS (top 3)
+<thinking>
+Step 1: Analyze the social intelligence - what threats are being discussed and with what confidence?
+Step 2: Review the infrastructure data - what vulnerable systems are exposed?
+Step 3: Cross-reference - do the social threats align with infrastructure vulnerabilities?
+Step 4: Consider the technical assessment classification and confidence level.
+Step 5: Synthesize an overall threat picture and priority actions.
+</thinking>
+
+Based on your analysis, provide:
+1. EXECUTIVE SUMMARY (2-3 sentences on overall threat landscape)
+2. KEY FINDING (the most critical observation)
+3. RECOMMENDED ACTIONS (top 3 priorities)
 
 Under 400 words.`;
 

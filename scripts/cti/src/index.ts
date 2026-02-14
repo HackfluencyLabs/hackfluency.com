@@ -17,10 +17,12 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DataSource, ScraperConfig } from './types/index.js';
-import ShodanScraper from './scrapers/shodan-scraper.js';
+import { DataSource, ScraperConfig, XScrapedData } from './types/index.js';
+import ShodanScraper, { setContextualQueries } from './scrapers/shodan-scraper.js';
 import XScraper from './scrapers/x-scraper.js';
 import CTIOrchestrator, { CTIDashboardOutput } from './llm/orchestrator.js';
+import QueryGenerator from './llm/query-generator.js';
+import HistoricalCache from './cache/historical-cache.js';
 import MinimalDashboardGenerator from './dashboard/minimal-dashboard.js';
 
 const OUTPUT_DIR = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
@@ -32,11 +34,7 @@ async function saveData(filename: string, data: unknown): Promise<void> {
   await fs.writeFile(path.join(OUTPUT_DIR, filename), JSON.stringify(data, null, 2));
 }
 
-/**
- * Phase 1: Data Collection
- * Run X.com and Shodan scrapers
- */
-async function runScrapers(): Promise<void> {
+async function runScrapers(): Promise<XScrapedData | null> {
   console.log('\n========== DATA COLLECTION ==========\n');
   
   const baseConfig: Omit<ScraperConfig, 'source'> = {
@@ -46,13 +44,14 @@ async function runScrapers(): Promise<void> {
     queries: []
   };
 
-  // X.com Scraper - Social Intelligence
-  // Supports: X_COOKIES_JSON (GitHub Secret) or X_COOKIES_PATH (local file)
+  let xData: XScrapedData | null = null;
+
   if (process.env.X_COOKIES_JSON || process.env.X_COOKIES_PATH) {
     console.log('[Scrape] Running X.com scraper...');
     const xScraper = new XScraper({ ...baseConfig, source: DataSource.X_COM });
     const result = await xScraper.execute();
     if (result.success) {
+      xData = result.data;
       await saveData('x-data.json', result.data);
       console.log(`[X.com] ✓ ${result.data.posts.length} posts collected (cache=${result.fromCache})`);
     } else {
@@ -60,6 +59,20 @@ async function runScrapers(): Promise<void> {
     }
   } else {
     console.log('[X.com] Skipped (set X_COOKIES_JSON or X_COOKIES_PATH)');
+  }
+
+  if (xData && xData.posts.length > 0) {
+    console.log('[Scrape] Generating contextual queries from social intel...');
+    const queryGen = new QueryGenerator();
+    const queryResult = await queryGen.generateQueriesFromPosts(xData.posts);
+    
+    console.log(`[QueryGenerator] ${queryResult.reasoning}`);
+    console.log(`[QueryGenerator] Queries: ${queryResult.queries.join(', ')}`);
+    
+    setContextualQueries(queryResult.queries);
+  } else {
+    console.log('[QueryGenerator] No social data - using fallback query for recent changes');
+    setContextualQueries(['after:1']);
   }
 
   // Shodan Scraper - Infrastructure Intelligence
@@ -76,6 +89,8 @@ async function runScrapers(): Promise<void> {
   } else {
     console.log('[Shodan] Skipped (SHODAN_API_KEY not set)');
   }
+
+  return xData;
 }
 
 interface OrchestratorResult {
