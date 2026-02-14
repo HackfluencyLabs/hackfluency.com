@@ -1808,3 +1808,213 @@
     font-size: 14px;
   }
 }
+
+/* ========================================
+   CTI Correlation UX Overrides (2026)
+   ======================================== */
+
+.cti-main {
+  max-width: 980px;
+}
+
+.cti-analysis {
+  box-shadow: 0 0 0 1px rgba(0, 210, 106, 0.08), 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.cti-analysis-header {
+  background: linear-gradient(180deg, rgba(0, 210, 106, 0.07) 0%, rgba(0, 210, 106, 0) 100%);
+}
+
+.cti-analysis-model,
+.cti-analysis-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #30363d;
+  background: #0f141a;
+  color: #c9d1d9;
+}
+
+.cti-analysis-model {
+  border-color: rgba(0, 210, 106, 0.35);
+  color: #7ee2aa;
+}
+
+.cti-analysis-phase {
+  border-color: rgba(255, 184, 0, 0.35);
+  color: #ffcb52;
+}
+
+.cti-threat-landscape {
+  border-left: 3px solid rgba(0, 210, 106, 0.55);
+}
+
+.cti-threat-landscape ul {
+  margin: 10px 0 0 0;
+  padding-left: 18px;
+  color: #c9d1d9;
+  line-height: 1.65;
+}
+
+.cti-section-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #10161d;
+  border: 0;
+  color: #e6edf3;
+  padding: 14px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cti-section-toggle:hover {
+  background: #121a22;
+}
+
+.cti-pattern-card,
+.cti-cross-link-card,
+.cti-ttp-card,
+.cti-ref-link {
+  border-radius: 12px;
+}
+
+.cti-pattern-card,
+.cti-cross-link-card {
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid #2b3138;
+  padding: 14px;
+}
+
+.cti-pattern-header,
+.cti-cross-signals {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.cti-pattern-name {
+  color: #9dffcb;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.cti-pattern-timeframe,
+.cti-cross-delta {
+  color: #ffcb52;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.cti-pattern-desc,
+.cti-cross-relationship,
+.cti-cross-significance,
+.cti-ttp-evidence {
+  color: #c9d1d9;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.cti-evidence-link-inline {
+  display: block;
+  text-decoration: none;
+  color: #79c0ff;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.cti-evidence-link-inline:hover {
+  color: #a5d6ff;
+}
+
+.cti-ttps-list,
+.cti-refs-list,
+.cti-patterns-list,
+.cti-cross-links {
+  display: grid;
+  gap: 12px;
+  padding: 14px 24px 20px;
+}
+
+.cti-ttps-list,
+.cti-refs-list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.cti-patterns-list,
+.cti-cross-links {
+  grid-template-columns: 1fr;
+}
+
+.cti-ref-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-decoration: none;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  background: #0f141a;
+  padding: 10px 12px;
+}
+
+.cti-ref-link:hover {
+  border-color: rgba(0, 210, 106, 0.45);
+  color: #ffffff;
+}
+
+.cti-ref-source {
+  font-weight: 700;
+  color: #9dffcb;
+}
+
+.cti-ref-relevance {
+  color: #9aa7b3;
+  font-size: 12px;
+  flex: 1;
+}
+
+.cti-ref-arrow {
+  color: #7ee2aa;
+}
+
+@media (max-width: 900px) {
+  .cti-main {
+    max-width: 100%;
+    padding: 20px 14px;
+  }
+
+  .cti-analysis-header {
+    padding: 18px 14px;
+  }
+
+  .cti-threat-landscape {
+    padding: 14px;
+  }
+
+  .cti-section-toggle,
+  .cti-ttps-list,
+  .cti-refs-list,
+  .cti-patterns-list,
+  .cti-cross-links {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .cti-ttps-list,
+  .cti-refs-list {
+    grid-template-columns: 1fr;
+  }
+}

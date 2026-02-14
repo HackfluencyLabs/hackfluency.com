@@ -347,16 +347,23 @@ export class DashboardGenerator {
     if (ctiAnalysis.correlation) {
       // Add main correlation narrative as pattern
       if (ctiAnalysis.correlation.narrative) {
+        const socialEvidence = ctiAnalysis.extraction.socialPosts.slice(0, 2).map(post => ({
+          source: 'X.com',
+          excerpt: this.cleanLLMText(post.text),
+          url: post.url || `https://x.com/search?q=${encodeURIComponent(post.text.substring(0, 40))}`
+        }));
+        const infraEvidence = ctiAnalysis.extraction.ips.slice(0, 2).map(ip => ({
+          source: 'Shodan',
+          excerpt: `${ip.service} ${ip.value}:${ip.port}`,
+          url: ip.url
+        }));
+
         temporalPatterns.push({
           pattern: `${ctiAnalysis.correlation.pattern.toUpperCase()} correlation detected`,
-          description: ctiAnalysis.correlation.narrative,
+          description: this.cleanLLMText(ctiAnalysis.correlation.narrative),
           timeframe: ctiAnalysis.correlation.timeWindow,
           confidence: ctiAnalysis.correlation.confidence / 100,
-          evidence: ctiAnalysis.extraction.timelineEvents?.slice(0, 3).map(e => ({
-            source: e.source === 'x.com' ? 'X.com' : 'Shodan',
-            excerpt: e.description,
-            url: ''
-          })) || []
+          evidence: [...socialEvidence, ...infraEvidence]
         });
       }
       
@@ -364,7 +371,7 @@ export class DashboardGenerator {
       for (const threat of ctiAnalysis.correlation.emergingThreats || []) {
         temporalPatterns.push({
           pattern: 'Emerging Threat',
-          description: threat,
+          description: this.cleanLLMText(threat),
           timeframe: 'Active',
           confidence: 0.7,
           evidence: []
@@ -384,11 +391,11 @@ export class DashboardGenerator {
     if (ctiAnalysis.correlation?.keyCorrelations) {
       for (const corr of ctiAnalysis.correlation.keyCorrelations) {
         crossSourceLinks.push({
-          infraSignal: corr.infraEvent,
-          socialSignal: corr.socialEvent,
+          infraSignal: this.cleanLLMText(corr.infraEvent),
+          socialSignal: this.cleanLLMText(corr.socialEvent),
           relationship: ctiAnalysis.correlation.pattern,
-          timeDelta: corr.timeDelta,
-          significance: corr.significance
+          timeDelta: this.cleanLLMText(corr.timeDelta),
+          significance: this.cleanLLMText(corr.significance)
         });
       }
     }
@@ -430,16 +437,16 @@ export class DashboardGenerator {
         mitigations: ['Implement network segmentation', 'Enable logging and monitoring']
       })),
       keyFindings: ctiAnalysis.analysis.keyFindings.map((f, i) => ({
-        finding: f,
+        finding: this.cleanLLMText(f),
         severity: i === 0 ? 'high' : 'medium',
         evidence: 'Based on collected intelligence data',
-        recommendation: ctiAnalysis.analysis.recommendations[i] || 'Review and assess risk'
+        recommendation: this.cleanLLMText(ctiAnalysis.analysis.recommendations[i] || 'Review and assess risk')
       })),
       ttps: ctiAnalysis.extraction.ttps.map(t => ({
         technique: t.name,
         techniqueId: t.id,
         tactic: t.tactic,
-        evidence: t.evidence,
+        evidence: this.cleanLLMText(t.evidence),
         confidence: 0.8
       })),
       temporalPatterns,
@@ -518,9 +525,12 @@ export class DashboardGenerator {
   private cleanLLMText(text: string): string {
     return text
       .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove **bold**
-      .replace(/^\*([A-Z])/gm, '$1')       // Fix *Patch -> Patch at start
-      .replace(/\*+$/gm, '')               // Remove trailing asterisks
-      .replace(/#{2,}/g, '')               // Remove ### headers
+      .replace(/\*([^*\n]+)\*/g, '$1')      // Remove *italic* and dangling wrapped text
+      .replace(/^\*+\s*/gm, '')              // Remove leading * bullets/noise
+      .replace(/\*+$/gm, '')                  // Remove trailing asterisks
+      .replace(/^#{1,6}\s*/gm, '')            // Remove markdown headers
+      .replace(/\s+#{1,6}\s*$/gm, '')        // Remove trailing header markers
+      .replace(/\*\*:\s*/g, ': ')           // Normalize malformed "**:"
       .replace(/\n{3,}/g, '\n\n')          // Normalize newlines
       .trim();
   }
