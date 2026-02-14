@@ -231,9 +231,9 @@ export class CTIOrchestrator {
       console.log(`  ✓ Classification: ${assessmentLayer.classification.type} (${assessmentLayer.classification.confidence}%)`);
       console.log(`  ✓ Baseline: ${assessmentLayer.baselineComparison.anomalyLevel} (${assessmentLayer.baselineComparison.delta > 0 ? '+' : ''}${assessmentLayer.baselineComparison.delta})`);
 
-      // Step 6: Strategic Executive Synthesis
-      console.log('\n[Step 6] Strategic Synthesis...');
-      const strategicSynthesis = await this.runStrategicSynthesis(xSignals, shodanDigest, technicalAssessment);
+    // Step 6: Strategic Executive Synthesis
+    console.log('\n[Step 6] Strategic Synthesis...');
+    const strategicSynthesis = await this.runStrategicSynthesis(xSignals, shodanDigest, technicalAssessment, assessmentLayer);
       console.log(`  ✓ Synthesis complete (${strategicSynthesis.executiveSummary.length} chars)`);
 
       // Step 7: Deterministic Dashboard Structuring (No LLM)
@@ -316,7 +316,7 @@ export class CTIOrchestrator {
       return this.getEmptyXSignals();
     }
 
-    const filteredPosts = this.filterXPosts(xData.posts);
+    const filteredPosts = this.filterRelevantPosts(xData.posts);
     
     // Pre-extract IoCs and CVEs from posts (code-based extraction)
     const codeExtracted = this.extractIoCsFromPosts(filteredPosts);
@@ -564,10 +564,24 @@ Under 300 words.`;
   private async runStrategicSynthesis(
     xSignals: XStructuredSignals,
     shodanDigest: ShodanDigest,
-    technical: TechnicalAssessment
+    technical: TechnicalAssessment,
+    assessmentLayer: AssessmentLayer
   ): Promise<StrategicSynthesis> {
+    // Use assessment layer data to ensure consistency
+    const riskScore = assessmentLayer.scoring.computedScore;
+    const riskLevel = riskScore >= 75 ? 'critical' : riskScore >= 50 ? 'elevated' : riskScore >= 25 ? 'moderate' : 'low';
+    const threatType = assessmentLayer.classification.type;
+    const correlationStrength = assessmentLayer.correlation.strength;
+    const freshnessStatus = assessmentLayer.freshness.status;
+
     // Build concise input using structured signals
     const prompt = `Synthesize threat intelligence for executive briefing.
+
+QUANTIFIED ASSESSMENT:
+- Risk Score: ${riskScore}/100 (${riskLevel} risk)
+- Threat Type: ${threatType} (${assessmentLayer.classification.confidence}% confidence)
+- Correlation: ${correlationStrength} (${Math.round(assessmentLayer.correlation.score * 100)}%)
+- Data Freshness: ${freshnessStatus} (${Math.round(assessmentLayer.freshness.freshnessScore * 100)}%)
 
 SOCIAL INTEL:
 - Themes: ${xSignals.themes.join(', ') || 'None identified'}
@@ -583,17 +597,24 @@ TECHNICAL ASSESSMENT:
 - Confidence: ${technical.confidenceLevel}
 
 <thinking>
-Step 1: Analyze the social intelligence - what threats are being discussed and with what confidence?
-Step 2: Review the infrastructure data - what vulnerable systems are exposed?
-Step 3: Cross-reference - do the social threats align with infrastructure vulnerabilities?
-Step 4: Consider the technical assessment classification and confidence level.
-Step 5: Synthesize an overall threat picture and priority actions.
+Step 1: Consider the quantified risk score (${riskScore}) and threat type (${threatType}) - this defines the overall severity.
+Step 2: Analyze the social intelligence - what threats are being discussed?
+Step 3: Review the infrastructure data - what vulnerable systems are exposed?
+Step 4: Cross-reference using correlation data (${correlationStrength}) - do social and infrastructure align?
+Step 5: Factor in data freshness (${freshnessStatus}) - how reliable is this intelligence?
+Step 6: Synthesize an executive summary that MATCHES the quantified risk level.
+
+IMPORTANT: The executive summary must be consistent with the risk score:
+- Score 0-25: "Routine monitoring, low threat environment"
+- Score 25-50: "Moderate vigilance warranted"
+- Score 50-75: "Elevated risk requiring attention"
+- Score 75-100: "Critical threat requiring immediate action"
 </thinking>
 
 Based on your analysis, provide:
-1. EXECUTIVE SUMMARY (2-3 sentences on overall threat landscape)
+1. EXECUTIVE SUMMARY (2-3 sentences that match the ${riskLevel} risk level)
 2. KEY FINDING (the most critical observation)
-3. RECOMMENDED ACTIONS (top 3 priorities)
+3. RECOMMENDED ACTIONS (top 3 priorities appropriate for ${riskLevel} risk)
 
 Under 400 words.`;
 
@@ -891,7 +912,7 @@ Under 400 words.`;
         model: TECHNICAL_MODEL,
         killChainPhase,
         threatLandscape: synthesis.executiveSummary,
-        analystBrief: `Classification: ${technical.tacticalClassification}. Confidence: ${technical.confidenceLevel}. Correlation: ${correlationStrength}.`,
+        analystBrief: `Classification: ${assessmentLayer?.classification?.type || technical.tacticalClassification}. Confidence: ${assessmentLayer?.classification?.confidence || technical.confidenceLevel}%. Correlation: ${assessmentLayer?.correlation?.strength || correlationStrength}. Data freshness: ${assessmentLayer?.freshness?.status || 'unknown'}.`,
         correlationStrength,
         technicalAssessment: technical.rawResponse.slice(0, 500),
         methodologies: [
@@ -1118,7 +1139,7 @@ Under 400 words.`;
       freshness,
       classification,
       iocStats,
-      narrative: this.generateNarrative(signals, correlation, classification)
+      narrative: this.generateNarrative(signals, correlation, classification, freshness)
     };
   }
 
@@ -1435,12 +1456,15 @@ Under 400 words.`;
   private generateNarrative(
     signals: StructuredSignals,
     correlation: QuantifiedCorrelation,
-    classification: ThreatClassification
+    classification: ThreatClassification,
+    freshness: DataFreshness
   ): string {
+    const freshnessWarning = freshness.status === 'stale' ? ' Note: Data is stale (' + Math.round(freshness.socialAgeHours) + 'h old), reducing confidence.' : '';
+
     return `Today we observed ${signals.tone} activity related to ${signals.keywords.slice(0, 2).join(', ') || 'threat intelligence'}. ` +
            `The correlation strength is ${correlation.strength} (${Math.round(correlation.score * 100)}%), ` +
            `primarily driven by ${Object.entries(correlation.factors)
-             .sort(([,a], [,b]) => b - a)[0][0].replace(/([A-Z])/g, ' $1').toLowerCase()}. ` +
+             .sort(([,a], [,b]) => b - a)[0][0].replace(/([A-Z])/g, ' $1').toLowerCase()}.${freshnessWarning} ` +
            `This pattern is consistent with ${classification.type} ${classification.type === 'campaign' ? 'activity' : 'scanning'}.`;
   }
 
