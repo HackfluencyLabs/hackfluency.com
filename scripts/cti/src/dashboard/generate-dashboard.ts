@@ -115,6 +115,12 @@ export interface PublicDashboard {
     killChainPhase: string;
     threatLandscape: string;
     analystBrief?: string;
+    analystExecutive?: {
+      situation: string;
+      evidence: string;
+      impact: string;
+      actions: string[];
+    };
     methodologies?: string[];
     observableSummary?: string[];
     mitreAttack: Array<{
@@ -419,7 +425,13 @@ export class DashboardGenerator {
     ];
 
     const observableSummary = this.buildObservableSummary(ctiAnalysis);
-    const analystBrief = this.buildAnalystJrBrief(ctiAnalysis, crossSourceLinks, observableSummary);
+    const analystExecutive = this.buildAnalystJrExecutive(ctiAnalysis, crossSourceLinks, observableSummary);
+    const analystBrief = [
+      `Situation: ${analystExecutive.situation}`,
+      `Evidence: ${analystExecutive.evidence}`,
+      `Impact: ${analystExecutive.impact}`,
+      `Actions: ${analystExecutive.actions.join(' | ')}`
+    ].join(' ');
 
     const cleanThreatLandscape = this.cleanLLMText(ctiAnalysis.analysis.summary || '');
 
@@ -429,6 +441,7 @@ export class DashboardGenerator {
       killChainPhase: ctiAnalysis.analysis.killChainPhase,
       threatLandscape: cleanThreatLandscape,
       analystBrief,
+      analystExecutive,
       methodologies,
       observableSummary,
       mitreAttack: Array.from(tacticMap.entries()).map(([tactic, techniques]) => ({
@@ -481,7 +494,11 @@ export class DashboardGenerator {
       observables.push(`CVEs in current cycle: ${topCves.join(', ')}`);
     }
 
-    const topInfra = ctiAnalysis.extraction.ips.slice(0, 4).map(i => `${i.service} (${i.value}:${i.port})`);
+    const infraCandidates = ctiAnalysis.extraction.ips
+      .filter(i => i.port !== 22 || /smb|rdp|exchange|forti|vpn|citrix|http|https/i.test(i.service))
+      .slice(0, 4);
+    const topInfra = (infraCandidates.length > 0 ? infraCandidates : ctiAnalysis.extraction.ips.slice(0, 4))
+      .map(i => `${i.service} (${i.value}:${i.port})`);
     if (topInfra.length > 0) {
       observables.push(`Infrastructure observables: ${topInfra.join(' | ')}`);
     }
@@ -497,26 +514,35 @@ export class DashboardGenerator {
     return observables;
   }
 
-  private buildAnalystJrBrief(
+  private buildAnalystJrExecutive(
     ctiAnalysis: CTIAnalysis,
     crossSourceLinks: Array<{ infraSignal: string; socialSignal: string; relationship: string; timeDelta: string; significance: string }>,
     observableSummary: string[]
-  ): string {
+  ): { situation: string; evidence: string; impact: string; actions: string[] } {
     const pattern = ctiAnalysis.correlation?.pattern || 'isolated';
     const window = ctiAnalysis.correlation?.timeWindow || '24-48 hours';
     const topCorrelation = crossSourceLinks[0];
     const mainObservable = observableSummary[0] || 'No high-confidence observables extracted yet';
 
-    const relationText = topCorrelation
-      ? `Primary correlation: social signal "${this.cleanLLMText(topCorrelation.socialSignal).substring(0, 80)}" linked to infrastructure "${this.cleanLLMText(topCorrelation.infraSignal).substring(0, 80)}" (${topCorrelation.timeDelta}).`
-      : 'No strong one-to-one correlation pair was extracted in this run.';
+    const evidence = topCorrelation
+      ? `Social: ${this.cleanLLMText(topCorrelation.socialSignal).substring(0, 110)} | Infra: ${this.cleanLLMText(topCorrelation.infraSignal).substring(0, 110)} | Delta: ${this.cleanLLMText(topCorrelation.timeDelta)}`
+      : 'Correlation evidence is limited in this cycle; monitor next run for stronger link density.';
 
-    return [
-      `CTI Analyst JR Summary: Current social context indicates active threat discussion with ${pattern.toUpperCase()} behavior across sources within ${window}.`,
-      relationText,
-      `Observable focus: ${mainObservable}.`,
-      'Assessment confidence is driven by temporal alignment + source evidence, not isolated port exposure.'
-    ].join(' ');
+    const actions = [
+      ctiAnalysis.analysis.recommendations[0] || 'P1: Validate exposed systems tied to current correlated signal.',
+      ctiAnalysis.analysis.recommendations[1] || 'P2: Patch CVEs referenced in both social and infrastructure evidence.',
+      ctiAnalysis.analysis.recommendations[2] || 'P3: Add detections for mapped TTPs and monitor 24-48h drift.'
+    ].map((a, idx) => {
+      const clean = this.cleanLLMText(a);
+      return clean.match(/^P\d:/i) ? clean : `P${idx + 1}: ${clean}`;
+    });
+
+    return {
+      situation: `Active ${pattern.toUpperCase()} threat behavior observed with temporal window ${window}.`,
+      evidence,
+      impact: `Observable focus: ${mainObservable}. This indicates potential ongoing exploitation pressure in the current cycle.`,
+      actions
+    };
   }
 
   /**

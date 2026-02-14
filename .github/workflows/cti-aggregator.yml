@@ -27,7 +27,9 @@ concurrency:
 env:
   CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
   CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
-  # Use qwen2.5:3b for CTI - faster inference on CPU runners, good reasoning
+  # Prefer cybersecurity-specialized model; fallback to qwen2.5:3b if unavailable
+  OLLAMA_MODEL_PRIMARY: WhoIsShe/Llama3.2-3b-cybersecurity-abliterated
+  OLLAMA_MODEL_FALLBACK: qwen2.5:3b
   OLLAMA_MODEL: qwen2.5:3b
 
 jobs:
@@ -56,9 +58,16 @@ jobs:
           curl -fsSL https://ollama.com/install.sh | sh
           ollama serve &
           sleep 10
-          ollama pull ${{ env.OLLAMA_MODEL }}
+          RESOLVED_MODEL="${{ env.OLLAMA_MODEL_FALLBACK }}"
+          if ollama pull "${{ env.OLLAMA_MODEL_PRIMARY }}"; then
+            RESOLVED_MODEL="${{ env.OLLAMA_MODEL_PRIMARY }}"
+          else
+            echo "Primary model unavailable, using fallback"
+            ollama pull "${{ env.OLLAMA_MODEL_FALLBACK }}"
+          fi
+          echo "OLLAMA_MODEL=${RESOLVED_MODEL}" >> "$GITHUB_ENV"
           echo "Testing model availability..."
-          curl -s http://localhost:11434/api/generate -d '{"model":"${{ env.OLLAMA_MODEL }}","prompt":"test","stream":false,"options":{"num_predict":1}}' | head -c 200
+          curl -s http://localhost:11434/api/generate -d "{\"model\":\"${RESOLVED_MODEL}\",\"prompt\":\"test\",\"stream\":false,\"options\":{\"num_predict\":1}}" | head -c 200
           echo ""
 
       - name: Restore CTI Cache

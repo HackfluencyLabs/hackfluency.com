@@ -123,6 +123,12 @@ interface DashboardData {
     killChainPhase: string;
     threatLandscape: string;
     analystBrief?: string;
+    analystExecutive?: {
+      situation: string;
+      evidence: string;
+      impact: string;
+      actions: string[];
+    };
     methodologies?: string[];
     observableSummary?: string[];
     mitreAttack: Array<{
@@ -249,6 +255,17 @@ const CTIDashboard: React.FC = () => {
       <Footer generatedAt={data.meta.generatedAt} />
     </div>
   );
+};
+
+const cleanDisplayText = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/\*\*:\s*/g, ': ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 };
 
 const Header: React.FC = () => (
@@ -802,14 +819,26 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
       {/* Threat Landscape Summary */}
       {analysis.threatLandscape && (
         <div className="cti-threat-landscape">
-          <p>{analysis.threatLandscape}</p>
+          <p>{cleanDisplayText(analysis.threatLandscape)}</p>
         </div>
       )}
 
-      {analysis.analystBrief && (
+      {analysis.analystExecutive ? (
         <div className="cti-threat-landscape">
           <h3 className="cti-section-title" style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>CTI Analyst JR Summary</h3>
-          <p>{analysis.analystBrief}</p>
+          <ul>
+            <li><strong>Situation:</strong> {cleanDisplayText(analysis.analystExecutive.situation)}</li>
+            <li><strong>Evidence:</strong> {cleanDisplayText(analysis.analystExecutive.evidence)}</li>
+            <li><strong>Impact:</strong> {cleanDisplayText(analysis.analystExecutive.impact)}</li>
+            {analysis.analystExecutive.actions.map((action, idx) => (
+              <li key={idx}><strong>{`P${idx + 1}`}</strong> {cleanDisplayText(action)}</li>
+            ))}
+          </ul>
+        </div>
+      ) : analysis.analystBrief && (
+        <div className="cti-threat-landscape">
+          <h3 className="cti-section-title" style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>CTI Analyst JR Summary</h3>
+          <p>{cleanDisplayText(analysis.analystBrief)}</p>
         </div>
       )}
 
@@ -818,7 +847,7 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
           <h3 className="cti-section-title" style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Current Observables</h3>
           <ul>
             {analysis.observableSummary.map((item, idx) => (
-              <li key={idx}>{item}</li>
+              <li key={idx}>{cleanDisplayText(item)}</li>
             ))}
           </ul>
         </div>
@@ -829,7 +858,7 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
           <h3 className="cti-section-title" style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Methodologies Applied</h3>
           <ul>
             {analysis.methodologies.map((item, idx) => (
-              <li key={idx}>{item}</li>
+              <li key={idx}>{cleanDisplayText(item)}</li>
             ))}
           </ul>
         </div>
@@ -854,7 +883,7 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
                     <span className="cti-pattern-name">{pattern.pattern}</span>
                     <span className="cti-pattern-timeframe">{pattern.timeframe}</span>
                   </div>
-                  <p className="cti-pattern-desc">{pattern.description}</p>
+                  <p className="cti-pattern-desc">{cleanDisplayText(pattern.description)}</p>
                   {pattern.evidence && pattern.evidence.length > 0 && (
                     <div className="cti-pattern-evidence">
                       <span className="cti-evidence-label">Evidence:</span>
@@ -866,7 +895,7 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
                           rel="noopener noreferrer"
                           className="cti-evidence-link-inline"
                         >
-                          [{ev.source}] {ev.excerpt.substring(0, 60)}... ↗
+                          [{ev.source}] {cleanDisplayText(ev.excerpt).substring(0, 60)}... ↗
                         </a>
                       ))}
                     </div>
@@ -896,19 +925,19 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
                   <div className="cti-cross-signals">
                     <div className="cti-cross-infra">
                       <span className="cti-cross-label">🖥️ Infrastructure</span>
-                      <span className="cti-cross-value">{link.infraSignal}</span>
+                      <span className="cti-cross-value">{cleanDisplayText(link.infraSignal)}</span>
                     </div>
                     <div className="cti-cross-connector">
-                      <span className="cti-cross-delta">{link.timeDelta}</span>
+                      <span className="cti-cross-delta">{cleanDisplayText(link.timeDelta)}</span>
                       <span className="cti-cross-arrow">⟷</span>
                     </div>
                     <div className="cti-cross-social">
                       <span className="cti-cross-label">💬 Social</span>
-                      <span className="cti-cross-value">{link.socialSignal}</span>
+                      <span className="cti-cross-value">{cleanDisplayText(link.socialSignal)}</span>
                     </div>
                   </div>
-                  <p className="cti-cross-relationship">{link.relationship}</p>
-                  <p className="cti-cross-significance">{link.significance}</p>
+                  <p className="cti-cross-relationship">{cleanDisplayText(link.relationship)}</p>
+                  <p className="cti-cross-significance">{cleanDisplayText(link.significance)}</p>
                 </div>
               ))}
             </div>
@@ -943,7 +972,7 @@ const CTIAnalysisPanel: React.FC<{ analysis: NonNullable<DashboardData['ctiAnaly
                   </div>
                   <p className="cti-ttp-name">{ttp.technique}</p>
                   {ttp.evidence && (
-                    <p className="cti-ttp-evidence">{ttp.evidence}</p>
+                    <p className="cti-ttp-evidence">{cleanDisplayText(ttp.evidence)}</p>
                   )}
                   <span className="cti-ttp-link-icon">↗</span>
                 </a>
