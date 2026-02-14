@@ -1,6 +1,10 @@
 /**
  * LLM Query Generator - Genera queries de Shodan basado en intel de X.com
  * 
+ * Arquitectura Dual-Model:
+ * - Este módulo usa OLLAMA_MODEL_SPECIALIST (Qwen Cybersecurity)
+ * - Especializado en: queries Shodan, CVEs, puertos, servicios técnicos
+ * 
  * Flujo: X.com social intel → LLM analysis → Dynamic Shodan queries
  * 
  * El LLM analiza:
@@ -16,8 +20,8 @@ import * as path from 'path';
 import { XScrapedData, XPost } from '../types/index.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-// Single-model policy: always use the primary model from OLLAMA_MODEL
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL;
+// Specialist model for technical queries (CVE, ports, Shodan syntax)
+const OLLAMA_MODEL_SPECIALIST = process.env.OLLAMA_MODEL_SPECIALIST;
 
 export interface ShodanQuerySuggestion {
   query: string;
@@ -144,11 +148,16 @@ export class QueryGenerator {
   }
 
   /**
-   * Genera queries de Shodan analizando datos de X.com con LLM
+   * Genera queries de Shodan analizando datos de X.com con LLM Specialist
+   * Uses cybersecurity-specialized model for technical query generation
    */
   async generateQueries(useCache: boolean = true): Promise<QueryGeneratorResult> {
-    const modelName = OLLAMA_MODEL ?? 'unknown';
-    console.log(`[QueryGen] Using model: ${modelName}`);
+    const modelName = OLLAMA_MODEL_SPECIALIST ?? 'unknown';
+    console.log(`[QueryGen] Using SPECIALIST model: ${modelName}`);
+    
+    if (!OLLAMA_MODEL_SPECIALIST) {
+      throw new Error('[QueryGen] OLLAMA_MODEL_SPECIALIST not set - cannot generate queries');
+    }
     
     // Intentar usar cache primero
     if (useCache) {
@@ -158,32 +167,44 @@ export class QueryGenerator {
     
     const xData = await this.loadXData();
     if (!xData || xData.posts.length === 0) {
-      console.log('[QueryGen] No X.com data available');
-      return this.emptyResult();
+      console.log('[QueryGen] No X.com data available - aborting query generation');
+      throw new Error('[QueryGen] No social intel available to generate contextual queries');
     }
 
     // Extraer indicadores directamente del texto (rápido, sin LLM)
     const indicators = this.extractIndicatorsFromPosts(xData.posts);
+    console.log(`[QueryGen] Extracted indicators:`);
+    console.log(`  CVEs: ${indicators.cves.length}`);
+    console.log(`  Ports: ${indicators.ports.length}`);
+    console.log(`  Services: ${indicators.services.length}`);
+    console.log(`  Malware: ${indicators.malwareFamilies.length}`);
+    console.log(`  Actors: ${indicators.threatActors.length}`);
     
     // Construir prompt con contexto social
     const prompt = this.buildAnalysisPrompt(xData.posts, indicators);
     
-    console.log(`[QueryGen] Analyzing ${xData.posts.length} posts for query generation`);
+    console.log(`[QueryGen] Analyzing ${xData.posts.length} posts with specialist model`);
 
-    // STRICT: If Ollama/model is unavailable, abort the pipeline.
-    // (No fallback-to-heuristics for LLM connectivity failures.)
+    // Call LLM - throws on failure (no fallback)
     const rawAnalysis = await this.callOllama(prompt);
     const llmQueries = this.parseLLMResponse(rawAnalysis);
-
-    // Combinar queries del LLM con queries heurísticas basadas en indicadores
-    const heuristicQueries = this.generateHeuristicQueries(indicators);
-    const allQueries = this.mergeAndDeduplicateQueries(llmQueries, heuristicQueries);
+    
+    if (llmQueries.length === 0) {
+      console.error('[QueryGen] LLM returned no valid queries');
+      console.error('[QueryGen] Raw response:', rawAnalysis.substring(0, 500));
+      throw new Error('[QueryGen] Specialist model failed to generate valid queries');
+    }
+    
+    console.log(`[QueryGen] LLM generated ${llmQueries.length} queries`);
+    for (const q of llmQueries) {
+      console.log(`  [${q.priority}] ${q.query}`);
+    }
 
     const result: QueryGeneratorResult = {
       timestamp: new Date().toISOString(),
       model: modelName,
       sourcePostsAnalyzed: xData.posts.length,
-      queries: allQueries,
+      queries: llmQueries,
       extractedIndicators: indicators,
       rawAnalysis
     };
@@ -298,15 +319,15 @@ Only suggest 3-5 queries. Be specific and actionable.`;
   }
 
   /**
-   * Llama a Ollama con el modelo configurado
+   * Llama a Ollama con el modelo SPECIALIST para queries técnicas
    */
   private async callOllama(prompt: string): Promise<string> {
-    if (!OLLAMA_MODEL) {
-      throw new Error('[QueryGen] OLLAMA_MODEL is required (single-model policy)');
-    }
+    const startTime = Date.now();
+    console.log(`[QueryGen] Calling specialist model: ${OLLAMA_MODEL_SPECIALIST}`);
+    console.log(`[QueryGen] Prompt size: ${prompt.length} chars`);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 120000); // 2 min timeout
+    const timeout = setTimeout(() => controller.abort(), 180000); // 3 min timeout for thorough analysis
 
     try {
       const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
@@ -314,147 +335,74 @@ Only suggest 3-5 queries. Be specific and actionable.`;
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          model: OLLAMA_MODEL,
+          model: OLLAMA_MODEL_SPECIALIST,
           prompt,
           stream: false,
           options: {
-            temperature: 0.3,      // Algo de creatividad para queries
-            num_predict: 800,      // Respuesta más larga
-            top_p: 0.9,
-            top_k: 40
+            temperature: 0.2,      // Lower temp for precise technical queries
+            num_predict: 1200,     // Longer response for detailed analysis
+            top_p: 0.85,
+            top_k: 30
           }
         })
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const errBody = await res.text().catch(() => 'no body');
+        console.error(`[QueryGen] HTTP ${res.status}: ${errBody}`);
+        throw new Error(`HTTP ${res.status}: ${errBody}`);
+      }
       
       const json = await res.json() as { response: string };
-      console.log(`[QueryGen] LLM response: ${json.response.length} chars`);
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.log(`[QueryGen] ✓ Response: ${json.response.length} chars in ${elapsed}s`);
       return json.response;
+    } catch (err) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.error(`[QueryGen] ✗ Failed after ${elapsed}s:`, err);
+      throw err;
     } finally {
       clearTimeout(timeout);
     }
   }
 
   /**
-   * Parsea respuesta del LLM
+   * Parsea respuesta del LLM - sin filtros genéricos, confiamos en el modelo especialista
    */
   private parseLLMResponse(raw: string): ShodanQuerySuggestion[] {
     try {
       // Buscar array JSON en la respuesta
       const jsonMatch = raw.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) return [];
+      if (!jsonMatch) {
+        console.error('[QueryGen] No JSON array found in response');
+        return [];
+      }
 
       const parsed = JSON.parse(jsonMatch[0]) as ShodanQuerySuggestion[];
       
-      // Validar y filtrar
-      return parsed.filter(q => 
+      // Validar estructura - confiamos en el LLM para queries contextualmente relevantes
+      const valid = parsed.filter(q => 
         q.query && 
         typeof q.query === 'string' && 
         q.query.length > 3 &&
-        !q.query.includes('vuln:') && // Free tier no puede usar vuln:
-        !this.isOverGenericQuery(q.query)
+        !q.query.includes('vuln:') // Free tier no puede usar vuln:
       ).map(q => ({
         query: q.query.trim(),
-        rationale: q.rationale || 'LLM suggested',
-        priority: ['high', 'medium', 'low'].includes(q.priority) ? q.priority : 'medium',
+        rationale: q.rationale || 'Specialist model suggested',
+        priority: (['high', 'medium', 'low'].includes(q.priority) ? q.priority : 'medium') as 'high' | 'medium' | 'low',
         tags: Array.isArray(q.tags) ? q.tags : []
       }));
-    } catch {
-      console.log('[QueryGen] Failed to parse LLM JSON response');
+      
+      // Limit to 5 queries (Shodan free tier rate limit)
+      return valid.slice(0, 5);
+    } catch (err) {
+      console.error('[QueryGen] Failed to parse LLM JSON response:', err);
       return [];
     }
   }
 
-  /**
-   * Genera queries heurísticas MÍNIMAS basadas en indicadores explícitos.
-   * Objetivo: evitar mapeos manuales (falsos positivos) y preferir razonamiento del LLM.
-   */
-  private generateHeuristicQueries(indicators: QueryGeneratorResult['extractedIndicators']): ShodanQuerySuggestion[] {
-    const queries: ShodanQuerySuggestion[] = [];
-
-    // Query basada en servicios mencionados explícitamente (evidencia social)
-    if (indicators.services.length > 0) {
-      const serviceTerms = indicators.services
-        .map(s => SERVICE_TO_PORT[s])
-        .filter(Boolean)
-        .slice(0, 3);
-
-      if (serviceTerms.length > 0) {
-        queries.push({
-          query: serviceTerms.join(' '),
-          rationale: `Services explicitly discussed in social intel: ${indicators.services.join(', ')}`,
-          priority: 'high',
-          tags: ['services', 'explicit']
-        });
-      }
-    }
-
-    // Query based on explicit ports mentioned
-    if (indicators.ports.length > 0) {
-      queries.push({
-        query: `port:${indicators.ports.slice(0, 5).join(',')}`,
-        rationale: `Ports explicitly mentioned in social discussion`,
-        priority: 'medium',
-        tags: ['ports', 'explicit-mention']
-      });
-    }
-
-    // Geographic constraint if mentioned (only as refinement)
-    if (indicators.countries.length > 0 && queries.length > 0) {
-      const country = indicators.countries[0];
-      queries[0] = {
-        ...queries[0],
-        query: `${queries[0].query} country:${country}`,
-        rationale: `${queries[0].rationale} - geographic focus mentioned: ${country}`,
-        tags: [...queries[0].tags, 'geographic', country.toLowerCase()]
-      };
-    }
-
-    // If no explicit indicators extracted, return empty (avoid generic scans)
-    if (queries.length === 0) {
-      console.log('[QueryGen] No explicit indicators to query - returning empty (avoid generic scans)');
-    }
-
-    return queries;
-  }
-
-  /**
-   * Combina y deduplica queries del LLM y heurísticas
-   */
-  private mergeAndDeduplicateQueries(
-    llmQueries: ShodanQuerySuggestion[],
-    heuristicQueries: ShodanQuerySuggestion[]
-  ): ShodanQuerySuggestion[] {
-    const seen = new Set<string>();
-    const result: ShodanQuerySuggestion[] = [];
-
-    // LLM queries tienen prioridad (van primero)
-    for (const q of [...llmQueries, ...heuristicQueries]) {
-      const normalized = q.query.toLowerCase().trim();
-      if (!seen.has(normalized) && !this.isOverGenericQuery(q.query)) {
-        seen.add(normalized);
-        result.push(q);
-      }
-    }
-
-    // Limitar a 5 queries para respetar rate limits de Shodan free tier
-    return result.slice(0, 5);
-  }
-
-  private isOverGenericQuery(query: string): boolean {
-    const normalized = query.toLowerCase().replace(/\s+/g, ' ').trim();
-    const genericPatterns = [
-      'port:22,3389,445',
-      'port:22,445',
-      'port:22',
-      'port:3389',
-      'port:445',
-      'port:22,3389,445,3306'
-    ];
-
-    return genericPatterns.includes(normalized);
-  }
+  // No heuristic queries - trust the specialist LLM for contextual query generation
+  // No generic pattern filtering - LLM is instructed to avoid generic scans
 
   private async loadXData(): Promise<XScrapedData | null> {
     try {
@@ -477,28 +425,8 @@ Only suggest 3-5 queries. Be specific and actionable.`;
     console.log(`[QueryGen] Saved ${result.queries.length} queries to shodan-queries.json`);
   }
 
-  private emptyResult(): QueryGeneratorResult {
-    return {
-      timestamp: new Date().toISOString(),
-      model: OLLAMA_MODEL ?? 'unknown',
-      sourcePostsAnalyzed: 0,
-      queries: [{
-        query: 'port:22,3389,445',
-        rationale: 'Default query (no social intel available)',
-        priority: 'low',
-        tags: ['default']
-      }],
-      extractedIndicators: {
-        cves: [],
-        ports: [],
-        services: [],
-        countries: [],
-        malwareFamilies: [],
-        threatActors: []
-      },
-      rawAnalysis: ''
-    };
-  }
+  // emptyResult removed - no fallback/default queries allowed
+  // Pipeline must abort if no social intel or LLM fails
 }
 
 export default QueryGenerator;

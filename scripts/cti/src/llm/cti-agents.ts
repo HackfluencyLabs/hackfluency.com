@@ -1,11 +1,15 @@
 /**
  * CTI Multi-Agent System - Specialized Threat Intelligence Analysis
  * 
- * Architecture:
- * 1. EXTRACTOR AGENT - Extracts IOCs, TTPs, entities from raw intel
- * 2. CORRELATOR AGENT - Temporal and cross-source correlation analysis
- * 3. ANALYST AGENT - MITRE ATT&CK mapping, kill chain analysis
- * 4. REPORTER AGENT - Executive summary with evidence and recommendations
+ * Dual-Model Architecture:
+ * - REASONER (Mistral 7B): Social context, strategic correlation, executive reporting
+ * - SPECIALIST (Qwen Cybersecurity): Technical IOC extraction, CVE analysis, MITRE mapping
+ * 
+ * Agent Pipeline:
+ * 1. EXTRACTOR AGENT (Specialist) - Extracts IOCs, TTPs, entities from raw intel
+ * 2. CORRELATOR AGENT (Reasoner) - Temporal and cross-source correlation analysis
+ * 3. ANALYST AGENT (Reasoner + Specialist) - MITRE ATT&CK mapping, kill chain analysis
+ * 4. REPORTER AGENT (Reasoner) - Executive summary with evidence and recommendations
  * 
  * Standards implemented:
  * - MITRE ATT&CK Framework
@@ -25,8 +29,9 @@ import {
 } from '../types/index.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-// Use qwen2.5:3b for CTI in CI - fast inference, good reasoning
-const CTI_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
+// Dual-model architecture
+const REASONER_MODEL = process.env.OLLAMA_MODEL_REASONER || 'mistral:7b-instruct-q4_0';
+const SPECIALIST_MODEL = process.env.OLLAMA_MODEL_SPECIALIST;
 // Longer timeout for CPU inference (10 minutes)
 const REQUEST_TIMEOUT = parseInt(process.env.CTI_REQUEST_TIMEOUT || '600000', 10);
 // Max context size in characters (target ~20K for GitHub Actions runners)
@@ -148,48 +153,67 @@ export class CTIAgentSystem {
   }
 
   /**
-   * Warmup the model before analysis (pre-loads into memory)
+   * Warmup both models before analysis (pre-loads into memory)
    */
-  private async warmupModel(): Promise<boolean> {
-    console.log(`[CTI-Agents] Warming up model ${CTI_MODEL}...`);
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 120000); // 2 min for warmup
-      
-      const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          model: CTI_MODEL,
-          prompt: 'Respond with OK',
-          stream: false,
-          options: { num_predict: 5 }
-        })
-      });
-      
-      clearTimeout(timeout);
-      if (res.ok) {
-        console.log('[CTI-Agents] Model warmed up successfully');
-        return true;
-      }
-      return false;
-    } catch (err) {
-      console.error('[CTI-Agents] Warmup failed:', err);
-      return false;
+  private async warmupModels(): Promise<void> {
+    console.log(`[CTI-Agents] Warming up dual-model architecture...`);
+    console.log(`  REASONER: ${REASONER_MODEL}`);
+    console.log(`  SPECIALIST: ${SPECIALIST_MODEL || 'NOT SET'}`);
+    
+    if (!SPECIALIST_MODEL) {
+      throw new Error('[CTI-Agents] OLLAMA_MODEL_SPECIALIST is required');
     }
+    
+    // Warmup reasoner
+    try {
+      const res1 = await this.quickTest(REASONER_MODEL);
+      console.log(`[CTI-Agents] ✓ Reasoner model ready: ${REASONER_MODEL}`);
+    } catch (err) {
+      console.error(`[CTI-Agents] ✗ Reasoner model failed:`, err);
+      throw new Error(`Reasoner model ${REASONER_MODEL} unavailable`);
+    }
+    
+    // Warmup specialist
+    try {
+      const res2 = await this.quickTest(SPECIALIST_MODEL);
+      console.log(`[CTI-Agents] ✓ Specialist model ready: ${SPECIALIST_MODEL}`);
+    } catch (err) {
+      console.error(`[CTI-Agents] ✗ Specialist model failed:`, err);
+      throw new Error(`Specialist model ${SPECIALIST_MODEL} unavailable`);
+    }
+  }
+  
+  private async quickTest(model: string): Promise<boolean> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+    
+    const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model,
+        prompt: 'Respond with OK',
+        stream: false,
+        options: { num_predict: 5 }
+      })
+    });
+    
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return true;
   }
 
   /**
-   * Run the full multi-agent CTI analysis pipeline
+   * Run the full multi-agent CTI analysis pipeline with dual-model architecture
    */
   async analyze(): Promise<CTIAnalysis> {
-    console.log(`[CTI-Agents] Starting multi-agent analysis with ${CTI_MODEL}`);
+    console.log(`[CTI-Agents] Starting dual-model CTI analysis`);
     console.log(`[CTI-Agents] Ollama host: ${OLLAMA_HOST}`);
     console.log(`[CTI-Agents] Request timeout: ${REQUEST_TIMEOUT/1000}s`);
     
-    // Warmup model first (loads into memory)
-    await this.warmupModel();
+    // Warmup both models (loads into memory)
+    await this.warmupModels();
     
     // Load all available data
     console.log('[CTI-Agents] Loading data files...');
@@ -204,8 +228,8 @@ export class CTIAgentSystem {
     console.log(`  - Processed: ${processedData?.summary?.totalThreats || 0} threats, ${processedData?.indicators?.length || 0} IOCs`);
 
     if (!processedData && !shodanData && !xData) {
-      console.log('[CTI-Agents] No data available for analysis');
-      return this.emptyAnalysis();
+      console.error('[CTI-Agents] No data available for analysis');
+      throw new Error('[CTI-Agents] Pipeline requires data - cannot analyze empty input');
     }
 
     // Build comprehensive context
@@ -213,22 +237,26 @@ export class CTIAgentSystem {
     const context = this.buildContext(processedData, shodanData, xData);
     console.log(`[CTI-Agents] Context size: ${context.length} chars (max: ${MAX_CONTEXT_SIZE})`);
     
-    // Run agents sequentially (each builds on previous)
-    console.log('[CTI-Agents] Running extraction agent...');
+    // Run agents with dual-model architecture
+    console.log(`[CTI-Agents] Running extraction agent (SPECIALIST: ${SPECIALIST_MODEL})...`);
     const extraction = await this.runExtractorAgent(context);
+    console.log(`[CTI-Agents] Extraction complete: ${extraction.iocs.ips.length} IPs, ${extraction.iocs.cves.length} CVEs, ${extraction.ttps.length} TTPs`);
     
-    console.log('[CTI-Agents] Running correlation agent...');
+    console.log(`[CTI-Agents] Running correlation agent (REASONER: ${REASONER_MODEL})...`);
     const correlation = await this.runCorrelatorAgent(context, extraction);
+    console.log(`[CTI-Agents] Correlation complete: ${correlation.temporalPatterns.length} patterns, ${correlation.crossSourceLinks.length} links`);
     
-    console.log('[CTI-Agents] Running analyst agent...');
+    console.log(`[CTI-Agents] Running analyst agent (REASONER: ${REASONER_MODEL})...`);
     const analysis = await this.runAnalystAgent(context, extraction, correlation);
+    console.log(`[CTI-Agents] Analysis complete: Risk=${analysis.riskAssessment.level}, Score=${analysis.riskAssessment.score}`);
     
-    console.log('[CTI-Agents] Running reporter agent...');
+    console.log(`[CTI-Agents] Running reporter agent (REASONER: ${REASONER_MODEL})...`);
     const report = await this.runReporterAgent(context, extraction, correlation, analysis);
+    console.log(`[CTI-Agents] Report complete: ${report.keyFindings.length} findings, ${report.immediateActions.length} actions`);
 
     const result: CTIAnalysis = {
       timestamp: new Date().toISOString(),
-      model: CTI_MODEL,
+      model: `reasoner:${REASONER_MODEL}|specialist:${SPECIALIST_MODEL}`,
       extraction,
       correlation,
       analysis,
@@ -398,7 +426,8 @@ RESPOND WITH VALID JSON:
 
 Be thorough but only include items with actual evidence from the context. Set confidence based on evidence strength.`;
 
-    const response = await this.callOllama(prompt);
+    // Use SPECIALIST model for technical IOC extraction
+    const response = await this.callOllama(prompt, SPECIALIST_MODEL!);
     return this.parseJsonResponse(response, {
       iocs: { ips: [], domains: [], hashes: [], cves: [] },
       ttps: [],
@@ -456,7 +485,8 @@ RESPOND WITH VALID JSON:
 
 Focus on actionable correlations. Include direct URLs for verification.`;
 
-    const response = await this.callOllama(prompt);
+    // Use REASONER model for strategic correlation
+    const response = await this.callOllama(prompt, REASONER_MODEL);
     return this.parseJsonResponse(response, {
       temporalPatterns: [],
       crossSourceLinks: [],
@@ -510,7 +540,8 @@ RESPOND WITH VALID JSON:
 
 Be specific and reference actual findings from the data.`;
 
-    const response = await this.callOllama(prompt);
+    // Use REASONER model for strategic analysis
+    const response = await this.callOllama(prompt, REASONER_MODEL);
     return this.parseJsonResponse(response, {
       killChainPhase: 'Reconnaissance',
       attackSurface: [],
@@ -569,7 +600,7 @@ RESPOND WITH VALID JSON:
 
 Write for a non-technical executive audience while maintaining technical accuracy.`;
 
-    const response = await this.callOllama(prompt);
+    const response = await this.callOllama(prompt, REASONER_MODEL);
     return this.parseJsonResponse(response, {
       headline: 'Threat Intelligence Analysis Complete',
       situationSummary: 'Analysis completed. See key findings for details.',
@@ -582,11 +613,15 @@ Write for a non-technical executive audience while maintaining technical accurac
 
   /**
    * Call Ollama API with streaming (avoids HeadersTimeout) and retry logic
+   * @param prompt - The prompt to send
+   * @param model - Which model to use (reasoner or specialist)
+   * @param retries - Number of retry attempts
    */
-  private async callOllama(prompt: string, retries = 2): Promise<string> {
+  private async callOllama(prompt: string, model: string, retries = 2): Promise<string> {
     const promptSize = prompt.length;
     const estimatedTokens = Math.ceil(promptSize / 4);
     
+    console.log(`[CTI-Agents] Model: ${model}`);
     console.log(`[CTI-Agents] Prompt: ${promptSize} chars (~${estimatedTokens} tokens)`);
     
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -594,7 +629,7 @@ Write for a non-technical executive audience while maintaining technical accurac
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-        console.log(`[CTI-Agents] Attempt ${attempt + 1}/${retries + 1}: Calling Ollama (streaming)...`);
+        console.log(`[CTI-Agents] Attempt ${attempt + 1}/${retries + 1}: Calling ${model} (streaming)...`);
         const startTime = Date.now();
         
         // Use streaming to avoid headers timeout - model responds immediately
@@ -603,7 +638,7 @@ Write for a non-technical executive audience while maintaining technical accurac
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
           body: JSON.stringify({
-            model: CTI_MODEL,
+            model,
             prompt,
             stream: true,  // Stream to avoid timeout waiting for full response
             options: {
@@ -817,38 +852,8 @@ Write for a non-technical executive audience while maintaining technical accurac
     console.log('[CTI-Agents] Analysis saved to cti-analysis.json');
   }
 
-  private emptyAnalysis(): CTIAnalysis {
-    return {
-      timestamp: new Date().toISOString(),
-      model: CTI_MODEL,
-      extraction: {
-        iocs: { ips: [], domains: [], hashes: [], cves: [] },
-        ttps: [],
-        threatActors: [],
-        malwareFamilies: []
-      },
-      correlation: {
-        temporalPatterns: [],
-        crossSourceLinks: [],
-        campaignIndicators: { detected: false, confidence: 0, description: '', relatedSignals: [] }
-      },
-      analysis: {
-        killChainPhase: 'Unknown',
-        attackSurface: [],
-        riskAssessment: { level: 'low', score: 0, factors: [] },
-        mitreMapping: [],
-        threatLandscape: 'Insufficient data for analysis.'
-      },
-      report: {
-        headline: 'No Intelligence Available',
-        situationSummary: 'No data available for analysis.',
-        keyFindings: [],
-        immediateActions: [],
-        strategicRecommendations: [],
-        sourcesAndReferences: []
-      }
-    };
-  }
+  // emptyAnalysis removed - pipeline throws error if no data available
+  // No fallback empty results - data is required for meaningful analysis
 
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));

@@ -27,12 +27,12 @@ concurrency:
 env:
   CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
   CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
-  # Use only the cybersecurity-specialized model; abort if unavailable.
-  # NOTE: The specialist model lives on Hugging Face as a GGUF file.
-  # We import it into Ollama via `ollama create` (see Install Ollama step).
-  OLLAMA_MODEL_PRIMARY: cti-cybersecurity:latest
-  OLLAMA_MODEL_PRIMARY_GGUF_URL: https://huggingface.co/WhoIsShe/Llama3.2-3b-cybersecurity-abliterated/resolve/main/unsloth.Q4_K_M.gguf?download=true
-  # No fallback model: if import fails, abort the workflow.
+  # Dual-model architecture:
+  # REASONER (Mistral 7B): Social context, correlation, strategic analysis
+  # SPECIALIST (Qwen Cybersecurity): Shodan queries, CVEs, ports, technical IOCs
+  OLLAMA_MODEL_REASONER: mistral:7b-instruct-q4_0
+  OLLAMA_MODEL_SPECIALIST: ferhatcil/Cybersecurity-LLM-Qwen2.5-3B-GGUF
+  # No fallback: pipeline aborts if models are unavailable
 
 jobs:
   cti-pipeline:
@@ -49,29 +49,47 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Cache Ollama Model
+      - name: Cache Ollama Models
         uses: actions/cache@v4
         with:
           path: ~/.ollama
-          key: ollama-${{ env.OLLAMA_MODEL_PRIMARY }}
+          key: ollama-dual-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}
 
-      - name: Install Ollama
+      - name: Install Ollama and Pull Models
         run: |
+          # Install Ollama
           curl -fsSL https://ollama.com/install.sh | sh
           ollama serve &
           sleep 10
 
-          echo "Attempting to import specialist model from Hugging Face GGUF..."
-          mkdir -p ./DATA/models
-          curl -fL "${{ env.OLLAMA_MODEL_PRIMARY_GGUF_URL }}" -o ./DATA/models/unsloth.Q4_K_M.gguf
-          printf 'FROM ./DATA/models/unsloth.Q4_K_M.gguf\n' > ./DATA/models/Modelfile
-          ollama create "${{ env.OLLAMA_MODEL_PRIMARY }}" -f ./DATA/models/Modelfile
+          echo "=== Pulling REASONER model (Mistral 7B) ==="
+          ollama pull "${{ env.OLLAMA_MODEL_REASONER }}"
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to pull reasoner model ${{ env.OLLAMA_MODEL_REASONER }}"
+            exit 1
+          fi
+          echo "✓ Reasoner model ready: ${{ env.OLLAMA_MODEL_REASONER }}"
 
-          echo "OLLAMA_MODEL=${{ env.OLLAMA_MODEL_PRIMARY }}" >> "$GITHUB_ENV"
-          echo "Specialist model imported as: ${{ env.OLLAMA_MODEL_PRIMARY }}"
-          echo "Testing model availability..."
-          curl -s http://localhost:11434/api/generate -d "{\"model\":\"${{ env.OLLAMA_MODEL_PRIMARY }}\",\"prompt\":\"test\",\"stream\":false,\"options\":{\"num_predict\":1}}" | head -c 200
+          echo "=== Pulling SPECIALIST model (Qwen Cybersecurity) ==="
+          ollama pull "${{ env.OLLAMA_MODEL_SPECIALIST }}"
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to pull specialist model ${{ env.OLLAMA_MODEL_SPECIALIST }}"
+            exit 1
+          fi
+          echo "✓ Specialist model ready: ${{ env.OLLAMA_MODEL_SPECIALIST }}"
+
+          # Export to environment for the pipeline
+          echo "OLLAMA_MODEL_REASONER=${{ env.OLLAMA_MODEL_REASONER }}" >> "$GITHUB_ENV"
+          echo "OLLAMA_MODEL_SPECIALIST=${{ env.OLLAMA_MODEL_SPECIALIST }}" >> "$GITHUB_ENV"
+
+          echo "=== Testing both models ==="
+          echo "Testing reasoner..."
+          ollama run "${{ env.OLLAMA_MODEL_REASONER }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
           echo ""
+          echo "Testing specialist..."
+          ollama run "${{ env.OLLAMA_MODEL_SPECIALIST }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
+          echo ""
+          echo "=== Models ready for CTI pipeline ==="
 
       - name: Restore CTI Cache
         if: ${{ inputs.use_cache }}
@@ -98,15 +116,18 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      # Single pipeline execution with context-aware flow:
-      # 1. X.com scrape → 2. QueryGenerator → 3. Contextual Shodan → 4. Process → 5. CTI Analysis → 6. Dashboard
-      - name: Run CTI Pipeline (Context-Aware)
+      # Dual-model pipeline execution:
+      # 1. X.com scrape → 2. QueryGenerator (SPECIALIST) → 3. Contextual Shodan → 
+      # 4. Process → 5. CTI Agents (REASONER+SPECIALIST) → 6. Dashboard
+      - name: Run CTI Pipeline (Dual-Model)
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
           X_COOKIES_PATH: ${{ github.workspace }}/DATA/x-cookies.json
           USE_CACHE: ${{ inputs.use_cache }}
           OLLAMA_HOST: http://localhost:11434
+          OLLAMA_MODEL_REASONER: ${{ env.OLLAMA_MODEL_REASONER }}
+          OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 

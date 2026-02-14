@@ -1,6 +1,9 @@
 /**
  * Shodan Scraper - Obtiene datos de amenazas desde Shodan
  * Incluye validación completa de API key y capacidades disponibles
+ * 
+ * NO usa queries genéricas - requiere queries contextuales del QueryGenerator
+ * basadas en social intel de X.com
  */
 
 import { BaseScraper, registerScraper } from './base-scraper.js';
@@ -12,16 +15,8 @@ import {
   ScraperConfig
 } from '../types/index.js';
 
-// Queries por tier de suscripción - estos son fallbacks si no hay contexto social
-// El pipeline principal usa QueryGenerator para queries contextuales
-const QUERIES = {
-  // Free tier fallback - solo usado si QueryGenerator no genera queries
-  free: 'port:22,445 country:US',
-  // Paid tier: puede usar filtros avanzados
-  paid: 'vuln:CVE-2024 vuln:CVE-2025',
-  // Fallback: búsqueda simple
-  fallback: 'port:22'
-};
+// NO hay queries fallback - siempre requiere contexto social
+// El QueryGenerator debe proporcionar queries basadas en intel real
 
 // Variable global para queries contextuales del QueryGenerator
 let contextualQueries: string[] = [];
@@ -59,7 +54,7 @@ interface ShodanAPICapabilities {
   canUseVulnFilter: boolean;
   canUseExploitsAPI: boolean;
   canUseScanAPI: boolean;
-  recommendedQuery: string;
+  // No recommendedQuery - we only run contextual queries from LLM
   error?: string;
 }
 
@@ -121,6 +116,7 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
 
   /**
    * Valida la API key y determina las capacidades disponibles
+   * No proporciona queries por defecto - requiere queries contextuales
    */
   private async validateAPIKey(): Promise<ShodanAPICapabilities> {
     if (!this.apiKey) {
@@ -132,7 +128,6 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
         canUseVulnFilter: false,
         canUseExploitsAPI: false,
         canUseScanAPI: false,
-        recommendedQuery: QUERIES.fallback,
         error: 'No API key provided'
       };
     }
@@ -151,7 +146,6 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
             canUseVulnFilter: false,
             canUseExploitsAPI: false,
             canUseScanAPI: false,
-            recommendedQuery: QUERIES.fallback,
             error: 'Invalid API key (401 Unauthorized)'
           };
         }
@@ -197,12 +191,6 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
         canUseVulnFilter = false;
       }
 
-      // Determinar query recomendada
-      let recommendedQuery = QUERIES.free;
-      if (canUseVulnFilter && info.query_credits > 0) {
-        recommendedQuery = QUERIES.paid;
-      }
-
       const capabilities: ShodanAPICapabilities = {
         isValid: true,
         plan,
@@ -210,8 +198,7 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
         scanCredits: info.scan_credits || 0,
         canUseVulnFilter,
         canUseExploitsAPI,
-        canUseScanAPI,
-        recommendedQuery
+        canUseScanAPI
       };
 
       console.log(`[ShodanScraper] API Validated - Plan: ${plan}, Query Credits: ${info.query_credits}, Vuln Filter: ${canUseVulnFilter}`);
@@ -228,7 +215,6 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
         canUseVulnFilter: false,
         canUseExploitsAPI: false,
         canUseScanAPI: false,
-        recommendedQuery: QUERIES.fallback,
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -245,15 +231,20 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
       return this.getEmptyData();
     }
 
+    // Require contextual queries from QueryGenerator - no fallback
+    if (contextualQueries.length === 0) {
+      console.error('[ShodanScraper] No contextual queries provided');
+      console.error('[ShodanScraper] Pipeline requires QueryGenerator to provide queries from social intel');
+      throw new Error('[ShodanScraper] Contextual queries required - no generic fallback allowed');
+    }
+
     const hosts: ShodanHost[] = [];
     const exploits: ShodanExploit[] = [];
     
-    // Use contextual queries from QueryGenerator if available, otherwise fallback
-    const queriesToRun = contextualQueries.length > 0 
-      ? contextualQueries.slice(0, 3)  // Limit to 3 queries to stay within rate limits
-      : [this.capabilities.recommendedQuery];
+    // Only run contextual queries from QueryGenerator (limit to 3 for rate limits)
+    const queriesToRun = contextualQueries.slice(0, 3);
     
-    console.log(`[ShodanScraper] Running ${queriesToRun.length} queries (contextual: ${contextualQueries.length > 0})`);
+    console.log(`[ShodanScraper] Running ${queriesToRun.length} contextual queries from social intel`);
 
     // Execute all contextual queries
     for (const query of queriesToRun) {
