@@ -34,6 +34,91 @@ interface CorrelationData {
   signals: CorrelationSignal[];
 }
 
+// ==================== New Assessment Layer Types ====================
+
+interface QuantifiedCorrelation {
+  score: number;
+  strength: 'weak' | 'moderate' | 'strong';
+  factors: {
+    cveOverlap: number;
+    serviceMatch: number;
+    temporalProximity: number;
+    infraSocialAlignment: number;
+  };
+  explanation: string;
+}
+
+interface BaselineComparison {
+  previousRiskScore: number;
+  currentRiskScore: number;
+  delta: number;
+  anomalyLevel: 'stable' | 'mild' | 'moderate' | 'severe';
+  trendDirection: 'increasing' | 'stable' | 'decreasing';
+}
+
+interface DataFreshness {
+  socialAgeHours: number;
+  infraAgeHours: number;
+  freshnessScore: number;
+  status: 'high' | 'moderate' | 'stale';
+}
+
+interface IndicatorStatistics {
+  uniqueCVECount: number;
+  uniqueDomainCount: number;
+  uniqueIPCount: number;
+  uniquePortCount: number;
+  uniqueServiceCount: number;
+  totalIndicators: number;
+  duplicates: number;
+  duplicationRatio: number;
+}
+
+interface RiskComputation {
+  weights: {
+    vulnerabilityRatio: number;
+    socialIntensity: number;
+    correlationScore: number;
+    freshnessScore: number;
+    baselineDelta: number;
+  };
+  components: {
+    vulnerabilityRatio: number;
+    socialIntensity: number;
+    correlationScore: number;
+    freshnessScore: number;
+    baselineDelta: number;
+  };
+  computedScore: number;
+  confidenceLevel: number;
+}
+
+interface ThreatClassification {
+  type: 'opportunistic' | 'targeted' | 'campaign';
+  confidence: number;
+  rationale: string;
+  indicators: string[];
+}
+
+interface ModelMetadata {
+  strategic: string;
+  technical: string;
+  quantization?: string;
+  version?: string;
+}
+
+interface AssessmentLayer {
+  correlation: QuantifiedCorrelation;
+  scoring: RiskComputation;
+  baselineComparison: BaselineComparison;
+  freshness: DataFreshness;
+  classification: ThreatClassification;
+  iocStats: IndicatorStatistics;
+  narrative: string;
+}
+
+// ==================== Dashboard Data Types ====================
+
 interface DashboardData {
   meta: {
     version: string;
@@ -166,6 +251,9 @@ interface DashboardData {
       relevance: string;
     }>;
   };
+  // New assessment layer from minimal architecture
+  assessmentLayer?: AssessmentLayer;
+  modelMetadata?: ModelMetadata;
 }
 
 const RISK_COLORS = {
@@ -241,6 +329,14 @@ const CTIDashboard: React.FC = () => {
         
         {/* Executive Summary */}
         <ExecutiveSummary executive={data.executive} />
+
+        {/* Assessment Layer Panel - Quantified analysis */}
+        {data.assessmentLayer && (
+          <AssessmentLayerPanel 
+            assessment={data.assessmentLayer} 
+            modelMetadata={data.modelMetadata}
+          />
+        )}
         
         {/* CTI Analysis - Correlation insights */}
         {data.ctiAnalysis && (
@@ -809,6 +905,279 @@ const CorrelationPanel: React.FC<{ correlation: CorrelationData }> = ({ correlat
       <p className="cti-correlation-note">
         Evidence links open external sources for verification. Infrastructure data from Shodan, social intelligence from X.com.
       </p>
+    </section>
+  );
+};
+
+/**
+ * Assessment Layer Panel - Displays quantified correlation, baseline comparison,
+ * data freshness, indicator statistics, risk computation, and threat classification
+ */
+const AssessmentLayerPanel: React.FC<{
+  assessment: AssessmentLayer;
+  modelMetadata?: ModelMetadata;
+}> = ({ assessment, modelMetadata }) => {
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['correlation', 'risk']));
+
+  const toggleSection = (section: string) => {
+    const newSet = new Set(expandedSections);
+    if (newSet.has(section)) {
+      newSet.delete(section);
+    } else {
+      newSet.add(section);
+    }
+    setExpandedSections(newSet);
+  };
+
+  const correlationColor = assessment.correlation.strength === 'strong' ? '#00D26A' :
+                          assessment.correlation.strength === 'moderate' ? '#FFB800' : '#E31B23';
+
+  const anomalyColor = assessment.baselineComparison.anomalyLevel === 'stable' ? '#00D26A' :
+                       assessment.baselineComparison.anomalyLevel === 'mild' ? '#FFB800' :
+                       assessment.baselineComparison.anomalyLevel === 'moderate' ? '#FF6B35' : '#E31B23';
+
+  const freshnessColor = assessment.freshness.status === 'high' ? '#00D26A' :
+                         assessment.freshness.status === 'moderate' ? '#FFB800' : '#E31B23';
+
+  const threatTypeColors: Record<string, string> = {
+    opportunistic: '#00D26A',
+    targeted: '#E31B23',
+    campaign: '#FF6B35'
+  };
+
+  return (
+    <section className="cti-section cti-assessment">
+      <div className="cti-assessment-header">
+        <h2 className="cti-section-title">Quantified Assessment</h2>
+        {modelMetadata && (
+          <div className="cti-model-meta">
+            <span className="cti-model-tag" title="Strategic Model">{modelMetadata.strategic.split('/').pop()}</span>
+            <span className="cti-model-tag" title="Technical Model">{modelMetadata.technical.split('/').pop()}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Narrative Summary */}
+      <div className="cti-assessment-narrative">
+        <p>{assessment.narrative}</p>
+      </div>
+
+      {/* Threat Classification */}
+      <div className="cti-classification-card">
+        <div className="cti-classification-header">
+          <span 
+            className="cti-classification-badge"
+            style={{ backgroundColor: threatTypeColors[assessment.classification.type] }}
+          >
+            {assessment.classification.type.toUpperCase()}
+          </span>
+          <span className="cti-classification-confidence">
+            {assessment.classification.confidence}% confidence
+          </span>
+        </div>
+        <p className="cti-classification-rationale">{assessment.classification.rationale}</p>
+        {assessment.classification.indicators.length > 0 && (
+          <div className="cti-classification-indicators">
+            {assessment.classification.indicators.map((ind, i) => (
+              <span key={i} className="cti-indicator-chip">{ind}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Quantified Correlation */}
+      <div className="cti-analysis-section">
+        <button 
+          className="cti-section-toggle"
+          onClick={() => toggleSection('correlation')}
+        >
+          <span>
+            Correlation Analysis: 
+            <span style={{ color: correlationColor, fontWeight: 'bold' }}>
+              {assessment.correlation.strength} ({Math.round(assessment.correlation.score * 100)}%)
+            </span>
+          </span>
+          <span className="cti-toggle-icon">{expandedSections.has('correlation') ? '▼' : '▶'}</span>
+        </button>
+        
+        {expandedSections.has('correlation') && (
+          <div className="cti-correlation-details">
+            <p className="cti-correlation-explanation">{assessment.correlation.explanation}</p>
+            <div className="cti-factor-grid">
+              <div className="cti-factor-item">
+                <span className="cti-factor-label">CVE Overlap</span>
+                <div className="cti-factor-bar">
+                  <div 
+                    className="cti-factor-fill" 
+                    style={{ width: `${assessment.correlation.factors.cveOverlap * 100}%` }}
+                  />
+                </div>
+                <span className="cti-factor-value">{Math.round(assessment.correlation.factors.cveOverlap * 100)}%</span>
+              </div>
+              <div className="cti-factor-item">
+                <span className="cti-factor-label">Service Match</span>
+                <div className="cti-factor-bar">
+                  <div 
+                    className="cti-factor-fill" 
+                    style={{ width: `${assessment.correlation.factors.serviceMatch * 100}%` }}
+                  />
+                </div>
+                <span className="cti-factor-value">{Math.round(assessment.correlation.factors.serviceMatch * 100)}%</span>
+              </div>
+              <div className="cti-factor-item">
+                <span className="cti-factor-label">Temporal Proximity</span>
+                <div className="cti-factor-bar">
+                  <div 
+                    className="cti-factor-fill" 
+                    style={{ width: `${assessment.correlation.factors.temporalProximity * 100}%` }}
+                  />
+                </div>
+                <span className="cti-factor-value">{Math.round(assessment.correlation.factors.temporalProximity * 100)}%</span>
+              </div>
+              <div className="cti-factor-item">
+                <span className="cti-factor-label">Infra-Social Alignment</span>
+                <div className="cti-factor-bar">
+                  <div 
+                    className="cti-factor-fill" 
+                    style={{ width: `${assessment.correlation.factors.infraSocialAlignment * 100}%` }}
+                  />
+                </div>
+                <span className="cti-factor-value">{Math.round(assessment.correlation.factors.infraSocialAlignment * 100)}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Baseline Comparison */}
+      <div className="cti-analysis-section">
+        <button 
+          className="cti-section-toggle"
+          onClick={() => toggleSection('baseline')}
+        >
+          <span>
+            Baseline Comparison: 
+            <span style={{ color: anomalyColor, fontWeight: 'bold' }}>
+              {assessment.baselineComparison.anomalyLevel}
+            </span>
+            {assessment.baselineComparison.delta !== 0 && (
+              <span className={assessment.baselineComparison.delta > 0 ? 'cti-delta-positive' : 'cti-delta-negative'}>
+                {' '}({assessment.baselineComparison.delta > 0 ? '+' : ''}{assessment.baselineComparison.delta})
+              </span>
+            )}
+          </span>
+          <span className="cti-toggle-icon">{expandedSections.has('baseline') ? '▼' : '▶'}</span>
+        </button>
+        
+        {expandedSections.has('baseline') && (
+          <div className="cti-baseline-details">
+            <div className="cti-baseline-scores">
+              <div className="cti-baseline-item">
+                <span className="cti-baseline-label">Previous</span>
+                <span className="cti-baseline-value">{assessment.baselineComparison.previousRiskScore}</span>
+              </div>
+              <div className="cti-baseline-arrow">→</div>
+              <div className="cti-baseline-item">
+                <span className="cti-baseline-label">Current</span>
+                <span className="cti-baseline-value">{assessment.baselineComparison.currentRiskScore}</span>
+              </div>
+            </div>
+            <p className="cti-trend-label">
+              Trend: <span className={`cti-trend-${assessment.baselineComparison.trendDirection}`}>
+                {assessment.baselineComparison.trendDirection}
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Risk Computation */}
+      <div className="cti-analysis-section">
+        <button 
+          className="cti-section-toggle"
+          onClick={() => toggleSection('risk')}
+        >
+          <span>
+            Risk Score: 
+            <span className="cti-risk-value">{assessment.scoring.computedScore}</span>
+            {' '}(confidence: {assessment.scoring.confidenceLevel}%)
+          </span>
+          <span className="cti-toggle-icon">{expandedSections.has('risk') ? '▼' : '▶'}</span>
+        </button>
+        
+        {expandedSections.has('risk') && (
+          <div className="cti-risk-details">
+            <div className="cti-risk-components">
+              <h4>Risk Components</h4>
+              {Object.entries(assessment.scoring.components).map(([key, value]) => (
+                <div key={key} className="cti-risk-component">
+                  <span className="cti-component-label">
+                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  </span>
+                  <div className="cti-component-bar">
+                    <div 
+                      className="cti-component-fill" 
+                      style={{ width: `${value * 100}%` }}
+                    />
+                  </div>
+                  <span className="cti-component-weight">
+                    weight: {Math.round(assessment.scoring.weights[key as keyof typeof assessment.scoring.weights] * 100)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Data Freshness */}
+      <div className="cti-freshness-bar">
+        <div className="cti-freshness-item">
+          <span className="cti-freshness-label">Data Freshness</span>
+          <span 
+            className="cti-freshness-badge"
+            style={{ backgroundColor: freshnessColor }}
+          >
+            {assessment.freshness.status.toUpperCase()}
+          </span>
+        </div>
+        <div className="cti-freshness-score">
+          Score: {Math.round(assessment.freshness.freshnessScore * 100)}%
+        </div>
+        <div className="cti-freshness-ages">
+          <span>Social: {assessment.freshness.socialAgeHours}h old</span>
+          <span>Infrastructure: {assessment.freshness.infraAgeHours}h old</span>
+        </div>
+      </div>
+
+      {/* Indicator Statistics */}
+      <div className="cti-ioc-stats">
+        <h4>Indicator Statistics</h4>
+        <div className="cti-ioc-grid">
+          <div className="cti-ioc-item">
+            <span className="cti-ioc-value">{assessment.iocStats.uniqueCVECount}</span>
+            <span className="cti-ioc-label">CVEs</span>
+          </div>
+          <div className="cti-ioc-item">
+            <span className="cti-ioc-value">{assessment.iocStats.uniqueDomainCount}</span>
+            <span className="cti-ioc-label">Domains</span>
+          </div>
+          <div className="cti-ioc-item">
+            <span className="cti-ioc-value">{assessment.iocStats.uniqueIPCount}</span>
+            <span className="cti-ioc-label">IPs</span>
+          </div>
+          <div className="cti-ioc-item">
+            <span className="cti-ioc-value">{assessment.iocStats.totalIndicators}</span>
+            <span className="cti-ioc-label">Total</span>
+          </div>
+          {assessment.iocStats.duplicationRatio > 0 && (
+            <div className="cti-ioc-item cti-ioc-duplicates">
+              <span className="cti-ioc-value">{Math.round(assessment.iocStats.duplicationRatio * 100)}%</span>
+              <span className="cti-ioc-label">Duplicates</span>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 };

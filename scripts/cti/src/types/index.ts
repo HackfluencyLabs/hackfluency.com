@@ -227,6 +227,23 @@ export interface LLMAnalysisResult {
   };
 }
 
+// ==================== New CTI Architecture Output ====================
+
+/**
+ * New minimal CTI dashboard output following Signal/Assessment separation
+ * Aligned with reference document architecture
+ */
+export interface MinimalCTIReport {
+  signals: SignalLayer;
+  assessment: AssessmentLayer;
+  ctiAnalysis: {
+    generatedAt: string;
+    validUntil: string;
+    modelsUsed: ModelMetadata;
+    version: string;
+  };
+}
+
 // ==================== Dashboard Types ====================
 
 export interface DashboardWidget {
@@ -255,6 +272,10 @@ export interface CTIDashboard {
     cacheHits: number;
     processingTimeMs: number;
   };
+  // New fields from minimal architecture
+  signalLayer?: SignalLayer;
+  assessmentLayer?: AssessmentLayer;
+  modelMetadata?: ModelMetadata;
 }
 
 // ==================== Evidence & Source Links ====================
@@ -290,11 +311,152 @@ export interface ObservableWithEvidence {
   confidence: number;
 }
 
+// ==================== Signal Layer Types (Immutable) ====================
+
+/**
+ * Signal Layer - Raw and structured extraction only
+ * Immutable, preserves original data for reassessment without re-collecting
+ */
+export interface SignalLayer {
+  raw: {
+    xPosts: XPost[];
+    shodanResults: ShodanHost[];
+  };
+  structured: StructuredSignals;
+}
+
+export interface StructuredSignals {
+  extractedCVEs: string[];
+  domains: string[];
+  ips: string[];
+  ports: number[];
+  services: string[];
+  keywords: string[];
+  exploitationClaims: string[];
+  tone: 'speculative' | 'confirmed' | 'mixed';
+  topPosts: Array<{
+    author: string;
+    excerpt: string;
+    engagement: number;
+    url?: string;
+    timestamp: string;
+  }>;
+}
+
+// ==================== Assessment Layer Types (Reprocessable) ====================
+
+/**
+ * Assessment Layer - Operates strictly on signals.structured
+ * Can be regenerated without re-collecting raw data
+ */
+export interface AssessmentLayer {
+  correlation: QuantifiedCorrelation;
+  scoring: RiskComputation;
+  baselineComparison: BaselineComparison;
+  freshness: DataFreshness;
+  classification: ThreatClassification;
+  iocStats: IndicatorStatistics;
+  narrative: string;
+}
+
+/**
+ * Quantified Correlation Model - Numerical structure for reproducibility
+ */
+export interface QuantifiedCorrelation {
+  score: number; // 0.0 - 1.0
+  strength: 'weak' | 'moderate' | 'strong';
+  factors: {
+    cveOverlap: number; // 0.0 - 1.0
+    serviceMatch: number; // 0.0 - 1.0
+    temporalProximity: number; // 0.0 - 1.0
+    infraSocialAlignment: number; // 0.0 - 1.0
+  };
+  explanation: string;
+}
+
+/**
+ * Baseline Comparison - Quantitative trend tracking
+ */
+export interface BaselineComparison {
+  previousRiskScore: number;
+  currentRiskScore: number;
+  delta: number; // Positive = increased risk
+  anomalyLevel: 'stable' | 'mild' | 'moderate' | 'severe';
+  trendDirection: 'increasing' | 'stable' | 'decreasing';
+}
+
+/**
+ * Data Freshness Score - Critical for CTI validity
+ */
+export interface DataFreshness {
+  socialAgeHours: number;
+  infraAgeHours: number;
+  freshnessScore: number; // 0.0 - 1.0
+  status: 'high' | 'moderate' | 'stale';
+}
+
+/**
+ * Indicator Statistics - Anti-inflation control
+ */
+export interface IndicatorStatistics {
+  uniqueCVECount: number;
+  uniqueDomainCount: number;
+  uniqueIPCount: number;
+  uniquePortCount: number;
+  uniqueServiceCount: number;
+  totalIndicators: number;
+  duplicates: number;
+  duplicationRatio: number; // duplicates / totalIndicators
+}
+
+/**
+ * Risk Computation - Transparent and auditable scoring
+ */
+export interface RiskComputation {
+  weights: {
+    vulnerabilityRatio: number;
+    socialIntensity: number;
+    correlationScore: number;
+    freshnessScore: number;
+    baselineDelta: number;
+  };
+  components: {
+    vulnerabilityRatio: number; // 0.0 - 1.0
+    socialIntensity: number; // 0.0 - 1.0
+    correlationScore: number; // 0.0 - 1.0
+    freshnessScore: number; // 0.0 - 1.0
+    baselineDelta: number; // Normalized delta impact
+  };
+  computedScore: number; // 0 - 100
+  confidenceLevel: number; // 0 - 100
+}
+
+/**
+ * Threat Classification - Formalized threat type
+ */
+export interface ThreatClassification {
+  type: 'opportunistic' | 'targeted' | 'campaign';
+  confidence: number; // 0 - 100
+  rationale: string;
+  indicators: string[];
+}
+
+/**
+ * Model Metadata - For benchmarking and credibility
+ */
+export interface ModelMetadata {
+  strategic: string;
+  technical: string;
+  quantization?: string;
+  version?: string;
+}
+
 // ==================== Correlation Types ====================
 
 /**
  * Señales correlacionables entre fuentes
  * Links infrastructure signals (Shodan) with social context (X.com)
+ * @deprecated Use QuantifiedCorrelation instead
  */
 export interface CorrelationSignal {
   id: string;

@@ -18,7 +18,21 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { XScrapedData, XPost, ShodanScrapedData } from '../types/index.js';
+import { 
+  XScrapedData, 
+  XPost, 
+  ShodanScrapedData,
+  SignalLayer,
+  StructuredSignals,
+  AssessmentLayer,
+  QuantifiedCorrelation,
+  BaselineComparison,
+  DataFreshness,
+  IndicatorStatistics,
+  RiskComputation,
+  ThreatClassification,
+  ModelMetadata
+} from '../types/index.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || process.env.OLLAMA_MODEL_REASONER || 'mistral:7b-instruct-q4_0';
@@ -139,6 +153,10 @@ export interface CTIDashboardOutput {
     technicalAssessment: string;
     methodologies: string[];
   };
+  // New fields from minimal architecture (Signal/Assessment separation)
+  signalLayer?: SignalLayer;
+  assessmentLayer?: AssessmentLayer;
+  modelMetadata?: ModelMetadata;
 }
 
 export interface OrchestratorResult {
@@ -149,6 +167,8 @@ export interface OrchestratorResult {
     shodanDigest: ShodanDigest;
     technicalAssessment: TechnicalAssessment;
     strategicSynthesis: StrategicSynthesis;
+    signalLayer: SignalLayer;
+    assessmentLayer: AssessmentLayer;
   };
   error?: string;
 }
@@ -163,7 +183,7 @@ export class CTIOrchestrator {
   }
 
   /**
-   * Main orchestration - Refactored sequential workflow
+   * Main orchestration - Refactored sequential workflow with Signal/Assessment separation
    */
   async run(): Promise<OrchestratorResult> {
     console.log('[Orchestrator] Starting refactored CTI pipeline...');
@@ -175,38 +195,77 @@ export class CTIOrchestrator {
       const xData = await this.loadJson<XScrapedData>('x-data.json');
       const shodanData = await this.loadJson<ShodanScrapedData>('shodan-data.json');
 
-      // Step 1: Extract Structured X Signals (Strategic Model)
-      console.log('\n[Step 1] X Structured Signal Extraction...');
+      // Step 1: Build Signal Layer (Immutable)
+      console.log('\n[Step 1] Building Signal Layer...');
+      const signalLayer = this.buildSignalLayer(xData, shodanData);
+      console.log(`  ✓ Signals: ${signalLayer.structured.extractedCVEs.length} CVEs, ${signalLayer.structured.ips.length} IPs, ${signalLayer.structured.domains.length} domains`);
+
+      // Step 2: Extract Structured X Signals (Strategic Model) - Legacy compatibility
+      console.log('\n[Step 2] X Structured Signal Extraction...');
       const xSignals = await this.extractXSignals(xData);
       console.log(`  ✓ Extracted: ${xSignals.cves.length} CVEs, ${xSignals.themes.length} themes`);
 
-      // Step 2: Shodan Deterministic Aggregation (No LLM)
-      console.log('\n[Step 2] Shodan Deterministic Aggregation...');
+      // Step 3: Shodan Deterministic Aggregation (No LLM)
+      console.log('\n[Step 3] Shodan Deterministic Aggregation...');
       const shodanDigest = this.aggregateShodanData(shodanData);
       console.log(`  ✓ Aggregated: ${shodanDigest.totalHosts} hosts, ${shodanDigest.vulnerableHosts} vulnerable`);
 
-      // Step 3: Technical Validation (Technical Model - compact input)
-      console.log('\n[Step 3] Technical Validation...');
+      // Step 4: Technical Validation (Technical Model - compact input)
+      console.log('\n[Step 4] Technical Validation...');
       const technicalAssessment = await this.runTechnicalValidation(xSignals, shodanDigest);
       console.log(`  ✓ Assessment: ${technicalAssessment.tacticalClassification}, confidence: ${technicalAssessment.confidenceLevel}`);
 
-      // Step 4: Strategic Executive Synthesis
-      console.log('\n[Step 4] Strategic Synthesis...');
+      // Step 5: Build Assessment Layer (Reprocessable) - NEW
+      console.log('\n[Step 5] Building Assessment Layer...');
+      const previousRiskScore = await this.loadPreviousRiskScore();
+      const assessmentLayer = this.buildAssessmentLayer(
+        signalLayer.structured,
+        shodanDigest,
+        technicalAssessment,
+        previousRiskScore
+      );
+      console.log(`  ✓ Assessment: Risk=${assessmentLayer.scoring.computedScore}, Correlation=${assessmentLayer.correlation.strength}`);
+      console.log(`  ✓ Classification: ${assessmentLayer.classification.type} (${assessmentLayer.classification.confidence}%)`);
+      console.log(`  ✓ Baseline: ${assessmentLayer.baselineComparison.anomalyLevel} (${assessmentLayer.baselineComparison.delta > 0 ? '+' : ''}${assessmentLayer.baselineComparison.delta})`);
+
+      // Step 6: Strategic Executive Synthesis
+      console.log('\n[Step 6] Strategic Synthesis...');
       const strategicSynthesis = await this.runStrategicSynthesis(xSignals, shodanDigest, technicalAssessment);
       console.log(`  ✓ Synthesis complete (${strategicSynthesis.executiveSummary.length} chars)`);
 
-      // Step 5: Deterministic Dashboard Structuring (No LLM)
-      console.log('\n[Step 5] Deterministic Dashboard Generation...');
-      const dashboard = this.buildDashboardDeterministic(xSignals, shodanDigest, technicalAssessment, strategicSynthesis);
+      // Step 7: Deterministic Dashboard Structuring (No LLM)
+      console.log('\n[Step 7] Deterministic Dashboard Generation...');
+      const dashboard = this.buildDashboardDeterministic(
+        xSignals, 
+        shodanDigest, 
+        technicalAssessment, 
+        strategicSynthesis,
+        signalLayer,
+        assessmentLayer
+      );
       console.log(`  ✓ Dashboard: Risk=${dashboard.status.riskLevel}, Score=${dashboard.status.riskScore}`);
 
       // Save debug outputs
-      await this.saveIntermediateOutputs({ xSignals, shodanDigest, technicalAssessment, strategicSynthesis });
+      await this.saveIntermediateOutputs({ 
+        xSignals, 
+        shodanDigest, 
+        technicalAssessment, 
+        strategicSynthesis,
+        signalLayer,
+        assessmentLayer 
+      });
 
       return {
         success: true,
         dashboard,
-        intermediateOutputs: { xSignals, shodanDigest, technicalAssessment, strategicSynthesis }
+        intermediateOutputs: { 
+          xSignals, 
+          shodanDigest, 
+          technicalAssessment, 
+          strategicSynthesis,
+          signalLayer,
+          assessmentLayer 
+        }
       };
 
     } catch (error) {
@@ -218,7 +277,9 @@ export class CTIOrchestrator {
           xSignals: this.getEmptyXSignals(),
           shodanDigest: this.getEmptyShodanDigest(),
           technicalAssessment: this.getEmptyTechnicalAssessment(),
-          strategicSynthesis: this.getEmptyStrategicSynthesis()
+          strategicSynthesis: this.getEmptyStrategicSynthesis(),
+          signalLayer: this.getEmptySignalLayer(),
+          assessmentLayer: this.getEmptyAssessmentLayer()
         },
         error: String(error)
       };
@@ -526,14 +587,41 @@ Under 400 words.`;
   // ==================== Step 5: Deterministic Dashboard Building ====================
 
   /**
+   * Load previous risk score from disk for baseline comparison
+   */
+  private async loadPreviousRiskScore(): Promise<number> {
+    try {
+      const filePath = path.join(this.outputDir, 'previous-risk-score.json');
+      const content = await fs.readFile(filePath, 'utf-8');
+      const data = JSON.parse(content);
+      return data.score || 50;
+    } catch {
+      return 50; // Default baseline
+    }
+  }
+
+  /**
+   * Save current risk score for future baseline comparison
+   */
+  private async saveCurrentRiskScore(score: number): Promise<void> {
+    try {
+      const filePath = path.join(this.outputDir, 'previous-risk-score.json');
+      await fs.writeFile(filePath, JSON.stringify({ score, timestamp: new Date().toISOString() }));
+    } catch { /* non-critical */ }
+  }
+
+  /**
    * Build dashboard with deterministic classification (Refactor 4)
    * NO LLM for categorical fields
+   * Includes Signal/Assessment separation
    */
   private buildDashboardDeterministic(
     xSignals: XStructuredSignals,
     shodanDigest: ShodanDigest,
     technical: TechnicalAssessment,
-    synthesis: StrategicSynthesis
+    synthesis: StrategicSynthesis,
+    signalLayer?: SignalLayer,
+    assessmentLayer?: AssessmentLayer
   ): CTIDashboardOutput {
     const now = new Date();
     const validUntil = new Date(now.getTime() + 6 * 60 * 60 * 1000);
@@ -619,6 +707,17 @@ Under 400 words.`;
       ? 'Weaponization' 
       : (shodanDigest.vulnerableHosts > 0 ? 'Reconnaissance' : 'Pre-Attack');
 
+    // Build model metadata for benchmarking
+    const modelMetadata: ModelMetadata = {
+      strategic: STRATEGIC_MODEL,
+      technical: TECHNICAL_MODEL,
+      quantization: process.env.OLLAMA_QUANTIZATION || 'Q4_K_M',
+      version: '3.0.0'
+    };
+
+    // Save current risk score for future baseline comparison
+    this.saveCurrentRiskScore(Math.round(riskScore));
+
     return {
       meta: {
         version: '3.0.0',
@@ -680,10 +779,462 @@ Under 400 words.`;
           'Deterministic risk scoring (vulnerability ratio)',
           'Code-based IoC extraction',
           'Cross-source CVE correlation',
-          'Structured signal analysis'
+          'Structured signal analysis',
+          'Quantified correlation model',
+          'Baseline comparison tracking'
         ]
-      }
+      },
+      signalLayer,
+      assessmentLayer,
+      modelMetadata
     };
+  }
+
+  // ==================== New Assessment Layer Methods ====================
+
+  /**
+   * Build Signal Layer - Raw and structured extraction
+   * Separates immutable signal from reprocessable assessment
+   */
+  private buildSignalLayer(
+    xData: XScrapedData | null,
+    shodanData: ShodanScrapedData | null
+  ): SignalLayer {
+    const xPosts = xData?.posts || [];
+    const shodanHosts = shodanData?.hosts || [];
+
+    // Build structured signals from raw data
+    const structured = this.buildStructuredSignals(xPosts, shodanHosts);
+
+    return {
+      raw: {
+        xPosts,
+        shodanResults: shodanHosts
+      },
+      structured
+    };
+  }
+
+  /**
+   * Build structured signals from raw data
+   */
+  private buildStructuredSignals(
+    xPosts: XPost[],
+    shodanHosts: any[]
+  ): StructuredSignals {
+    const allText = xPosts.map(p => p.text).join(' ');
+
+    // Extract CVEs
+    const extractedCVEs = [...new Set((allText.match(/CVE-\d{4}-\d{4,7}/gi) || []))];
+
+    // Extract IPs
+    const ips = [...new Set((allText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || []))]
+      .filter(ip => !ip.startsWith('0.') && !ip.startsWith('127.'));
+
+    // Extract domains
+    const domains = [...new Set((allText.match(/\b[a-z0-9][-a-z0-9]*\.[a-z]{2,}\b/gi) || []))]
+      .filter(d => !d.includes('twitter') && !d.includes('x.com'));
+
+    // Extract ports from Shodan
+    const ports = [...new Set(shodanHosts.map(h => h.port).filter(Boolean))];
+
+    // Extract services from Shodan
+    const services = [...new Set(shodanHosts.map(h => h.product).filter(Boolean))];
+
+    // Extract keywords/themes
+    const keywords = this.inferThemesFromPosts(xPosts);
+
+    // Extract exploitation claims
+    const exploitationClaims = this.extractExploitationClaims(allText);
+
+    // Determine tone
+    const tone = this.calculateTone(xPosts, allText);
+
+    // Top posts
+    const topPosts = xPosts
+      .sort((a, b) => (b.metrics.likes + b.metrics.reposts * 2) - (a.metrics.likes + a.metrics.reposts * 2))
+      .slice(0, 5)
+      .map(p => ({
+        author: p.author.username,
+        excerpt: this.truncateTokenSafe(p.text, 100),
+        engagement: p.metrics.likes + p.metrics.reposts * 2,
+        url: p.permalink,
+        timestamp: p.timestamp
+      }));
+
+    return {
+      extractedCVEs,
+      domains,
+      ips,
+      ports,
+      services,
+      keywords,
+      exploitationClaims,
+      tone,
+      topPosts
+    };
+  }
+
+  /**
+   * Extract exploitation claims from text
+   */
+  private extractExploitationClaims(text: string): string[] {
+    const claims: string[] = [];
+    const patterns = [
+      /(?:exploit|exploiting|exploited|exploitation)\s+(?:in|on|for|of)\s+([^.]+)/gi,
+      /(?:being\s+)?exploited\s+(?:in|in\s+the)\s+wild/gi,
+      /(?:active|ongoing)\s+exploit/gi,
+      /(?:proof\s+of\s+concept|poc)\s+(?:released|available)/gi
+    ];
+
+    patterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) {
+        claims.push(...matches.map(m => m.trim()));
+      }
+    });
+
+    return [...new Set(claims)].slice(0, 10);
+  }
+
+  /**
+   * Calculate tone from posts
+   */
+  private calculateTone(
+    posts: XPost[],
+    allText: string
+  ): 'speculative' | 'confirmed' | 'mixed' {
+    const confirmedPatterns = /(?:confirmed|verified|observed|detected|active)/gi;
+    const speculativePatterns = /(?:allegedly|reportedly|possibly|maybe|might|could|rumor)/gi;
+
+    const confirmedCount = (allText.match(confirmedPatterns) || []).length;
+    const speculativeCount = (allText.match(speculativePatterns) || []).length;
+
+    if (confirmedCount > speculativeCount * 2) return 'confirmed';
+    if (speculativeCount > confirmedCount * 2) return 'speculative';
+    return 'mixed';
+  }
+
+  /**
+   * Build Assessment Layer - Reprocessable analysis
+   */
+  private buildAssessmentLayer(
+    signals: StructuredSignals,
+    shodanDigest: ShodanDigest,
+    technical: TechnicalAssessment,
+    previousRiskScore: number = 50
+  ): AssessmentLayer {
+    const correlation = this.computeQuantifiedCorrelation(signals, shodanDigest);
+    const iocStats = this.computeIndicatorStatistics(signals, shodanDigest);
+    const freshness = this.computeDataFreshness(signals);
+    const scoring = this.computeRiskComputation(
+      signals,
+      shodanDigest,
+      correlation,
+      freshness,
+      previousRiskScore
+    );
+    const baselineComparison = this.computeBaselineComparison(
+      scoring.computedScore,
+      previousRiskScore
+    );
+    const classification = this.classifyThreat(signals, shodanDigest, correlation, technical);
+
+    return {
+      correlation,
+      scoring,
+      baselineComparison,
+      freshness,
+      classification,
+      iocStats,
+      narrative: this.generateNarrative(signals, correlation, classification)
+    };
+  }
+
+  /**
+   * Compute quantified correlation model
+   * Returns numerical correlation with factor breakdown
+   */
+  private computeQuantifiedCorrelation(
+    signals: StructuredSignals,
+    shodanDigest: ShodanDigest
+  ): QuantifiedCorrelation {
+    // CVE overlap factor
+    const socialCVEs = new Set(signals.extractedCVEs.map(c => c.toUpperCase()));
+    const infraCVEs = new Set(shodanDigest.uniqueCVEs.map(c => c.toUpperCase()));
+    const overlapCount = [...socialCVEs].filter(c => infraCVEs.has(c)).length;
+    const cveOverlapFactor = Math.min(overlapCount / Math.max(socialCVEs.size, 1), 1);
+
+    // Service match factor
+    const socialServices = new Set(signals.keywords.map(k => k.toLowerCase()));
+    const infraServices = new Set(shodanDigest.topPorts.map(p => p.service.toLowerCase()));
+    const serviceMatches = [...socialServices].filter(s => 
+      [...infraServices].some(i => i.includes(s) || s.includes(i))
+    ).length;
+    const serviceMatchFactor = Math.min(serviceMatches / Math.max(socialServices.size, 1), 1);
+
+    // Temporal proximity factor (based on data freshness)
+    const temporalFactor = 0.7; // Default high since data is current
+
+    // Infrastructure-social alignment
+    const alignmentFactor = (cveOverlapFactor + serviceMatchFactor) / 2;
+
+    // Calculate weighted correlation score
+    const score = 
+      (cveOverlapFactor * 0.3) +
+      (serviceMatchFactor * 0.3) +
+      (temporalFactor * 0.2) +
+      (alignmentFactor * 0.2);
+
+    // Map to strength label
+    let strength: 'weak' | 'moderate' | 'strong';
+    if (score < 0.3) strength = 'weak';
+    else if (score < 0.6) strength = 'moderate';
+    else strength = 'strong';
+
+    return {
+      score: Math.round(score * 100) / 100,
+      strength,
+      factors: {
+        cveOverlap: Math.round(cveOverlapFactor * 100) / 100,
+        serviceMatch: Math.round(serviceMatchFactor * 100) / 100,
+        temporalProximity: temporalFactor,
+        infraSocialAlignment: Math.round(alignmentFactor * 100) / 100
+      },
+      explanation: `Correlation strength ${strength} (${Math.round(score * 100)}%) based on ${overlapCount} CVE overlaps and ${serviceMatches} service matches.`
+    };
+  }
+
+  /**
+   * Compute baseline comparison with delta tracking
+   */
+  private computeBaselineComparison(
+    currentScore: number,
+    previousScore: number
+  ): BaselineComparison {
+    const delta = currentScore - previousScore;
+    
+    let anomalyLevel: 'stable' | 'mild' | 'moderate' | 'severe';
+    const absDelta = Math.abs(delta);
+    if (absDelta < 5) anomalyLevel = 'stable';
+    else if (absDelta < 15) anomalyLevel = 'mild';
+    else if (absDelta < 30) anomalyLevel = 'moderate';
+    else anomalyLevel = 'severe';
+
+    const trendDirection = delta > 5 ? 'increasing' : delta < -5 ? 'decreasing' : 'stable';
+
+    return {
+      previousRiskScore: previousScore,
+      currentRiskScore: currentScore,
+      delta: Math.round(delta),
+      anomalyLevel,
+      trendDirection
+    };
+  }
+
+  /**
+   * Compute data freshness score
+   */
+  private computeDataFreshness(signals: StructuredSignals): DataFreshness {
+    const now = new Date();
+    
+    // Calculate average age of social posts
+    let socialAgeHours = 3; // Default
+    if (signals.topPosts.length > 0) {
+      const ages = signals.topPosts.map(p => {
+        const postTime = new Date(p.timestamp);
+        return (now.getTime() - postTime.getTime()) / (1000 * 60 * 60);
+      });
+      socialAgeHours = ages.reduce((a, b) => a + b, 0) / ages.length;
+    }
+
+    // Infrastructure data is typically current
+    const infraAgeHours = 1;
+
+    // Calculate freshness score (1 - normalized average age)
+    const avgAge = (socialAgeHours + infraAgeHours) / 2;
+    const freshnessScore = Math.max(0, 1 - (avgAge / 24)); // Normalize to 24 hours
+
+    let status: 'high' | 'moderate' | 'stale';
+    if (avgAge < 6) status = 'high';
+    else if (avgAge < 24) status = 'moderate';
+    else status = 'stale';
+
+    return {
+      socialAgeHours: Math.round(socialAgeHours * 10) / 10,
+      infraAgeHours,
+      freshnessScore: Math.round(freshnessScore * 100) / 100,
+      status
+    };
+  }
+
+  /**
+   * Compute indicator statistics (anti-inflation)
+   */
+  private computeIndicatorStatistics(
+    signals: StructuredSignals,
+    shodanDigest: ShodanDigest
+  ): IndicatorStatistics {
+    const allIndicators = [
+      ...signals.extractedCVEs,
+      ...signals.domains,
+      ...signals.ips,
+      ...signals.ports.map(p => String(p)),
+      ...signals.services
+    ];
+
+    const uniqueCVECount = signals.extractedCVEs.length;
+    const uniqueDomainCount = signals.domains.length;
+    const uniqueIPCount = signals.ips.length;
+    const uniquePortCount = signals.ports.length;
+    const uniqueServiceCount = signals.services.length;
+
+    // Count duplicates (appear in both X and Shodan)
+    const duplicates = signals.extractedCVEs.filter(cve => 
+      shodanDigest.uniqueCVEs.includes(cve)
+    ).length;
+
+    const totalIndicators = allIndicators.length;
+    const duplicationRatio = totalIndicators > 0 ? duplicates / totalIndicators : 0;
+
+    return {
+      uniqueCVECount,
+      uniqueDomainCount,
+      uniqueIPCount,
+      uniquePortCount,
+      uniqueServiceCount,
+      totalIndicators,
+      duplicates,
+      duplicationRatio: Math.round(duplicationRatio * 100) / 100
+    };
+  }
+
+  /**
+   * Compute risk computation with transparent weights
+   */
+  private computeRiskComputation(
+    signals: StructuredSignals,
+    shodanDigest: ShodanDigest,
+    correlation: QuantifiedCorrelation,
+    freshness: DataFreshness,
+    previousRiskScore: number
+  ): RiskComputation {
+    // Calculate component scores (0-1)
+    const vulnerabilityRatio = shodanDigest.totalHosts > 0 
+      ? shodanDigest.vulnerableHosts / shodanDigest.totalHosts 
+      : 0;
+
+    const socialIntensity = Math.min(
+      (signals.extractedCVEs.length + signals.exploitationClaims.length) / 10,
+      1
+    );
+
+    const correlationScore = correlation.score;
+    const freshnessScore = freshness.freshnessScore;
+    const baselineDelta = Math.min(Math.abs(previousRiskScore - 50) / 50, 1);
+
+    // Weights for transparency
+    const weights = {
+      vulnerabilityRatio: 0.35,
+      socialIntensity: 0.25,
+      correlationScore: 0.25,
+      freshnessScore: 0.10,
+      baselineDelta: 0.05
+    };
+
+    // Compute weighted score (0-100)
+    const computedScore = Math.round(
+      (vulnerabilityRatio * weights.vulnerabilityRatio +
+       socialIntensity * weights.socialIntensity +
+       correlationScore * weights.correlationScore +
+       freshnessScore * weights.freshnessScore +
+       baselineDelta * weights.baselineDelta) * 100
+    );
+
+    // Confidence based on data quality
+    const confidenceLevel = Math.round(
+      (freshnessScore * 0.4 + correlationScore * 0.3 + (1 - socialIntensity) * 0.3) * 100
+    );
+
+    return {
+      weights,
+      components: {
+        vulnerabilityRatio: Math.round(vulnerabilityRatio * 100) / 100,
+        socialIntensity: Math.round(socialIntensity * 100) / 100,
+        correlationScore,
+        freshnessScore,
+        baselineDelta: Math.round(baselineDelta * 100) / 100
+      },
+      computedScore,
+      confidenceLevel
+    };
+  }
+
+  /**
+   * Classify threat type
+   */
+  private classifyThreat(
+    signals: StructuredSignals,
+    shodanDigest: ShodanDigest,
+    correlation: QuantifiedCorrelation,
+    technical: TechnicalAssessment
+  ): ThreatClassification {
+    let type: 'opportunistic' | 'targeted' | 'campaign';
+    let confidence: number;
+    let indicators: string[] = [];
+    let rationale: string;
+
+    // Classification heuristics
+    const highExposedServices = shodanDigest.totalHosts > 100;
+    const lowCVESpecificity = signals.extractedCVEs.length < 3;
+    const weakTemporalAlignment = correlation.factors.temporalProximity < 0.5;
+    const specificCVE = signals.extractedCVEs.length >= 3;
+    const specificService = shodanDigest.topPorts.length > 0 && signals.keywords.length > 0;
+    const strongCorrelation = correlation.score > 0.6;
+    const narrowInfraScope = shodanDigest.totalHosts < 50;
+    const repeatedSignals = signals.exploitationClaims.length > 3;
+    const strongTemporalClustering = correlation.factors.temporalProximity > 0.8;
+    const multiIndicatorOverlap = correlation.factors.cveOverlap > 0.3 && correlation.factors.serviceMatch > 0.3;
+
+    if (technical.tacticalClassification === 'targeted' || 
+        (specificCVE && specificService && strongCorrelation && narrowInfraScope)) {
+      type = 'targeted';
+      confidence = 75;
+      indicators = ['Specific CVE targeting', 'Narrow infrastructure scope', 'Strong cross-source correlation'];
+      rationale = 'Indicators suggest targeted attack pattern with specific CVE and infrastructure focus.';
+    } else if (repeatedSignals && strongTemporalClustering && multiIndicatorOverlap) {
+      type = 'campaign';
+      confidence = 80;
+      indicators = ['Repeated exploitation signals', 'Strong temporal clustering', 'Multi-indicator overlap'];
+      rationale = 'Pattern consistent with coordinated campaign activity.';
+    } else {
+      type = 'opportunistic';
+      confidence = highExposedServices && lowCVESpecificity ? 70 : 50;
+      indicators = ['Broad infrastructure exposure', 'Low CVE specificity'];
+      rationale = 'Pattern consistent with opportunistic scanning rather than targeted exploitation.';
+    }
+
+    return {
+      type,
+      confidence,
+      rationale,
+      indicators
+    };
+  }
+
+  /**
+   * Generate narrative summary
+   */
+  private generateNarrative(
+    signals: StructuredSignals,
+    correlation: QuantifiedCorrelation,
+    classification: ThreatClassification
+  ): string {
+    return `Today we observed ${signals.tone} activity related to ${signals.keywords.slice(0, 2).join(', ') || 'threat intelligence'}. ` +
+           `The correlation strength is ${correlation.strength} (${Math.round(correlation.score * 100)}%), ` +
+           `primarily driven by ${Object.entries(correlation.factors)
+             .sort(([,a], [,b]) => b - a)[0][0].replace(/([A-Z])/g, ' $1').toLowerCase()}. ` +
+           `This pattern is consistent with ${classification.type} ${classification.type === 'campaign' ? 'activity' : 'scanning'}.`;
   }
 
   // ==================== Helper Methods ====================
@@ -892,6 +1443,70 @@ Under 400 words.`;
     return { executiveSummary: 'Insufficient data for analysis.', correlationReasoning: '', recommendedActions: ['Configure data sources'], rawResponse: '' };
   }
 
+  private getEmptySignalLayer(): SignalLayer {
+    return {
+      raw: { xPosts: [], shodanResults: [] },
+      structured: {
+        extractedCVEs: [],
+        domains: [],
+        ips: [],
+        ports: [],
+        services: [],
+        keywords: [],
+        exploitationClaims: [],
+        tone: 'mixed',
+        topPosts: []
+      }
+    };
+  }
+
+  private getEmptyAssessmentLayer(): AssessmentLayer {
+    return {
+      correlation: {
+        score: 0,
+        strength: 'weak',
+        factors: { cveOverlap: 0, serviceMatch: 0, temporalProximity: 0, infraSocialAlignment: 0 },
+        explanation: 'No data available for correlation analysis.'
+      },
+      scoring: {
+        weights: { vulnerabilityRatio: 0.35, socialIntensity: 0.25, correlationScore: 0.25, freshnessScore: 0.1, baselineDelta: 0.05 },
+        components: { vulnerabilityRatio: 0, socialIntensity: 0, correlationScore: 0, freshnessScore: 0, baselineDelta: 0 },
+        computedScore: 0,
+        confidenceLevel: 0
+      },
+      baselineComparison: {
+        previousRiskScore: 50,
+        currentRiskScore: 0,
+        delta: 0,
+        anomalyLevel: 'stable',
+        trendDirection: 'stable'
+      },
+      freshness: {
+        socialAgeHours: 0,
+        infraAgeHours: 0,
+        freshnessScore: 0,
+        status: 'stale'
+      },
+      classification: {
+        type: 'opportunistic',
+        confidence: 0,
+        rationale: 'Insufficient data for threat classification.',
+        indicators: []
+      },
+      iocStats: {
+        uniqueCVECount: 0,
+        uniqueDomainCount: 0,
+        uniqueIPCount: 0,
+        uniquePortCount: 0,
+        uniqueServiceCount: 0,
+        totalIndicators: 0,
+        duplicates: 0,
+        duplicationRatio: 0
+      },
+      narrative: 'No data available for analysis.'
+    };
+  }
+
   private getEmptyDashboard(): CTIDashboardOutput {
     const now = new Date();
     return {
@@ -903,7 +1518,10 @@ Under 400 words.`;
       sources: [],
       indicators: { cves: [], domains: [], ips: [], keywords: [] },
       infrastructure: { totalHosts: 0, exposedPorts: [], topCountries: [], vulnerableHosts: 0, sampleHosts: [] },
-      ctiAnalysis: { model: TECHNICAL_MODEL, killChainPhase: 'Unknown', threatLandscape: '', analystBrief: '', correlationStrength: 'weak', technicalAssessment: '', methodologies: [] }
+      ctiAnalysis: { model: TECHNICAL_MODEL, killChainPhase: 'Unknown', threatLandscape: '', analystBrief: '', correlationStrength: 'weak', technicalAssessment: '', methodologies: [] },
+      signalLayer: this.getEmptySignalLayer(),
+      assessmentLayer: this.getEmptyAssessmentLayer(),
+      modelMetadata: { strategic: STRATEGIC_MODEL, technical: TECHNICAL_MODEL }
     };
   }
 }
