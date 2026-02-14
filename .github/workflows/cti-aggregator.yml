@@ -28,10 +28,10 @@ env:
   CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
   CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
   # Dual-model architecture:
-  # REASONER (Mistral 7B): Social context, correlation, strategic analysis
-  # SPECIALIST (Qwen Cybersecurity): Shodan queries, CVEs, ports, technical IOCs
-  OLLAMA_MODEL_REASONER: mistral:7b-instruct-q4_0
-  OLLAMA_MODEL_SPECIALIST: saki007ster/CybersecurityRiskAnalyst
+  # REASONER (phi4-mini): Social context, correlation, strategic analysis
+  # SPECIALIST (CybersecurityThreatAnalysisV2): Shodan queries, CVEs, ports, technical IOCs
+  OLLAMA_MODEL_REASONER: phi4-mini
+  OLLAMA_MODEL_SPECIALIST: ALIENTELLIGENCE/cybersecuritythreatanalysisv2
   # No fallback: pipeline aborts if models are unavailable
 
 jobs:
@@ -62,7 +62,7 @@ jobs:
           ollama serve &
           sleep 10
 
-          echo "=== Pulling REASONER model (Mistral 7B) ==="
+          echo "=== Pulling REASONER model (phi4-mini) ==="
           ollama pull "${{ env.OLLAMA_MODEL_REASONER }}"
           if [ $? -ne 0 ]; then
             echo "ERROR: Failed to pull reasoner model ${{ env.OLLAMA_MODEL_REASONER }}"
@@ -70,7 +70,7 @@ jobs:
           fi
           echo "✓ Reasoner model ready: ${{ env.OLLAMA_MODEL_REASONER }}"
 
-          echo "=== Pulling SPECIALIST model (Qwen Cybersecurity) ==="
+          echo "=== Pulling SPECIALIST model (CybersecurityThreatAnalysisV2) ==="
           ollama pull "${{ env.OLLAMA_MODEL_SPECIALIST }}"
           if [ $? -ne 0 ]; then
             echo "ERROR: Failed to pull specialist model ${{ env.OLLAMA_MODEL_SPECIALIST }}"
