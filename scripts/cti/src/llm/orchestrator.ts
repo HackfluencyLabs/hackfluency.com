@@ -21,7 +21,7 @@ import { XScrapedData, XPost, ShodanScrapedData, ShodanHost } from '../types/ind
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || 'mistral:7b-instruct-q4_0';
-const TECHNICAL_MODEL = process.env.OLLAMA_MODEL_TECHNICAL || 'qwen2:3b';
+const TECHNICAL_MODEL = process.env.OLLAMA_MODEL_TECHNICAL || 'saki007ster/CybersecurityRiskAnalyst';
 const REQUEST_TIMEOUT = parseInt(process.env.CTI_REQUEST_TIMEOUT || '300000', 10);
 
 // Token budget (~20k context strategy)
