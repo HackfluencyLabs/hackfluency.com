@@ -1,144 +1,79 @@
 {
   "meta": {
     "version": "2.0.0",
-    "generatedAt": "2026-02-14T02:01:38.582Z",
-    "validUntil": "2026-02-14T08:01:38.582Z"
+    "generatedAt": "2026-02-14T07:19:46.361Z",
+    "validUntil": "2026-02-14T13:19:46.361Z"
   },
   "status": {
     "riskLevel": "moderate",
     "riskScore": 50,
-    "trend": "decreasing",
-    "confidenceLevel": 85
+    "trend": "increasing",
+    "confidenceLevel": 60
   },
   "executive": {
     "headline": "Threat Level: MEDIUM",
     "summary": "Analysis completed. See key findings for details.",
     "keyFindings": [
-      "29 CVE references identified in collected intelligence",
-      "3 critical severity signals require immediate attention",
-      "Ransomware represents primary threat vector"
+      "41 CVE references identified in collected intelligence",
+      "1 critical severity signal require immediate attention",
+      "Vulnerability represents primary threat vector"
     ],
     "recommendedActions": [
-      "Initiate incident response procedures",
-      "Review and patch critical vulnerabilities immediately",
-      "Increase monitoring on affected systems",
-      "Brief security leadership on current threat status"
+      "Continue routine vulnerability management",
+      "Monitor for escalation indicators",
+      "Update threat intelligence feeds"
     ]
   },
   "metrics": {
-    "totalSignals": 12,
-    "criticalCount": 3,
-    "highCount": 1,
-    "mediumCount": 3,
-    "lowCount": 5,
+    "totalSignals": 1,
+    "criticalCount": 1,
+    "highCount": 0,
+    "mediumCount": 0,
+    "lowCount": 0,
     "categories": [
       {
-        "name": "Ransomware",
-        "count": 5,
-        "percentage": 42
-      },
-      {
         "name": "Vulnerability",
-        "count": 4,
-        "percentage": 33
-      },
-      {
-        "name": "APT",
-        "count": 3,
-        "percentage": 25
+        "count": 1,
+        "percentage": 100
       }
     ]
   },
   "timeline": [
     {
-      "id": "threat_mllnpckb_ndqjhx",
-      "title": "Vulnerable Infrastructure Detected (29 hosts)",
+      "id": "threat_mllz1j54_0uzlxd",
+      "title": "Vulnerable Infrastructure Detected (22 hosts)",
       "severity": "critical",
       "category": "Vulnerability",
-      "timestamp": "2026-02-13T21:31:06.180Z"
-    },
-    {
-      "id": "threat_mllnpckg_daxsg1",
-      "title": "Threat: CVE-2026-21509",
-      "severity": "critical",
-      "category": "Vulnerability",
-      "timestamp": "2026-02-10T19:17:33.000Z"
-    },
-    {
-      "id": "threat_mllnpckf_mi25v2",
-      "title": "Apple 0-Day Vulnerability Actively Exploited Sophisticated...",
-      "severity": "critical",
-      "category": "Vulnerability",
-      "timestamp": "2026-02-12T05:42:00.000Z"
-    },
-    {
-      "id": "threat_mllnpckf_les1jo",
-      "title": "Forcepoint researchers look into high-volume Phorpiex...",
-      "severity": "high",
-      "category": "APT",
-      "timestamp": "2026-02-12T11:01:52.000Z"
-    },
-    {
-      "id": "threat_mllnpckh_zlhktq",
-      "title": "Threat: CVE-2026-1731",
-      "severity": "medium",
-      "category": "Vulnerability",
-      "timestamp": "2026-02-10T17:19:25.000Z"
-    },
-    {
-      "id": "threat_mllnpckh_r6iqhp",
-      "title": "Threat: CVE-2025-68947",
-      "severity": "medium",
-      "category": "Ransomware",
-      "timestamp": "2026-02-10T14:42:11.000Z"
-    },
-    {
-      "id": "threat_mllnpckf_ug638q",
-      "title": "According S2W, DragonForce operates ransomware cartel...",
-      "severity": "medium",
-      "category": "Ransomware",
-      "timestamp": "2026-02-12T09:29:33.000Z"
-    },
-    {
-      "id": "threat_mllnpcke_ydiegd",
-      "title": "#UNC6384 #MustangPanda #APTUpload from powershell $Env:temp\\4w42197.msiref1:...",
-      "severity": "low",
-      "category": "APT",
-      "timestamp": "2026-02-13T06:35:12.000Z"
+      "timestamp": "2026-02-14T07:04:46.880Z"
     }
   ],
   "sources": [
     {
       "name": "Technical Reconnaissance",
       "signalCount": 1,
-      "lastUpdate": "2026-02-14T02:01:38.582Z"
-    },
-    {
-      "name": "Social Intelligence (X)",
-      "signalCount": 11,
-      "lastUpdate": "2026-02-14T02:01:38.582Z"
+      "lastUpdate": "2026-02-14T07:19:46.361Z"
     }
   ],
   "indicators": {
     "cves": [
-      "CVE-2008-3844",
-      "CVE-2019-16905",
       "CVE-2016-20012",
-      "CVE-2021-36368",
-      "CVE-2025-26465",
-      "CVE-2020-14145",
-      "CVE-2023-51767",
-      "CVE-2020-15778",
-      "CVE-2023-48795",
-      "CVE-2023-38408"
+      "CVE-2017-15906",
+      "CVE-2015-6563",
+      "CVE-2015-5352",
+      "CVE-2015-6564",
+      "CVE-2016-0777",
+      "CVE-2015-5600",
+      "CVE-2007-2768",
+      "CVE-2016-0778",
+      "CVE-2014-2532"
     ],
     "domains": [],
     "ips": [
-      "72.167.204.70",
-      "144.126.152.80",
-      "199.184.215.90",
-      "38.60.163.61",
-      "149.69.118.24"
+      "102.208.113.17",
+      "210.153.170.76",
+      "85.215.195.26",
+      "43.136.91.217",
+      "14.190.5.97"
     ],
     "keywords": []
   },
@@ -148,32 +83,76 @@
       {
         "port": 22,
         "service": "OpenSSH",
-        "count": 54,
-        "percentage": 54
-      },
-      {
-        "port": 445,
-        "service": "SMB",
-        "count": 41,
-        "percentage": 41
+        "count": 85,
+        "percentage": 85
       },
       {
         "port": 3389,
         "service": "Remote Desktop Protocol",
-        "count": 5,
-        "percentage": 5
+        "count": 11,
+        "percentage": 11
+      },
+      {
+        "port": 445,
+        "service": "SMB",
+        "count": 4,
+        "percentage": 4
       }
     ],
     "topCountries": [
       {
         "country": "US",
-        "count": 100
+        "count": 25
+      },
+      {
+        "country": "DE",
+        "count": 14
+      },
+      {
+        "country": "CN",
+        "count": 11
+      },
+      {
+        "country": "FR",
+        "count": 7
+      },
+      {
+        "country": "SG",
+        "count": 4
       }
     ],
-    "vulnerableHosts": 29,
+    "vulnerableHosts": 22,
     "sampleHosts": [
       {
-        "ip": "72.167.xxx.xxx",
+        "ip": "102.208.xxx.xxx",
+        "port": 22,
+        "service": "OpenSSH",
+        "vulns": [
+          "CVE-2016-20012",
+          "CVE-2017-15906",
+          "CVE-2015-6563"
+        ]
+      },
+      {
+        "ip": "210.153.xxx.xxx",
+        "port": 22,
+        "service": "OpenSSH",
+        "vulns": [
+          "CVE-2008-3844",
+          "CVE-2016-20012",
+          "CVE-2021-36368"
+        ]
+      },
+      {
+        "ip": "85.215.xxx.xxx",
+        "port": 445,
+        "service": "SMB",
+        "vulns": [
+          "CVE-2020-0796"
+        ]
+      },
+      {
+        "ip": "43.136.xxx.xxx",
         "port": 22,
         "service": "OpenSSH",
         "vulns": [
@@ -183,35 +162,7 @@
         ]
       },
       {
-        "ip": "144.126.xxx.xxx",
-        "port": 22,
-        "service": "OpenSSH",
-        "vulns": [
-          "CVE-2008-3844",
-          "CVE-2019-6110",
-          "CVE-2016-20012"
-        ]
-      },
-      {
-        "ip": "199.184.xxx.xxx",
-        "port": 22,
-        "service": "OpenSSH",
-        "vulns": [
-          "CVE-2016-20012",
-          "CVE-2021-36368",
-          "CVE-2025-26465"
-        ]
-      },
-      {
-        "ip": "38.60.xxx.xxx",
-        "port": 445,
-        "service": "SMB",
-        "vulns": [
-          "CVE-2020-0796"
-        ]
-      },
-      {
-        "ip": "149.69.xxx.xxx",
+        "ip": "14.190.xxx.xxx",
         "port": 445,
         "service": "SMB",
         "vulns": [
@@ -219,74 +170,6 @@
         ]
       }
     ]
-  },
-  "socialIntel": {
-    "totalPosts": 11,
-    "topTopics": [
-      {
-        "topic": "attack",
-        "count": 6,
-        "engagement": 595
-      },
-      {
-        "topic": "exploit",
-        "count": 4,
-        "engagement": 417
-      },
-      {
-        "topic": "ransomware",
-        "count": 6,
-        "engagement": 348
-      },
-      {
-        "topic": "vulnerability",
-        "count": 3,
-        "engagement": 326
-      },
-      {
-        "topic": "cve",
-        "count": 3,
-        "engagement": 261
-      }
-    ],
-    "recentPosts": [
-      {
-        "excerpt": "#UNC6384 #MustangPanda #APT\nUpload from \n\n... powershell $Env:temp\\4w42197.msi\n\nref1: https://dreamgroup.com/plugx-diplo...",
-        "author": "@PrakkiSathwik",
-        "timestamp": "2026-02-13T06:35:12.000Z",
-        "engagement": 28,
-        "url": "https://x.com/PrakkiSathwik/status/2022197848696291643"
-      },
-      {
-        "excerpt": "Forcepoint researchers look into a high-volume Phorpiex campaign delivered through malspam emails weaponized with Window...",
-        "author": "@virusbtn",
-        "timestamp": "2026-02-12T11:01:52.000Z",
-        "engagement": 48,
-        "url": "https://x.com/virusbtn/status/2021902568323265019"
-      },
-      {
-        "excerpt": "According to S2W, DragonForce operates as a ransomware cartel under a RaaS model since Dec 2023, had 363 victims by Jan ...",
-        "author": "@Cyber_O51NT",
-        "timestamp": "2026-02-12T09:29:33.000Z",
-        "engagement": 9,
-        "url": "https://x.com/Cyber_O51NT/status/2021879339671826682"
-      },
-      {
-        "excerpt": " Apple 0-Day Vulnerability Actively Exploited in Sophisticated Attack to Target Individuals \n\nSource: https://cybersecur...",
-        "author": "@The_Cyber_News",
-        "timestamp": "2026-02-12T05:42:00.000Z",
-        "engagement": 257,
-        "url": "https://x.com/The_Cyber_News/status/2021822072339804492"
-      },
-      {
-        "excerpt": "#Breaking #Millcreek #ApartmentFire 4434 Lemans Drive. #UFA just arrived to a 3 story apt building with fire and heavy b...",
-        "author": "@SLCScanner",
-        "timestamp": "2026-02-11T01:18:55.000Z",
-        "engagement": 47,
-        "url": "https://x.com/SLCScanner/status/2021393477712707622"
-      }
-    ],
-    "sentiment": "neutral"
   },
   "ctiAnalysis": {
     "model": "qwen2.5:3b",
