@@ -16,8 +16,8 @@ import * as path from 'path';
 import { XScrapedData, XPost } from '../types/index.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-// Use same model as CTI analysis by default; allow override
-const QUERY_MODEL = process.env.OLLAMA_QUERY_MODEL || process.env.OLLAMA_MODEL || 'qwen2.5:3b';
+// Single-model policy: always use the primary model from OLLAMA_MODEL
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL;
 
 export interface ShodanQuerySuggestion {
   query: string;
@@ -147,7 +147,8 @@ export class QueryGenerator {
    * Genera queries de Shodan analizando datos de X.com con LLM
    */
   async generateQueries(useCache: boolean = true): Promise<QueryGeneratorResult> {
-    console.log(`[QueryGen] Using model: ${QUERY_MODEL}`);
+    const modelName = OLLAMA_MODEL ?? 'unknown';
+    console.log(`[QueryGen] Using model: ${modelName}`);
     
     // Intentar usar cache primero
     if (useCache) {
@@ -186,7 +187,7 @@ export class QueryGenerator {
 
     const result: QueryGeneratorResult = {
       timestamp: new Date().toISOString(),
-      model: QUERY_MODEL,
+      model: modelName,
       sourcePostsAnalyzed: xData.posts.length,
       queries: allQueries,
       extractedIndicators: indicators,
@@ -306,6 +307,10 @@ Only suggest 3-5 queries. Be specific and actionable.`;
    * Llama a Ollama con el modelo configurado
    */
   private async callOllama(prompt: string): Promise<string> {
+    if (!OLLAMA_MODEL) {
+      throw new Error('[QueryGen] OLLAMA_MODEL is required (single-model policy)');
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000); // 2 min timeout
 
@@ -315,7 +320,7 @@ Only suggest 3-5 queries. Be specific and actionable.`;
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          model: QUERY_MODEL,
+          model: OLLAMA_MODEL,
           prompt,
           stream: false,
           options: {
@@ -481,7 +486,7 @@ Only suggest 3-5 queries. Be specific and actionable.`;
   private emptyResult(): QueryGeneratorResult {
     return {
       timestamp: new Date().toISOString(),
-      model: QUERY_MODEL,
+      model: OLLAMA_MODEL ?? 'unknown',
       sourcePostsAnalyzed: 0,
       queries: [{
         query: 'port:22,3389,445',
