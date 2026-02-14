@@ -23,11 +23,14 @@ const CTI_QUERY = '(ransomware OR "data breach" OR CVE-2024 OR "zero-day" OR APT
 export class XScraper extends BaseScraper<XScrapedData> {
   private browser: Browser | null = null;
   private page: Page | null = null;
-  private cookiesPath: string;
+  private cookiesPath: string | null;
+  private cookiesJson: string | null;
 
   constructor(config: ScraperConfig) {
     super(config);
-    this.cookiesPath = process.env.X_COOKIES_PATH || path.join(process.cwd(), 'DATA', 'x.com_13-02-2026.json');
+    // Priority: X_COOKIES_JSON (GitHub Secret) > X_COOKIES_PATH (file)
+    this.cookiesJson = process.env.X_COOKIES_JSON || null;
+    this.cookiesPath = process.env.X_COOKIES_PATH || null;
   }
 
   protected get scraperName(): string {
@@ -107,12 +110,23 @@ export class XScraper extends BaseScraper<XScrapedData> {
 
   /**
    * Carga las cookies de autenticación
+   * Priority: X_COOKIES_JSON env var (GitHub Secret) > X_COOKIES_PATH file
    */
   private async loadCookies(): Promise<void> {
-    console.log(`[XScraper] Loading cookies from ${this.cookiesPath}...`);
+    let cookiesRaw: string;
+    
+    // Try X_COOKIES_JSON first (GitHub Actions secret)
+    if (this.cookiesJson) {
+      console.log('[XScraper] Loading cookies from X_COOKIES_JSON env var...');
+      cookiesRaw = this.cookiesJson;
+    } else if (this.cookiesPath) {
+      console.log(`[XScraper] Loading cookies from file: ${this.cookiesPath}...`);
+      cookiesRaw = await fs.readFile(this.cookiesPath, 'utf-8');
+    } else {
+      throw new Error('No cookies source: set X_COOKIES_JSON or X_COOKIES_PATH');
+    }
     
     try {
-      const cookiesRaw = await fs.readFile(this.cookiesPath, 'utf-8');
       const cookiesFile: XCookiesFile = JSON.parse(cookiesRaw);
       
       if (!cookiesFile.cookies || cookiesFile.cookies.length === 0) {
