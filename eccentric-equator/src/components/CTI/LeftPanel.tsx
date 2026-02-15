@@ -1,11 +1,13 @@
 /**
- * LeftPanel - Technical IoCs Display
+ * LeftPanel v3.0 - Technical IoCs Display
+ * Futuristic design with collapsible sections
  * Shows CVEs, IPs, Domains, Keywords, Infrastructure data
- * Connected to interactive concept mapping
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import CollapsiblePanel from './CollapsiblePanel';
 import './cti-dashboard.css';
+import './collapsible-panel.css';
 
 interface LeftPanelProps {
   indicators: {
@@ -37,184 +39,233 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
   highlightedConcept,
   onConceptClick
 }) => {
+  const [expandedDomains, setExpandedDomains] = useState(false);
   const isHighlighted = (concept: string) => highlightedConcept === concept;
+  const highlightedCVE = indicators.cves.some(cve => highlightedConcept === cve);
 
   return (
-    <div className="cti-left-panel">
-      {/* Header */}
-      <div className="cti-panel-header">
-        <h3 className="cti-panel-title">
-          <span className="cti-panel-icon">🔬</span>
-          Technical Intelligence
-        </h3>
-      </div>
-
-      {/* IoC Statistics Summary */}
-      {iocStats && (
-        <div className="cti-ioc-summary">
-          <div className="cti-ioc-stat">
-            <span className="cti-ioc-stat-value">{iocStats.totalIndicators}</span>
-            <span className="cti-ioc-stat-label">Total Indicators</span>
+    <aside className="cti-left-panel cti-panel-futuristic">
+      {/* Panel Header */}
+      <div className="cti-panel-header-futuristic">
+        <div className="panel-header-content">
+          <div className="panel-icon-hex">
+            <span>🔬</span>
           </div>
-          <div className="cti-ioc-stat-breakdown">
-            <span className={isHighlighted('CVE') ? 'highlighted' : ''}>
-              {iocStats.uniqueCVECount} CVEs
-            </span>
-            <span className={isHighlighted('domain') ? 'highlighted' : ''}>
-              {iocStats.uniqueDomainCount} Domains
-            </span>
-            <span className={isHighlighted('IP') ? 'highlighted' : ''}>
-              {iocStats.uniqueIPCount} IPs
-            </span>
+          <div className="panel-header-text">
+            <h3>Technical Intelligence</h3>
+            <span className="panel-subtitle">IoCs & Infrastructure</span>
           </div>
         </div>
-      )}
-
-      {/* CVEs Section */}
-      {indicators.cves.length > 0 && (
-        <div className={`cti-section-card ${isHighlighted('CVE') ? 'cti-highlight-left' : ''}`}>
-          <div className="cti-section-header">
-            <span className="cti-section-icon">🐛</span>
-            <h4>CVEs ({indicators.cves.length})</h4>
+        {iocStats && (
+          <div className="panel-stat-badge">
+            <span className="stat-value">{iocStats.totalIndicators}</span>
+            <span className="stat-label">IoCs</span>
           </div>
-          <div className="cti-tag-list">
-            {indicators.cves.map((cve, i) => (
-              <button
-                key={i}
-                className="cti-tag cve-tag"
-                onClick={() => onConceptClick?.(cve)}
-              >
+        )}
+      </div>
+
+      <div className="cti-panel-content">
+        {/* IoC Statistics Summary */}
+        {iocStats && (
+          <div className="cti-ioc-stats-grid">
+            <div className={`ioc-stat-item ${highlightedCVE ? 'highlighted' : ''}`}>
+              <div className="stat-icon">🐛</div>
+              <div className="stat-info">
+                <span className="stat-number">{iocStats.uniqueCVECount}</span>
+                <span className="stat-name">CVEs</span>
+              </div>
+            </div>
+            <div className={`ioc-stat-item ${isHighlighted('domain') ? 'highlighted' : ''}`}>
+              <div className="stat-icon">🌐</div>
+              <div className="stat-info">
+                <span className="stat-number">{iocStats.uniqueDomainCount}</span>
+                <span className="stat-name">Domains</span>
+              </div>
+            </div>
+            <div className={`ioc-stat-item ${isHighlighted('IP') ? 'highlighted' : ''}`}>
+              <div className="stat-icon">📡</div>
+              <div className="stat-info">
+                <span className="stat-number">{iocStats.uniqueIPCount}</span>
+                <span className="stat-name">IPs</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CVEs Section */}
+        {indicators.cves.length > 0 && (
+          <CollapsiblePanel
+            title="Vulnerabilities"
+            icon="🐛"
+            variant="critical"
+            badge={indicators.cves.length}
+            badgeVariant={highlightedCVE ? 'pulse' : 'default'}
+            defaultExpanded={true}
+            glowEffect={highlightedCVE}
+          >
+            <div className="cti-cve-list">
+              {indicators.cves.map((cve, i) => (
                 <a
+                  key={i}
                   href={`https://nvd.nist.gov/vuln/detail/${cve}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  className={`cti-cve-chip ${highlightedConcept === cve ? 'highlighted' : ''}`}
+                  onClick={(e) => {
+                    if (onConceptClick) {
+                      e.preventDefault();
+                      onConceptClick(cve);
+                    }
+                  }}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`https://nvd.nist.gov/vuln/detail/${cve}`, '_blank');
+                  }}
                 >
-                  {cve}
+                  <span className="cve-severity-dot" />
+                  <span className="cve-id">{cve}</span>
+                  <span className="cve-link-icon">↗</span>
                 </a>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          </CollapsiblePanel>
+        )}
 
-      {/* Domains Section */}
-      {indicators.domains.length > 0 && (
-        <div className={`cti-section-card ${isHighlighted('domain') ? 'cti-highlight-left' : ''}`}>
-          <div className="cti-section-header">
-            <span className="cti-section-icon">🌐</span>
-            <h4>Domains ({indicators.domains.length})</h4>
-          </div>
-          <div className="cti-domain-list">
-            {indicators.domains.slice(0, 8).map((domain, i) => (
-              <button
-                key={i}
-                className="cti-domain-item"
-                onClick={() => onConceptClick?.(domain)}
+        {/* Domains Section */}
+        {indicators.domains.length > 0 && (
+          <CollapsiblePanel
+            title="Domains"
+            icon="🌐"
+            variant="info"
+            badge={indicators.domains.length}
+            defaultExpanded={true}
+          >
+            <div className="cti-domains-grid">
+              {(expandedDomains ? indicators.domains : indicators.domains.slice(0, 6)).map((domain, i) => (
+                <button
+                  key={i}
+                  className={`cti-domain-chip ${highlightedConcept === domain ? 'highlighted' : ''}`}
+                  onClick={() => onConceptClick?.(domain)}
+                >
+                  <span className="domain-dot" />
+                  <span className="domain-name">{domain.length > 20 ? domain.substring(0, 20) + '…' : domain}</span>
+                </button>
+              ))}
+            </div>
+            {indicators.domains.length > 6 && (
+              <button 
+                className="cti-expand-btn"
+                onClick={() => setExpandedDomains(!expandedDomains)}
               >
-                <span className="cti-domain-icon">🔗</span>
-                <span className="cti-domain-name">{domain}</span>
-              </button>
-            ))}
-            {indicators.domains.length > 8 && (
-              <button className="cti-more-button">
-                +{indicators.domains.length - 8} more
+                {expandedDomains ? '▲ Show less' : `▼ Show ${indicators.domains.length - 6} more`}
               </button>
             )}
-          </div>
-        </div>
-      )}
+          </CollapsiblePanel>
+        )}
 
-      {/* IPs Section */}
-      {indicators.ips.length > 0 && (
-        <div className={`cti-section-card ${isHighlighted('IP') ? 'cti-highlight-left' : ''}`}>
-          <div className="cti-section-header">
-            <span className="cti-section-icon">📡</span>
-            <h4>IP Addresses ({indicators.ips.length})</h4>
-          </div>
-          <div className="cti-ip-list">
-            {indicators.ips.map((ip, i) => (
-              <button
-                key={i}
-                className="cti-ip-item"
-                onClick={() => onConceptClick?.(ip)}
-              >
-                <code className="cti-ip-code">{ip}</code>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* IPs Section */}
+        {indicators.ips.length > 0 && (
+          <CollapsiblePanel
+            title="IP Addresses"
+            icon="📡"
+            variant="warning"
+            badge={indicators.ips.length}
+            defaultExpanded={true}
+          >
+            <div className="cti-ip-grid">
+              {indicators.ips.map((ip, i) => (
+                <button
+                  key={i}
+                  className={`cti-ip-chip ${highlightedConcept === ip ? 'highlighted' : ''}`}
+                  onClick={() => onConceptClick?.(ip)}
+                >
+                  <code>{ip}</code>
+                </button>
+              ))}
+            </div>
+          </CollapsiblePanel>
+        )}
 
-      {/* Keywords Section */}
-      {indicators.keywords.length > 0 && (
-        <div className="cti-section-card">
-          <div className="cti-section-header">
-            <span className="cti-section-icon">🔑</span>
-            <h4>Keywords</h4>
-          </div>
-          <div className="cti-keyword-cloud">
-            {indicators.keywords.map((keyword, i) => (
-              <button
-                key={i}
-                className={`cti-keyword-chip ${isHighlighted(keyword) ? 'highlighted' : ''}`}
-                onClick={() => onConceptClick?.(keyword)}
-              >
-                {keyword}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* Keywords */}
+        {indicators.keywords.length > 0 && (
+          <CollapsiblePanel
+            title="Keywords"
+            icon="🔑"
+            variant="default"
+            defaultExpanded={false}
+          >
+            <div className="cti-keywords-wrap">
+              {indicators.keywords.map((keyword, i) => (
+                <button
+                  key={i}
+                  className={`cti-keyword-tag ${highlightedConcept === keyword ? 'highlighted' : ''}`}
+                  onClick={() => onConceptClick?.(keyword)}
+                >
+                  #{keyword}
+                </button>
+              ))}
+            </div>
+          </CollapsiblePanel>
+        )}
 
-      {/* Infrastructure Summary */}
-      <div className="cti-section-card">
-        <div className="cti-section-header">
-          <span className="cti-section-icon">🖥️</span>
-          <h4>Infrastructure</h4>
-        </div>
-        <div className="cti-infra-stats">
-          <div className="cti-infra-stat">
-            <span className="cti-infra-stat-value">{infrastructure?.totalHosts || 0}</span>
-            <span className="cti-infra-stat-label">Exposed Hosts</span>
-          </div>
-          <div className="cti-infra-stat">
-            <span className="cti-infra-stat-value">{infrastructure?.vulnerableHosts || 0}</span>
-            <span className="cti-infra-stat-label">Vulnerable</span>
-          </div>
-        </div>
-        
-        {infrastructure?.exposedPorts && infrastructure.exposedPorts.length > 0 && (
-          <div className="cti-ports-list">
-            <h5>Exposed Services</h5>
-            {infrastructure.exposedPorts.slice(0, 4).map((port, i) => (
-              <div key={i} className="cti-port-item">
-                <span className="cti-port-number">{port.port}</span>
-                <span className="cti-port-service">{port.service}</span>
-                <div className="cti-port-bar">
-                  <div 
-                    className="cti-port-fill" 
-                    style={{ width: `${port.percentage}%` }}
-                  />
-                </div>
+        {/* Infrastructure */}
+        <CollapsiblePanel
+          title="Infrastructure"
+          icon="🖥️"
+          variant={infrastructure?.vulnerableHosts ? 'critical' : 'success'}
+          badge={infrastructure?.totalHosts || 0}
+          defaultExpanded={true}
+        >
+          <div className="cti-infra-overview">
+            <div className="infra-stat-row">
+              <div className="infra-stat">
+                <span className="infra-stat-value">{infrastructure?.totalHosts || 0}</span>
+                <span className="infra-stat-label">Exposed Hosts</span>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="infra-stat">
+                <span className={`infra-stat-value ${infrastructure?.vulnerableHosts ? 'danger' : 'safe'}`}>
+                  {infrastructure?.vulnerableHosts || 0}
+                </span>
+                <span className="infra-stat-label">Vulnerable</span>
+              </div>
+            </div>
 
-        {(!infrastructure?.totalHosts || infrastructure.totalHosts === 0) && (
-          <div className="cti-infra-clean">
-            <span className="cti-clean-icon">✅</span>
-            <span className="cti-clean-text">No exposed infrastructure detected</span>
+            {infrastructure?.exposedPorts && infrastructure.exposedPorts.length > 0 && (
+              <div className="infra-ports">
+                <span className="ports-title">Top Services</span>
+                {infrastructure.exposedPorts.slice(0, 4).map((port, i) => (
+                  <div key={i} className="port-row">
+                    <span className="port-number">{port.port}</span>
+                    <span className="port-service">{port.service}</span>
+                    <div className="port-bar-track">
+                      <div 
+                        className="port-bar-fill"
+                        style={{ width: `${port.percentage}%` }}
+                      />
+                    </div>
+                    <span className="port-count">{port.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(!infrastructure?.totalHosts || infrastructure.totalHosts === 0) && (
+              <div className="infra-clean-state">
+                <span className="clean-check">✓</span>
+                <span className="clean-text">No exposed infrastructure detected</span>
+              </div>
+            )}
           </div>
-        )}
+        </CollapsiblePanel>
       </div>
 
-      {/* Footer */}
-      <div className="cti-panel-footer">
-        <span>Data from Shodan, NVD</span>
+      {/* Panel Footer */}
+      <div className="cti-panel-footer-futuristic">
+        <span className="source-label">Sources:</span>
+        <span className="source-badge">Shodan</span>
+        <span className="source-badge">NVD</span>
       </div>
-    </div>
+    </aside>
   );
 };
 

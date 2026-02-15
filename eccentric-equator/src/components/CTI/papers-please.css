@@ -1,0 +1,760 @@
+/**
+ * Papers Please Style - CTI Dashboard
+ * Interactive document inspection system
+ * Connection lines, stamps, and verification UI
+ */
+
+/* ========================================
+   PAPERS PLEASE - BASE STYLES
+   ======================================== */
+
+.papers-please-style {
+  --pp-paper: #f5f0e6;
+  --pp-ink: #1a1a1a;
+  --pp-red: #c41e3a;
+  --pp-green: #00aa55;
+  --pp-stamp: #8b0000;
+  --pp-border: #333;
+  --pp-glow: rgba(0, 255, 136, 0.4);
+}
+
+/* ========================================
+   ASSESSMENT CARD - Papers Please Document
+   ======================================== */
+
+.pp-assessment-card {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pp-assessment-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #00ff88, #00d4ff, #cc66ff);
+}
+
+.pp-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #333;
+}
+
+.pp-card-title {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  color: #888;
+  letter-spacing: 2px;
+}
+
+.pp-card-serial {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: #555;
+}
+
+.pp-tone-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pp-tone-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--tone-color);
+  border-radius: 4px;
+  box-shadow: 0 0 15px var(--tone-color);
+}
+
+.pp-tone-indicator .tone-icon {
+  font-size: 20px;
+}
+
+.pp-tone-indicator .tone-label {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--tone-color);
+  letter-spacing: 1px;
+}
+
+.pp-stats-row {
+  display: flex;
+  gap: 20px;
+}
+
+.pp-stat {
+  text-align: center;
+}
+
+.pp-stat-num {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: bold;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.pp-stat-label {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+/* STAMP BUTTON */
+.pp-stamp-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(180deg, #222 0%, #111 100%);
+  border: 2px solid #444;
+  border-radius: 4px;
+  color: #888;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pp-stamp-btn:hover {
+  border-color: #00ff88;
+  color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.pp-stamp-btn.stamped {
+  background: linear-gradient(180deg, #0a2a0a 0%, #051505 100%);
+  border-color: #00ff88;
+  color: #00ff88;
+}
+
+.pp-stamp-btn.stamped::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  border: 3px solid rgba(0, 255, 136, 0.3);
+  border-radius: 50%;
+  animation: stamp-ring 0.5s ease-out;
+}
+
+@keyframes stamp-ring {
+  0% { width: 0; height: 0; opacity: 1; }
+  100% { width: 80px; height: 80px; opacity: 0; }
+}
+
+/* ========================================
+   THEMES GRID - Papers Please Tags
+   ======================================== */
+
+.pp-themes-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pp-theme-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.pp-theme-card:hover {
+  border-color: #ffcc00;
+  transform: translateY(-2px);
+}
+
+.pp-theme-card.active {
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+  background: linear-gradient(180deg, #0a1a0a 0%, #051005 100%);
+}
+
+.pp-theme-card.active.connected::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  width: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00ff88);
+  animation: connection-pulse 1s ease-in-out infinite;
+}
+
+@keyframes connection-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.pp-theme-card.stamped {
+  border-color: #00aa55;
+}
+
+.pp-theme-card.stamped::after {
+  content: '✓';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  background: #00aa55;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #000;
+  font-weight: bold;
+}
+
+.pp-theme-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-theme-icon {
+  font-size: 12px;
+}
+
+.pp-theme-text {
+  font-size: 12px;
+  color: #ccc;
+  font-weight: 500;
+}
+
+.pp-theme-card.active .pp-theme-text {
+  color: #00ff88;
+}
+
+/* Connection indicator */
+.pp-connection-indicator {
+  position: absolute;
+  right: -8px;
+  display: flex;
+  align-items: center;
+}
+
+.connection-line {
+  width: 8px;
+  height: 2px;
+  background: #00ff88;
+}
+
+.connection-dot {
+  width: 6px;
+  height: 6px;
+  background: #00ff88;
+  border-radius: 50%;
+  animation: dot-pulse 1s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.5); }
+}
+
+.pp-mini-stamp {
+  padding: 2px 6px;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 2px;
+  color: #666;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pp-mini-stamp:hover {
+  border-color: #00ff88;
+  color: #00ff88;
+}
+
+/* ========================================
+   DOCUMENTS STACK - Papers Please Style
+   ======================================== */
+
+.pp-documents-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pp-document {
+  background: linear-gradient(180deg, #151515 0%, #0a0a0a 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pp-document::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #333;
+  transition: all 0.3s ease;
+}
+
+.pp-document:hover {
+  border-color: #444;
+  transform: translateX(4px);
+}
+
+.pp-document:hover::before {
+  background: #00d4ff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.pp-document.inspected {
+  border-color: #00d4ff;
+  background: linear-gradient(180deg, #0a1520 0%, #051015 100%);
+  transform: translateX(8px) scale(1.02);
+  z-index: 10;
+}
+
+.pp-document.inspected::before {
+  background: #00d4ff;
+  width: 6px;
+}
+
+.pp-document.has-connection {
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.pp-document.has-connection::before {
+  background: #00ff88;
+  animation: connection-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes connection-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.8); }
+}
+
+.pp-document.stamped {
+  border-color: #ff4444;
+}
+
+/* Connection beam for Papers Please style */
+.pp-connection-beam {
+  position: absolute;
+  top: 50%;
+  left: -30px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: beam-appear 0.3s ease-out;
+}
+
+@keyframes beam-appear {
+  0% { left: 0; opacity: 0; }
+  100% { left: -30px; opacity: 1; }
+}
+
+.beam-line {
+  width: 25px;
+  height: 2px;
+  background: linear-gradient(90deg, #00ff88, transparent);
+  animation: beam-pulse 1s ease-in-out infinite;
+}
+
+@keyframes beam-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.beam-label {
+  background: #00ff88;
+  color: #000;
+  font-size: 8px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Document Header */
+.pp-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #2a2a2a;
+}
+
+.pp-doc-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pp-doc-source {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: #1D9BF0;
+  background: rgba(29, 155, 240, 0.1);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.pp-doc-id {
+  font-size: 12px;
+  font-weight: 600;
+  color: #00d4ff;
+}
+
+.pp-doc-engagement {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ff6b6b;
+  font-size: 11px;
+}
+
+.engagement-icon {
+  font-size: 12px;
+}
+
+/* Document Body */
+.pp-doc-body {
+  margin-bottom: 10px;
+}
+
+.pp-doc-text {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.5;
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
+.pp-document.inspected .pp-doc-text {
+  color: #ddd;
+}
+
+.pp-doc-analysis {
+  margin-top: 10px;
+  padding: 8px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 4px;
+  animation: analysis-appear 0.3s ease-out;
+}
+
+@keyframes analysis-appear {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.analysis-label {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.analysis-match {
+  font-size: 12px;
+  font-weight: bold;
+  color: #00ff88;
+}
+
+/* Document Footer */
+.pp-doc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px dashed #2a2a2a;
+}
+
+.pp-doc-link {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: #888;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.pp-doc-link:hover {
+  color: #00d4ff;
+}
+
+.pp-stamp-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pp-stamp-action .stamp-icon {
+  font-size: 12px;
+  color: #666;
+}
+
+.pp-stamp-action .stamp-text {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+.pp-stamp-action:hover {
+  border-color: #ff4444;
+}
+
+.pp-stamp-action:hover .stamp-icon,
+.pp-stamp-action:hover .stamp-text {
+  color: #ff4444;
+}
+
+.pp-stamp-action.active {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: #ff4444;
+}
+
+.pp-stamp-action.active .stamp-icon,
+.pp-stamp-action.active .stamp-text {
+  color: #ff4444;
+}
+
+/* Stamp overlay */
+.pp-stamp-overlay {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%) rotate(-15deg);
+  padding: 8px 16px;
+  border: 3px solid #ff4444;
+  border-radius: 4px;
+  color: #ff4444;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: stamp-appear 0.2s ease-out;
+}
+
+@keyframes stamp-appear {
+  0% { transform: translateY(-50%) rotate(-15deg) scale(2); opacity: 0; }
+  100% { transform: translateY(-50%) rotate(-15deg) scale(1); opacity: 0.8; }
+}
+
+/* ========================================
+   KEYWORDS BOARD - Pin Board Style
+   ======================================== */
+
+.pp-keywords-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px;
+  background: repeating-linear-gradient(
+    45deg,
+    #0a0a0a,
+    #0a0a0a 10px,
+    #0f0f0f 10px,
+    #0f0f0f 20px
+  );
+  border-radius: 4px;
+}
+
+.pp-keyword-pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+  border: 1px solid #333;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pp-keyword-pin::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: #ff4444;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.pp-keyword-pin:hover {
+  border-color: #00ff88;
+  transform: translateY(-2px);
+}
+
+.pp-keyword-pin.active {
+  border-color: #00ff88;
+  background: linear-gradient(180deg, #0a1a0a 0%, #051005 100%);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+.pp-keyword-pin.active::before {
+  background: #00ff88;
+  animation: pin-glow 1s ease-in-out infinite;
+}
+
+@keyframes pin-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.8); }
+}
+
+.pin-label {
+  font-size: 11px;
+  color: #888;
+}
+
+.pp-keyword-pin.active .pin-label {
+  color: #00ff88;
+}
+
+.pin-pulse {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #00ff88;
+  border-radius: 50%;
+  animation: pulse-expand 1s ease-out infinite;
+}
+
+@keyframes pulse-expand {
+  0% { width: 8px; height: 8px; opacity: 1; }
+  100% { width: 30px; height: 30px; opacity: 0; }
+}
+
+/* ========================================
+   FOOTER STYLES
+   ======================================== */
+
+.pp-footer-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.footer-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #666;
+}
+
+.footer-stat .stat-icon {
+  color: #00ff88;
+}
+
+/* ========================================
+   CONNECTION LINES OVERLAY
+   For Papers Please style cross-panel connections
+   ======================================== */
+
+.pp-connection-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.pp-connection-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pp-connection-path {
+  fill: none;
+  stroke: #00ff88;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  animation: dash-flow 1s linear infinite;
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -10; }
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+  .pp-assessment-card {
+    padding: 12px;
+  }
+
+  .pp-tone-display {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pp-document {
+    padding: 10px;
+  }
+
+  .pp-stamp-overlay {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}

@@ -1,10 +1,13 @@
 /**
- * RightPanel - Social Intelligence Display
- * Shows themes, posts, tone from social media sources
+ * RightPanel v3.0 - Social Intelligence Display
+ * Papers Please style interaction - click to reveal connections
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import CollapsiblePanel from './CollapsiblePanel';
 import './cti-dashboard.css';
+import './collapsible-panel.css';
+import './papers-please.css';
 
 interface RightPanelProps {
   socialIntel?: {
@@ -29,145 +32,283 @@ const RightPanel: React.FC<RightPanelProps> = ({
   highlightedConcept,
   onConceptClick
 }) => {
-  const isHighlighted = (concept: string) => highlightedConcept === concept;
+  const [inspectedPost, setInspectedPost] = useState<number | null>(null);
+  const [stampedItems, setStampedItems] = useState<Set<string>>(new Set());
 
-  const toneColors: Record<string, { bg: string; text: string; border: string }> = {
-    confirmed: { bg: 'rgba(227, 27, 35, 0.1)', text: '#FF6B6B', border: 'rgba(227, 27, 35, 0.3)' },
-    mixed: { bg: 'rgba(255, 184, 0, 0.1)', text: '#FFB800', border: 'rgba(255, 184, 0, 0.3)' },
-    speculative: { bg: 'rgba(0, 210, 106, 0.1)', text: '#00D26A', border: 'rgba(0, 210, 106, 0.3)' }
+  const isHighlighted = (concept: string) => highlightedConcept === concept;
+  
+  // Check if a post contains the highlighted concept
+  const postContainsConcept = (post: { excerpt: string; author: string }, concept: string | null): boolean => {
+    if (!concept) return false;
+    const lowerConcept = concept.toLowerCase();
+    return post.excerpt.toLowerCase().includes(lowerConcept) || 
+           post.author.toLowerCase().includes(lowerConcept);
   };
 
-  const toneConfig = toneColors[socialIntel?.tone || 'speculative'];
+  // Handle stamp action (Papers Please style verification)
+  const handleStamp = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStampedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const toneConfig = {
+    confirmed: { color: '#ff4444', icon: '🔴', label: 'CONFIRMED', severity: 'high' },
+    mixed: { color: '#ffcc00', icon: '🟡', label: 'MIXED', severity: 'medium' },
+    speculative: { color: '#00ff88', icon: '🟢', label: 'SPECULATIVE', severity: 'low' }
+  };
+
+  const tone = toneConfig[socialIntel?.tone || 'speculative'];
 
   return (
-    <div className="cti-right-panel">
-      {/* Header */}
-      <div className="cti-panel-header">
-        <h3 className="cti-panel-title">
-          <span className="cti-panel-icon">💬</span>
-          Social Intelligence
-        </h3>
+    <aside className="cti-right-panel cti-panel-futuristic papers-please-style">
+      {/* Panel Header */}
+      <div className="cti-panel-header-futuristic">
+        <div className="panel-header-content">
+          <div className="panel-icon-hex social">
+            <span>💬</span>
+          </div>
+          <div className="panel-header-text">
+            <h3>Social Intelligence</h3>
+            <span className="panel-subtitle">OSINT Feed Analysis</span>
+          </div>
+        </div>
+        {socialIntel && (
+          <div className="panel-stat-badge social">
+            <span className="stat-value">{socialIntel.totalPosts}</span>
+            <span className="stat-label">Posts</span>
+          </div>
+        )}
       </div>
 
-      {/* Summary Stats */}
-      {socialIntel && (
-        <div className="cti-social-summary">
-          <div className="cti-social-stat">
-            <span className="cti-social-stat-value">{socialIntel.totalPosts}</span>
-            <span className="cti-social-stat-label">Posts Analyzed</span>
-          </div>
-          <div 
-            className="cti-social-tone"
-            style={{ 
-              background: toneConfig.bg,
-              color: toneConfig.text,
-              borderColor: toneConfig.border
-            }}
-          >
-            <span className="cti-tone-icon">
-              {socialIntel.tone === 'confirmed' ? '🔴' : 
-               socialIntel.tone === 'mixed' ? '🟡' : '🟢'}
-            </span>
-            <span className="cti-tone-text">{socialIntel.tone}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Themes Section */}
-      {socialIntel?.themes && socialIntel.themes.length > 0 && (
-        <div className="cti-section-card">
-          <div className="cti-section-header">
-            <span className="cti-section-icon">🔥</span>
-            <h4>Detected Themes</h4>
-          </div>
-          <div className="cti-theme-cloud">
-            {socialIntel.themes.map((theme, i) => (
-              <button
-                key={i}
-                className={`cti-theme-chip ${isHighlighted(theme) ? 'highlighted' : ''}`}
-                onClick={() => onConceptClick?.(theme)}
-              >
-                {theme}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Top Discussions */}
-      {socialIntel?.topPosts && socialIntel.topPosts.length > 0 && (
-        <div className="cti-section-card">
-          <div className="cti-section-header">
-            <span className="cti-section-icon">📈</span>
-            <h4>Top Discussions</h4>
-          </div>
-          <div className="cti-posts-list">
-            {socialIntel.topPosts.slice(0, 5).map((post, i) => (
+      <div className="cti-panel-content">
+        {/* Tone Assessment - Papers Please style stamp card */}
+        {socialIntel && (
+          <div className="pp-assessment-card">
+            <div className="pp-card-header">
+              <span className="pp-card-title">ASSESSMENT</span>
+              <span className="pp-card-serial">#{Date.now().toString().slice(-6)}</span>
+            </div>
+            <div className="pp-tone-display">
               <div 
-                key={i} 
-                className={`cti-post-item ${isHighlighted(post.author) ? 'cti-highlight-right' : ''}`}
-                onClick={() => onConceptClick?.(post.author)}
+                className={`pp-tone-indicator ${socialIntel.tone}`}
+                style={{ '--tone-color': tone.color } as React.CSSProperties}
               >
-                <div className="cti-post-header">
-                  <span className="cti-post-author">@{post.author}</span>
-                  <span className="cti-post-engagement">
-                    ❤️ {post.engagement}
-                  </span>
-                </div>
-                <p className="cti-post-excerpt">
-                  {post.excerpt.length > 100 
-                    ? `${post.excerpt.substring(0, 100)}...` 
-                    : post.excerpt}
-                </p>
-                {post.url && (
-                  <a 
-                    href={post.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="cti-post-link"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View on X ↗
-                  </a>
-                )}
+                <span className="tone-icon">{tone.icon}</span>
+                <span className="tone-label">{tone.label}</span>
               </div>
-            ))}
+              <div className="pp-stats-row">
+                <div className="pp-stat">
+                  <span className="pp-stat-num">{socialIntel.totalPosts}</span>
+                  <span className="pp-stat-label">SIGNALS</span>
+                </div>
+                <div className="pp-stat">
+                  <span className="pp-stat-num">{socialIntel.themes.length}</span>
+                  <span className="pp-stat-label">THEMES</span>
+                </div>
+              </div>
+            </div>
+            <button 
+              className={`pp-stamp-btn ${stampedItems.has('assessment') ? 'stamped' : ''}`}
+              onClick={(e) => handleStamp('assessment', e)}
+            >
+              {stampedItems.has('assessment') ? '✓ VERIFIED' : 'VERIFY'}
+            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Keywords from Social */}
-      {keywords && keywords.length > 0 && (
-        <div className="cti-section-card">
-          <div className="cti-section-header">
-            <span className="cti-section-icon">🔑</span>
-            <h4>Trending Keywords</h4>
-          </div>
-          <div className="cti-keyword-cloud">
-            {keywords.map((keyword, i) => (
-              <button
-                key={i}
-                className={`cti-keyword-chip ${isHighlighted(keyword) ? 'highlighted' : ''}`}
-                onClick={() => onConceptClick?.(keyword)}
-                style={{
-                  '--chip-bg': 'rgba(29, 155, 240, 0.1)',
-                  '--chip-border': 'rgba(29, 155, 240, 0.2)',
-                  '--chip-color': '#1D9BF0'
-                } as React.CSSProperties}
-              >
-                {keyword}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* Themes - Interactive tags with connection highlighting */}
+        {socialIntel?.themes && socialIntel.themes.length > 0 && (
+          <CollapsiblePanel
+            title="Detected Themes"
+            icon="🔥"
+            variant="warning"
+            badge={socialIntel.themes.length}
+            defaultExpanded={true}
+            glowEffect={socialIntel.themes.some(t => isHighlighted(t))}
+          >
+            <div className="pp-themes-grid">
+              {socialIntel.themes.map((theme, i) => {
+                const isActive = isHighlighted(theme);
+                const isStamped = stampedItems.has(`theme-${theme}`);
+                return (
+                  <div 
+                    key={i}
+                    className={`pp-theme-card ${isActive ? 'active connected' : ''} ${isStamped ? 'stamped' : ''}`}
+                    onClick={() => onConceptClick?.(theme)}
+                  >
+                    <div className="pp-theme-content">
+                      <span className="pp-theme-icon">📌</span>
+                      <span className="pp-theme-text">{theme}</span>
+                    </div>
+                    {isActive && (
+                      <div className="pp-connection-indicator">
+                        <span className="connection-line"></span>
+                        <span className="connection-dot"></span>
+                      </div>
+                    )}
+                    <button 
+                      className="pp-mini-stamp"
+                      onClick={(e) => handleStamp(`theme-${theme}`, e)}
+                    >
+                      {isStamped ? '✓' : '○'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsiblePanel>
+        )}
 
-      {/* Source Attribution */}
-      <div className="cti-panel-footer">
-        <span>Data from X.com</span>
+        {/* Posts - Papers Please document inspection style */}
+        {socialIntel?.topPosts && socialIntel.topPosts.length > 0 && (
+          <CollapsiblePanel
+            title="Intelligence Feed"
+            icon="📄"
+            variant="info"
+            badge={socialIntel.topPosts.length}
+            defaultExpanded={true}
+          >
+            <div className="pp-documents-stack">
+              {socialIntel.topPosts.slice(0, 5).map((post, i) => {
+                const isInspected = inspectedPost === i;
+                const hasConnection = postContainsConcept(post, highlightedConcept);
+                const isStamped = stampedItems.has(`post-${i}`);
+                
+                return (
+                  <div 
+                    key={i}
+                    className={`pp-document ${isInspected ? 'inspected' : ''} ${hasConnection ? 'has-connection' : ''} ${isStamped ? 'stamped' : ''}`}
+                    onClick={() => {
+                      setInspectedPost(isInspected ? null : i);
+                      onConceptClick?.(post.author);
+                    }}
+                  >
+                    {/* Connection line when related to highlighted concept */}
+                    {hasConnection && (
+                      <div className="pp-connection-beam">
+                        <div className="beam-line"></div>
+                        <div className="beam-label">MATCH</div>
+                      </div>
+                    )}
+
+                    <div className="pp-doc-header">
+                      <div className="pp-doc-meta">
+                        <span className="pp-doc-source">X.COM</span>
+                        <span className="pp-doc-id">@{post.author}</span>
+                      </div>
+                      <div className="pp-doc-engagement">
+                        <span className="engagement-icon">♥</span>
+                        <span className="engagement-count">{post.engagement}</span>
+                      </div>
+                    </div>
+
+                    <div className="pp-doc-body">
+                      <p className="pp-doc-text">
+                        {isInspected 
+                          ? post.excerpt 
+                          : post.excerpt.length > 80 
+                            ? `${post.excerpt.substring(0, 80)}...` 
+                            : post.excerpt
+                        }
+                      </p>
+                      
+                      {/* Highlight matching keywords in expanded view */}
+                      {isInspected && highlightedConcept && (
+                        <div className="pp-doc-analysis">
+                          <span className="analysis-label">KEYWORD DETECTED:</span>
+                          <span className="analysis-match">{highlightedConcept}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pp-doc-footer">
+                      {post.url && (
+                        <a 
+                          href={post.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="pp-doc-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          VIEW SOURCE ↗
+                        </a>
+                      )}
+                      <button 
+                        className={`pp-stamp-action ${isStamped ? 'active' : ''}`}
+                        onClick={(e) => handleStamp(`post-${i}`, e)}
+                      >
+                        <span className="stamp-icon">{isStamped ? '✓' : '◯'}</span>
+                        <span className="stamp-text">{isStamped ? 'FLAGGED' : 'FLAG'}</span>
+                      </button>
+                    </div>
+
+                    {/* Stamp overlay when flagged */}
+                    {isStamped && (
+                      <div className="pp-stamp-overlay">
+                        <span>FLAGGED</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsiblePanel>
+        )}
+
+        {/* Keywords - Interactive connection nodes */}
+        {keywords && keywords.length > 0 && (
+          <CollapsiblePanel
+            title="Keywords"
+            icon="🔑"
+            variant="default"
+            defaultExpanded={false}
+          >
+            <div className="pp-keywords-board">
+              {keywords.map((keyword, i) => {
+                const isActive = isHighlighted(keyword);
+                return (
+                  <button
+                    key={i}
+                    className={`pp-keyword-pin ${isActive ? 'active' : ''}`}
+                    onClick={() => onConceptClick?.(keyword)}
+                  >
+                    <span className="pin-connector"></span>
+                    <span className="pin-label">#{keyword}</span>
+                    {isActive && <span className="pin-pulse"></span>}
+                  </button>
+                );
+              })}
+            </div>
+          </CollapsiblePanel>
+        )}
       </div>
-    </div>
+
+      {/* Panel Footer */}
+      <div className="cti-panel-footer-futuristic">
+        <div className="pp-footer-stats">
+          <span className="footer-stat">
+            <span className="stat-icon">✓</span>
+            {stampedItems.size} flagged
+          </span>
+        </div>
+        <div className="footer-source">
+          <span className="source-badge">X.COM</span>
+          <span className="source-badge">OSINT</span>
+        </div>
+      </div>
+    </aside>
   );
+};
+
+export default RightPanel;
 };
 
 export default RightPanel;

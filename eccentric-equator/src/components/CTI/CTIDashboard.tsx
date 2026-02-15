@@ -1,18 +1,22 @@
 /**
- * CTI Dashboard v2.0 - Security Intelligence Visualization
- * 3-Column Grid Layout with Interactive Concept Mapping
+ * CTI Dashboard v3.0 - Futuristic Security Intelligence Visualization
+ * Interactive Threat Graph with Collapsible Panels
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
 import './cti-dashboard.css';
 
-// Import new modular components
+// Import modular components
 import LeftPanel from './LeftPanel';
 import RightPanel from './RightPanel';
 import MITREOverlay from './MITREOverlay';
 import RecommendationsPanel from './RecommendationsPanel';
 import HistoricalPanel from './HistoricalPanel';
 import MetricsGrid from './MetricsGrid';
+import ThreatGraph from './ThreatGraph';
+import CollapsiblePanel from './CollapsiblePanel';
+import './threat-graph.css';
+import './collapsible-panel.css';
 
 // Types
 interface DashboardData {
@@ -20,7 +24,7 @@ interface DashboardData {
   status: { riskLevel: string; riskScore: number; trend: string; confidenceLevel: number };
   executive: { headline: string; summary: string; keyFindings: string[]; recommendedActions: string[] };
   metrics: { totalSignals: number; criticalCount: number; highCount: number; mediumCount: number; lowCount: number; categories: Array<{ name: string; count: number; percentage: number }> };
-  timeline: Array<{ id: string; title: string; severity: string; category: string; timestamp: string }>;
+  timeline: Array<{ id: string; title: string; severity: string; category: string; timestamp: string; sourceUrl?: string }>;
   sources: Array<{ name: string; signalCount: number; lastUpdate: string }>;
   indicators: { cves: string[]; domains: string[]; ips: string[]; keywords: string[] };
   infrastructure?: { totalHosts: number; exposedPorts: Array<{ port: number; service: string; count: number; percentage: number }>; topCountries: Array<{ country: string; count: number }>; vulnerableHosts: number };
@@ -48,6 +52,9 @@ const CTIDashboard: React.FC = () => {
   
   // Interactive concept mapping
   const [highlightedConcept, setHighlightedConcept] = useState<string | null>(null);
+  
+  // View mode
+  const [viewMode, setViewMode] = useState<'graph' | 'grid'>('graph');
 
   // Load dashboard data
   useEffect(() => {
@@ -74,12 +81,29 @@ const CTIDashboard: React.FC = () => {
     setHighlightedConcept(prev => prev === concept ? null : concept);
   }, []);
 
-  // Loading state
+  // Handle graph node click
+  const handleGraphNodeClick = useCallback((nodeId: string, nodeType: string) => {
+    setHighlightedConcept(prev => prev === nodeId ? null : nodeId);
+  }, []);
+
+  // Loading state with futuristic animation
   if (loading) {
     return (
-      <div className="cti-loading">
-        <div className="cti-loading-spinner" />
-        <span>Loading Intelligence Data...</span>
+      <div className="cti-loading-screen">
+        <div className="cti-loading-container">
+          <div className="cti-loading-hex">
+            <div className="hex-ring"></div>
+            <div className="hex-ring"></div>
+            <div className="hex-ring"></div>
+          </div>
+          <div className="cti-loading-text">
+            <span className="loading-glitch" data-text="INITIALIZING">INITIALIZING</span>
+            <span className="loading-sub">Threat Intelligence Systems</span>
+          </div>
+          <div className="cti-loading-progress">
+            <div className="progress-bar"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -88,48 +112,121 @@ const CTIDashboard: React.FC = () => {
   if (error || !data) {
     return (
       <div className="cti-container">
-        <div className="cti-error">
-          <div className="cti-error-icon">⚠</div>
-          <h3>Intelligence Feed Unavailable</h3>
-          <p>{error || 'Threat data is being collected. Check back shortly.'}</p>
+        <div className="cti-error-screen">
+          <div className="cti-error-icon">
+            <span className="error-hex">⬡</span>
+            <span className="error-symbol">!</span>
+          </div>
+          <h3 className="cti-error-title">CONNECTION LOST</h3>
+          <p className="cti-error-message">{error || 'Threat data stream unavailable'}</p>
+          <button className="cti-retry-btn" onClick={() => window.location.reload()}>
+            <span>↻</span> RECONNECT
+          </button>
         </div>
       </div>
     );
   }
 
+  // Get risk variant for panels
+  const getRiskVariant = (): 'critical' | 'warning' | 'success' | 'info' => {
+    switch(data.status.riskLevel) {
+      case 'critical': return 'critical';
+      case 'elevated': return 'warning';
+      case 'moderate': return 'warning';
+      default: return 'success';
+    }
+  };
+
   return (
-    <div className="cti-container">
+    <div className="cti-container cti-v3">
+      {/* Animated background grid */}
+      <div className="cti-bg-grid"></div>
+      <div className="cti-bg-scanlines"></div>
+      
       {/* Main Layout - 3 Column Grid */}
       <div className="cti-layout">
         
-        {/* Header */}
+        {/* Header - Full Width */}
         <header className="cti-main-header">
           <div className="cti-header-left">
             <div className="cti-logo">
-              <span className="cti-logo-icon">◆</span>
-              <span className="cti-logo-text">HACKFLUENCY</span>
+              <div className="cti-logo-hex">
+                <span className="logo-symbol">◆</span>
+              </div>
+              <div className="cti-logo-text-group">
+                <span className="cti-logo-text">HACKFLUENCY</span>
+                <span className="cti-logo-sub">THREAT INTELLIGENCE</span>
+              </div>
             </div>
-            <div>
-              <h1 className="cti-header-title">Threat Intelligence Correlation</h1>
-              <p className="cti-header-subtitle">Context-aware analysis: Social signals → Infrastructure exposure</p>
+          </div>
+
+          {/* Risk Status Badge */}
+          <div className="cti-status-badge-container">
+            <div 
+              className={`cti-status-badge status-${data.status.riskLevel}`}
+              style={{ '--risk-color': RISK_COLORS[data.status.riskLevel] } as React.CSSProperties}
+            >
+              <div className="status-ring">
+                <svg viewBox="0 0 100 100">
+                  <circle 
+                    cx="50" cy="50" r="45" 
+                    fill="none" 
+                    stroke="rgba(255,255,255,0.1)" 
+                    strokeWidth="8"
+                  />
+                  <circle 
+                    cx="50" cy="50" r="45" 
+                    fill="none" 
+                    stroke={RISK_COLORS[data.status.riskLevel]} 
+                    strokeWidth="8"
+                    strokeDasharray={`${data.status.riskScore * 2.83} 283`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)"
+                  />
+                </svg>
+                <div className="status-score">{data.status.riskScore}</div>
+              </div>
+              <div className="status-info">
+                <span className="status-level">{data.status.riskLevel.toUpperCase()}</span>
+                <span className="status-trend">
+                  {data.status.trend === 'increasing' ? '↑' : data.status.trend === 'decreasing' ? '↓' : '→'}
+                  {data.status.trend}
+                </span>
+              </div>
             </div>
           </div>
           
           {/* Action Buttons */}
           <div className="cti-header-actions">
+            <div className="cti-view-toggle">
+              <button 
+                className={`view-toggle-btn ${viewMode === 'graph' ? 'active' : ''}`}
+                onClick={() => setViewMode('graph')}
+                title="Graph View"
+              >
+                🕸️
+              </button>
+              <button 
+                className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="Grid View"
+              >
+                ▦
+              </button>
+            </div>
             <button 
-              className={`cti-toggle-button ${mitreOpen ? 'active' : ''}`}
+              className={`cti-action-button ${mitreOpen ? 'active' : ''}`}
               onClick={() => setMitreOpen(true)}
             >
-              <span>🎯</span>
-              <span>MITRE Matrix</span>
+              <span className="btn-icon">🎯</span>
+              <span className="btn-text">MITRE ATT&CK</span>
             </button>
             <button 
-              className={`cti-toggle-button ${recommendationsOpen ? 'active' : ''}`}
+              className={`cti-action-button accent ${recommendationsOpen ? 'active' : ''}`}
               onClick={() => setRecommendationsOpen(true)}
             >
-              <span>🛡️</span>
-              <span>Mitigations</span>
+              <span className="btn-icon">🛡️</span>
+              <span className="btn-text">MITIGATIONS</span>
             </button>
           </div>
         </header>
@@ -143,135 +240,144 @@ const CTIDashboard: React.FC = () => {
           onConceptClick={handleConceptClick}
         />
 
-        {/* CENTER PANEL - Analysis & Concepts */}
+        {/* CENTER PANEL - Analysis & Graph */}
         <main className="cti-center-panel">
-          {/* Risk Banner */}
-          <div className="cti-risk-mini">
-            <div 
-              className="cti-risk-circle-mini"
-              style={{ 
-                background: `conic-gradient(${RISK_COLORS[data.status.riskLevel]} ${data.status.riskScore * 3.6}deg, #2a2a2a ${data.status.riskScore * 3.6}deg)`
-              }}
-            >
-              <span className="cti-risk-score-mini">{data.status.riskScore}</span>
-            </div>
-            <div className="cti-risk-info-mini">
-              <div className="cti-risk-level-mini" style={{ color: RISK_COLORS[data.status.riskLevel] }}>
-                {data.status.riskLevel.toUpperCase()} RISK
-              </div>
-              <div className="cti-risk-meta-mini">
-                <span>Confidence: {data.status.confidenceLevel}%</span>
-                <span>Trend: {data.status.trend}</span>
-                <span>Valid until: {new Date(data.meta.validUntil).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
-            </div>
-          </div>
+          {/* Threat Graph - New Interactive Visualization */}
+          {viewMode === 'graph' && (
+            <ThreatGraph
+              indicators={data.indicators}
+              socialIntel={data.socialIntel}
+              riskScore={data.status.riskScore}
+              riskLevel={data.status.riskLevel}
+              highlightedConcept={highlightedConcept}
+              onNodeClick={handleGraphNodeClick}
+            />
+          )}
 
           {/* Metrics Grid - Severity Distribution */}
-          <MetricsGrid metrics={data.metrics} />
+          <CollapsiblePanel
+            title="Signal Distribution"
+            icon="📊"
+            variant={getRiskVariant()}
+            badge={data.metrics.totalSignals}
+            defaultExpanded={viewMode === 'grid'}
+            glowEffect
+          >
+            <MetricsGrid metrics={data.metrics} />
+          </CollapsiblePanel>
 
           {/* Executive Summary */}
-          <div className="cti-analysis-summary">
-            <h3>
-              <span>📋</span>
-              {data.executive.headline}
-            </h3>
-            <p className="cti-analysis-text">
-              {data.executive.summary.replace(/\*\*/g, '')}
-            </p>
-          </div>
-
-          {/* Concept Nodes - Interactive */}
-          {data.assessmentLayer && (
-            <div className="cti-concept-section">
-              <h3>
-                <span>🔗</span>
-                Key Concepts
-              </h3>
-              <div className="cti-concept-nodes">
-                {data.indicators.keywords.map((keyword, i) => (
-                  <button
-                    key={i}
-                    className={`cti-concept-node ${highlightedConcept === keyword ? 'selected' : ''}`}
-                    onClick={() => handleConceptClick(keyword)}
-                  >
-                    {keyword}
-                  </button>
-                ))}
-                {data.indicators.cves.map((cve, i) => (
-                  <button
-                    key={`cve-${i}`}
-                    className={`cti-concept-node ${highlightedConcept === cve ? 'selected' : ''}`}
-                    onClick={() => handleConceptClick(cve)}
-                  >
-                    {cve}
-                  </button>
-                ))}
-                <button
-                  className={`cti-concept-node ${highlightedConcept === 'opportunistic' ? 'selected' : ''}`}
-                  onClick={() => handleConceptClick('opportunistic')}
-                >
-                  Opportunistic
-                </button>
-              </div>
+          <CollapsiblePanel
+            title="Executive Brief"
+            icon="📋"
+            variant="info"
+            defaultExpanded={true}
+            glowEffect
+          >
+            <div className="cti-executive-content">
+              <h4 className="executive-headline">{data.executive.headline}</h4>
+              <p className="executive-summary">
+                {data.executive.summary.replace(/\*\*/g, '')}
+              </p>
+              {data.executive.keyFindings.length > 0 && (
+                <div className="executive-findings">
+                  <span className="findings-label">Key Findings:</span>
+                  <ul>
+                    {data.executive.keyFindings.map((finding, i) => (
+                      <li key={i}>{finding}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </CollapsiblePanel>
 
           {/* Correlation Visualization */}
           {data.assessmentLayer && (
-            <div className="cti-correlation-viz">
-              <h3>
-                <span>📊</span>
-                Correlation Strength
-              </h3>
-              <div className="cti-correlation-bar">
-                <span className="cti-correlation-label">Overall</span>
-                <div className="cti-correlation-track">
-                  <div 
-                    className={`cti-correlation-fill ${data.assessmentLayer.correlation.strength}`}
-                    style={{ width: `${data.assessmentLayer.correlation.score * 100}%` }}
-                  />
+            <CollapsiblePanel
+              title="Correlation Analysis"
+              icon="🔗"
+              variant={data.assessmentLayer.correlation.strength === 'strong' ? 'critical' : 
+                      data.assessmentLayer.correlation.strength === 'moderate' ? 'warning' : 'default'}
+              badge={`${Math.round(data.assessmentLayer.correlation.score * 100)}%`}
+              badgeVariant={data.assessmentLayer.correlation.strength === 'strong' ? 'pulse' : 'default'}
+              glowEffect
+            >
+              <div className="cti-correlation-content">
+                <div className="correlation-bar-container">
+                  <div className="correlation-labels">
+                    <span>Weak</span>
+                    <span>Strong</span>
+                  </div>
+                  <div className="correlation-track">
+                    <div 
+                      className="correlation-fill"
+                      style={{ 
+                        width: `${data.assessmentLayer.correlation.score * 100}%`,
+                        background: data.assessmentLayer.correlation.strength === 'strong' ? 
+                          'linear-gradient(90deg, #ff4444, #ff6666)' :
+                          data.assessmentLayer.correlation.strength === 'moderate' ?
+                          'linear-gradient(90deg, #ffcc00, #ffdd44)' :
+                          'linear-gradient(90deg, #00ff88, #44ffaa)'
+                      }}
+                    />
+                    <div className="correlation-markers">
+                      {[0, 25, 50, 75, 100].map(mark => (
+                        <div key={mark} className="marker" style={{ left: `${mark}%` }} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <span className="cti-correlation-value">
-                  {Math.round(data.assessmentLayer.correlation.score * 100)}%
-                </span>
+                <p className="correlation-explanation">{data.assessmentLayer.correlation.explanation}</p>
               </div>
-              <p className="cti-analysis-text" style={{ fontSize: '12px', color: '#888' }}>
-                {data.assessmentLayer.correlation.explanation}
-              </p>
-            </div>
+            </CollapsiblePanel>
           )}
 
-          {/* Assessment Narrative */}
-          {data.assessmentLayer && (
-            <div className="cti-why-panel">
-              <div className="cti-why-header">
-                <span className="cti-why-icon">💡</span>
-                <span className="cti-why-title">Analyst Assessment</span>
+          {/* Analyst Narrative */}
+          {data.assessmentLayer?.narrative && (
+            <CollapsiblePanel
+              title="Analyst Assessment"
+              icon="💡"
+              variant="purple"
+              glowEffect
+            >
+              <div className="cti-narrative-content">
+                <p>{data.assessmentLayer.narrative}</p>
+                {data.ctiAnalysis?.analystBrief && (
+                  <div className="analyst-brief">
+                    <span className="brief-label">Classification:</span>
+                    <code>{data.ctiAnalysis.analystBrief}</code>
+                  </div>
+                )}
               </div>
-              <p className="cti-why-content">{data.assessmentLayer.narrative}</p>
-            </div>
+            </CollapsiblePanel>
           )}
 
-          {/* Methodology */}
-          {data.ctiAnalysis?.methodologies && (
-            <div className="cti-section-card">
-              <div className="cti-section-header">
-                <span className="cti-section-icon">🔬</span>
-                <h4>Methodologies Applied</h4>
-              </div>
-              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '12px', color: '#888' }}>
-                {data.ctiAnalysis.methodologies.map((m, i) => (
-                  <li key={i} style={{ marginBottom: '4px' }}>{m}</li>
+          {/* Methodologies */}
+          {data.ctiAnalysis?.methodologies && data.ctiAnalysis.methodologies.length > 0 && (
+            <CollapsiblePanel
+              title="Analysis Methods"
+              icon="🔬"
+              defaultExpanded={false}
+            >
+              <div className="cti-methods-grid">
+                {data.ctiAnalysis.methodologies.map((method, i) => (
+                  <div key={i} className="method-chip">
+                    <span className="method-dot" />
+                    {method}
+                  </div>
                 ))}
-              </ul>
-            </div>
+              </div>
+            </CollapsiblePanel>
           )}
         </main>
 
         {/* RIGHT PANEL - Social Intel */}
         <RightPanel 
-          socialIntel={data.socialIntel}
+          socialIntel={data.socialIntel ? {
+            ...data.socialIntel,
+            tone: data.socialIntel.tone as 'speculative' | 'confirmed' | 'mixed'
+          } : undefined}
           keywords={data.indicators.keywords}
           highlightedConcept={highlightedConcept}
           onConceptClick={handleConceptClick}
@@ -307,15 +413,22 @@ const CTIDashboard: React.FC = () => {
       {/* Footer */}
       <footer className="cti-footer">
         <div className="cti-footer-content">
-          <p className="cti-footer-disclaimer">
-            This intelligence dashboard presents aggregated threat signals from public sources. 
-            Data is collected and analyzed automatically. Findings should be validated before operational decisions.
-          </p>
-          <div className="cti-footer-meta">
-            <span>Last updated: {new Date(data.meta.generatedAt).toLocaleString('en-US', { 
-              month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+          <div className="footer-status">
+            <span className="status-dot active" />
+            <span>LIVE FEED ACTIVE</span>
+          </div>
+          <div className="footer-meta">
+            <span>Last sync: {new Date(data.meta.generatedAt).toLocaleString('en-US', { 
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
             })}</span>
-            <span className="cti-footer-brand">Powered by Hackfluency Intelligence</span>
+            <span className="separator">|</span>
+            <span>Valid until: {new Date(data.meta.validUntil).toLocaleTimeString('en-US', { 
+              hour: '2-digit', minute: '2-digit' 
+            })}</span>
+          </div>
+          <div className="footer-brand">
+            <span className="brand-text">Powered by</span>
+            <span className="brand-name">HACKFLUENCY INTELLIGENCE</span>
           </div>
         </div>
       </footer>
