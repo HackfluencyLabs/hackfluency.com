@@ -43,8 +43,8 @@ const REQUEST_TIMEOUT = parseInt(process.env.CTI_REQUEST_TIMEOUT || '600000', 10
 const MAX_RETRIES = parseInt(process.env.CTI_MAX_RETRIES || '2', 10);
 
 // Token budget limits (safe zones)
-const STRATEGIC_TOKEN_LIMIT = 6000;
-const TECHNICAL_TOKEN_LIMIT = 4000;
+const STRATEGIC_TOKEN_LIMIT = 8000;
+const TECHNICAL_TOKEN_LIMIT = 6000;
 
 // ==================== Interfaces ====================
 
@@ -520,11 +520,12 @@ Infrastructure CVEs: [${shodanDigest.uniqueCVEs.slice(0, 5).join(', ')}]`;
 ${compactInput}
 
 Respond with:
-1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services?
-2. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign?
-3. CONFIDENCE: low/moderate/high
+1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services? Explain the evidence.
+2. INFRASTRUCTURE PATTERNS: What service exposure patterns are significant?
+3. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign? Justify.
+4. CONFIDENCE: low/moderate/high with reasoning.
 
-Under 300 words.`;
+Provide a thorough analysis. Up to 500 words.`;
 
     // Check token budget
     this.assertTokenBudget(prompt, TECHNICAL_TOKEN_LIMIT, 'Technical Validation');
@@ -548,8 +549,8 @@ Under 300 words.`;
     }
 
     return {
-      exploitAlignment: this.extractSection(response, 'alignment', 'CVE-service analysis pending'),
-      infrastructurePatterns: this.extractSection(response, 'pattern', 'Infrastructure patterns analyzed'),
+      exploitAlignment: this.extractBlock(response, 'alignment', 'CVE-SERVICE ALIGNMENT', 'CVE-service analysis pending'),
+      infrastructurePatterns: this.extractBlock(response, 'pattern', 'INFRASTRUCTURE PATTERN', 'Infrastructure patterns analyzed'),
       tacticalClassification: tactical,
       confidenceLevel: confidence,
       rawResponse: response
@@ -612,34 +613,56 @@ IMPORTANT: The executive summary must be consistent with the risk score:
 </thinking>
 
 Based on your analysis, provide:
-1. EXECUTIVE SUMMARY (2-3 sentences that match the ${riskLevel} risk level)
-2. KEY FINDING (the most critical observation)
-3. RECOMMENDED ACTIONS (top 3 priorities appropriate for ${riskLevel} risk)
+1. EXECUTIVE SUMMARY (3-5 sentences that match the ${riskLevel} risk level, covering scope, impact, and confidence)
+2. KEY FINDINGS (2-3 critical observations with supporting evidence)
+3. CORRELATION ANALYSIS (how social intelligence and infrastructure data relate)
+4. RECOMMENDED ACTIONS (top 3-5 priorities appropriate for ${riskLevel} risk, be specific)
 
-Under 400 words.`;
+Provide a complete and detailed analysis. Up to 700 words.`;
 
     // Check token budget
     this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'Strategic Synthesis');
 
     const response = await this.callOllama(STRATEGIC_MODEL, prompt, false);
 
-    // Extract executive summary (first paragraph or after "EXECUTIVE SUMMARY")
-    const summaryMatch = response.match(/(?:EXECUTIVE SUMMARY[:\s]*)?([^.]+\.[^.]+\.)/i);
-    const executiveSummary = summaryMatch?.[1]?.trim() || response.split('\n')[0] || 'Threat analysis completed.';
+    // Extract executive summary (multi-sentence support after "EXECUTIVE SUMMARY" header)
+    let executiveSummary = '';
+    const summaryBlockMatch = response.match(/EXECUTIVE SUMMARY[:\s]*\n?([\s\S]*?)(?=\n(?:KEY FINDING|RECOMMENDED|ACTIONS|CORRELATION|\d+\.))/i);
+    if (summaryBlockMatch) {
+      executiveSummary = summaryBlockMatch[1].replace(/\n+/g, ' ').trim();
+    }
+    if (!executiveSummary) {
+      // Fallback: capture up to 4 sentences from the beginning
+      const sentenceMatch = response.match(/([^.!?]+[.!?]){1,4}/i);
+      executiveSummary = sentenceMatch?.[0]?.trim() || response.split('\n')[0] || 'Threat analysis completed.';
+    }
 
-    // Extract recommended actions
-    const actionsMatch = response.match(/(?:RECOMMENDED|ACTIONS?)[:\s]*\n?([\s\S]*?)(?:\n\n|$)/i);
+    // Extract recommended actions (greedy capture until end of response or next section)
+    const actionsMatch = response.match(/(?:RECOMMENDED\s*ACTIONS?|ACTIONS?|PRIORITIES)[:\s]*\n?([\s\S]*?)(?=\n(?:KEY FINDING|EXECUTIVE|CORRELATION|CONCLUSION)|$)/i);
     let recommendedActions = ['Monitor threat indicators', 'Review exposed services', 'Update security controls'];
     if (actionsMatch) {
-      const actionLines = actionsMatch[1].match(/[-•\d.]\s*(.+)/g);
+      const actionLines = actionsMatch[1].match(/[-•*\d.]+\s*(.+)/g);
       if (actionLines && actionLines.length > 0) {
-        recommendedActions = actionLines.map(a => a.replace(/^[-•\d.]\s*/, '').trim()).slice(0, 5);
+        recommendedActions = actionLines
+          .map(a => a.replace(/^[-•*\d.]+\s*/, '').trim())
+          .filter(a => a.length > 5)
+          .slice(0, 5);
       }
+    }
+
+    // Extract correlation reasoning (multi-line block)
+    let correlationReasoning = 'Cross-source correlation analyzed';
+    const corrMatch = response.match(/CORRELATION\s*(?:ANALYSIS|REASONING)?[:\s]*\n?([\s\S]*?)(?=\n(?:RECOMMENDED|ACTIONS|EXECUTIVE|KEY FINDING|CONCLUSION|\d+\.\s+[A-Z])|\n\n\n|$)/i);
+    if (corrMatch) {
+      correlationReasoning = corrMatch[1].replace(/\n+/g, ' ').trim() || correlationReasoning;
+    } else {
+      // Fallback to single-line extraction
+      correlationReasoning = this.extractSection(response, 'correlation', correlationReasoning);
     }
 
     return {
       executiveSummary,
-      correlationReasoning: this.extractSection(response, 'correlation', 'Cross-source correlation analyzed'),
+      correlationReasoning,
       recommendedActions,
       rawResponse: response
     };
@@ -914,7 +937,7 @@ Under 400 words.`;
         threatLandscape: synthesis.executiveSummary,
         analystBrief: `Classification: ${assessmentLayer?.classification?.type || technical.tacticalClassification}. Confidence: ${assessmentLayer?.classification?.confidence || technical.confidenceLevel}%. Correlation: ${assessmentLayer?.correlation?.strength || correlationStrength}. Data freshness: ${assessmentLayer?.freshness?.status || 'unknown'}.`,
         correlationStrength,
-        technicalAssessment: technical.rawResponse.slice(0, 500),
+        technicalAssessment: technical.rawResponse.slice(0, 1500),
         methodologies: [
           'Deterministic risk scoring (vulnerability ratio)',
           'Code-based IoC extraction',
@@ -1495,9 +1518,10 @@ Under 400 words.`;
       const startTime = Date.now();
 
       // Model-specific settings (Refactor 5)
+      // num_predict raised to prevent output truncation on longer analyses
       const options = {
         temperature: isTechnical ? 0.2 : 0.3,
-        num_predict: isTechnical ? 600 : 900,
+        num_predict: isTechnical ? 1200 : 1800,
         top_p: 0.9
       };
 
@@ -1572,6 +1596,25 @@ Under 400 words.`;
       }
     }
     return fallback;
+  }
+
+  /**
+   * Extract a multi-line block from LLM response between a header keyword
+   * and the next section header or end of text. Returns full paragraph content
+   * instead of a single line, preventing truncation during extraction.
+   */
+  private extractBlock(text: string, keyword: string, headerPattern: string, fallback: string): string {
+    // Try to extract a full block between the header and the next numbered/capitalized header
+    const blockRegex = new RegExp(
+      `(?:${headerPattern}|\\d+\\.\\s*${keyword})[:\\s]*\\n?([\\s\\S]*?)(?=\\n(?:\\d+\\.\\s+[A-Z]|[A-Z]{2,}[:\\s])|$)`,
+      'i'
+    );
+    const blockMatch = text.match(blockRegex);
+    if (blockMatch && blockMatch[1].trim().length > 0) {
+      return blockMatch[1].replace(/\n+/g, ' ').trim();
+    }
+    // Fallback to single-line extraction
+    return this.extractSection(text, keyword, fallback);
   }
 
   private generateHeadline(riskLevel: string): string {
