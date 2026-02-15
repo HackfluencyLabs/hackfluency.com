@@ -3,7 +3,7 @@
  * Interactive Correlation Topology + Analysis-First Design
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -14,6 +14,9 @@ import {
   MarkerType,
   Handle,
   Position,
+  type Node,
+  type Edge,
+  type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -33,30 +36,39 @@ interface DashboardData {
   modelMetadata?: { strategic: string; technical: string };
 }
 
-// Custom Node Component - Expandable
-const CTINode = ({ data, selected }: { data: { label: string; type: string; size?: number; info?: string; connections?: string[]; isExpanded?: boolean }; selected?: boolean }) => {
-  const getNodeStyle = (type: string) => {
-    switch (type) {
-      case 'cve':
-        return { bg: '#E31B23', glow: 'rgba(227, 27, 35, 0.6)', light: 'rgba(227, 27, 35, 0.15)' };
-      case 'domain':
-        return { bg: '#3B82F6', glow: 'rgba(59, 130, 246, 0.6)', light: 'rgba(59, 130, 246, 0.15)' };
-      case 'keyword':
-        return { bg: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.6)', light: 'rgba(139, 92, 246, 0.15)' };
-      case 'actor':
-        return { bg: '#00D26A', glow: 'rgba(0, 210, 106, 0.6)', light: 'rgba(0, 210, 106, 0.15)' };
-      case 'killchain':
-        return { bg: '#F59E0B', glow: 'rgba(245, 158, 11, 0.6)', light: 'rgba(245, 158, 11, 0.15)' };
-      case 'root':
-        return { bg: '#00D26A', glow: 'rgba(0, 210, 106, 0.9)', light: 'rgba(0, 210, 106, 0.15)' };
-      default:
-        return { bg: '#6B7280', glow: 'rgba(107, 114, 128, 0.6)', light: 'rgba(107, 114, 128, 0.15)' };
-    }
-  };
+// Node style palette
+const NODE_STYLES: Record<string, { bg: string; glow: string; light: string }> = {
+  cve:       { bg: '#E31B23', glow: 'rgba(227, 27, 35, 0.6)',  light: 'rgba(227, 27, 35, 0.15)' },
+  domain:    { bg: '#3B82F6', glow: 'rgba(59, 130, 246, 0.6)',  light: 'rgba(59, 130, 246, 0.15)' },
+  keyword:   { bg: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.6)',  light: 'rgba(139, 92, 246, 0.15)' },
+  actor:     { bg: '#00D26A', glow: 'rgba(0, 210, 106, 0.6)',   light: 'rgba(0, 210, 106, 0.15)' },
+  killchain: { bg: '#F59E0B', glow: 'rgba(245, 158, 11, 0.6)',  light: 'rgba(245, 158, 11, 0.15)' },
+  root:      { bg: '#00D26A', glow: 'rgba(0, 210, 106, 0.9)',   light: 'rgba(0, 210, 106, 0.15)' },
+};
+const DEFAULT_NODE_STYLE = { bg: '#6B7280', glow: 'rgba(107, 114, 128, 0.6)', light: 'rgba(107, 114, 128, 0.15)' };
 
-  const style = getNodeStyle(data.type);
+// Risk color palette
+const RISK_COLORS: Record<string, string> = {
+  critical: '#E31B23',
+  elevated: '#FF6B35',
+  moderate: '#FFB800',
+  low: '#00D26A',
+};
+
+// Custom Node Component - Expandable
+interface CTINodeData {
+  label: string;
+  type: string;
+  size?: number;
+  info?: string;
+  connections?: string[];
+  isExpanded?: boolean;
+}
+
+const CTINode = ({ data }: { data: CTINodeData }) => {
+  const style = NODE_STYLES[data.type] || DEFAULT_NODE_STYLE;
   const baseSize = data.size || 120;
-  const isExpanded = data.isExpanded ?? selected;
+  const isExpanded = data.isExpanded ?? false;
 
   if (isExpanded) {
     return (
@@ -178,27 +190,6 @@ const CTINode = ({ data, selected }: { data: { label: string; type: string; size
 
 const nodeTypes: NodeTypes = {
   ctiNode: CTINode,
-};
-
-// Color utilities
-const getSeverityColor = (severity: string) => {
-  switch (severity.toLowerCase()) {
-    case 'critical': return '#E31B23';
-    case 'high': return '#FF6B35';
-    case 'medium': return '#FFB800';
-    case 'low': return '#00D26A';
-    default: return '#6B7280';
-  }
-};
-
-const getRiskColor = (level: string) => {
-  switch (level.toLowerCase()) {
-    case 'critical': return '#E31B23';
-    case 'elevated': return '#FF6B35';
-    case 'moderate': return '#FFB800';
-    case 'low': return '#00D26A';
-    default: return '#6B7280';
-  }
 };
 
 // Main Component
@@ -389,16 +380,6 @@ const CTIDashboard: React.FC = () => {
     setEdges(newEdges);
   };
 
-  const isSupernode = (nodeId: string) => {
-    return nodeId === 'root' || nodeId.startsWith('keyword_');
-  };
-
-  const getDirectConnections = (nodeId: string): string[] => {
-    return edges
-      .filter(e => e.source === nodeId || e.target === nodeId)
-      .map(e => e.source === nodeId ? e.target : e.source);
-  };
-
   const onPaneClick = useCallback((event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
     if (target.classList.contains('react-flow__pane')) {
@@ -460,6 +441,66 @@ const CTIDashboard: React.FC = () => {
     }
   }, [edges, nodes, expandedNodes]);
 
+  // Memoize edge highlight set for O(1) lookup
+  const highlightedEdgeSet = useMemo(() => new Set(highlightedEdges), [highlightedEdges]);
+  const expandedKeysList = useMemo(() => Array.from(expandedNodes.keys()), [expandedNodes]);
+
+  // Precomputed nodes with expansion/dim state
+  const computedNodes = useMemo(() => {
+    return nodes.map((node) => {
+      const isExpanded = expandedNodes.has(node.id);
+      const isConnected = expandedKeysList.some(key =>
+        key === node.id || edges.some(e =>
+          (e.source === key && e.target === node.id) || (e.target === key && e.source === node.id)
+        )
+      );
+      const shouldDim = expandedNodes.size > 0 && !isExpanded && !isConnected;
+
+      return {
+        ...node,
+        data: { ...node.data, isExpanded },
+        style: {
+          ...node.style,
+          opacity: shouldDim ? 0.15 : 1,
+          transition: isDragging ? 'none' : 'all 0.3s ease',
+          zIndex: isExpanded ? 100 : 1,
+        },
+      };
+    });
+  }, [nodes, expandedNodes, expandedKeysList, edges, isDragging]);
+
+  // Precomputed edges with highlight/dim state
+  const computedEdges = useMemo(() => {
+    const HIGHLIGHT_MAP: Record<string, string> = {
+      '#E31B23': '#FF4444',
+      '#8B5CF6': '#A78BFA',
+      '#3B82F6': '#60A5FA',
+      '#00D26A': '#4ADE80',
+    };
+
+    return edges.map(edge => {
+      const isHighlighted = highlightedEdgeSet.has(edge.id);
+      const shouldDim = expandedNodes.size > 0 && !isHighlighted;
+      const baseStroke = edge.style?.stroke as string | undefined;
+
+      return {
+        ...edge,
+        animated: isHighlighted || edge.animated,
+        style: {
+          ...edge.style,
+          stroke: isHighlighted
+            ? (HIGHLIGHT_MAP[baseStroke || ''] || '#FBBF24')
+            : (shouldDim ? '#333' : baseStroke),
+          strokeWidth: isHighlighted ? 4 : (edge.style?.strokeWidth || 2),
+          opacity: shouldDim ? 0.2 : 1,
+          transition: 'all 0.3s ease',
+        },
+      };
+    });
+  }, [edges, highlightedEdgeSet, expandedNodes]);
+
+  const riskColor = RISK_COLORS[data?.status?.riskLevel?.toLowerCase() ?? ''] || '#6B7280';
+
   // Loading State
   if (loading) {
     return (
@@ -506,8 +547,6 @@ const CTIDashboard: React.FC = () => {
       </div>
     );
   }
-
-  const riskColor = getRiskColor(data.status.riskLevel);
 
   return (
     <div style={{ 
@@ -977,48 +1016,8 @@ const CTIDashboard: React.FC = () => {
 
         {/* React Flow Graph */}
         <ReactFlow
-          nodes={nodes.map((node) => {
-            const isExpanded = expandedNodes.has(node.id);
-            const isConnected = Array.from(expandedNodes.keys()).some(key => 
-              key === node.id || edges.some(e => (e.source === key && e.target === node.id) || (e.target === key && e.source === node.id))
-            );
-            const shouldDim = expandedNodes.size > 0 && !isExpanded && !isConnected;
-            
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                isExpanded,
-              },
-              style: {
-                ...node.style,
-                opacity: shouldDim ? 0.15 : 1,
-                transition: isDragging ? 'none' : 'all 0.3s ease',
-                zIndex: isExpanded ? 100 : 1,
-              },
-            };
-          })}
-          edges={edges.map(edge => {
-            const isHighlighted = highlightedEdges.includes(edge.id);
-            const shouldDim = expandedNodes.size > 0 && !isHighlighted;
-            
-            return {
-              ...edge,
-              animated: isHighlighted ? true : edge.animated,
-              style: {
-                ...edge.style,
-                stroke: isHighlighted 
-                  ? (edge.style?.stroke === '#E31B23' ? '#FF4444' : 
-                     edge.style?.stroke === '#8B5CF6' ? '#A78BFA' :
-                     edge.style?.stroke === '#3B82F6' ? '#60A5FA' :
-                     edge.style?.stroke === '#00D26A' ? '#4ADE80' : '#FBBF24')
-                  : (shouldDim ? '#333' : edge.style?.stroke),
-                strokeWidth: isHighlighted ? 4 : (edge.style?.strokeWidth || 2),
-                opacity: shouldDim ? 0.2 : 1,
-                transition: 'all 0.3s ease',
-              },
-            };
-          })}
+          nodes={computedNodes}
+          edges={computedEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
