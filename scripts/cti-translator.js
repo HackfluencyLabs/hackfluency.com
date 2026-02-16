@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const translator = require('@parvineyvazov/json-translator');
 const fs = require('fs');
 const path = require('path');
 
@@ -31,11 +30,19 @@ async function translateCTI() {
 
     console.log('🔄 Traduciendo al español...');
     
-    const translated = await translator.translateObject(
+    const translator = require('@parvineyvazov/json-translator');
+    
+    const result = await translator.translateObject(
       jsonContent,
-      'English',
-      'Spanish'
+      translator.languages.English,
+      translator.languages.Spanish
     );
+    
+    const translated = Array.isArray(result) ? result[0] : result;
+
+    if (!translated) {
+      throw new Error('La traducción devolvió un resultado vacío');
+    }
 
     console.log('💾 Guardando traducción...');
     const outputDir = path.dirname(OUTPUT_FILE);
@@ -54,6 +61,11 @@ async function translateCTI() {
     const translatedStats = fs.statSync(OUTPUT_FILE);
     console.log(`📊 Tamaño original: ${(originalStats.size / 1024).toFixed(2)} KB`);
     console.log(`📊 Tamaño traducido: ${(translatedStats.size / 1024).toFixed(2)} KB`);
+    
+    const sampleKey = jsonContent.executive?.headline;
+    const sampleTranslated = translated.executive?.headline;
+    console.log(`\n🔍 Ejemplo - Original: "${sampleKey}"`);
+    console.log(`🔍 Ejemplo - Traducido: "${sampleTranslated}"`);
 
   } catch (error) {
     console.error('❌ Error durante la traducción:', error.message);
