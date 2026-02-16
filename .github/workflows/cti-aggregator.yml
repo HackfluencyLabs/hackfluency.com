@@ -191,9 +191,10 @@ jobs:
         working-directory: ./scripts
         env:
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
+          TRANSLATION_DELAY: 50
         run: |
           echo "=== INSTALANDO DEPENDENCIAS DE TRADUCCIÓN ==="
-          npm install
+          npm ci
           echo "=== TRADUCIENDO DASHBOARD AL ESPAÑOL ==="
           echo "Input: $CTI_PUBLIC_DIR/cti-dashboard.json"
           node cti-translator.js

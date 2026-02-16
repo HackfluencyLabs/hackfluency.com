@@ -5,23 +5,23 @@
     "validUntil": "2026-02-16T22:42:31.514Z"
   },
   "status": {
-    "riskLevel": "low",
+    "riskLevel": "bajo",
     "riskScore": 7,
-    "trend": "decreasing",
+    "trend": "decreciente",
     "confidenceLevel": 34
   },
   "executive": {
-    "headline": "LOW: Routine monitoring active",
-    "summary": "Our current threat landscape assessment indicates an opportunistic level of threats with moderate confidence in our findings; however, the quantified score suggests minimal immediate concern at just under seven out of one hundred points (7/100). With weak correlation between social intelligence themes and infrastructure vulnerabilities—coupled by a moderately fresh dataset—we're observing potential risks that are not yet fully substantiated or imminent. Our focus remains on maintaining routine monitoring protocols to ensure continued vigilance without over-allocating resources at this stage. Key Findings:",
+    "headline": "BAJO: Monitoreo de rutina activo",
+    "summary": "Nuestra evaluación actual del panorama de amenazas indica un nivel oportunista de amenazas con una confianza moderada en nuestros hallazgos; sin embargo, la puntuación cuantificada sugiere una preocupación inmediata mínima, poco menos de siete sobre cien puntos (7/100). Con una correlación débil entre los temas de inteligencia social y las vulnerabilidades de la infraestructura, junto con un conjunto de datos moderadamente actualizado, estamos observando riesgos potenciales que aún no están completamente fundamentados ni son inminentes. Nuestro enfoque sigue siendo mantener protocolos de monitoreo de rutina para garantizar una vigilancia continua sin asignar recursos en exceso en esta etapa. Hallazgos clave:",
     "keyFindings": [
-      "Active social discussion: ransomware attacks, data breaches"
+      "Discusión social activa: ataques de ransomware, violaciones de datos"
     ],
     "recommendedActions": [
-      "2. Vulnerability exploitation themes within social intelligence indicate an awareness gap that could be exploited by attackers; however, no specific vulnerabilities have been identified on our infrastructure as of now—no hosts are reported vulnerable at this time (0 out of 1).",
-      "The correlation between the discussed CVEs and any potential impact is weak with a score of only 14%, indicating limited direct relevance to current systems or services.",
-      "However, the weak correlation (14%) implies a lack of direct linkage between discussed CVEs and vulnerabilities within your infrastructure.",
-      "Continue routine monitoring for any signs or indicators related to ransomware attacks; ensure that all systems are updated with security patches.",
-      "Conduct regular vulnerability assessments on existing services—despite currently having no reported vulnerable hosts—to proactively identify potential weaknesses before they can be exploited by opportunistic threats (moderate confidence)."
+      "2. Los temas de explotación de vulnerabilidades dentro de la inteligencia social indican una brecha de conciencia que los atacantes podrían aprovechar; sin embargo, hasta el momento no se han identificado vulnerabilidades específicas en nuestra infraestructura; no se informa que ningún host sea vulnerable en este momento (0 de 1).",
+      "La correlación entre los CVE discutidos y cualquier impacto potencial es débil con una puntuación de sólo el 14%, lo que indica una relevancia directa limitada para los sistemas o servicios actuales.",
+      "Sin embargo, la débil correlación (14%) implica una falta de vínculo directo entre los CVE discutidos y las vulnerabilidades dentro de su infraestructura.",
+      "Continuar con el monitoreo de rutina para detectar cualquier signo o indicador relacionado con ataques de ransomware; Asegúrese de que todos los sistemas estén actualizados con parches de seguridad.",
+      "Realizar evaluaciones periódicas de vulnerabilidad en los servicios existentes, a pesar de que actualmente no se han reportado hosts vulnerables, para identificar de manera proactiva posibles debilidades antes de que puedan ser explotadas por amenazas oportunistas (confianza moderada)."
     ]
   },
   "metrics": {
@@ -32,7 +32,7 @@
     "lowCount": 7,
     "categories": [
       {
-        "name": "Threat Intel",
+        "name": "Información sobre amenazas",
         "count": 3,
         "percentage": 100
       }
@@ -41,37 +41,37 @@
   "timeline": [
     {
       "id": "social_1771260151514_0",
-      "title": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / ...",
-      "severity": "medium",
-      "category": "Social Intel",
+      "title": "¡Mierda! \n\nEste gráfico me está dando un ataque al corazón. \n\n$SUI/...",
+      "severity": "medio",
+      "category": "Inteligencia social",
       "timestamp": "2026-02-16T16:42:31.514Z",
       "sourceUrl": "https://x.com/Dogi1313/status/2023048301424123910"
     },
     {
       "id": "social_1771260151514_1",
-      "title": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWash...",
-      "severity": "medium",
-      "category": "Social Intel",
+      "title": "Alerta de ciberataque \n\nJapón - Washington Hotel Co., Ltd.\n\nLavar...",
+      "severity": "medio",
+      "category": "Inteligencia social",
       "timestamp": "2026-02-16T16:42:31.514Z",
       "sourceUrl": "https://x.com/H4ckmanac/status/2023039654883160406"
     },
     {
       "id": "social_1771260151514_2",
-      "title": "Of course CARESTL Health \"CLOSED\" 3 north county locations ...",
-      "severity": "medium",
-      "category": "Social Intel",
+      "title": "Por supuesto, CARESTL Health \"CERRADO\" 3 ubicaciones del norte del condado...",
+      "severity": "medio",
+      "category": "Inteligencia social",
       "timestamp": "2026-02-16T16:42:31.514Z",
       "sourceUrl": "https://x.com/0708America/status/2023017971770355759"
     }
   ],
   "sources": [
     {
-      "name": "X.com Social Intel",
+      "name": "Intel social de X.com",
       "signalCount": 5,
       "lastUpdate": "2026-02-16T16:42:31.514Z"
     },
     {
-      "name": "Shodan Infrastructure",
+      "name": "Infraestructura Shodan",
       "signalCount": 0,
       "lastUpdate": "2026-02-16T16:42:31.514Z"
     }
@@ -83,20 +83,20 @@
     "domains": [
       "fox2now.com",
       "malops.io",
-      "discord.gg",
-      "cybersecuritynews.com",
-      "dailydarkweb.net",
+      "discordia.gg",
+      "ciberseguridadnews.com",
+      "diariodarkweb.net",
       "hackers-arise.com",
-      "stake.amnis",
+      "estaca.amnis",
       "4w42197.msi",
-      "dreamgroup.com",
-      "arcticwolf.com"
+      "gruposueño.com",
+      "loboartico.com"
     ],
     "ips": [],
     "keywords": [
-      "ransomware attacks",
-      "data breaches",
-      "vulnerability exploitation"
+      "ataques de ransomware",
+      "violaciones de datos",
+      "explotación de vulnerabilidad"
     ]
   },
   "infrastructure": {
@@ -109,58 +109,58 @@
   "socialIntel": {
     "totalPosts": 5,
     "themes": [
-      "ransomware attacks",
-      "data breaches",
-      "vulnerability exploitation"
+      "ataques de ransomware",
+      "violaciones de datos",
+      "explotación de vulnerabilidad"
     ],
-    "tone": "mixed",
+    "tone": "mezclado",
     "topPosts": [
       {
-        "author": "Dogi1313",
-        "excerpt": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+        "author": "perro1313",
+        "excerpt": "¡Mierda! \n\nEste gráfico me está dando un ataque al corazón. \n\n$SUI/$APT",
         "engagement": 68,
         "url": "https://x.com/Dogi1313/status/2023048301424123910"
       },
       {
         "author": "H4ckmanac",
-        "excerpt": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
+        "excerpt": "Alerta de ciberataque \n\nJapón - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. reveló un ataque de ransomware el 14 de febrero de 2026, después de que se detectara acceso no autorizado a servidores internos el 13 de febrero. \n\nLos atacantes comprometieron los datos comerciales, mientras las investigaciones continúan",
         "engagement": 299,
         "url": "https://x.com/H4ckmanac/status/2023039654883160406"
       },
       {
-        "author": "0708America",
-        "excerpt": "Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
+        "author": "0708América",
+        "excerpt": "Por supuesto, CARESTL Health \"CERRAÓ\" 3 ubicaciones del norte del condado el MISMO DÍA en que se activa el sitio web de datos de Medicare del gobierno de EE. UU., exponiendo el FRAUDE a Medicare. El propietario sin fines de lucro culpa al ataque de ransomware en 2014 y 2025 ¿Tornado? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
         "engagement": 156,
         "url": "https://x.com/0708America/status/2023017971770355759"
       },
       {
-        "author": "MalGamy12",
-        "excerpt": "New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
+        "author": "malgamy12",
+        "excerpt": "Nuevo desafío: Escudo del núcleo\n\nRealice ingeniería inversa en el controlador NSecKrnl (CVE-2025-68947). Armado en la campaña BYOVD del ransomware #Reynolds para eliminar procesos EDR/AV.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
         "engagement": 46,
         "url": "https://x.com/MalGamy12/status/2022729558366261344"
       },
       {
-        "author": "The_Cyber_News",
-        "excerpt": "Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+        "author": "Las_cibernoticias",
+        "excerpt": "Actor de amenazas supuestamente vende cadena de exploits de día 0 de OpenSea en foros de piratería \n\nFuente: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nSe informa que un actor de amenazas está vendiendo una supuesta cadena de exploits de día cero de gravedad crítica dirigida a OpenSea por $100,000 USD en Bitcoin o Monero. El listado afirma",
         "engagement": 93,
         "url": "https://x.com/The_Cyber_News/status/2022580452209418346"
       }
     ]
   },
   "ctiAnalysis": {
-    "model": "ALIENTELLIGENCE/cybersecuritythreatanalysisv2",
-    "killChainPhase": "Weaponization",
-    "threatLandscape": "Our current threat landscape assessment indicates an opportunistic level of threats with moderate confidence in our findings; however, the quantified score suggests minimal immediate concern at just under seven out of one hundred points (7/100). With weak correlation between social intelligence themes and infrastructure vulnerabilities—coupled by a moderately fresh dataset—we're observing potential risks that are not yet fully substantiated or imminent. Our focus remains on maintaining routine monitoring protocols to ensure continued vigilance without over-allocating resources at this stage. Key Findings:",
-    "analystBrief": "Classification: opportunistic. Confidence: 30%. Correlation: weak. Data freshness: moderate.",
-    "correlationStrength": "weak",
-    "technicalAssessment": "**Analysis**\n\nBased on the provided information, I'll conduct an in-depth analysis of the correlation between social intelligence and infrastructure.\n\n**1. CVE-SERVICE ALIGNMENT**\n\nThe given CVEs ([CVE-2025-68947]) do not match any exposed services in the infrastructure data (Total Hosts: 0, Vulnerable: 0/0). This suggests that there is no direct alignment between the identified vulnerabilities and the current infrastructure exposure.\n\nHowever, it's essential to note that this doesn't necessarily mean the organization is immune to these CVEs. The lack of exposed hosts or vulnerable services might be due to various factors such as:\n\n* Up-to-date patching and vulnerability management practices\n* Limited network exposure (e.g., behind a firewall)\n* No publicly accessible services\n\n**2. INFRASTRUCTURE PATTERNS**\n\nThe infrastructure data reveals the following patterns:\n\n* Total Hosts: 0, indicating no exposed hosts or services\n* Vulnerable: 0/0 (0.0%), suggesting that all hosts are up-to-date with patches and vulnerability management practices\n* Top Ports: [], implying that there are no commonly exploited ports exposed to the public\n\nThese patterns suggest a well-maintained infrastructure with minimal exposure, which might be due to:\n\n* Regular security audits and patching\n* Limited network exposure or segmentation\n* Effective firewall configurations\n\n**3. TACTICAL CLASSIFICATION**\n\nBased on the provided information, I would classify this as an **opportunistic scanning campaign** rather than a targeted one. The following reasons support this classification:\n\n* The presence of multiple CVEs ([CVE-2025-68947]) and IoCs (10 domains) without any specific targeting or exploitation claims\n* The lack of exposed hosts or vulnerable services, making it less likely to be a targeted campaign\n\n**4.",
+    "model": "ALIENTELLIGENCE/análisis de amenazas de ciberseguridadv2",
+    "killChainPhase": "Armamento",
+    "threatLandscape": "Nuestra evaluación actual del panorama de amenazas indica un nivel oportunista de amenazas con una confianza moderada en nuestros hallazgos; sin embargo, la puntuación cuantificada sugiere una preocupación inmediata mínima, poco menos de siete sobre cien puntos (7/100). Con una correlación débil entre los temas de inteligencia social y las vulnerabilidades de la infraestructura, junto con un conjunto de datos moderadamente actualizado, estamos observando riesgos potenciales que aún no están completamente fundamentados ni son inminentes. Nuestro enfoque sigue siendo mantener protocolos de monitoreo de rutina para garantizar una vigilancia continua sin asignar recursos en exceso en esta etapa. Hallazgos clave:",
+    "analystBrief": "Clasificación: oportunista. Confianza: 30%. Correlación: débil. Actualización de los datos: moderada.",
+    "correlationStrength": "débil",
+    "technicalAssessment": "**Análisis**\n\nCon base en la información proporcionada, realizaré un análisis en profundidad de la correlación entre inteligencia social e infraestructura.\n\n**1. ALINEACIÓN CVE-SERVICIO**\n\nLos CVE proporcionados ([CVE-2025-68947]) no coinciden con ningún servicio expuesto en los datos de la infraestructura (Hosts totales: 0, Vulnerable: 0/0). Esto sugiere que no existe una alineación directa entre las vulnerabilidades identificadas y la exposición actual de la infraestructura.\n\nSin embargo, es esencial tener en cuenta que esto no significa necesariamente que la organización sea inmune a estos CVE. La falta de hosts expuestos o servicios vulnerables puede deberse a varios factores como:\n\n* Prácticas actualizadas de administración de vulnerabilidades y parches\n* Exposición limitada a la red (por ejemplo, detrás de un firewall)\n* No hay servicios de acceso público.\n\n**2. PATRONES DE INFRAESTRUCTURA**\n\nLos datos de infraestructura revelan los siguientes patrones:\n\n* Total de hosts: 0, lo que indica que no hay hosts ni servicios expuestos\n* Vulnerable: 0/0 (0,0%), lo que sugiere que todos los hosts están actualizados con parches y prácticas de gestión de vulnerabilidades.\n* Puertos principales: [], lo que implica que no hay puertos comúnmente explotados expuestos al público.\n\nEstos patrones sugieren una infraestructura bien mantenida con una exposición mínima, lo que podría deberse a:\n\n* Auditorías de seguridad periódicas y parches.\n* Exposición o segmentación limitada de la red\n* Configuraciones de firewall efectivas\n\n**3. CLASIFICACIÓN TÁCTICA**\n\nSegún la información proporcionada, clasificaría esto como una **campaña de escaneo oportunista** en lugar de una campaña dirigida. Las siguientes razones apoyan esta clasificación:\n\n* La presencia de múltiples CVE ([CVE-2025-68947]) e IoC (10 dominios) sin ningún objetivo específico o reclamos de explotación.\n* La falta de hosts expuestos o servicios vulnerables, lo que hace menos probable que sea una campaña dirigida\n\n**4.",
     "methodologies": [
-      "Deterministic risk scoring (vulnerability ratio)",
-      "Code-based IoC extraction",
-      "Cross-source CVE correlation",
-      "Structured signal analysis",
-      "Quantified correlation model",
-      "Baseline comparison tracking"
+      "Puntuación de riesgo determinista (índice de vulnerabilidad)",
+      "Extracción de IoC basada en código",
+      "Correlación CVE de fuentes cruzadas",
+      "Análisis de señales estructuradas.",
+      "Modelo de correlación cuantificada",
+      "Seguimiento de comparación de referencia"
     ]
   },
   "signalLayer": {
@@ -168,10 +168,10 @@
       "xPosts": [
         {
           "id": "2023048301424123910",
-          "text": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+          "text": "¡Mierda! \n\nEste gráfico me está dando un ataque al corazón. \n\n$SUI/$APT",
           "author": {
-            "username": "Dogi1313",
-            "displayName": "Dogi",
+            "username": "perro1313",
+            "displayName": "perro",
             "verified": false
           },
           "metrics": {
@@ -188,7 +188,7 @@
         },
         {
           "id": "2023039654883160406",
-          "text": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
+          "text": "Alerta de ciberataque \n\nJapón - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. reveló un ataque de ransomware el 14 de febrero de 2026, después de que se detectara acceso no autorizado a servidores internos el 13 de febrero. \n\nLos atacantes comprometieron los datos comerciales, mientras las investigaciones continúan",
           "author": {
             "username": "H4ckmanac",
             "displayName": "Hackmanac",
@@ -208,9 +208,9 @@
         },
         {
           "id": "2023017971770355759",
-          "text": "Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
+          "text": "Por supuesto, CARESTL Health \"CERRAÓ\" 3 ubicaciones del norte del condado el MISMO DÍA en que se activa el sitio web de datos de Medicare del gobierno de EE. UU., exponiendo el FRAUDE a Medicare. El propietario sin fines de lucro culpa al ataque de ransomware en 2014 y 2025 ¿Tornado? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
           "author": {
-            "username": "0708America",
+            "username": "0708América",
             "displayName": "St.Louis Woman ••America FIRST •",
             "verified": false
           },
@@ -230,10 +230,10 @@
         },
         {
           "id": "2022729558366261344",
-          "text": "New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
+          "text": "Nuevo desafío: Escudo del núcleo\n\nRealice ingeniería inversa en el controlador NSecKrnl (CVE-2025-68947). Armado en la campaña BYOVD del ransomware #Reynolds para eliminar procesos EDR/AV.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
           "author": {
-            "username": "MalGamy12",
-            "displayName": "Gameel Ali",
+            "username": "malgamy12",
+            "displayName": "Gameel Ali ",
             "verified": false
           },
           "metrics": {
@@ -255,9 +255,9 @@
         },
         {
           "id": "2022580452209418346",
-          "text": "Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+          "text": "Actor de amenazas supuestamente vende cadena de exploits de día 0 de OpenSea en foros de piratería \n\nFuente: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nSe informa que un actor de amenazas está vendiendo una supuesta cadena de exploits de día cero de gravedad crítica dirigida a OpenSea por $100,000 USD en Bitcoin o Monero. El listado afirma",
           "author": {
-            "username": "The_Cyber_News",
+            "username": "Las_cibernoticias",
             "displayName": "Cyber Security News",
             "verified": false
           },
@@ -442,14 +442,14 @@
       "domains": [
         "fox2now.com",
         "malops.io",
-        "discord.gg",
-        "cybersecuritynews.com",
-        "dailydarkweb.net",
+        "discordia.gg",
+        "ciberseguridadnews.com",
+        "diariodarkweb.net",
         "hackers-arise.com",
-        "stake.amnis",
+        "estaca.amnis",
         "4w42197.msi",
-        "dreamgroup.com",
-        "arcticwolf.com"
+        "gruposueño.com",
+        "loboartico.com"
       ],
       "ips": [],
       "ports": [],
@@ -462,32 +462,32 @@
         "Phishing"
       ],
       "exploitationClaims": [],
-      "tone": "mixed",
+      "tone": "mezclado",
       "topPosts": [
         {
           "author": "H4ckmanac",
-          "excerpt": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
+          "excerpt": "Alerta de ciberataque \n\nJapón - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. reveló un ataque de ransomware el 14 de febrero de 2026, después de que se detectara acceso no autorizado a servidores internos el 13 de febrero. \n\nLos atacantes comprometieron los datos comerciales, mientras las investigaciones continúan",
           "engagement": 299,
           "url": "https://x.com/H4ckmanac/status/2023039654883160406",
           "timestamp": "2026-02-15T14:20:14.000Z"
         },
         {
-          "author": "0708America",
-          "excerpt": "Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
+          "author": "0708América",
+          "excerpt": "Por supuesto, CARESTL Health \"CERRAÓ\" 3 ubicaciones del norte del condado el MISMO DÍA en que se activa el sitio web de datos de Medicare del gobierno de EE. UU., exponiendo el FRAUDE a Medicare. El propietario sin fines de lucro culpa al ataque de ransomware en 2014 y 2025 ¿Tornado? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
           "engagement": 156,
           "url": "https://x.com/0708America/status/2023017971770355759",
           "timestamp": "2026-02-15T12:54:04.000Z"
         },
         {
-          "author": "The_Cyber_News",
-          "excerpt": "Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+          "author": "Las_cibernoticias",
+          "excerpt": "Actor de amenazas supuestamente vende cadena de exploits de día 0 de OpenSea en foros de piratería \n\nFuente: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nSe informa que un actor de amenazas está vendiendo una supuesta cadena de exploits de día cero de gravedad crítica dirigida a OpenSea por $100,000 USD en Bitcoin o Monero. El listado afirma",
           "engagement": 93,
           "url": "https://x.com/The_Cyber_News/status/2022580452209418346",
           "timestamp": "2026-02-14T07:55:32.000Z"
         },
         {
-          "author": "Dogi1313",
-          "excerpt": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+          "author": "perro1313",
+          "excerpt": "¡Mierda! \n\nEste gráfico me está dando un ataque al corazón. \n\n$SUI/$APT",
           "engagement": 68,
           "url": "https://x.com/Dogi1313/status/2023048301424123910",
           "timestamp": "2026-02-15T14:54:36.000Z"
@@ -505,7 +505,7 @@
   "assessmentLayer": {
     "correlation": {
       "score": 0.14,
-      "strength": "weak",
+      "strength": "débil",
       "factors": {
         "cveOverlap": 0,
         "serviceMatch": 0,
@@ -537,7 +537,7 @@
       "currentRiskScore": 7,
       "delta": -43,
       "anomalyLevel": "severe",
-      "trendDirection": "decreasing"
+      "trendDirection": "decreciente"
     },
     "freshness": {
       "socialAgeHours": 43.1,
@@ -568,7 +568,7 @@
   },
   "modelMetadata": {
     "strategic": "phi4-mini",
-    "technical": "ALIENTELLIGENCE/cybersecuritythreatanalysisv2",
+    "technical": "ALIENTELLIGENCE/análisis de amenazas de ciberseguridadv2",
     "quantization": "Q4_K_M",
     "version": "3.0.0"
   }
