@@ -606,7 +606,7 @@ ANALYSIS REQUIREMENTS:
    - "low": Weak correlation, insufficient data, or conflicting signals
 
 RESPONSE FORMAT:
-Provide detailed technical analysis (400-600 words) covering all four areas with specific evidence.
+Provide detailed technical analysis (400-600 words) covering all four areas with specific evidence.`;
 
     // Check token budget
     this.assertTokenBudget(prompt, TECHNICAL_TOKEN_LIMIT, 'Technical Validation');
@@ -712,7 +712,7 @@ STRATEGIC SYNTHESIS REQUIREMENTS:
    - Prioritize by urgency
 
 RESPONSE FORMAT:
-Structure with clear headers. Provide comprehensive analysis (500-800 words) with specific evidence from the data.
+Structure with clear headers. Provide comprehensive analysis (500-800 words) with specific evidence from the data.`;
 
     // Check token budget
     this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'Strategic Synthesis');
