@@ -34,8 +34,8 @@ async function translateCTI() {
     
     const result = await translator.translateObject(
       jsonContent,
-      translator.languages.English,
-      translator.languages.Spanish
+      'English',
+      'Spanish'
     );
     
     const translated = Array.isArray(result) ? result[0] : result;
