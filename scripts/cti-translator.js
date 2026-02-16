@@ -32,8 +32,8 @@ async function translateCTI() {
     
     const translated = await translator.translateObject(
       jsonContent,
-      translator.languages.English,
-      translator.languages.Spanish
+      'English',
+      'Spanish'
     );
 
     console.log('💾 Guardando traducción...');
@@ -56,6 +56,7 @@ async function translateCTI() {
 
   } catch (error) {
     console.error('❌ Error durante la traducción:', error.message);
+    console.error('Stack:', error.stack);
     
     if (FALLBACK) {
       console.log('⚠️  Fallback activado - copiando archivo original...');
