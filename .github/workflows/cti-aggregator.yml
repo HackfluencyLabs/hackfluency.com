@@ -163,10 +163,13 @@ jobs:
       - name: Translate Dashboard to Spanish
         if: ${{ success() }}
         working-directory: ./scripts
+        env:
+          CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: |
           echo "=== INSTALANDO DEPENDENCIAS DE TRADUCCIÓN ==="
           npm install
           echo "=== TRADUCIENDO DASHBOARD AL ESPAÑOL ==="
+          echo "Input: $CTI_PUBLIC_DIR/cti-dashboard.json"
           node cti-translator.js
           echo "✓ Traducción completada"
 

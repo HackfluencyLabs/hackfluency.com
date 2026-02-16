@@ -3,8 +3,9 @@ const translator = require('@parvineyvazov/json-translator');
 const fs = require('fs');
 const path = require('path');
 
-const INPUT_FILE = process.env.INPUT_FILE || '../eccentric-equator/public/data/cti-dashboard.json';
-const OUTPUT_FILE = process.env.OUTPUT_FILE || '../eccentric-equator/public/data/cti-dashboard-es.json';
+const PUBLIC_DIR = process.env.CTI_PUBLIC_DIR || '../eccentric-equator/public/data';
+const INPUT_FILE = process.env.INPUT_FILE || `${PUBLIC_DIR}/cti-dashboard.json`;
+const OUTPUT_FILE = process.env.OUTPUT_FILE || `${PUBLIC_DIR}/cti-dashboard-es.json`;
 const FALLBACK = process.env.TRANSLATION_FALLBACK !== 'false';
 
 async function translateCTI() {
