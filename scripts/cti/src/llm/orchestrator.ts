@@ -636,6 +636,12 @@ Provide a complete and detailed analysis. Up to 700 words.`;
       const sentenceMatch = response.match(/([^.!?]+[.!?]){1,4}/i);
       executiveSummary = sentenceMatch?.[0]?.trim() || response.split('\n')[0] || 'Threat analysis completed.';
     }
+    // Clean markdown artifacts from executive summary
+    executiveSummary = executiveSummary
+      .replace(/\*\*/g, '')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/#{1,3}\s*/g, '')
+      .trim();
 
     // Extract recommended actions (greedy capture until end of response or next section)
     const actionsMatch = response.match(/(?:RECOMMENDED\s*ACTIONS?|ACTIONS?|PRIORITIES)[:\s]*\n?([\s\S]*?)(?=\n(?:KEY FINDING|EXECUTIVE|CORRELATION|CONCLUSION)|$)/i);
@@ -644,8 +650,8 @@ Provide a complete and detailed analysis. Up to 700 words.`;
       const actionLines = actionsMatch[1].match(/[-•*\d.]+\s*(.+)/g);
       if (actionLines && actionLines.length > 0) {
         recommendedActions = actionLines
-          .map(a => a.replace(/^[-•*\d.]+\s*/, '').trim())
-          .filter(a => a.length > 5)
+          .map(a => a.replace(/^[-•*\d.]+\s*/, '').replace(/\*\*/g, '').trim())
+          .filter(a => a.length > 10 && !a.match(/^(RECOMMENDED|ACTIONS|KEY FINDING|EXECUTIVE|CORRELATION)/i))
           .slice(0, 5);
       }
     }
@@ -937,7 +943,7 @@ Provide a complete and detailed analysis. Up to 700 words.`;
         threatLandscape: synthesis.executiveSummary,
         analystBrief: `Classification: ${assessmentLayer?.classification?.type || technical.tacticalClassification}. Confidence: ${assessmentLayer?.classification?.confidence || technical.confidenceLevel}%. Correlation: ${assessmentLayer?.correlation?.strength || correlationStrength}. Data freshness: ${assessmentLayer?.freshness?.status || 'unknown'}.`,
         correlationStrength,
-        technicalAssessment: technical.rawResponse.slice(0, 1500),
+        technicalAssessment: this.truncateAtSentence(technical.rawResponse, 2000),
         methodologies: [
           'Deterministic risk scoring (vulnerability ratio)',
           'Code-based IoC extraction',
@@ -1508,6 +1514,37 @@ Provide a complete and detailed analysis. Up to 700 words.`;
     return text.substring(0, maxChars - 3) + '...';
   }
 
+  /** Truncate text at the last complete sentence within maxChars.
+   *  Ensures output never ends mid-sentence (e.g. trailing comma). */
+  private truncateAtSentence(text: string, maxChars: number): string {
+    if (text.length <= maxChars) return text;
+    const slice = text.substring(0, maxChars);
+    // Find the last sentence-ending punctuation (.!?) followed by space, newline, or end
+    const lastSentenceEnd = Math.max(
+      slice.lastIndexOf('. '),
+      slice.lastIndexOf('.\n'),
+      slice.lastIndexOf('! '),
+      slice.lastIndexOf('!\n'),
+      slice.lastIndexOf('? '),
+      slice.lastIndexOf('?\n'),
+    );
+    if (lastSentenceEnd > maxChars * 0.5) {
+      // Cut at end of last complete sentence
+      return slice.substring(0, lastSentenceEnd + 1).trimEnd();
+    }
+    // Fallback: if no good sentence boundary, cut at last period
+    const lastDot = slice.lastIndexOf('.');
+    if (lastDot > maxChars * 0.3) {
+      return slice.substring(0, lastDot + 1).trimEnd();
+    }
+    // Last resort: cut at last newline
+    const lastNewline = slice.lastIndexOf('\n');
+    if (lastNewline > maxChars * 0.3) {
+      return slice.substring(0, lastNewline).trimEnd();
+    }
+    return slice.trimEnd() + '...';
+  }
+
   /** Call Ollama with model-specific settings (Refactor 5) */
   private async callOllama(model: string, prompt: string, isTechnical: boolean, retryCount = 0): Promise<string> {
     const controller = new AbortController();
@@ -1521,7 +1558,7 @@ Provide a complete and detailed analysis. Up to 700 words.`;
       // num_predict raised to prevent output truncation on longer analyses
       const options = {
         temperature: isTechnical ? 0.2 : 0.3,
-        num_predict: isTechnical ? 1200 : 1800,
+        num_predict: isTechnical ? 2400 : 1800,
         top_p: 0.9
       };
 

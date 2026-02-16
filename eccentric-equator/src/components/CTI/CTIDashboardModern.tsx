@@ -29,11 +29,19 @@ interface DashboardData {
   timeline: Array<{ id: string; title: string; severity: string; category: string; timestamp: string; sourceUrl?: string }>;
   sources: Array<{ name: string; signalCount: number; lastUpdate: string }>;
   indicators: { cves: string[]; domains: string[]; ips: string[]; keywords: string[] };
-  infrastructure?: { totalHosts: number; exposedPorts: Array<{ port: number; service: string; count: number; percentage: number }>; topCountries: Array<{ country: string; count: number }>; vulnerableHosts: number };
+  infrastructure?: { totalHosts: number; exposedPorts: Array<{ port: number; service: string; count: number; percentage: number }>; topCountries: Array<{ country: string; count: number }>; vulnerableHosts: number; sampleHosts?: Array<{ ip: string; port: number; service: string; vulns: string[] }> };
   socialIntel?: { totalPosts: number; themes: string[]; tone: string; topPosts: Array<{ excerpt: string; author: string; engagement: number; url?: string }> };
   ctiAnalysis?: { model: string; killChainPhase: string; threatLandscape: string; analystBrief?: string; correlationStrength?: string; technicalAssessment?: string; methodologies?: string[] };
-  assessmentLayer?: { correlation: { score: number; strength: string; explanation: string }; narrative: string; iocStats: { uniqueCVECount: number; uniqueDomainCount: number; uniqueIPCount: number; totalIndicators: number }; baselineComparison?: { previousRiskScore: number; currentRiskScore: number; delta: number; trendDirection: string } };
-  modelMetadata?: { strategic: string; technical: string };
+  assessmentLayer?: {
+    correlation: { score: number; strength: string; explanation: string; factors?: { cveOverlap: number; serviceMatch: number; temporalProximity: number; infraSocialAlignment: number } };
+    scoring?: { weights?: Record<string, number>; components?: Record<string, number>; computedScore: number; confidenceLevel: number };
+    baselineComparison?: { previousRiskScore: number; currentRiskScore: number; delta: number; anomalyLevel?: string; trendDirection: string };
+    freshness?: { socialAgeHours: number; infraAgeHours: number; freshnessScore: number; status: string };
+    classification?: { type: string; confidence: number; rationale?: string; indicators?: string[] };
+    iocStats: { uniqueCVECount: number; uniqueDomainCount: number; uniqueIPCount: number; totalIndicators: number; uniquePortCount?: number; uniqueServiceCount?: number; duplicationRatio?: number };
+    narrative: string;
+  };
+  modelMetadata?: { strategic: string; technical: string; quantization?: string; version?: string };
 }
 
 // Node style palette
@@ -55,6 +63,13 @@ const RISK_COLORS: Record<string, string> = {
   low: '#00D26A',
 };
 
+// Source link attached to a node or detail section
+interface SourceLink {
+  label: string;
+  url: string;
+  icon: string; // emoji/unicode icon
+}
+
 // Custom Node Component - Expandable
 interface CTINodeData {
   label: string;
@@ -62,6 +77,7 @@ interface CTINodeData {
   size?: number;
   info?: string;
   connections?: string[];
+  links?: SourceLink[];
   isExpanded?: boolean;
 }
 
@@ -151,6 +167,52 @@ const CTINode = ({ data }: { data: CTINodeData }) => {
           </div>
         )}
 
+        {/* Source Links */}
+        {data.links && data.links.length > 0 && (
+          <div style={{ width: '100%', marginTop: '10px' }}>
+            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Sources
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {data.links.map((link, i) => (
+                <a
+                  key={i}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 10px',
+                    background: 'rgba(59, 130, 246, 0.12)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    borderRadius: '6px',
+                    fontSize: '9px',
+                    color: '#7DB4F5',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.25)';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(59, 130, 246, 0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.12)';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                  }}
+                >
+                  <span style={{ fontSize: '12px' }}>{link.icon}</span>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.label}</span>
+                  <span style={{ fontSize: '10px', opacity: 0.6 }}>↗</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Handle type="source" position={Position.Right} style={{ background: '#fff', width: 10, height: 10 }} />
       </div>
     );
@@ -192,6 +254,15 @@ const nodeTypes: NodeTypes = {
   ctiNode: CTINode,
 };
 
+// Tab types
+type TabId = 'executive' | 'correlation' | 'detail';
+
+const TABS: { id: TabId; label: string; icon: string }[] = [
+  { id: 'executive', label: 'Executive Summary', icon: '◈' },
+  { id: 'correlation', label: 'Correlation Topology', icon: '◉' },
+  { id: 'detail', label: 'Full Detail', icon: '☰' },
+];
+
 // Main Component
 const CTIDashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -200,9 +271,10 @@ const CTIDashboard: React.FC = () => {
   const [expandedNodes, setExpandedNodes] = useState<Map<string, any>>(new Map());
   const [isDragging, setIsDragging] = useState(false);
   const [highlightedEdges, setHighlightedEdges] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<TabId>('executive');
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   // Load data
   useEffect(() => {
@@ -225,154 +297,345 @@ const CTIDashboard: React.FC = () => {
     }
   };
 
-  // Generate force-directed graph from data
+  // Generate data-driven correlation graph
+  // Edges are drawn ONLY where real data relationships exist
   const generateGraph = (dashboardData: DashboardData) => {
     const newNodes: Node[] = [];
     const newEdges: Edge[] = [];
-    let nodeId = 0;
 
-    // Root node - Threat Landscape
+    const correlation = dashboardData.assessmentLayer?.correlation;
+    const factors = correlation?.factors;
+    const cveOverlap = factors?.cveOverlap ?? 0;
+    const serviceMatch = factors?.serviceMatch ?? 0;
+    const temporalProximity = factors?.temporalProximity ?? 0;
+
+    // ── Source cluster nodes (the two primary data sources) ──
+    // Collect all social post URLs for the source node
+    const allPostUrls: SourceLink[] = (dashboardData.socialIntel?.topPosts || []).filter(p => p.url).map(p => ({
+      label: `@${p.author}`,
+      url: p.url,
+      icon: '𝕏',
+    }));
+
     newNodes.push({
-      id: 'root',
+      id: 'social_source',
       type: 'ctiNode',
-      position: { x: 0, y: 0 },
-      data: { 
-        label: 'THREAT\nLANDSCAPE', 
-        type: 'root', 
-        size: 140,
-        info: `Risk Score: ${dashboardData.status.riskScore}/100\nLevel: ${dashboardData.status.riskLevel}\nTrend: ${dashboardData.status.trend}`,
-        connections: [`Kill Chain: ${dashboardData.ctiAnalysis?.killChainPhase}`, `${dashboardData.metrics.totalSignals} Signals`]
+      position: { x: -450, y: 0 },
+      data: {
+        label: 'SOCIAL\nINTEL',
+        type: 'actor',
+        size: 130,
+        info: `Source: X.com\nPosts: ${dashboardData.socialIntel?.totalPosts || 0}\nTone: ${dashboardData.socialIntel?.tone || 'N/A'}\nThemes: ${dashboardData.socialIntel?.themes?.join(', ') || 'N/A'}`,
+        connections: [`${dashboardData.socialIntel?.totalPosts || 0} Posts`, `Tone: ${dashboardData.socialIntel?.tone || 'mixed'}`],
+        links: [
+          { label: 'X.com Search', url: `https://x.com/search?q=${encodeURIComponent(dashboardData.indicators?.keywords?.[0] || 'cybersecurity')}`, icon: '𝕏' },
+          ...allPostUrls.slice(0, 3),
+        ],
       },
     });
 
-    // Keywords as central nodes
-    const keywords = dashboardData.indicators?.keywords || [];
-    keywords.forEach((kw, i) => {
-      const id = `keyword_${nodeId++}`;
+    // Build Shodan search links from exposed services
+    const shodanLinks: SourceLink[] = (dashboardData.infrastructure?.exposedPorts || []).slice(0, 2).map(svc => ({
+      label: `Shodan: ${svc.service.split(' ')[0]}`,
+      url: `https://www.shodan.io/search?query=product:"${encodeURIComponent(svc.service.split(' ')[0])}"`,
+      icon: '🔍',
+    }));
+
+    newNodes.push({
+      id: 'infra_source',
+      type: 'ctiNode',
+      position: { x: 450, y: 0 },
+      data: {
+        label: 'INFRA\nSCAN',
+        type: 'domain',
+        size: 130,
+        info: `Source: Shodan\nTotal Hosts: ${dashboardData.infrastructure?.totalHosts || 0}\nVulnerable: ${dashboardData.infrastructure?.vulnerableHosts || 0}\nExposure: ${((dashboardData.infrastructure?.vulnerableHosts || 0) / (dashboardData.infrastructure?.totalHosts || 1) * 100).toFixed(1)}%`,
+        connections: [`${dashboardData.infrastructure?.totalHosts || 0} Hosts`, `${dashboardData.infrastructure?.vulnerableHosts || 0} Vulnerable`],
+        links: [
+          { label: 'Shodan Dashboard', url: 'https://www.shodan.io/dashboard', icon: '🔍' },
+          ...shodanLinks,
+        ],
+      },
+    });
+
+    // ── Central correlation hub ──
+    const corrScore = correlation?.score ?? 0;
+    const corrStrength = correlation?.strength ?? 'weak';
+    const corrPct = Math.round(corrScore * 100);
+    newNodes.push({
+      id: 'correlation_hub',
+      type: 'ctiNode',
+      position: { x: 0, y: 0 },
+      data: {
+        label: `${corrPct}%\nCORRELATION`,
+        type: corrStrength === 'strong' ? 'root' : corrStrength === 'moderate' ? 'killchain' : 'keyword',
+        size: 140,
+        info: `Correlation: ${corrStrength} (${corrPct}%)\nCVE Overlap: ${Math.round(cveOverlap * 100)}%\nService Match: ${Math.round(serviceMatch * 100)}%\nTemporal Proximity: ${Math.round(temporalProximity * 100)}%\nInfra-Social Alignment: ${Math.round((factors?.infraSocialAlignment ?? 0) * 100)}%`,
+        connections: [correlation?.explanation || 'No explanation available'],
+      },
+    });
+
+    // Edges from sources to correlation hub — thickness based on actual factor contribution
+    const socialEdgeWidth = Math.max(1, (temporalProximity + cveOverlap) * 4);
+    const infraEdgeWidth = Math.max(1, (temporalProximity + serviceMatch) * 4);
+
+    newEdges.push({
+      id: 'edge_social_corr',
+      source: 'social_source',
+      target: 'correlation_hub',
+      animated: temporalProximity > 0.3,
+      style: { stroke: '#00D26A', strokeWidth: socialEdgeWidth, strokeDasharray: corrStrength === 'weak' ? '8,6' : undefined },
+      label: `Temporal ${Math.round(temporalProximity * 100)}%`,
+      labelStyle: { fill: '#888', fontSize: 10, fontFamily: 'Space Grotesk' },
+      labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#00D26A' },
+    });
+
+    newEdges.push({
+      id: 'edge_infra_corr',
+      source: 'infra_source',
+      target: 'correlation_hub',
+      animated: serviceMatch > 0.3,
+      style: { stroke: '#3B82F6', strokeWidth: infraEdgeWidth, strokeDasharray: corrStrength === 'weak' ? '8,6' : undefined },
+      label: `CVE Overlap ${Math.round(cveOverlap * 100)}%`,
+      labelStyle: { fill: '#888', fontSize: 10, fontFamily: 'Space Grotesk' },
+      labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#3B82F6' },
+    });
+
+    // ── Social intel sub-nodes (actors) ──
+    const posts = dashboardData.socialIntel?.topPosts?.slice(0, 5) || [];
+    posts.forEach((post, i) => {
+      const id = `actor_${i}`;
+      const label = post.author.length > 12 ? post.author.substring(0, 10) + '..' : post.author;
+      const angle = (-Math.PI / 2) + (i / Math.max(posts.length - 1, 1)) * Math.PI;
+      const actorLinks: SourceLink[] = [];
+      if (post.url) actorLinks.push({ label: 'View Post on X', url: post.url, icon: '𝕏' });
+      actorLinks.push({ label: `@${post.author} Profile`, url: `https://x.com/${post.author}`, icon: '👤' });
+
       newNodes.push({
         id,
         type: 'ctiNode',
-        position: { x: 250 + i * 180, y: -150 + Math.random() * 300 },
-        data: { 
-          label: kw.split(' ')[0].toUpperCase(), 
-          type: 'keyword', 
-          size: 100,
-          info: `Category: ${kw}\nRelated CVEs: ${dashboardData.indicators?.cves?.length || 0}\nSources: Social Intel`,
-          connections: keywords
+        position: { x: -450 + Math.cos(angle) * 220, y: Math.sin(angle) * 200 },
+        data: {
+          label: label.toUpperCase(),
+          type: 'actor',
+          size: 75,
+          info: `Author: @${post.author}\nEngagement: ${post.engagement}\n${post.excerpt?.substring(0, 100)}...`,
+          connections: dashboardData.socialIntel?.themes?.slice(0, 2) || [],
+          links: actorLinks,
         },
       });
       newEdges.push({
-        id: `edge_root_${id}`,
-        source: 'root',
-        target: id,
-        animated: true,
-        style: { stroke: '#8B5CF6', strokeWidth: 2 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#8B5CF6' },
-      });
-    });
-
-    // CVEs
-    const cves = dashboardData.indicators?.cves || [];
-    cves.forEach((cve, i) => {
-      const id = `cve_${nodeId++}`;
-      newNodes.push({
-        id,
-        type: 'ctiNode',
-        position: { x: -400 + i * 250, y: 200 + Math.random() * 150 },
-        data: { 
-          label: cve.replace('CVE-', ''), 
-          type: 'cve', 
-          size: 90,
-          info: `CVE: ${cve}\nStatus: Stale\nRelevance: Medium`,
-          connections: ['Zero-Day Vulnerabilities', 'Microsoft Office']
-        },
-      });
-      keywords.forEach((kw, ki) => {
-        if (kw.toLowerCase().includes('vulnerability') || kw.toLowerCase().includes('breach')) {
-          newEdges.push({
-            id: `edge_${id}_kw${ki}`,
-            source: id,
-            target: `keyword_${ki}`,
-            style: { stroke: '#E31B23', strokeWidth: 2, strokeDasharray: '5,5' },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#E31B23' },
-          });
-        }
-      });
-    });
-
-    // Domains
-    const domains = dashboardData.indicators?.domains?.slice(0, 5) || [];
-    domains.forEach((domain, i) => {
-      const id = `domain_${nodeId++}`;
-      const label = domain.length > 15 ? domain.substring(0, 12) + '..' : domain;
-      newNodes.push({
-        id,
-        type: 'ctiNode',
-        position: { x: 500 + i * 150, y: 250 + Math.random() * 200 },
-        data: { 
-          label: label.toUpperCase(), 
-          type: 'domain', 
-          size: 85,
-          info: `Domain: ${domain}\nCategory: Threat Intelligence Source`,
-          connections: ['Data Breaches', 'Ransomware Attacks']
-        },
-      });
-      newEdges.push({
-        id: `edge_${id}_kw`,
+        id: `edge_${id}_social`,
         source: id,
-        target: `keyword_${i % keywords.length}`,
-        style: { stroke: '#3B82F6', strokeWidth: 1.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#3B82F6' },
+        target: 'social_source',
+        style: { stroke: '#00D26A', strokeWidth: 1.5, strokeDasharray: '3,3' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#00D26A' },
       });
     });
 
-    // Kill Chain Phase
+    // ── Infrastructure CVE sub-nodes (from Shodan) ──
+    const infraCves = dashboardData.indicators?.cves?.slice(1) || []; // Skip first (social CVE)
+    const shownInfraCves = infraCves.slice(0, 6);
+    shownInfraCves.forEach((cve, i) => {
+      const id = `infra_cve_${i}`;
+      const angle = (-Math.PI / 2) + (i / Math.max(shownInfraCves.length - 1, 1)) * Math.PI;
+      newNodes.push({
+        id,
+        type: 'ctiNode',
+        position: { x: 450 + Math.cos(angle) * 220, y: Math.sin(angle) * 200 },
+        data: {
+          label: cve.replace('CVE-', ''),
+          type: 'cve',
+          size: 70,
+          info: `CVE: ${cve}\nSource: Shodan Infrastructure\nFound in: Vulnerable hosts`,
+          connections: ['Infrastructure Only'],
+          links: [
+            { label: 'NVD Detail', url: `https://nvd.nist.gov/vuln/detail/${cve}`, icon: '🛡' },
+            { label: 'MITRE Entry', url: `https://cve.mitre.org/cgi-bin/cvename.cgi?name=${cve}`, icon: '📋' },
+          ],
+        },
+      });
+      newEdges.push({
+        id: `edge_${id}_infra`,
+        source: id,
+        target: 'infra_source',
+        style: { stroke: '#E31B23', strokeWidth: 1.5, strokeDasharray: '3,3' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#E31B23' },
+      });
+    });
+
+    // ── Cross-source CVE node (the REAL overlap, if any) ──
+    const socialCves = dashboardData.indicators?.cves?.slice(0, 1) || [];
+    if (socialCves.length > 0 && cveOverlap > 0) {
+      // Only show as cross-source if there IS actual overlap
+      const overlapCve = socialCves[0];
+      newNodes.push({
+        id: 'overlap_cve',
+        type: 'ctiNode',
+        position: { x: 0, y: -200 },
+        data: {
+          label: overlapCve.replace('CVE-', ''),
+          type: 'root',
+          size: 100,
+          info: `CVE: ${overlapCve}\n⚡ CROSS-SOURCE: Found in BOTH\nsocial intelligence AND infrastructure\nThis is evidence of real correlation`,
+          connections: ['Social Intel', 'Infrastructure'],
+          links: [
+            { label: 'NVD Detail', url: `https://nvd.nist.gov/vuln/detail/${overlapCve}`, icon: '🛡' },
+            { label: 'MITRE Entry', url: `https://cve.mitre.org/cgi-bin/cvename.cgi?name=${overlapCve}`, icon: '📋' },
+            { label: 'Search on X', url: `https://x.com/search?q=${encodeURIComponent(overlapCve)}`, icon: '𝕏' },
+          ],
+        },
+      });
+      newEdges.push({
+        id: 'edge_overlap_social',
+        source: 'overlap_cve',
+        target: 'social_source',
+        animated: true,
+        style: { stroke: '#FFB800', strokeWidth: 3 },
+        label: 'Mentioned in posts',
+        labelStyle: { fill: '#FFB800', fontSize: 10 },
+        labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#FFB800' },
+      });
+      newEdges.push({
+        id: 'edge_overlap_infra',
+        source: 'overlap_cve',
+        target: 'infra_source',
+        animated: true,
+        style: { stroke: '#FFB800', strokeWidth: 3 },
+        label: 'Found in scans',
+        labelStyle: { fill: '#FFB800', fontSize: 10 },
+        labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#FFB800' },
+      });
+    } else if (socialCves.length > 0) {
+      // CVE mentioned in social only — no infra overlap
+      newNodes.push({
+        id: 'social_cve',
+        type: 'ctiNode',
+        position: { x: -200, y: -220 },
+        data: {
+          label: socialCves[0].replace('CVE-', ''),
+          type: 'cve',
+          size: 80,
+          info: `CVE: ${socialCves[0]}\nSource: Social Intel ONLY\n⚠ NOT found in infrastructure scans\nNo cross-source validation`,
+          connections: ['Social Intel Only'],
+          links: [
+            { label: 'NVD Detail', url: `https://nvd.nist.gov/vuln/detail/${socialCves[0]}`, icon: '🛡' },
+            { label: 'Search on X', url: `https://x.com/search?q=${encodeURIComponent(socialCves[0])}`, icon: '𝕏' },
+          ],
+        },
+      });
+      newEdges.push({
+        id: 'edge_socialcve_social',
+        source: 'social_cve',
+        target: 'social_source',
+        style: { stroke: '#E31B23', strokeWidth: 2, strokeDasharray: '5,5' },
+        label: 'Social only',
+        labelStyle: { fill: '#888', fontSize: 9 },
+        labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#E31B23' },
+      });
+      // Dashed line to infra showing NO connection
+      newEdges.push({
+        id: 'edge_socialcve_noinfra',
+        source: 'social_cve',
+        target: 'infra_source',
+        style: { stroke: '#333', strokeWidth: 1, strokeDasharray: '2,6' },
+        label: 'No match',
+        labelStyle: { fill: '#555', fontSize: 9 },
+        labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
+      });
+    }
+
+    // ── Kill Chain Phase (connected to correlation hub) ──
     const killChain = dashboardData.ctiAnalysis?.killChainPhase || 'Unknown';
     newNodes.push({
       id: 'killchain',
       type: 'ctiNode',
-      position: { x: -500, y: -200 },
-      data: { 
-        label: killChain.toUpperCase(), 
-        type: 'killchain', 
-        size: 100,
-        info: `Phase: ${killChain}\nCorrelation: ${dashboardData.assessmentLayer?.correlation?.strength || 'weak'}`,
-        connections: ['Weaponization', 'Reconnaissance']
+      position: { x: 0, y: 250 },
+      data: {
+        label: killChain.toUpperCase(),
+        type: 'killchain',
+        size: 95,
+        info: `Phase: ${killChain}\nClassification: ${dashboardData.assessmentLayer?.classification?.type || 'unknown'}\nConfidence: ${dashboardData.assessmentLayer?.classification?.confidence || 0}%\n${dashboardData.assessmentLayer?.classification?.rationale || ''}`,
+        connections: dashboardData.assessmentLayer?.classification?.indicators || [],
+        links: [
+          { label: 'MITRE ATT&CK', url: 'https://attack.mitre.org/', icon: '🎯' },
+          { label: 'Kill Chain Model', url: 'https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html', icon: '📋' },
+        ],
       },
     });
     newEdges.push({
-      id: 'edge_root_kc',
-      source: 'root',
+      id: 'edge_corr_kc',
+      source: 'correlation_hub',
       target: 'killchain',
       style: { stroke: '#F59E0B', strokeWidth: 2 },
+      label: `${dashboardData.assessmentLayer?.classification?.type || 'unknown'}`,
+      labelStyle: { fill: '#F59E0B', fontSize: 10 },
+      labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' },
     });
 
-    // Threat Actors from social intel
-    const actors = dashboardData.socialIntel?.topPosts?.slice(0, 4) || [];
-    actors.forEach((post, i) => {
-      const id = `actor_${nodeId++}`;
-      const label = post.author.length > 12 ? post.author.substring(0, 10) + '..' : post.author;
+    // ── Keywords as theme indicators (attached to social source) ──
+    const keywords = dashboardData.indicators?.keywords || [];
+    keywords.forEach((kw, i) => {
+      const id = `keyword_${i}`;
+      const angle = Math.PI + (i / Math.max(keywords.length - 1, 1)) * (Math.PI / 2);
       newNodes.push({
         id,
         type: 'ctiNode',
-        position: { x: -250 + i * 180, y: 400 + Math.random() * 80 },
-        data: { 
-          label: label.toUpperCase(), 
-          type: 'actor', 
-          size: 85,
-          info: `Author: @${post.author}\nEngagement: ${post.engagement}\nTheme: ${dashboardData.socialIntel?.themes?.[0] || 'N/A'}`,
-          connections: dashboardData.indicators?.keywords || []
+        position: { x: -450 + Math.cos(angle) * 280, y: Math.sin(angle) * 160 },
+        data: {
+          label: kw.split(' ')[0].toUpperCase(),
+          type: 'keyword',
+          size: 70,
+          info: `Theme: ${kw}\nSource: Social Intelligence\nExtracted from X.com discussions`,
+          connections: [kw],
+          links: [
+            { label: `Search "${kw.split(' ')[0]}" on X`, url: `https://x.com/search?q=${encodeURIComponent(kw)}`, icon: '𝕏' },
+          ],
         },
       });
-      keywords.forEach((kw, ki) => {
-        newEdges.push({
-          id: `edge_${id}_${ki}`,
-          source: id,
-          target: `keyword_${ki}`,
-          style: { stroke: '#00D26A', strokeWidth: 1, strokeDasharray: '3,3' },
-          markerEnd: { type: MarkerType.ArrowClosed, color: '#00D26A' },
-        });
+      newEdges.push({
+        id: `edge_${id}_social`,
+        source: id,
+        target: 'social_source',
+        style: { stroke: '#8B5CF6', strokeWidth: 1.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#8B5CF6' },
+      });
+    });
+
+    // ── Exposed services (attached to infra source) ──
+    const services = dashboardData.infrastructure?.exposedPorts?.slice(0, 3) || [];
+    services.forEach((svc, i) => {
+      const id = `service_${i}`;
+      const angle = (i / Math.max(services.length - 1, 1)) * (Math.PI / 2);
+      const shortName = svc.service.split(' ').slice(0, 2).join(' ');
+      newNodes.push({
+        id,
+        type: 'ctiNode',
+        position: { x: 450 + Math.cos(angle) * 280, y: Math.sin(angle) * 160 + 120 },
+        data: {
+          label: shortName.toUpperCase(),
+          type: 'domain',
+          size: 70,
+          info: `Service: ${svc.service}\nPort: ${svc.port}\nCount: ${svc.count} hosts (${svc.percentage}%)`,
+          connections: [`Port ${svc.port}`, `${svc.count} hosts`],
+          links: [
+            { label: `Shodan: port ${svc.port}`, url: `https://www.shodan.io/search?query=port:${svc.port}`, icon: '🔍' },
+            { label: `Shodan: ${svc.service.split(' ')[0]}`, url: `https://www.shodan.io/search?query=product:"${encodeURIComponent(svc.service.split(' ')[0])}"`, icon: '🔍' },
+          ],
+        },
+      });
+      newEdges.push({
+        id: `edge_${id}_infra`,
+        source: id,
+        target: 'infra_source',
+        style: { stroke: '#3B82F6', strokeWidth: 1.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#3B82F6' },
       });
     });
 
@@ -548,521 +811,1459 @@ const CTIDashboard: React.FC = () => {
     );
   }
 
+  // ── Executive Summary Panel ──
+  const renderExecutivePanel = () => (
+    <div style={{
+      flex: 1,
+      overflow: 'auto',
+      padding: '40px',
+      display: 'flex',
+      justifyContent: 'center',
+    }}>
+      <div style={{ maxWidth: '900px', width: '100%' }}>
+        {/* Hero Risk Banner */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '32px',
+          marginBottom: '40px',
+          padding: '32px',
+          background: 'linear-gradient(135deg, #111 0%, #0a0a0a 100%)',
+          borderRadius: '16px',
+          border: `1px solid ${riskColor}30`,
+          boxShadow: `0 0 60px ${riskColor}10`,
+        }}>
+          {/* Ring Gauge */}
+          <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
+            <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="8" />
+              <circle
+                cx="50" cy="50" r="40" fill="none"
+                stroke={riskColor} strokeWidth="8"
+                strokeDasharray={`${data!.status.riskScore * 2.51} 251`}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 1s ease' }}
+              />
+            </svg>
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+            }}>
+              <span style={{ fontSize: '36px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
+                {data!.status.riskScore}
+              </span>
+              <span style={{ fontSize: '11px', color: '#666' }}>/100</span>
+            </div>
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px',
+            }}>
+              <div style={{
+                width: '10px', height: '10px', borderRadius: '50%',
+                background: riskColor, boxShadow: `0 0 12px ${riskColor}`,
+              }} />
+              <span style={{
+                fontFamily: 'Space Grotesk', fontSize: '22px', fontWeight: 700, color: riskColor,
+              }}>
+                {data!.executive.headline}
+              </span>
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#888',
+            }}>
+              <span style={{
+                padding: '4px 12px', borderRadius: '20px',
+                background: `${riskColor}15`, border: `1px solid ${riskColor}60`,
+                color: riskColor, fontSize: '11px', fontWeight: 600,
+              }}>
+                {data!.status.riskLevel.toUpperCase()}
+              </span>
+              <span style={{
+                color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+              }}>
+                {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {data!.status.trend}
+              </span>
+              <span>Confidence: {data!.status.confidenceLevel}%</span>
+              <span>{data!.metrics.totalSignals} signals</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Narrative */}
+        {data!.assessmentLayer?.narrative && (
+          <div style={{
+            marginBottom: '32px',
+            padding: '28px',
+            background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
+            borderRadius: '16px',
+            border: '1px solid #00D26A25',
+            boxShadow: '0 0 40px rgba(0, 210, 106, 0.06)',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px',
+            }}>
+              <div style={{
+                width: '4px', height: '20px', borderRadius: '2px', background: '#00D26A',
+              }} />
+              <span style={{
+                fontSize: '12px', color: '#00D26A', textTransform: 'uppercase',
+                letterSpacing: '2px', fontWeight: 600,
+              }}>
+                Intelligence Narrative
+              </span>
+            </div>
+            <p style={{
+              fontSize: '15px', color: '#ccc', lineHeight: 1.8,
+              margin: 0, fontStyle: 'italic',
+            }}>
+              {data!.assessmentLayer.narrative}
+            </p>
+          </div>
+        )}
+
+        {/* Key Findings + Quick Metrics Row */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px',
+        }}>
+          {/* Key Findings */}
+          <div style={{
+            padding: '24px', background: '#111', borderRadius: '12px',
+            border: '1px solid #222',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px',
+            }}>
+              <div style={{
+                width: '4px', height: '20px', borderRadius: '2px', background: '#8B5CF6',
+              }} />
+              <span style={{
+                fontSize: '12px', color: '#8B5CF6', textTransform: 'uppercase',
+                letterSpacing: '2px', fontWeight: 600,
+              }}>
+                Key Findings
+              </span>
+            </div>
+            {data!.executive.keyFindings?.map((finding, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '10px',
+                marginBottom: '10px', fontSize: '13px', color: '#ccc', lineHeight: 1.5,
+              }}>
+                <span style={{ color: '#8B5CF6', flexShrink: 0, marginTop: '2px' }}>▸</span>
+                <span>{finding}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Metrics */}
+          <div style={{
+            padding: '24px', background: '#111', borderRadius: '12px',
+            border: '1px solid #222',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px',
+            }}>
+              <div style={{
+                width: '4px', height: '20px', borderRadius: '2px', background: '#3B82F6',
+              }} />
+              <span style={{
+                fontSize: '12px', color: '#3B82F6', textTransform: 'uppercase',
+                letterSpacing: '2px', fontWeight: 600,
+              }}>
+                Signal Breakdown
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <MetricBox label="Critical" value={data!.metrics.criticalCount} color="#E31B23" />
+              <MetricBox label="High" value={data!.metrics.highCount} color="#FF6B35" />
+              <MetricBox label="Medium" value={data!.metrics.mediumCount} color="#FFB800" />
+              <MetricBox label="Low" value={data!.metrics.lowCount} color="#00D26A" />
+            </div>
+          </div>
+        </div>
+
+        {/* Recommended Actions */}
+        <div style={{
+          padding: '28px',
+          background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
+          borderRadius: '16px',
+          border: '1px solid #E31B2330',
+          boxShadow: '0 0 40px rgba(227, 27, 35, 0.06)',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px',
+          }}>
+            <div style={{
+              width: '4px', height: '20px', borderRadius: '2px', background: '#E31B23',
+            }} />
+            <span style={{
+              fontSize: '12px', color: '#E31B23', textTransform: 'uppercase',
+              letterSpacing: '2px', fontWeight: 600,
+            }}>
+              Recommended Actions
+            </span>
+          </div>
+          {data!.executive.recommendedActions
+            ?.filter(action => action.length > 15 && !action.match(/^(RECOMMENDED|ACTIONS?\*)/i))
+            .map((action, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'flex-start', gap: '16px',
+              marginBottom: '16px', padding: '16px',
+              background: 'rgba(0, 0, 0, 0.35)', borderRadius: '10px',
+              border: '1px solid #E31B2315',
+            }}>
+              <div style={{
+                width: '28px', height: '28px', borderRadius: '50%',
+                background: 'linear-gradient(135deg, #E31B23 0%, #FF6B35 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0,
+              }}>
+                {i + 1}
+              </div>
+              <span style={{
+                fontSize: '13px', color: '#ccc', lineHeight: 1.6, paddingTop: '3px',
+              }}>
+                {action.replace(/^\.\s*/, '').replace(/\*\*/g, '')}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Correlation Graph Panel ──
+  const renderCorrelationPanel = () => {
+    const corr = data!.assessmentLayer?.correlation;
+    const scoring = data!.assessmentLayer?.scoring;
+    const classification = data!.assessmentLayer?.classification;
+    const freshness = data!.assessmentLayer?.freshness;
+    const iocStats = data!.assessmentLayer?.iocStats;
+    const corrScore = corr?.score ?? 0;
+    const corrStrength = corr?.strength ?? 'weak';
+    const factors = corr?.factors;
+
+    const strengthColor = corrStrength === 'strong' ? '#00D26A' : corrStrength === 'moderate' ? '#F59E0B' : '#E31B23';
+
+    return (
+      <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+        {/* Left: Correlation Methodology Panel */}
+        <div style={{
+          width: '340px', flexShrink: 0, overflowY: 'auto', overflowX: 'hidden',
+          background: '#0d0d0d', borderRight: '1px solid #1a1a1a',
+          padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px',
+          minHeight: 0, maxHeight: '100%',
+        }}>
+          {/* Correlation Score Header */}
+          <div style={{
+            padding: '20px', borderRadius: '12px',
+            background: `linear-gradient(135deg, ${strengthColor}10, transparent)`,
+            border: `1px solid ${strengthColor}30`,
+            textAlign: 'center',
+          }}>
+            <div style={{
+              fontFamily: 'Space Grotesk', fontSize: '42px', fontWeight: 700,
+              color: strengthColor, lineHeight: 1,
+            }}>
+              {Math.round(corrScore * 100)}%
+            </div>
+            <div style={{
+              fontSize: '11px', color: strengthColor, textTransform: 'uppercase',
+              letterSpacing: '2px', fontWeight: 600, marginTop: '4px',
+            }}>
+              {corrStrength} correlation
+            </div>
+            <div style={{
+              fontSize: '10px', color: '#666', marginTop: '8px', lineHeight: 1.5,
+            }}>
+              {corr?.explanation || 'No explanation available'}
+            </div>
+          </div>
+
+          {/* Correlation Factors Breakdown */}
+          <div style={{
+            padding: '16px', borderRadius: '10px',
+            background: '#111', border: '1px solid #222',
+          }}>
+            <div style={{
+              fontSize: '10px', color: '#888', textTransform: 'uppercase',
+              letterSpacing: '1.5px', fontWeight: 600, marginBottom: '14px',
+            }}>
+              ◈ Correlation Factors
+            </div>
+            {[
+              { label: 'CVE Overlap', value: factors?.cveOverlap ?? 0, desc: 'CVEs found in BOTH social and infra', color: '#E31B23' },
+              { label: 'Service Match', value: factors?.serviceMatch ?? 0, desc: 'Services discussed socially that match infra', color: '#3B82F6' },
+              { label: 'Temporal Proximity', value: factors?.temporalProximity ?? 0, desc: 'Data collected within similar timeframe', color: '#00D26A' },
+              { label: 'Infra-Social Alignment', value: factors?.infraSocialAlignment ?? 0, desc: 'Average of CVE + service factors', color: '#8B5CF6' },
+            ].map((f, i) => (
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  marginBottom: '4px',
+                }}>
+                  <span style={{ fontSize: '11px', color: '#ccc', fontWeight: 500 }}>{f.label}</span>
+                  <span style={{
+                    fontSize: '13px', fontWeight: 700, fontFamily: 'Space Grotesk',
+                    color: f.value > 0.5 ? '#00D26A' : f.value > 0.1 ? '#F59E0B' : '#E31B23',
+                  }}>
+                    {Math.round(f.value * 100)}%
+                  </span>
+                </div>
+                <div style={{
+                  height: '6px', borderRadius: '3px', background: '#1a1a1a',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    height: '100%', borderRadius: '3px',
+                    width: `${Math.max(f.value * 100, 2)}%`,
+                    background: `linear-gradient(90deg, ${f.color}, ${f.color}88)`,
+                    transition: 'width 0.6s ease',
+                  }} />
+                </div>
+                <div style={{ fontSize: '9px', color: '#555', marginTop: '2px' }}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Risk Scoring Breakdown */}
+          {scoring && (
+            <div style={{
+              padding: '16px', borderRadius: '10px',
+              background: '#111', border: '1px solid #222',
+            }}>
+              <div style={{
+                fontSize: '10px', color: '#888', textTransform: 'uppercase',
+                letterSpacing: '1.5px', fontWeight: 600, marginBottom: '14px',
+              }}>
+                ◈ Risk Score Computation
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+                marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid #1a1a1a',
+              }}>
+                <span style={{ fontSize: '11px', color: '#888' }}>Computed Score</span>
+                <span style={{
+                  fontSize: '22px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor,
+                }}>
+                  {scoring.computedScore}/100
+                </span>
+              </div>
+              {scoring.weights && scoring.components && Object.entries(scoring.weights).map(([key, weight]) => {
+                const value = (scoring.components as Record<string, number>)?.[key] ?? 0;
+                const contribution = Math.round(value * (weight as number) * 100);
+                return (
+                  <div key={key} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    marginBottom: '6px', fontSize: '10px',
+                  }}>
+                    <span style={{ color: '#888', flex: 1 }}>
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
+                    </span>
+                    <span style={{ color: '#666', width: '40px', textAlign: 'right' }}>
+                      ×{((weight as number) * 100).toFixed(0)}%
+                    </span>
+                    <span style={{
+                      color: '#ccc', fontWeight: 600, fontFamily: 'Space Grotesk',
+                      width: '36px', textAlign: 'right',
+                    }}>
+                      {contribution}
+                    </span>
+                  </div>
+                );
+              })}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #1a1a1a',
+                fontSize: '10px',
+              }}>
+                <span style={{ color: '#888' }}>Confidence Level</span>
+                <span style={{ color: '#F59E0B', fontWeight: 600, fontFamily: 'Space Grotesk' }}>
+                  {scoring.confidenceLevel}%
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Threat Classification */}
+          {classification && (
+            <div style={{
+              padding: '16px', borderRadius: '10px',
+              background: '#111', border: '1px solid #222',
+            }}>
+              <div style={{
+                fontSize: '10px', color: '#888', textTransform: 'uppercase',
+                letterSpacing: '1.5px', fontWeight: 600, marginBottom: '12px',
+              }}>
+                ◈ Classification
+              </div>
+              <div style={{
+                padding: '10px 14px', borderRadius: '8px',
+                background: `${classification.type === 'targeted' ? '#E31B23' : classification.type === 'campaign' ? '#F59E0B' : '#3B82F6'}15`,
+                border: `1px solid ${classification.type === 'targeted' ? '#E31B23' : classification.type === 'campaign' ? '#F59E0B' : '#3B82F6'}30`,
+                marginBottom: '10px',
+              }}>
+                <div style={{
+                  fontSize: '14px', fontWeight: 700, fontFamily: 'Space Grotesk',
+                  color: classification.type === 'targeted' ? '#E31B23' : classification.type === 'campaign' ? '#F59E0B' : '#3B82F6',
+                  textTransform: 'uppercase',
+                }}>
+                  {classification.type}
+                </div>
+                <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
+                  Confidence: {classification.confidence}%
+                </div>
+              </div>
+              {classification.rationale && (
+                <div style={{ fontSize: '10px', color: '#888', lineHeight: 1.5, marginBottom: '8px' }}>
+                  {classification.rationale}
+                </div>
+              )}
+              {classification.indicators?.map((ind, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  fontSize: '10px', color: '#666', marginBottom: '4px',
+                }}>
+                  <span style={{ color: '#555' }}>▸</span>
+                  {ind}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* IOC Statistics */}
+          {iocStats && (
+            <div style={{
+              padding: '16px', borderRadius: '10px',
+              background: '#111', border: '1px solid #222',
+            }}>
+              <div style={{
+                fontSize: '10px', color: '#888', textTransform: 'uppercase',
+                letterSpacing: '1.5px', fontWeight: 600, marginBottom: '12px',
+              }}>
+                ◈ IOC Statistics
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {[
+                  { label: 'CVEs', value: iocStats.uniqueCVECount, total: data!.indicators?.cves?.length || 0 },
+                  { label: 'Domains', value: iocStats.uniqueDomainCount },
+                  { label: 'IPs', value: iocStats.uniqueIPCount },
+                  { label: 'Total IOCs', value: iocStats.totalIndicators },
+                ].map((stat, i) => (
+                  <div key={i} style={{
+                    padding: '8px', borderRadius: '6px',
+                    background: '#0a0a0a', border: '1px solid #1a1a1a',
+                    textAlign: 'center',
+                  }}>
+                    <div style={{
+                      fontSize: '16px', fontWeight: 700, fontFamily: 'Space Grotesk',
+                      color: stat.value === 0 ? '#555' : '#ccc',
+                    }}>
+                      {stat.value}
+                    </div>
+                    <div style={{ fontSize: '9px', color: '#555', textTransform: 'uppercase' }}>
+                      {stat.label}
+                    </div>
+                    {stat.total !== undefined && stat.total !== stat.value && (
+                      <div style={{ fontSize: '8px', color: '#444', marginTop: '2px' }}>
+                        of {stat.total} listed
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {iocStats.duplicationRatio !== undefined && (
+                <div style={{
+                  fontSize: '9px', color: '#555', marginTop: '8px',
+                  display: 'flex', justifyContent: 'space-between',
+                }}>
+                  <span>Cross-source duplication</span>
+                  <span style={{ color: (iocStats.duplicationRatio ?? 0) > 0 ? '#F59E0B' : '#555' }}>
+                    {Math.round((iocStats.duplicationRatio ?? 0) * 100)}%
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Data Freshness */}
+          {freshness && (
+            <div style={{
+              padding: '16px', borderRadius: '10px',
+              background: '#111', border: '1px solid #222',
+            }}>
+              <div style={{
+                fontSize: '10px', color: '#888', textTransform: 'uppercase',
+                letterSpacing: '1.5px', fontWeight: 600, marginBottom: '12px',
+              }}>
+                ◈ Data Freshness
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '10px',
+              }}>
+                <span style={{ color: '#888' }}>Status</span>
+                <span style={{
+                  padding: '2px 8px', borderRadius: '10px', fontWeight: 600, fontSize: '9px',
+                  background: freshness.status === 'high' ? '#00D26A20' : freshness.status === 'moderate' ? '#F59E0B20' : '#E31B2320',
+                  color: freshness.status === 'high' ? '#00D26A' : freshness.status === 'moderate' ? '#F59E0B' : '#E31B23',
+                  border: `1px solid ${freshness.status === 'high' ? '#00D26A' : freshness.status === 'moderate' ? '#F59E0B' : '#E31B23'}40`,
+                }}>
+                  {freshness.status.toUpperCase()}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px',
+              }}>
+                <span style={{ color: '#888' }}>Social data age</span>
+                <span style={{ color: '#ccc', fontFamily: 'Space Grotesk' }}>{freshness.socialAgeHours}h</span>
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px',
+              }}>
+                <span style={{ color: '#888' }}>Infrastructure age</span>
+                <span style={{ color: '#ccc', fontFamily: 'Space Grotesk' }}>{freshness.infraAgeHours}h</span>
+              </div>
+              <div style={{
+                height: '4px', borderRadius: '2px', background: '#1a1a1a', marginTop: '8px',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: '2px',
+                  width: `${freshness.freshnessScore * 100}%`,
+                  background: freshness.status === 'high' ? '#00D26A' : freshness.status === 'moderate' ? '#F59E0B' : '#E31B23',
+                }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Graph Visualization */}
+        <div style={{ flex: 1, position: 'relative' }}>
+          {/* Graph Header */}
+          <div style={{
+            position: 'absolute', top: '16px', left: '16px', zIndex: 10,
+            padding: '10px 16px',
+            background: 'rgba(10, 10, 10, 0.9)',
+            borderRadius: '8px', border: '1px solid #222',
+            backdropFilter: 'blur(10px)',
+          }}>
+            <div style={{
+              fontFamily: 'Space Grotesk', fontSize: '13px', fontWeight: 600, color: '#fff',
+            }}>
+              DATA-SOURCE CORRELATION MAP
+            </div>
+            <div style={{ fontSize: '9px', color: '#666', marginTop: '3px' }}>
+              Edges represent verified data relationships • Dashed = weak/no evidence
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div style={{
+            position: 'absolute', bottom: '16px', left: '16px', zIndex: 10,
+            padding: '10px 14px',
+            background: 'rgba(10, 10, 10, 0.9)',
+            borderRadius: '8px', border: '1px solid #222',
+            backdropFilter: 'blur(10px)',
+          }}>
+            <div style={{ fontSize: '9px', color: '#666', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Node Types
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '9px' }}>
+              <LegendItem color="#00D26A" label="Social Intel" />
+              <LegendItem color="#3B82F6" label="Infrastructure" />
+              <LegendItem color="#E31B23" label="CVEs" />
+              <LegendItem color="#8B5CF6" label="Themes" />
+              <LegendItem color="#F59E0B" label="Kill Chain" />
+            </div>
+            <div style={{ fontSize: '9px', color: '#666', marginTop: '8px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Edge Meaning
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '20px', height: '2px', background: '#FFB800' }} />
+                <span style={{ color: '#888' }}>Cross-source match</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '20px', height: '2px', background: '#555', borderTop: '2px dashed #555' }} />
+                <span style={{ color: '#888' }}>No match found</span>
+              </div>
+            </div>
+          </div>
+
+          {/* React Flow Graph */}
+          <ReactFlow
+            nodes={computedNodes}
+            edges={computedEdges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            onEdgeClick={(_, edge) => onConnectionClick(edge.id)}
+            onNodeDragStart={() => setIsDragging(true)}
+            onNodeDragStop={() => setIsDragging(false)}
+            onPaneClick={onPaneClick}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            style={{ background: '#0a0a0a' }}
+            defaultEdgeOptions={{ type: 'smoothstep' }}
+          >
+            <Background color="#1a1a1a" gap={30} size={1} />
+            <Controls style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }} />
+            <MiniMap
+              nodeColor={(node) => {
+                const nodeType = (node.data as Record<string, unknown>)?.type as string || 'default';
+                const colors: Record<string, string> = {
+                  cve: '#E31B23', domain: '#3B82F6', keyword: '#8B5CF6',
+                  actor: '#00D26A', killchain: '#F59E0B', root: '#00D26A',
+                };
+                return colors[nodeType] || '#6B7280';
+              }}
+              style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }}
+              maskColor="rgba(0, 0, 0, 0.8)"
+            />
+          </ReactFlow>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Full Detail Panel ──
+  const renderDetailPanel = () => (
+    <div style={{
+      flex: 1, overflow: 'auto', padding: '40px',
+      display: 'flex', justifyContent: 'center',
+    }}>
+      <div style={{ maxWidth: '1100px', width: '100%' }}>
+        {/* Risk Score + Metrics Header Row */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', marginBottom: '32px',
+        }}>
+          {/* Risk Gauge */}
+          <div style={{
+            padding: '24px', background: '#111', borderRadius: '12px',
+            border: '1px solid #222', display: 'flex', alignItems: 'center', gap: '20px',
+          }}>
+            <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+              <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="10" />
+                <circle cx="50" cy="50" r="40" fill="none"
+                  stroke={riskColor} strokeWidth="10"
+                  strokeDasharray={`${data!.status.riskScore * 2.51} 251`}
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 1s ease' }}
+                />
+              </svg>
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+              }}>
+                <span style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'Space Grotesk' }}>
+                  {data!.status.riskScore}
+                </span>
+                <span style={{ fontSize: '10px', color: '#666' }}>/100</span>
+              </div>
+            </div>
+            <div>
+              <span style={{
+                padding: '4px 12px', borderRadius: '20px',
+                background: `${riskColor}20`, border: `1px solid ${riskColor}`,
+                color: riskColor, fontSize: '11px', fontWeight: 600,
+              }}>
+                {data!.status.riskLevel.toUpperCase()}
+              </span>
+              <div style={{
+                marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px',
+                color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+              }}>
+                <span>{data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'}</span>
+                <span>{data!.status.trend}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Metrics Grid */}
+          <div style={{
+            padding: '24px', background: '#111', borderRadius: '12px', border: '1px solid #222',
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
+              <MetricBox label="Critical" value={data!.metrics.criticalCount} color="#E31B23" />
+              <MetricBox label="High" value={data!.metrics.highCount} color="#FF6B35" />
+              <MetricBox label="Medium" value={data!.metrics.mediumCount} color="#FFB800" />
+              <MetricBox label="Low" value={data!.metrics.lowCount} color="#00D26A" />
+            </div>
+          </div>
+        </div>
+
+        {/* Two-column detail layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {/* Left Column */}
+          <div>
+            {/* Executive Summary */}
+            <Section title="EXECUTIVE SUMMARY">
+              <div style={{
+                padding: '16px',
+                background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
+                borderRadius: '12px',
+                border: `1px solid ${riskColor}40`,
+                boxShadow: `0 0 30px ${riskColor}15`,
+              }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px',
+                }}>
+                  <div style={{
+                    width: '8px', height: '8px', borderRadius: '50%',
+                    background: riskColor, boxShadow: `0 0 10px ${riskColor}`,
+                  }} />
+                  <div style={{
+                    fontSize: '16px', fontWeight: 700, color: riskColor, fontFamily: 'Space Grotesk',
+                  }}>
+                    {data!.executive.headline}
+                  </div>
+                </div>
+                <p style={{
+                  fontSize: '13px', color: '#aaa', lineHeight: 1.7, whiteSpace: 'pre-line',
+                }}>
+                  {data!.executive.summary.replace(/\*\*/g, '')}
+                </p>
+                {data!.executive.keyFindings && data!.executive.keyFindings.length > 0 && (
+                  <div style={{
+                    marginTop: '16px', padding: '12px',
+                    background: 'rgba(0, 210, 106, 0.1)',
+                    borderRadius: '8px', border: '1px solid #00D26A30',
+                  }}>
+                    <div style={{ fontSize: '10px', color: '#00D26A', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      Key Findings
+                    </div>
+                    {data!.executive.keyFindings.map((finding, i) => (
+                      <div key={i} style={{
+                        fontSize: '12px', color: '#ccc', display: 'flex',
+                        alignItems: 'flex-start', gap: '8px', marginBottom: '4px',
+                      }}>
+                        <span style={{ color: '#00D26A' }}>▸</span>
+                        <span>{finding}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Section>
+
+            {/* Threat Analysis */}
+            <Section title="THREAT ANALYSIS">
+              <div style={{
+                padding: '16px', background: '#0a0a0a', borderRadius: '8px',
+                border: '1px solid #00D26A30', boxShadow: '0 0 20px rgba(0, 210, 106, 0.1)',
+              }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Kill Chain Phase</span>
+                  <div style={{
+                    marginTop: '4px', padding: '6px 12px', background: '#F59E0B20',
+                    border: '1px solid #F59E0B', borderRadius: '4px', color: '#F59E0B',
+                    fontSize: '12px', fontWeight: 600, display: 'inline-block',
+                  }}>
+                    {data!.ctiAnalysis?.killChainPhase || 'N/A'}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Correlation Strength</span>
+                  <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '100px', height: '6px', background: '#222', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${(data!.assessmentLayer?.correlation?.score || 0) * 100}%`,
+                        height: '100%',
+                        background: data!.assessmentLayer?.correlation?.strength === 'weak' ? '#E31B23' : '#00D26A',
+                        transition: 'width 0.5s ease',
+                      }} />
+                    </div>
+                    <span style={{
+                      fontSize: '11px', textTransform: 'uppercase',
+                      color: data!.assessmentLayer?.correlation?.strength === 'weak' ? '#E31B23' : '#00D26A',
+                    }}>
+                      {data!.assessmentLayer?.correlation?.strength || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Classification</span>
+                  <div style={{
+                    marginTop: '4px', padding: '6px 12px', background: '#8B5CF620',
+                    border: '1px solid #8B5CF6', borderRadius: '4px', color: '#8B5CF6', fontSize: '12px',
+                  }}>
+                    {(data!.assessmentLayer?.classification?.type || 'opportunistic').toUpperCase()}
+                    <span style={{ color: '#666', marginLeft: '8px' }}>
+                      {(data!.assessmentLayer?.classification?.confidence || 30)}% confidence
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Technical Assessment</span>
+                  <div style={{
+                    marginTop: '8px', padding: '16px', background: '#000', borderRadius: '6px',
+                    border: '1px solid #222', fontSize: '11px', fontFamily: 'monospace',
+                    color: '#00D26A',
+                    lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}>
+                    <div style={{ marginBottom: '10px', color: '#666', borderBottom: '1px solid #1a1a1a', paddingBottom: '8px' }}>
+                      {`> ANALYZING THREAT INDICATORS...`}
+                    </div>
+                    {(() => {
+                      const raw = data!.ctiAnalysis?.technicalAssessment || 'No technical assessment available';
+                      const cleaned = raw
+                        .replace(/\*\*(\d+\.\s*)/g, '\n$1')
+                        .replace(/\*\*/g, '')
+                        .replace(/^\* /gm, '  • ')
+                        .replace(/\n{3,}/g, '\n\n')
+                        .trim();
+                      // Detect if the LLM output was truncated (ends mid-sentence)
+                      const lastChar = raw.trim().slice(-1);
+                      const isTruncated = lastChar === ',' || lastChar === ';' || (lastChar !== '.' && lastChar !== '!' && lastChar !== '?' && raw.trim().length > 200);
+                      // Split into paragraphs for better rendering
+                      return (
+                        <>
+                          {cleaned.split('\n\n').map((para, idx) => (
+                            <div key={idx} style={{ marginBottom: '12px' }}>
+                              {para.split('\n').map((line, lidx) => (
+                                <div key={lidx} style={{
+                                  color: line.match(/^\d+\./) ? '#F59E0B' : line.startsWith('  •') ? '#8B5CF6' : '#00D26A',
+                                  fontWeight: line.match(/^\d+\./) ? 600 : 400,
+                                  marginBottom: line.match(/^\d+\./) ? '4px' : '2px',
+                                }}>
+                                  {line}
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                          {isTruncated && (
+                            <div style={{
+                              marginTop: '8px', padding: '8px 12px', borderRadius: '6px',
+                              background: '#F59E0B10', border: '1px solid #F59E0B30',
+                              fontSize: '10px', color: '#F59E0B', display: 'flex',
+                              alignItems: 'center', gap: '8px',
+                            }}>
+                              <span>⚠</span>
+                              <span>Output truncated — the AI model reached its token limit. Run the pipeline again with a higher num_predict value for a complete analysis.</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                    <div style={{ marginTop: '10px', color: '#666', borderTop: '1px solid #1a1a1a', paddingTop: '8px' }}>
+                      {`> ANALYSIS COMPLETE`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* Social Intel */}
+            <Section title="SOCIAL INTELLIGENCE">
+              {data!.socialIntel?.topPosts?.slice(0, 3).map((post, i) => (
+                <div key={i} style={{
+                  padding: '12px', background: '#111', borderRadius: '6px',
+                  border: '1px solid #222', marginBottom: '8px',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <a href={`https://x.com/${post.author}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', fontWeight: 600, color: '#00D26A', textDecoration: 'none' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'none'; }}
+                    >
+                      @{post.author}
+                    </a>
+                    <span style={{ fontSize: '10px', color: '#666' }}>{post.engagement} engagement</span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: '#888', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                    {post.excerpt.substring(0, 200)}{post.excerpt.length > 200 ? '...' : ''}
+                  </p>
+                  {post.url && (
+                    <a href={post.url} target="_blank" rel="noopener noreferrer" style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      marginTop: '8px', padding: '4px 12px',
+                      background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: '6px', fontSize: '10px', color: '#7DB4F5', textDecoration: 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.25)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.1)'; }}
+                    >
+                      <span>𝕏</span> View on X <span style={{ opacity: 0.6 }}>↗</span>
+                    </a>
+                  )}
+                </div>
+              ))}
+              {data!.socialIntel && (
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '10px', color: '#666' }}>
+                  <span>Posts: {data!.socialIntel.totalPosts}</span>
+                  <span>Tone: <span style={{
+                    color: data!.socialIntel.tone === 'confirmed' ? '#E31B23' : data!.socialIntel.tone === 'speculative' ? '#FFB800' : '#888',
+                    textTransform: 'uppercase',
+                  }}>{data!.socialIntel.tone}</span></span>
+                </div>
+              )}
+            </Section>
+
+            {/* Methodology */}
+            <Section title="METHODOLOGY">
+              {data!.ctiAnalysis?.analystBrief && (
+                <div style={{
+                  padding: '10px', background: '#111', borderRadius: '6px',
+                  border: '1px solid #222', marginBottom: '12px',
+                  fontSize: '11px', color: '#aaa', lineHeight: 1.5, fontFamily: 'monospace',
+                }}>
+                  {data!.ctiAnalysis.analystBrief}
+                </div>
+              )}
+              {data!.ctiAnalysis?.methodologies && data!.ctiAnalysis.methodologies.length > 0 && (
+                <div style={{ marginBottom: '12px' }}>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Analysis Methods</span>
+                  <div style={{ marginTop: '6px' }}>
+                    {data!.ctiAnalysis.methodologies.map((m, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontSize: '10px', color: '#888' }}>
+                        <span style={{ color: '#00D26A' }}>✓</span> {m}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {data!.modelMetadata && (
+                <div>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Models Used</span>
+                  <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #222', fontSize: '10px', fontFamily: 'monospace' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ color: '#666' }}>Strategic</span>
+                      <span style={{ color: '#8B5CF6' }}>{data!.modelMetadata.strategic}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ color: '#666' }}>Technical</span>
+                      <span style={{ color: '#F59E0B' }}>{data!.modelMetadata.technical}</span>
+                    </div>
+                    {data!.modelMetadata.quantization && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ color: '#666' }}>Quantization</span>
+                        <span style={{ color: '#888' }}>{data!.modelMetadata.quantization}</span>
+                      </div>
+                    )}
+                    {data!.modelMetadata.version && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#666' }}>Version</span>
+                        <span style={{ color: '#888' }}>{data!.modelMetadata.version}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </Section>
+          </div>
+
+          {/* Right Column */}
+          <div>
+            {/* Data Sources */}
+            <Section title="DATA SOURCES">
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px',
+              }}>
+                {/* Shodan */}
+                <a href="https://www.shodan.io/dashboard" target="_blank" rel="noopener noreferrer" style={{
+                  padding: '12px', background: '#111', borderRadius: '8px',
+                  border: '1px solid #3B82F630', textDecoration: 'none',
+                  display: 'flex', flexDirection: 'column', gap: '6px',
+                  transition: 'all 0.2s ease', cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#3B82F680'; (e.currentTarget as HTMLElement).style.background = '#3B82F610'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#3B82F630'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>🔍</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6' }}>Shodan</span>
+                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#666' }}>{data!.infrastructure?.totalHosts || 0} hosts scanned</span>
+                </a>
+
+                {/* X.com / Social */}
+                <a href={`https://x.com/search?q=${encodeURIComponent(data!.indicators?.keywords?.[0] || 'cybersecurity')}`} target="_blank" rel="noopener noreferrer" style={{
+                  padding: '12px', background: '#111', borderRadius: '8px',
+                  border: '1px solid #00D26A30', textDecoration: 'none',
+                  display: 'flex', flexDirection: 'column', gap: '6px',
+                  transition: 'all 0.2s ease', cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#00D26A80'; (e.currentTarget as HTMLElement).style.background = '#00D26A10'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#00D26A30'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>𝕏</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#00D26A' }}>X.com Intel</span>
+                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#666' }}>{data!.socialIntel?.totalPosts || 0} posts analyzed</span>
+                </a>
+
+                {/* NVD */}
+                <a href="https://nvd.nist.gov/" target="_blank" rel="noopener noreferrer" style={{
+                  padding: '12px', background: '#111', borderRadius: '8px',
+                  border: '1px solid #E31B2330', textDecoration: 'none',
+                  display: 'flex', flexDirection: 'column', gap: '6px',
+                  transition: 'all 0.2s ease', cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#E31B2380'; (e.currentTarget as HTMLElement).style.background = '#E31B2310'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#E31B2330'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>🛡</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#E31B23' }}>NVD / NIST</span>
+                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#666' }}>{data!.indicators?.cves?.length || 0} CVEs referenced</span>
+                </a>
+
+                {/* MITRE ATT&CK */}
+                <a href="https://attack.mitre.org/" target="_blank" rel="noopener noreferrer" style={{
+                  padding: '12px', background: '#111', borderRadius: '8px',
+                  border: '1px solid #8B5CF630', textDecoration: 'none',
+                  display: 'flex', flexDirection: 'column', gap: '6px',
+                  transition: 'all 0.2s ease', cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#8B5CF680'; (e.currentTarget as HTMLElement).style.background = '#8B5CF610'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#8B5CF630'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>🎯</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#8B5CF6' }}>MITRE ATT&CK</span>
+                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                  </div>
+                  <span style={{ fontSize: '10px', color: '#666' }}>Kill chain: {data!.ctiAnalysis?.killChainPhase || 'N/A'}</span>
+                </a>
+              </div>
+            </Section>
+
+            {/* Indicators */}
+            <Section title="INDICATORS">
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>CVEs</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                  {data!.indicators.cves?.map((cve, i) => (
+                    <a key={i} href={`https://nvd.nist.gov/vuln/detail/${cve}`} target="_blank" rel="noopener noreferrer" style={{
+                      padding: '4px 8px', background: '#E31B2320', border: '1px solid #E31B23',
+                      borderRadius: '4px', fontSize: '10px', color: '#E31B23', fontFamily: 'monospace',
+                      textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                      transition: 'all 0.2s ease', cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E31B2340'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#E31B2320'; }}
+                    >
+                      🛡 {cve} <span style={{ fontSize: '9px', opacity: 0.6 }}>↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Threat Categories</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                  {data!.indicators.keywords?.map((kw, i) => (
+                    <span key={i} style={{
+                      padding: '4px 8px', background: '#8B5CF620', border: '1px solid #8B5CF6',
+                      borderRadius: '4px', fontSize: '10px', color: '#8B5CF6',
+                    }}>
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {data!.indicators.domains && data!.indicators.domains.length > 0 && (
+                <div>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Domains</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                    {data!.indicators.domains.map((domain, i) => (
+                      <a key={i} href={`https://www.virustotal.com/gui/domain/${domain}`} target="_blank" rel="noopener noreferrer" style={{
+                        padding: '4px 8px', background: '#3B82F620', border: '1px solid #3B82F6',
+                        borderRadius: '4px', fontSize: '10px', color: '#3B82F6', fontFamily: 'monospace',
+                        textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        transition: 'all 0.2s ease', cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#3B82F640'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#3B82F620'; }}
+                      >
+                        🔍 {domain} <span style={{ fontSize: '9px', opacity: 0.6 }}>↗</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Section>
+
+            {/* Infrastructure */}
+            {data!.infrastructure && (
+              <Section title="INFRASTRUCTURE">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <MetricBox label="Hosts" value={data!.infrastructure.totalHosts} color="#3B82F6" />
+                  <MetricBox label="Vulnerable" value={data!.infrastructure.vulnerableHosts} color="#E31B23" />
+                  <MetricBox label="Vuln %" value={Math.round((data!.infrastructure.vulnerableHosts / Math.max(data!.infrastructure.totalHosts, 1)) * 100)} color="#FF6B35" />
+                </div>
+                {data!.infrastructure.exposedPorts && data!.infrastructure.exposedPorts.length > 0 && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Exposed Ports</span>
+                    <div style={{ marginTop: '6px' }}>
+                      {data!.infrastructure.exposedPorts.map((port, i) => (
+                        <a key={i} href={`https://www.shodan.io/search?query=port:${port.port}`} target="_blank" rel="noopener noreferrer" style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '6px 8px', background: i % 2 === 0 ? '#111' : 'transparent',
+                          borderRadius: '4px', fontSize: '11px', textDecoration: 'none',
+                          transition: 'all 0.2s ease', cursor: 'pointer',
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.1)'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#111' : 'transparent'; }}
+                        >
+                          <span style={{ color: '#F59E0B', fontFamily: 'monospace', width: '50px' }}>{port.port}</span>
+                          <span style={{ color: '#aaa', flex: 1 }}>{port.service}</span>
+                          <span style={{ color: '#666', fontSize: '10px', marginRight: '8px' }}>{port.count} ({port.percentage}%)</span>
+                          <span style={{ color: '#3B82F680', fontSize: '10px' }}>🔍↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {data!.infrastructure.topCountries && data!.infrastructure.topCountries.length > 0 && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Top Countries</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                      {data!.infrastructure.topCountries.map((c, i) => (
+                        <span key={i} style={{
+                          padding: '4px 8px', background: '#3B82F615', border: '1px solid #3B82F640',
+                          borderRadius: '4px', fontSize: '10px', color: '#3B82F6', fontFamily: 'monospace',
+                        }}>
+                          {c.country}: {c.count}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {data!.infrastructure.sampleHosts && data!.infrastructure.sampleHosts.length > 0 && (
+                  <div>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Vulnerable Hosts (Sample)</span>
+                    <div style={{ marginTop: '6px' }}>
+                      {data!.infrastructure.sampleHosts.map((host, i) => (
+                        <div key={i} style={{
+                          padding: '8px', background: '#111', borderRadius: '4px',
+                          border: '1px solid #E31B2320', marginBottom: '4px',
+                          fontSize: '10px', fontFamily: 'monospace',
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ color: '#E31B23' }}>{host.ip}:{host.port}</span>
+                            <span style={{ color: '#888' }}>{host.service}</span>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {host.vulns.map((v, vi) => (
+                              <a key={vi} href={`https://nvd.nist.gov/vuln/detail/${v}`} target="_blank" rel="noopener noreferrer" style={{
+                                padding: '2px 6px', background: '#E31B2315', borderRadius: '3px', color: '#E31B23', fontSize: '9px',
+                                textDecoration: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
+                              }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E31B2335'; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#E31B2315'; }}
+                              >{v} ↗</a>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Section>
+            )}
+
+            {/* Assessment Details */}
+            {data!.assessmentLayer && (
+              <Section title="ASSESSMENT DETAILS">
+                {data!.assessmentLayer.narrative && (
+                  <div style={{
+                    padding: '12px', background: '#0f1a0f', borderRadius: '8px',
+                    border: '1px solid #00D26A20', marginBottom: '12px',
+                    fontSize: '12px', color: '#aaa', lineHeight: 1.6, fontStyle: 'italic',
+                  }}>
+                    {data!.assessmentLayer.narrative}
+                  </div>
+                )}
+                {data!.assessmentLayer.freshness && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Data Freshness</span>
+                    <div style={{ marginTop: '6px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ padding: '8px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: data!.assessmentLayer.freshness.status === 'stale' ? '#E31B23' : data!.assessmentLayer.freshness.status === 'moderate' ? '#FFB800' : '#00D26A', fontFamily: 'Space Grotesk' }}>
+                          {(data!.assessmentLayer.freshness.freshnessScore * 100).toFixed(0)}%
+                        </div>
+                        <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>Score</div>
+                      </div>
+                      <div style={{ padding: '8px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
+                        <div style={{
+                          fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
+                          color: data!.assessmentLayer.freshness.status === 'stale' ? '#E31B23' : data!.assessmentLayer.freshness.status === 'moderate' ? '#FFB800' : '#00D26A',
+                        }}>
+                          {data!.assessmentLayer.freshness.status}
+                        </div>
+                        <div style={{ fontSize: '9px', color: '#666', marginTop: '2px' }}>
+                          Social: {data!.assessmentLayer.freshness.socialAgeHours.toFixed(1)}h | Infra: {data!.assessmentLayer.freshness.infraAgeHours.toFixed(1)}h
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {data!.assessmentLayer.baselineComparison && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Baseline Comparison</span>
+                    <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #222' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#888' }}>Previous Score</span>
+                        <span style={{ fontSize: '14px', fontWeight: 700, color: '#666', fontFamily: 'Space Grotesk' }}>
+                          {data!.assessmentLayer.baselineComparison.previousRiskScore}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#888' }}>Current Score</span>
+                        <span style={{ fontSize: '14px', fontWeight: 700, color: riskColor, fontFamily: 'Space Grotesk' }}>
+                          {data!.assessmentLayer.baselineComparison.currentRiskScore}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: '#888' }}>Delta</span>
+                        <span style={{
+                          fontSize: '14px', fontWeight: 700, fontFamily: 'Space Grotesk',
+                          color: data!.assessmentLayer.baselineComparison.delta > 0 ? '#E31B23' : data!.assessmentLayer.baselineComparison.delta < 0 ? '#00D26A' : '#666',
+                        }}>
+                          {data!.assessmentLayer.baselineComparison.delta > 0 ? '+' : ''}{data!.assessmentLayer.baselineComparison.delta}
+                          {data!.assessmentLayer.baselineComparison.anomalyLevel && (
+                            <span style={{ fontSize: '10px', color: '#666', marginLeft: '8px', fontWeight: 400 }}>
+                              ({data!.assessmentLayer.baselineComparison.anomalyLevel})
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {data!.assessmentLayer.classification?.rationale && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Classification Rationale</span>
+                    <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #8B5CF620', fontSize: '11px', color: '#aaa', lineHeight: 1.5 }}>
+                      {data!.assessmentLayer.classification.rationale}
+                      {data!.assessmentLayer.classification.indicators && data!.assessmentLayer.classification.indicators.length > 0 && (
+                        <div style={{ marginTop: '8px' }}>
+                          {data!.assessmentLayer.classification.indicators.map((ind, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '10px', color: '#888' }}>
+                              <span style={{ color: '#8B5CF6' }}>▸</span> {ind}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {data!.assessmentLayer.correlation?.factors && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Correlation Factors</span>
+                    <div style={{ marginTop: '6px' }}>
+                      {Object.entries(data!.assessmentLayer.correlation.factors).map(([key, value], i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '10px', color: '#888', width: '120px', textTransform: 'capitalize' }}>
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                          <div style={{ flex: 1, height: '4px', background: '#222', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ width: `${(value as number) * 100}%`, height: '100%', background: (value as number) > 0.5 ? '#00D26A' : (value as number) > 0.2 ? '#FFB800' : '#E31B23', transition: 'width 0.5s' }} />
+                          </div>
+                          <span style={{ fontSize: '10px', color: '#666', width: '35px', textAlign: 'right' }}>
+                            {((value as number) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {data!.assessmentLayer.iocStats && (
+                  <div>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Indicator Statistics</span>
+                    <div style={{ marginTop: '6px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                      <div style={{ padding: '6px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#E31B23', fontFamily: 'Space Grotesk' }}>{data!.assessmentLayer.iocStats.uniqueCVECount}</div>
+                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>CVEs</div>
+                      </div>
+                      <div style={{ padding: '6px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#3B82F6', fontFamily: 'Space Grotesk' }}>{data!.assessmentLayer.iocStats.uniqueDomainCount}</div>
+                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>Domains</div>
+                      </div>
+                      <div style={{ padding: '6px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#00D26A', fontFamily: 'Space Grotesk' }}>{data!.assessmentLayer.iocStats.totalIndicators}</div>
+                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>Total</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Section>
+            )}
+
+            {/* Recommended Actions */}
+            <Section title="RECOMMENDED ACTIONS">
+              <div style={{
+                padding: '16px',
+                background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
+                borderRadius: '12px', border: '1px solid #E31B2340',
+                boxShadow: '0 0 30px rgba(227, 27, 35, 0.1)',
+              }}>
+                <div style={{ fontSize: '10px', color: '#E31B23', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Mitigation Steps
+                </div>
+                {data!.executive.recommendedActions
+                  ?.filter(action => action.length > 15 && !action.match(/^(RECOMMENDED|ACTIONS?\*)/i))
+                  .map((action, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '12px',
+                    marginBottom: '12px', padding: '10px',
+                    background: 'rgba(0, 0, 0, 0.3)', borderRadius: '6px',
+                  }}>
+                    <div style={{
+                      width: '24px', height: '24px', borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #E31B23 0%, #FF6B35 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '12px', fontWeight: 700, color: '#fff', flexShrink: 0,
+                    }}>
+                      {i + 1}
+                    </div>
+                    <span style={{
+                      fontSize: '12px', color: '#ccc', lineHeight: 1.5, paddingTop: '2px',
+                    }}>
+                      {action.replace(/^\.\s*/, '').replace(/\*\*/g, '')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div style={{ 
-      height: '100vh', 
-      display: 'flex', 
+    <div style={{
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
       background: '#0a0a0a',
       color: '#fff',
       fontFamily: 'Inter, sans-serif',
       overflow: 'hidden',
     }}>
-      {/* Left Panel - Analysis & Metrics (Primary Content) */}
+      {/* ── Top Bar: Header + Tab Navigation ── */}
       <div style={{
-        width: '400px',
-        minWidth: '400px',
-        background: 'linear-gradient(180deg, #111 0%, #0a0a0a 100%)',
-        borderRight: '1px solid #222',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
+        background: 'linear-gradient(180deg, #111 0%, #0d0d0d 100%)',
+        borderBottom: '1px solid #222',
+        padding: '0 32px',
+        flexShrink: 0,
       }}>
-        {/* Header */}
+        {/* Header Row */}
         <div style={{
-          padding: '24px',
-          borderBottom: '1px solid #222',
-          background: 'linear-gradient(180deg, #111 0%, #0a0a0a 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 0 0',
         }}>
-          <div style={{ 
-            fontFamily: 'Space Grotesk, sans-serif', 
-            fontSize: '20px', 
-            fontWeight: 700,
-            color: '#00D26A',
-            marginBottom: '8px',
-            letterSpacing: '1px',
-          }}>
-            THREAT INTELLIGENCE
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: '20px',
+              fontWeight: 700,
+              color: '#00D26A',
+              letterSpacing: '1px',
+            }}>
+              THREAT INTELLIGENCE
+            </div>
+            <div style={{
+              padding: '3px 10px',
+              borderRadius: '12px',
+              background: `${riskColor}20`,
+              border: `1px solid ${riskColor}60`,
+              color: riskColor,
+              fontSize: '10px',
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+            }}>
+              {data!.status.riskLevel.toUpperCase()} • {data!.status.riskScore}/100
+            </div>
           </div>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Generated: {new Date(data.meta.generatedAt).toLocaleString()}
+          <div style={{ fontSize: '11px', color: '#555' }}>
+            Generated: {new Date(data!.meta.generatedAt).toLocaleString()}
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
-          {/* Risk Score Section */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              marginBottom: '12px',
-            }}>
-              <span style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Risk Score
-              </span>
-              <span style={{
-                padding: '4px 12px',
-                borderRadius: '20px',
-                background: `${riskColor}20`,
-                border: `1px solid ${riskColor}`,
-                color: riskColor,
-                fontSize: '11px',
-                fontWeight: 600,
-              }}>
-                {data.status.riskLevel.toUpperCase()}
-              </span>
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {/* Ring Gauge */}
-              <div style={{ position: 'relative', width: '80px', height: '80px' }}>
-                <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="10" />
-                  <circle 
-                    cx="50" cy="50" r="40" fill="none" 
-                    stroke={riskColor} strokeWidth="10"
-                    strokeDasharray={`${data.status.riskScore * 2.51} 251`}
-                    style={{ transition: 'stroke-dasharray 1s ease' }}
-                  />
-                </svg>
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'column',
-                }}>
-                  <span style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'Space Grotesk' }}>
-                    {data.status.riskScore}
-                  </span>
-                  <span style={{ fontSize: '10px', color: '#666' }}>/100</span>
-                </div>
-              </div>
-              
-              {/* Metrics */}
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <MetricBox label="Critical" value={data.metrics.criticalCount} color="#E31B23" />
-                  <MetricBox label="High" value={data.metrics.highCount} color="#FF6B35" />
-                  <MetricBox label="Medium" value={data.metrics.mediumCount} color="#FFB800" />
-                  <MetricBox label="Low" value={data.metrics.lowCount} color="#00D26A" />
-                </div>
-              </div>
-            </div>
-            
-            {/* Trend */}
-            <div style={{ 
-              marginTop: '12px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              fontSize: '12px',
-              color: data.status.trend === 'decreasing' ? '#00D26A' : '#E31B23',
-            }}>
-              <span>{data.status.trend === 'decreasing' ? '↓' : '↑'}</span>
-              <span>Trend: {data.status.trend.charAt(0).toUpperCase() + data.status.trend.slice(1)}</span>
-              <span style={{ color: '#666', marginLeft: '8px' }}>
-                Confidence: {data.status.confidenceLevel}%
-              </span>
-            </div>
-          </div>
-
-          {/* Executive Summary - PROMINENT */}
-          <Section title="EXECUTIVE SUMMARY">
-            <div style={{
-              padding: '16px',
-              background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
-              borderRadius: '12px',
-              border: `1px solid ${riskColor}40`,
-              boxShadow: `0 0 30px ${riskColor}15`,
-            }}>
-              <div style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '12px',
-              }}>
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: riskColor,
-                  boxShadow: `0 0 10px ${riskColor}`,
-                }} />
-                <div style={{ 
-                  fontSize: '16px', 
-                  fontWeight: 700, 
-                  color: riskColor,
-                  fontFamily: 'Space Grotesk',
-                }}>
-                  {data.executive.headline}
-                </div>
-              </div>
-              <p style={{ 
-                fontSize: '13px', 
-                color: '#aaa', 
-                lineHeight: 1.7,
-                whiteSpace: 'pre-line',
-              }}>
-                {data.executive.summary.replace(/\*\*/g, '')}
-              </p>
-              
-              {/* Key Findings Highlight */}
-              {data.executive.keyFindings && data.executive.keyFindings.length > 0 && (
-                <div style={{ 
-                  marginTop: '16px', 
-                  padding: '12px',
-                  background: 'rgba(0, 210, 106, 0.1)',
-                  borderRadius: '8px',
-                  border: '1px solid #00D26A30',
-                }}>
-                  <div style={{ fontSize: '10px', color: '#00D26A', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    Key Findings
-                  </div>
-                  {data.executive.keyFindings.map((finding, i) => (
-                    <div key={i} style={{ 
-                      fontSize: '12px', 
-                      color: '#ccc', 
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '8px',
-                      marginBottom: '4px',
-                    }}>
-                      <span style={{ color: '#00D26A' }}>▸</span>
-                      <span>{finding}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Section>
-
-          {/* CTI Analysis - PRIMARY */}
-          <Section title="THREAT ANALYSIS">
-            <div style={{
-              padding: '16px',
-              background: '#0a0a0a',
-              borderRadius: '8px',
-              border: '1px solid #00D26A30',
-              boxShadow: '0 0 20px rgba(0, 210, 106, 0.1)',
-            }}>
-              {/* Kill Chain */}
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Kill Chain Phase</span>
-                <div style={{ 
-                  marginTop: '4px',
-                  padding: '6px 12px',
-                  background: '#F59E0B20',
-                  border: '1px solid #F59E0B',
-                  borderRadius: '4px',
-                  color: '#F59E0B',
+        {/* Tab Bar */}
+        <div style={{
+          display: 'flex',
+          gap: '4px',
+          marginTop: '12px',
+        }}>
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: '10px 20px',
+                  background: isActive
+                    ? 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)'
+                    : 'transparent',
+                  border: isActive
+                    ? '1px solid #333'
+                    : '1px solid transparent',
+                  borderBottom: isActive
+                    ? '1px solid #0a0a0a'
+                    : '1px solid transparent',
+                  borderRadius: '8px 8px 0 0',
+                  color: isActive ? '#fff' : '#666',
+                  cursor: 'pointer',
                   fontSize: '12px',
-                  fontWeight: 600,
-                  display: 'inline-block',
-                }}>
-                  {data.ctiAnalysis?.killChainPhase || 'N/A'}
-                </div>
-              </div>
-
-              {/* Correlation */}
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Correlation Strength</span>
-                <div style={{ 
-                  marginTop: '4px',
+                  fontWeight: isActive ? 600 : 400,
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  letterSpacing: '0.5px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
+                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  bottom: '-1px',
+                  marginBottom: 0,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLButtonElement).style.color = '#aaa';
+                    (e.currentTarget as HTMLButtonElement).style.background = '#ffffff08';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLButtonElement).style.color = '#666';
+                    (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                  }
+                }}
+              >
+                <span style={{
+                  fontSize: '14px',
+                  color: isActive ? '#00D26A' : '#555',
+                  transition: 'color 0.2s ease',
                 }}>
-                  <div style={{
-                    width: '100px',
-                    height: '6px',
-                    background: '#222',
-                    borderRadius: '3px',
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      width: `${(data.assessmentLayer?.correlation?.score || 0) * 100}%`,
-                      height: '100%',
-                      background: data.assessmentLayer?.correlation?.strength === 'weak' ? '#E31B23' : '#00D26A',
-                      transition: 'width 0.5s ease',
-                    }} />
-                  </div>
-                  <span style={{ 
-                    fontSize: '11px', 
-                    color: data.assessmentLayer?.correlation?.strength === 'weak' ? '#E31B23' : '#00D26A',
-                    textTransform: 'uppercase',
-                  }}>
-                    {data.assessmentLayer?.correlation?.strength || 'N/A'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Classification */}
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Classification</span>
-                <div style={{ 
-                  marginTop: '4px',
-                  padding: '6px 12px',
-                  background: '#8B5CF620',
-                  border: '1px solid #8B5CF6',
-                  borderRadius: '4px',
-                  color: '#8B5CF6',
-                  fontSize: '12px',
-                }}>
-                  {(data.assessmentLayer?.classification?.type || 'opportunistic').toUpperCase()} 
-                  <span style={{ color: '#666', marginLeft: '8px' }}>
-                    {(data.assessmentLayer?.classification?.confidence || 30)}% confidence
-                  </span>
-                </div>
-              </div>
-
-              {/* Technical Assessment - Terminal Style */}
-              <div>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Technical Assessment</span>
-                <div style={{
-                  marginTop: '8px',
-                  padding: '12px',
-                  background: '#000',
-                  borderRadius: '6px',
-                  border: '1px solid #222',
-                  fontSize: '11px',
-                  fontFamily: 'monospace',
-                  color: '#00D26A',
-                  maxHeight: '150px',
-                  overflow: 'auto',
-                  lineHeight: 1.5,
-                }}>
-                  <div style={{ marginBottom: '8px', color: '#666' }}>
-                    {`> ANALYZING THREAT INDICATORS...`}
-                  </div>
-                  {data.ctiAnalysis?.technicalAssessment?.substring(0, 400) || 'No technical assessment available'}
-                  <div style={{ marginTop: '8px', color: '#666' }}>
-                    {`> ANALYSIS COMPLETE`}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* Indicators */}
-          <Section title="INDICATORS">
-            {/* CVEs */}
-            <div style={{ marginBottom: '12px' }}>
-              <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>CVEs</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                {data.indicators.cves?.map((cve, i) => (
-                  <span key={i} style={{
-                    padding: '4px 8px',
-                    background: '#E31B2320',
-                    border: '1px solid #E31B23',
-                    borderRadius: '4px',
-                    fontSize: '10px',
-                    color: '#E31B23',
-                    fontFamily: 'monospace',
-                  }}>
-                    {cve}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Keywords */}
-            <div>
-              <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Threat Categories</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                {data.indicators.keywords?.map((kw, i) => (
-                  <span key={i} style={{
-                    padding: '4px 8px',
-                    background: '#8B5CF620',
-                    border: '1px solid #8B5CF6',
-                    borderRadius: '4px',
-                    fontSize: '10px',
-                    color: '#8B5CF6',
-                  }}>
-                    {kw}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </Section>
-
-          {/* Social Intel */}
-          <Section title="SOCIAL INTELLIGENCE">
-            {data.socialIntel?.topPosts?.slice(0, 3).map((post, i) => (
-              <div key={i} style={{
-                padding: '12px',
-                background: '#111',
-                borderRadius: '6px',
-                border: '1px solid #222',
-                marginBottom: '8px',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#00D26A' }}>
-                    @{post.author}
-                  </span>
-                  <span style={{ fontSize: '10px', color: '#666' }}>
-                    {post.engagement} engagement
-                  </span>
-                </div>
-                <p style={{ fontSize: '11px', color: '#888', lineHeight: 1.5 }}>
-                  {post.excerpt.substring(0, 120)}...
-                </p>
-              </div>
-            ))}
-          </Section>
-
-          {/* Recommended Actions - PROMINENT */}
-          <Section title="RECOMMENDED ACTIONS">
-            <div style={{
-              padding: '16px',
-              background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
-              borderRadius: '12px',
-              border: '1px solid #E31B2340',
-              boxShadow: '0 0 30px rgba(227, 27, 35, 0.1)',
-            }}>
-              <div style={{ fontSize: '10px', color: '#E31B23', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Mitigation Steps
-              </div>
-              {data.executive.recommendedActions?.map((action, i) => (
-                <div key={i} style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px',
-                  marginBottom: '12px',
-                  padding: '10px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  borderRadius: '6px',
-                }}>
-                  <div style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #E31B23 0%, #FF6B35 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#fff',
-                    flexShrink: 0,
-                  }}>
-                    {i + 1}
-                  </div>
-                  <span style={{
-                    fontSize: '12px',
-                    color: '#ccc',
-                    lineHeight: 1.5,
-                    paddingTop: '2px',
-                  }}>
-                    {action.replace(/^\.\s*/, '')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Section>
+                  {tab.icon}
+                </span>
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Right Panel - Interactive Graph */}
-      <div style={{ flex: 1, position: 'relative' }}>
-        {/* Graph Header */}
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          zIndex: 10,
-          padding: '12px 20px',
-          background: 'rgba(10, 10, 10, 0.9)',
-          borderRadius: '8px',
-          border: '1px solid #222',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <div style={{ 
-            fontFamily: 'Space Grotesk', 
-            fontSize: '14px', 
-            fontWeight: 600,
-            color: '#fff',
-          }}>
-            CORRELATION TOPOLOGY
-          </div>
-          <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
-            Interactive Threat Map • {data.metrics.totalSignals} Signals
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '20px',
-          zIndex: 10,
-          padding: '12px 16px',
-          background: 'rgba(10, 10, 10, 0.9)',
-          borderRadius: '8px',
-          border: '1px solid #222',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <div style={{ fontSize: '10px', color: '#666', marginBottom: '8px', textTransform: 'uppercase' }}>Legend</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '10px' }}>
-            <LegendItem color="#E31B23" label="CVEs" />
-            <LegendItem color="#3B82F6" label="Domains" />
-            <LegendItem color="#8B5CF6" label="Keywords" />
-            <LegendItem color="#00D26A" label="Actors" />
-            <LegendItem color="#F59E0B" label="Kill Chain" />
-          </div>
-        </div>
-
-        {/* React Flow Graph */}
-        <ReactFlow
-          nodes={computedNodes}
-          edges={computedEdges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          onEdgeClick={(_, edge) => onConnectionClick(edge.id)}
-          onNodeDragStart={() => setIsDragging(true)}
-          onNodeDragStop={() => setIsDragging(false)}
-          onPaneClick={onPaneClick}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          style={{ background: '#0a0a0a' }}
-          defaultEdgeOptions={{
-            type: 'smoothstep',
-          }}
-        >
-          <Background color="#222" gap={30} size={1} />
-          <Controls 
-            style={{ 
-              background: '#111', 
-              border: '1px solid #222',
-              borderRadius: '8px',
-            }} 
-          />
-          <MiniMap 
-            nodeColor={(node) => {
-              const type = node.data?.type || 'default';
-              const colors: Record<string, string> = {
-                cve: '#E31B23',
-                domain: '#3B82F6',
-                keyword: '#8B5CF6',
-                actor: '#00D26A',
-                killchain: '#F59E0B',
-                root: '#00D26A',
-              };
-              return colors[type] || '#6B7280';
-            }}
-            style={{ 
-              background: '#111', 
-              border: '1px solid #222',
-              borderRadius: '8px',
-            }}
-            maskColor="rgba(0, 0, 0, 0.8)"
-          />
-        </ReactFlow>
-      </div>
+      {/* ── Panel Content ── */}
+      {activeTab === 'executive' && renderExecutivePanel()}
+      {activeTab === 'correlation' && renderCorrelationPanel()}
+      {activeTab === 'detail' && renderDetailPanel()}
     </div>
   );
 };
