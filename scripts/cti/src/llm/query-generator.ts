@@ -280,4 +280,4 @@ Your JSON response:`;
   }
 }
 
-export defa
+export default QueryGenerator;
