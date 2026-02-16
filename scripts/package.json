@@ -1,0 +1,12 @@
+{
+  "name": "cti-translator",
+  "version": "1.0.0",
+  "description": "Traductor de CTI dashboard al español",
+  "main": "cti-translator.js",
+  "scripts": {
+    "translate": "node cti-translator.js"
+  },
+  "dependencies": {
+    "@parvineyvazov/json-translator": "^4.0.0"
+  }
+}

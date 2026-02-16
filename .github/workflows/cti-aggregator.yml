@@ -160,6 +160,16 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+      - name: Translate Dashboard to Spanish
+        if: ${{ success() }}
+        working-directory: ./scripts
+        run: |
+          echo "=== INSTALANDO DEPENDENCIAS DE TRADUCCIÓN ==="
+          npm install
+          echo "=== TRADUCIENDO DASHBOARD AL ESPAÑOL ==="
+          node cti-translator.js
+          echo "✓ Traducción completada"
+
       - name: Clear Cloudflare Cache
         if: ${{ success() }}
         run: |
@@ -174,5 +184,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add ./eccentric-equator/public/data/cti-dashboard.json || true
+          git add ./eccentric-equator/public/data/cti-dashboard-es.json || true
           git diff --staged --quiet || git commit -m "chore: update CTI intelligence dashboard [cache-busted]"
           git push || true
