@@ -1,189 +1,159 @@
 {
   "meta": {
     "version": "3.0.0",
-    "generatedAt": "2026-02-16T07:27:50.170Z",
-    "validUntil": "2026-02-16T13:27:50.170Z"
+    "generatedAt": "2026-02-16T15:15:58.538Z",
+    "validUntil": "2026-02-16T21:15:58.538Z"
   },
   "status": {
     "riskLevel": "low",
-    "riskScore": 14,
+    "riskScore": 7,
     "trend": "decreasing",
-    "confidenceLevel": 71
+    "confidenceLevel": 35
   },
   "executive": {
     "headline": "LOW: Routine monitoring active",
-    "summary": "The current threat landscape presents an opportunistic level of concern with our quantified assessment scoring at the lower end - specifically rated as 'low' on both severity (14/100) and confidence levels for targeted threats, which is indicative that routine monitoring suffices in this environment. Our social intelligence has not yielded any significant themes or vulnerabilities to be concerned about. The infrastructure analysis reveals a small number of vulnerable systems; however, these are mitigated by the high data freshness score indicating recent updates (92%). Overall, our current posture aligns with maintaining standard security protocols without immediate escalation required for threat mitigation strategies. KEY FINDINGS:",
+    "summary": "Our current threat landscape assessment indicates an opportunistic level of cyber threats with moderate confidence in the intelligence gathered; however, no immediate action is required due to its classified as targeted nature but still maintaining a low risk score (7/100). The themes identified—ransomware attacks and data breaches—involve vulnerabilities that are not currently exploited within our infrastructure. With weak correlation between social intel and actual vulnerability status on-site coupled with moderate freshness of the intelligence, we maintain routine monitoring protocols. Key Findings:",
     "keyFindings": [
-      "20 CVE references identified in infrastructure",
-      "3 vulnerable hosts detected (3.0%)"
+      "Active social discussion: ransomware attacks, data breaches"
     ],
     "recommendedActions": [
-      "1. Routine Monitoring: Continue to monitor network traffic for any unusual activity or potential exploitation attempts against known vulnerabilities.",
-      "Patch Management Review: Ensure all systems are up-to-date with the latest patches; given our high data freshness score, there should be no significant lag in applying security updates across vulnerable hosts identified (Pure-FTPd and Apache httpd).",
-      "Security Awareness Training: Reinforce regular training for staff to recognize potential threats that could exploit these vulnerabilities if left unaddressed.",
-      "Regular Vulnerability Scanning: Schedule routine scans of the network infrastructure, focusing on identifying any new or previously missed vulnerable systems.",
-      "level weaknesses within our current environment - particularly Pure-FTPd and Apache httpd services running across three hosts out of 100 total servers – these vulnerabilities currently pose minimal threat given their isolated nature. The high data freshness score further supports this low-risk assessment by ensuring that the intelligence is up-to-date, allowing for proactive measures to be taken without immediate escalation in security protocols or resources allocated towards mitigation efforts at present."
+      "/100). The themes identified—ransomware attacks and data breaches—involve vulnerabilities that are not currently exploited within our infrastructure. With weak correlation between social intel and actual vulnerability status on-site coupled with moderate freshness of the intelligence, we maintain routine monitoring protocols.",
+      "Opportunistic Threats - Social Intelligence suggests a 30% confidence level in opportunistic threats like ransomware attacks; however, no current vulnerabilities are identified within our infrastructure.",
+      "Weak Correlation and Moderate Freshness - The weak correlation (14%) between social intel themes such as CVEs discussed indicates that while there is awareness of potential risks from the broader cyber threat landscape, these do not directly correlate with immediate vulnerability status in your systems; additionally, moderate data freshness suggests a need for continuous monitoring.",
+      "No Immediate Vulnerabilities Detected - Our infrastructure assessment shows no hosts or services currently vulnerable to exploitation.",
+      "%) between the social intelligence themes and our current infrastructural vulnerabilities indicates that while there is awareness of potential threats in broader discussions, these do not directly translate into immediate risks for your systems. This suggests a need for ongoing vigilance but does not necessitate urgent action at this time."
     ]
   },
   "metrics": {
-    "totalSignals": 9,
+    "totalSignals": 11,
     "criticalCount": 0,
     "highCount": 1,
     "mediumCount": 3,
-    "lowCount": 5,
+    "lowCount": 7,
     "categories": [
       {
-        "name": "Vulnerability",
-        "count": 20,
-        "percentage": 87
-      },
-      {
-        "name": "Infrastructure",
+        "name": "Threat Intel",
         "count": 3,
-        "percentage": 13
+        "percentage": 100
       }
     ]
   },
   "timeline": [
     {
-      "id": "infra_1771226870170",
-      "title": "Vulnerable Infrastructure Detected (3 hosts)",
-      "severity": "high",
-      "category": "Infrastructure",
-      "timestamp": "2026-02-16T07:27:50.170Z"
+      "id": "social_1771254958538_0",
+      "title": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / ...",
+      "severity": "medium",
+      "category": "Social Intel",
+      "timestamp": "2026-02-16T15:15:58.538Z",
+      "sourceUrl": "https://x.com/Dogi1313/status/2023048301424123910"
+    },
+    {
+      "id": "social_1771254958538_1",
+      "title": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWash...",
+      "severity": "medium",
+      "category": "Social Intel",
+      "timestamp": "2026-02-16T15:15:58.538Z",
+      "sourceUrl": "https://x.com/H4ckmanac/status/2023039654883160406"
+    },
+    {
+      "id": "social_1771254958538_2",
+      "title": " Of course CARESTL Health \"CLOSED\" 3 north county locations ...",
+      "severity": "medium",
+      "category": "Social Intel",
+      "timestamp": "2026-02-16T15:15:58.538Z",
+      "sourceUrl": "https://x.com/0708America/status/2023017971770355759"
     }
   ],
   "sources": [
     {
       "name": "X.com Social Intel",
-      "signalCount": 0,
-      "lastUpdate": "2026-02-16T07:27:50.170Z"
+      "signalCount": 5,
+      "lastUpdate": "2026-02-16T15:15:58.538Z"
     },
     {
       "name": "Shodan Infrastructure",
-      "signalCount": 100,
-      "lastUpdate": "2026-02-16T07:27:50.170Z"
+      "signalCount": 0,
+      "lastUpdate": "2026-02-16T15:15:58.538Z"
     }
   ],
   "indicators": {
     "cves": [
-      "CVE-2014-0117",
-      "CVE-2017-7679",
-      "CVE-2017-9798",
-      "CVE-2015-3185",
-      "CVE-2025-58098",
-      "CVE-2015-3183",
-      "CVE-2013-4365",
-      "CVE-2022-28330",
-      "CVE-2021-32791",
-      "CVE-2021-32792",
-      "CVE-2023-31122",
-      "CVE-2024-38476",
-      "CVE-2024-38477",
-      "CVE-2024-38474",
-      "CVE-2024-38475"
+      "CVE-2025-68947"
     ],
-    "domains": [],
+    "domains": [
+      "fox2now.com",
+      "malops.io",
+      "discord.gg",
+      "cybersecuritynews.com",
+      "dailydarkweb.net",
+      "hackers-arise.com",
+      "stake.amnis",
+      "4w42197.msi",
+      "dreamgroup.com",
+      "arcticwolf.com"
+    ],
     "ips": [],
-    "keywords": []
+    "keywords": [
+      "ransomware attacks",
+      "data breaches",
+      "vulnerability exploitation"
+    ]
   },
   "infrastructure": {
-    "totalHosts": 100,
-    "exposedPorts": [
-      {
-        "port": 21,
-        "service": "Pure-FTPd",
-        "count": 91,
-        "percentage": 91
-      },
-      {
-        "port": 443,
-        "service": "Apache httpd",
-        "count": 4,
-        "percentage": 4
-      },
-      {
-        "port": 6443,
-        "service": "unknown",
-        "count": 3,
-        "percentage": 3
-      },
-      {
-        "port": 80,
-        "service": "Apache httpd",
-        "count": 1,
-        "percentage": 1
-      },
-      {
-        "port": 9000,
-        "service": "Werkzeug httpd",
-        "count": 1,
-        "percentage": 1
-      }
+    "totalHosts": 0,
+    "exposedPorts": [],
+    "topCountries": [],
+    "vulnerableHosts": 0,
+    "sampleHosts": []
+  },
+  "socialIntel": {
+    "totalPosts": 5,
+    "themes": [
+      "ransomware attacks",
+      "data breaches",
+      "vulnerability exploitation"
     ],
-    "topCountries": [
+    "tone": "mixed",
+    "topPosts": [
       {
-        "country": "US",
-        "count": 36
+        "author": "Dogi1313",
+        "excerpt": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+        "engagement": 67,
+        "url": "https://x.com/Dogi1313/status/2023048301424123910"
       },
       {
-        "country": "HK",
-        "count": 13
+        "author": "H4ckmanac",
+        "excerpt": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
+        "engagement": 299,
+        "url": "https://x.com/H4ckmanac/status/2023039654883160406"
       },
       {
-        "country": "CA",
-        "count": 6
+        "author": "0708America",
+        "excerpt": " Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
+        "engagement": 157,
+        "url": "https://x.com/0708America/status/2023017971770355759"
       },
       {
-        "country": "CN",
-        "count": 6
+        "author": "MalGamy12",
+        "excerpt": " New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
+        "engagement": 46,
+        "url": "https://x.com/MalGamy12/status/2022729558366261344"
       },
       {
-        "country": "SG",
-        "count": 5
-      }
-    ],
-    "vulnerableHosts": 3,
-    "sampleHosts": [
-      {
-        "ip": "202.238.xxx.xxx",
-        "port": 443,
-        "service": "Apache httpd",
-        "vulns": [
-          "CVE-2014-0117",
-          "CVE-2017-7679",
-          "CVE-2017-9798"
-        ]
-      },
-      {
-        "ip": "54.235.xxx.xxx",
-        "port": 80,
-        "service": "Apache httpd",
-        "vulns": [
-          "CVE-2024-47252",
-          "CVE-2024-38475",
-          "CVE-2024-24795"
-        ]
-      },
-      {
-        "ip": "66.85.xxx.xxx",
-        "port": 443,
-        "service": "Apache httpd",
-        "vulns": [
-          "CVE-2024-47252",
-          "CVE-2025-49630",
-          "CVE-2025-55753"
-        ]
+        "author": "The_Cyber_News",
+        "excerpt": " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+        "engagement": 93,
+        "url": "https://x.com/The_Cyber_News/status/2022580452209418346"
       }
     ]
   },
   "ctiAnalysis": {
     "model": "ALIENTELLIGENCE/cybersecuritythreatanalysisv2",
     "killChainPhase": "Weaponization",
-    "threatLandscape": "The current threat landscape presents an opportunistic level of concern with our quantified assessment scoring at the lower end - specifically rated as 'low' on both severity (14/100) and confidence levels for targeted threats, which is indicative that routine monitoring suffices in this environment. Our social intelligence has not yielded any significant themes or vulnerabilities to be concerned about. The infrastructure analysis reveals a small number of vulnerable systems; however, these are mitigated by the high data freshness score indicating recent updates (92%). Overall, our current posture aligns with maintaining standard security protocols without immediate escalation required for threat mitigation strategies. KEY FINDINGS:",
-    "analystBrief": "Classification: opportunistic. Confidence: 30%. Correlation: weak. Data freshness: high.",
+    "threatLandscape": "Our current threat landscape assessment indicates an opportunistic level of cyber threats with moderate confidence in the intelligence gathered; however, no immediate action is required due to its classified as targeted nature but still maintaining a low risk score (7/100). The themes identified—ransomware attacks and data breaches—involve vulnerabilities that are not currently exploited within our infrastructure. With weak correlation between social intel and actual vulnerability status on-site coupled with moderate freshness of the intelligence, we maintain routine monitoring protocols. Key Findings:",
+    "analystBrief": "Classification: opportunistic. Confidence: 30%. Correlation: weak. Data freshness: moderate.",
     "correlationStrength": "weak",
-    "technicalAssessment": "**Analysis**\n\nBased on the provided data, I'll conduct an in-depth analysis of the correlation between social intelligence and infrastructure.\n\n**1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services? Explain the evidence.**\n\nUpon reviewing the Infrastructure section, we see that there are 3 hosts with vulnerabilities (Vulnerable: 3/100). The top ports exposed include:\n\n* Port 21/Pure-FTPd\n* Port 443/Apache httpd\n* Port 6443/unknown\n* Port 80/Apache httpd\n* Port 9000/Werkzeug httpd\n\nComparing this to the Infrastructure CVEs section, we find that some of these exposed services have corresponding vulnerabilities:\n\n* Pure-FTPd (Port 21) has a vulnerability associated with it: CVE-2014-0117.\n* Apache httpd (Ports 443 and 80) has multiple vulnerabilities listed: CVE-2017-7679, CVE-2017-9798, and CVE-2025-58098.\n\nThis suggests that the exposed services are indeed vulnerable to exploitation. However, it's essential to note that not all exposed services have corresponding CVEs, which might indicate a lack of prioritization or awareness regarding these vulnerabilities.\n\n**2. INFRASTRUCTURE PATTERNS: What service exposure patterns are significant?**\n\nThe top ports exposed reveal some interesting patterns:\n\n* The presence of multiple Apache httpd instances (Ports 443 and 80) suggests that the organization is running multiple web servers, possibly for different purposes or departments.\n* The exposure of Pure-FTPd (Port 21) might indicate a need for file transfer services within the organization.\n* The unknown service on Port 6443 could be a potential security risk if not properly configured or maintained.\n\nThese patterns highlight areas where the organization may need to focus on securing their infrastructure and implementing proper configuration practices.\n\n**3. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign? Justify.**\n\nBased on the provided data, it's challenging to determine whether this is an opportunistic scan or a targeted campaign.",
+    "technicalAssessment": "**Analysis**\n\nBased on the provided social signals and infrastructure data, I'll analyze the correlation between them and provide insights into potential security threats.\n\n**1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services? Explain the evidence.**\n\nThe provided CVE (CVE-2025-68947) is not a real vulnerability, suggesting it might be a placeholder or fictional exploit. However, assuming it's a legitimate vulnerability, there are no matching infrastructure data to indicate exposed services that could be exploited by this CVE.\n\n**2. INFRASTRUCTURE PATTERNS: What service exposure patterns are significant?**\n\nThe provided infrastructure data is incomplete, with zero total hosts and vulnerable hosts. This makes it challenging to identify any specific service exposure patterns. However, the absence of any infrastructure data suggests a lack of exposed services that could be targeted by attackers.\n\n**3. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign? Justify.**\n\nGiven the lack of infrastructure data and the fictional CVE, I would classify this as an opportunistic scanning attempt rather than a targeted campaign. The absence of any specific service exposure patterns or matching infrastructure data suggests that the attacker is likely engaging in broad-based scanning to identify potential vulnerabilities.\n\n**4. CONFIDENCE: low/moderate/high with reasoning.**\n\nI assign a **low** confidence level to this analysis due to the following reasons:\n\n* The provided CVE is fictional, which makes it challenging to assess the actual threat.\n* The infrastructure data is incomplete and does not provide any specific insights into service exposure patterns.\n* The absence of any matching infrastructure data suggests that the attacker might be engaging in opportunistic scanning rather than a targeted campaign.",
     "methodologies": [
       "Deterministic risk scoring (vulnerability ratio)",
       "Code-based IoC extraction",
@@ -195,1989 +165,341 @@
   },
   "signalLayer": {
     "raw": {
-      "xPosts": [],
-      "shodanResults": [
-        {
-          "ip": "178.128.120.30",
-          "port": 21,
-          "hostnames": [],
-          "org": "DigitalOcean, LLC",
-          "asn": "AS14061",
-          "isp": "DigitalOcean, LLC",
-          "country": "SG",
-          "city": "Singapore",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:21:27.704091"
-        },
-        {
-          "ip": "159.89.114.157",
-          "port": 21,
-          "hostnames": [
-            "lostcitybarbeque.com"
-          ],
-          "org": "DigitalOcean, LLC",
-          "asn": "AS14061",
-          "isp": "DigitalOcean, LLC",
-          "country": "CA",
-          "city": "Toronto",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:21:22.177219"
-        },
-        {
-          "ip": "38.148.197.177",
-          "port": 21,
-          "hostnames": [],
-          "org": "KURUN CLOUD INC",
-          "asn": "AS8796",
-          "isp": "FASTNET DATA INC",
-          "country": "US",
-          "city": "Los Angeles",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:21:16.166208"
-        },
-        {
-          "ip": "169.61.40.227",
-          "port": 21,
-          "hostnames": [
-            "10-220-147-35.cprapid.com",
-            "e3.28.3da9.ip4.static.sl-reverse.com"
-          ],
-          "org": "SoftLayer Technologies, Inc.",
-          "asn": "AS36351",
-          "isp": "IBM Cloud",
-          "country": "US",
-          "city": "Dallas",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:20:55.318807"
-        },
-        {
-          "ip": "64.15.137.32",
-          "port": 21,
-          "hostnames": [
-            "box201.magnetichosting.ca"
-          ],
-          "org": "Leaseweb Canada Inc.",
-          "asn": "AS32613",
-          "isp": "Leaseweb Canada Inc.",
-          "country": "CA",
-          "city": "Laval",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:49.237404"
-        },
-        {
-          "ip": "192.129.244.223",
-          "port": 21,
-          "hostnames": [
-            "client-192-129-244-223.hostwindsdns.com",
-            "sea-shared-46.hostwindsdns.com"
-          ],
-          "org": "Hostwinds Seattle",
-          "asn": "AS54290",
-          "isp": "Hostwinds LLC.",
-          "country": "US",
-          "city": "Seattle",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:46.627606"
-        },
-        {
-          "ip": "178.251.238.151",
-          "port": 21,
-          "hostnames": [
-            "mail.opencarttema.com.tr",
-            "server.opencartdev.com.tr"
-          ],
-          "org": "BE DC Connect UK Limited",
-          "asn": "AS25577",
-          "isp": "BE DC Connect UK Limited",
-          "country": "GB",
-          "city": "London",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:35.009888"
-        },
-        {
-          "ip": "45.92.68.35",
-          "port": 21,
-          "hostnames": [],
-          "org": null,
-          "asn": "AS208609",
-          "isp": "Pedro Pita Mendes Vaz",
-          "country": "PT",
-          "city": "Lisbon",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:20:30.960302"
-        },
-        {
-          "ip": "192.185.217.38",
-          "port": 21,
-          "hostnames": [
-            "hostgator.com.br",
-            "br244-ip04.hostgator.com.br"
-          ],
-          "org": "HostGator.com LLC",
-          "asn": "AS19871",
-          "isp": "Network Solutions, LLC",
-          "country": "US",
-          "city": "Atlanta",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:16.983672"
-        },
-        {
-          "ip": "169.48.143.103",
-          "port": 21,
-          "hostnames": [
-            "169-47-233-147.cprapid.com",
-            "webdisk.169-47-233-147.cprapid.com",
-            "cpcontacts.169-47-233-147.cprapid.com",
-            "whm.169-47-233-147.cprapid.com",
-            "67.8f.30a9.ip4.static.sl-reverse.com",
-            "webmail.169-47-233-147.cprapid.com",
-            "cpanel.169-47-233-147.cprapid.com",
-            "cpcalendars.169-47-233-147.cprapid.com"
-          ],
-          "org": "SoftLayer Technologies, Inc.",
-          "asn": "AS36351",
-          "isp": "IBM Cloud",
-          "country": "US",
-          "city": "Dallas",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:11.612480"
-        },
-        {
-          "ip": "188.231.69.41",
-          "port": 21,
-          "hostnames": [],
-          "org": "Altitude Infrastructure Exploitation SAS",
-          "asn": "AS44407",
-          "isp": "Linkt SAS",
-          "country": "FR",
-          "city": "Langueux",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:20:11.543205"
-        },
-        {
-          "ip": "177.89.59.26",
-          "port": 21,
-          "hostnames": [
-            "177-89-59-26.cable.cabotelecom.com.br"
-          ],
-          "org": "CABO SERVICOS DE TELECOMUNICACOES LTDA",
-          "asn": "AS28220",
-          "isp": "Alares Cabo Servicos de Telecomunicacoes S.A.",
-          "country": "BR",
-          "city": "Natal",
-          "os": null,
-          "lastUpdate": "2026-02-16T07:20:08.356780"
-        },
-        {
-          "ip": "162.215.117.67",
-          "port": 21,
-          "hostnames": [
-            "162-215-117-67.unifiedlayer.com",
-            "seoboxes.com"
-          ],
-          "org": "Unified Layer",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Salt Lake City",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:06.284228"
-        },
-        {
-          "ip": "202.238.170.225",
-          "port": 443,
-          "hostnames": [],
-          "org": "Internet Initiative Japan Inc.",
-          "asn": "AS2497",
-          "isp": "Internet Initiative Japan Inc.",
-          "country": "JP",
-          "city": "Tokyo",
-          "os": null,
-          "product": "Apache httpd",
-          "version": "2.4.6",
-          "vulns": [
-            "CVE-2014-0117",
-            "CVE-2017-7679",
-            "CVE-2017-9798",
-            "CVE-2015-3185",
-            "CVE-2025-58098",
-            "CVE-2015-3183",
-            "CVE-2013-4365",
-            "CVE-2022-28330",
-            "CVE-2021-32791",
-            "CVE-2021-32792",
-            "CVE-2023-31122",
-            "CVE-2024-38476",
-            "CVE-2024-38477",
-            "CVE-2024-38474",
-            "CVE-2024-38475",
-            "CVE-2024-38472",
-            "CVE-2024-38473",
-            "CVE-2009-0796",
-            "CVE-2014-0118",
-            "CVE-2013-6438",
-            "CVE-2020-1927",
-            "CVE-2011-2688",
-            "CVE-2017-3167",
-            "CVE-2016-0736",
-            "CVE-2021-32786",
-            "CVE-2021-32785",
-            "CVE-2007-4723",
-            "CVE-2021-44790",
-            "CVE-2016-4975",
-            "CVE-2020-13938",
-            "CVE-2015-3184",
-            "CVE-2020-35452",
-            "CVE-2022-22719",
-            "CVE-2024-47252",
-            "CVE-2020-1934",
-            "CVE-2022-36760",
-            "CVE-2019-0217",
-            "CVE-2024-24795",
-            "CVE-2014-3523",
-            "CVE-2013-5704",
-            "CVE-2019-17567",
-            "CVE-2022-31813",
-            "CVE-2024-42516",
-            "CVE-2012-4360",
-            "CVE-2025-59775",
-            "CVE-2014-0231",
-            "CVE-2024-39573",
-            "CVE-2021-26690",
-            "CVE-2021-26691",
-            "CVE-2019-0220",
-            "CVE-2025-49812",
-            "CVE-2022-30556",
-            "CVE-2021-39275",
-            "CVE-2014-3581",
-            "CVE-2023-38709",
-            "CVE-2022-29404",
-            "CVE-2018-1312",
-            "CVE-2006-20001",
-            "CVE-2017-15710",
-            "CVE-2014-0226",
-            "CVE-2022-22721",
-            "CVE-2022-22720",
-            "CVE-2019-10092",
-            "CVE-2017-15715",
-            "CVE-2019-10098",
-            "CVE-2016-5387",
-            "CVE-2021-40438",
-            "CVE-2011-1176",
-            "CVE-2022-23943",
-            "CVE-2018-17199",
-            "CVE-2018-1301",
-            "CVE-2018-1302",
-            "CVE-2018-1303",
-            "CVE-2021-34798",
-            "CVE-2023-25690",
-            "CVE-2020-11985",
-            "CVE-2025-65082",
-            "CVE-2013-4352",
-            "CVE-2022-26377",
-            "CVE-2014-0098",
-            "CVE-2016-8743",
-            "CVE-2024-40898",
-            "CVE-2024-43204",
-            "CVE-2012-3526",
-            "CVE-2016-8612",
-            "CVE-2009-2299",
-            "CVE-2012-4001",
-            "CVE-2022-37436",
-            "CVE-2017-9788",
-            "CVE-2014-8109",
-            "CVE-2013-2765",
-            "CVE-2024-43394",
-            "CVE-2016-2161",
-            "CVE-2015-0228",
-            "CVE-2013-0941",
-            "CVE-2013-0942",
-            "CVE-2018-1283",
-            "CVE-2022-28615",
-            "CVE-2022-28614"
-          ],
-          "lastUpdate": "2026-02-16T07:20:04.169838"
-        },
-        {
-          "ip": "47.87.11.101",
-          "port": 21,
-          "hostnames": [],
-          "org": "Alibaba Cloud LLC",
-          "asn": "AS45102",
-          "isp": "Alibaba (US) Technology Co., Ltd.",
-          "country": "MX",
-          "city": "Santiago de Querétaro",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:20:00.375330"
-        },
-        {
-          "ip": "173.209.37.114",
-          "port": 21,
-          "hostnames": [
-            "cloud38580.mywhc.ca",
-            "mail.cloud38580.mywhc.ca",
-            "www.cloud38580.mywhc.ca"
-          ],
-          "org": "Web Hosting Canada",
-          "asn": "AS36666",
-          "isp": "GloboTech Communications",
-          "country": "CA",
-          "city": "Montréal",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:20:00.263167"
-        },
-        {
-          "ip": "156.235.235.247",
-          "port": 21,
-          "hostnames": [],
-          "org": "Cloud Innovation Ltd",
-          "asn": "AS134548",
-          "isp": "DXTL Tseung Kwan O Service",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:58.203276"
-        },
-        {
-          "ip": "159.195.7.9",
-          "port": 21,
-          "hostnames": [
-            "v2202512327741422324.quicksrv.de"
-          ],
-          "org": "DXC Technology Danmark A/S",
-          "isp": null,
-          "country": "DK",
-          "city": "Copenhagen",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:19:49.118647"
-        },
-        {
-          "ip": "154.23.212.28",
-          "port": 21,
-          "hostnames": [],
-          "org": "Cogent Communications",
-          "asn": "AS140224",
-          "isp": "Nebula Global LLC",
-          "country": "HK",
-          "city": "Hong Kong",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:45.637573"
-        },
-        {
-          "ip": "50.87.75.31",
-          "port": 21,
-          "hostnames": [
-            "50-87-75-31.unifiedlayer.com"
-          ],
-          "org": "Unified Layer",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Provo",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:19:45.048772"
-        },
-        {
-          "ip": "86.107.77.20",
-          "port": 21,
-          "hostnames": [
-            "server.jeenhost.com",
-            "86-107-77-20.hostbet.in"
-          ],
-          "org": "RTM Networks B.V.",
-          "asn": "AS44103",
-          "isp": "The Mastermind Holding B.V.",
-          "country": "NL",
-          "city": "Reusel",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:39.925675"
-        },
-        {
-          "ip": "96.9.0.4",
-          "port": 21,
-          "hostnames": [],
-          "org": "Register.com, Inc",
-          "asn": "AS19871",
-          "isp": "Network Solutions, LLC",
-          "country": "US",
-          "city": "Atlanta",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:19:37.296923"
-        },
-        {
-          "ip": "57.140.198.244",
-          "port": 443,
-          "hostnames": [],
-          "org": "MENLO SECURITY, INC.",
-          "asn": "AS19527",
-          "isp": "Google LLC",
-          "country": "US",
-          "city": "Mountain View",
-          "os": null,
-          "product": "Squid http proxy",
-          "tags": [
-            "proxy"
-          ],
-          "lastUpdate": "2026-02-16T07:19:34.168815"
-        },
-        {
-          "ip": "154.213.44.41",
-          "port": 21,
-          "hostnames": [],
-          "org": "Digital Core Technology Co., Limited",
-          "asn": "AS132839",
-          "isp": "POWER LINE DATACENTER",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:30.674387"
-        },
-        {
-          "ip": "67.225.188.215",
-          "port": 21,
-          "hostnames": [
-            "host.engageallclassroom.com"
-          ],
-          "org": "Liquid Web, L.L.C",
-          "asn": "AS32244",
-          "isp": "Liquid Web, L.L.C",
-          "country": "US",
-          "city": "Lansing",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:19:30.203289"
-        },
-        {
-          "ip": "101.100.213.171",
-          "port": 21,
-          "hostnames": [
-            "biz109.vodien.com"
-          ],
-          "org": "Vodien Internet Solutions Pte Ltd",
-          "asn": "AS38719",
-          "isp": "Dreamscape Networks Limited",
-          "country": "SG",
-          "city": "Singapore",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:19:29.488572"
-        },
-        {
-          "ip": "192.185.72.101",
-          "port": 21,
-          "hostnames": [
-            "192-185-72-101.unifiedlayer.com"
-          ],
-          "org": "HostGator.com LLC",
-          "asn": "AS19871",
-          "isp": "Network Solutions, LLC",
-          "country": "US",
-          "city": "Atlanta",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:19:28.197035"
-        },
-        {
-          "ip": "165.245.144.154",
-          "port": 21,
-          "hostnames": [],
-          "org": "DigitalOcean, LLC",
-          "isp": null,
-          "country": "US",
-          "city": "Broomfield",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:26.961527"
-        },
-        {
-          "ip": "124.223.70.7",
-          "port": 21,
-          "hostnames": [],
-          "org": "Tencent cloud computing (Beijing) Co., Ltd.",
-          "asn": "AS45090",
-          "isp": "Shenzhen Tencent Computer Systems Company Limited",
-          "country": "CN",
-          "city": "Shanghai",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:16.993836"
-        },
-        {
-          "ip": "149.88.72.87",
-          "port": 21,
-          "hostnames": [],
-          "org": "PSINet, Inc.",
-          "asn": "AS142032",
-          "isp": "High Family Technology Co., Limited",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:15.218614"
-        },
-        {
-          "ip": "57.140.192.188",
-          "port": 6443,
-          "hostnames": [],
-          "org": "MENLO SECURITY, INC.",
-          "asn": "AS15169",
-          "isp": "Google LLC",
-          "country": "CA",
-          "city": "Montréal",
-          "os": null,
-          "lastUpdate": "2026-02-16T07:19:14.849416"
-        },
-        {
-          "ip": "47.238.228.149",
-          "port": 21,
-          "hostnames": [],
-          "org": "Alibaba Cloud LLC",
-          "asn": "AS45102",
-          "isp": "Alibaba (US) Technology Co., Ltd.",
-          "country": "HK",
-          "city": "Hong Kong",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:14.547781"
-        },
-        {
-          "ip": "192.169.149.181",
-          "port": 21,
-          "hostnames": [
-            "prod.phx3.secureserver.net",
-            "181.149.169.192.host.secureserver.net"
-          ],
-          "org": "GoDaddy.com, LLC",
-          "asn": "AS26496",
-          "isp": "GoDaddy.com, LLC",
-          "country": "US",
-          "city": "Phoenix",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:19:12.074352"
-        },
-        {
-          "ip": "154.197.240.170",
-          "port": 21,
-          "hostnames": [],
-          "org": "CloudFly Net Inc",
-          "asn": "AS135097",
-          "isp": "LUOGELANG (FRANCE) LIMITED",
-          "country": "US",
-          "city": "Los Angeles",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:19:06.370828"
-        },
-        {
-          "ip": "156.244.82.178",
-          "port": 21,
-          "hostnames": [],
-          "org": "CloudFly Net Inc",
-          "asn": "AS142286",
-          "isp": "LUOGELANG (FRANCE) LIMITED",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:59.916128"
-        },
-        {
-          "ip": "128.199.115.65",
-          "port": 21,
-          "hostnames": [],
-          "org": "DigitalOcean, LLC",
-          "asn": "AS14061",
-          "isp": "DigitalOcean, LLC",
-          "country": "SG",
-          "city": "Singapore",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:58.527301"
-        },
-        {
-          "ip": "185.131.54.106",
-          "port": 21,
-          "hostnames": [
-            "185-131-54-106.cprapid.com"
-          ],
-          "org": "Leapswitch Networks Pvt. Ltd.",
-          "asn": "AS146943",
-          "isp": "Tier 4 Cloud Services",
-          "country": "IN",
-          "city": "Mumbai",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:18:57.617706"
-        },
-        {
-          "ip": "217.174.152.163",
-          "port": 21,
-          "hostnames": [
-            "cloud-616629.managed-vps.net",
-            "cloud.theadmin.net"
-          ],
-          "org": "NS1 Ltd.",
-          "asn": "AS57344",
-          "isp": "Telehouse EAD",
-          "country": "BG",
-          "city": "Sofia",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:56.438851"
-        },
-        {
-          "ip": "186.217.252.74",
-          "port": 21,
-          "hostnames": [],
-          "org": "UNIVERSIDADE ESTADUAL PAULISTA",
-          "asn": "AS53166",
-          "isp": "UNIVERSIDADE ESTADUAL PAULISTA",
-          "country": "BR",
-          "city": "São Paulo",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:52.945459"
-        },
-        {
-          "ip": "91.220.63.116",
-          "port": 21,
-          "hostnames": [
-            "91-220-63-116.reserved.chrominance.ro"
-          ],
-          "org": "Chrominance SRL",
-          "asn": "AS197357",
-          "isp": "Chrominance SRL",
-          "country": "RO",
-          "city": "Bucharest",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:50.446883"
-        },
-        {
-          "ip": "192.185.225.103",
-          "port": 21,
-          "hostnames": [
-            "hostgator.com",
-            "192-185-225-103.unifiedlayer.com"
-          ],
-          "org": "HostGator.com LLC",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Tabiona",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:18:49.619977"
-        },
-        {
-          "ip": "2.139.168.236",
-          "port": 21,
-          "hostnames": [
-            "236.red-2-139-168.staticip.rima-tde.net"
-          ],
-          "org": "TELEFONICA DE ESPANA S.A.U.",
-          "asn": "AS3352",
-          "isp": "TELEFONICA DE ESPANA S.A.U.",
-          "country": "ES",
-          "city": "Madrid",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:18:47.545545"
-        },
-        {
-          "ip": "162.253.34.162",
-          "port": 21,
-          "hostnames": [
-            "whm.host.cedcn.org",
-            "autodiscover.host.cedcn.org",
-            "cpcontacts.host.cedcn.org",
-            "webdisk.host.cedcn.org",
-            "host.cedcn.org",
-            "cpanel.host.cedcn.org",
-            "mail.host.cedcn.org",
-            "webmail.host.cedcn.org",
-            "cpcalendars.host.cedcn.org",
-            "ipv6.host.cedcn.org",
-            "www.host.cedcn.org",
-            "autoconfig.host.cedcn.org"
-          ],
-          "org": "PrivateSystems Networks GA",
-          "asn": "AS63410",
-          "isp": "PrivateSystems Networks",
-          "country": "US",
-          "city": "Atlanta",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:18:45.922815"
-        },
-        {
-          "ip": "101.201.254.225",
-          "port": 21,
-          "hostnames": [],
-          "org": "Aliyun Computing Co., LTD",
-          "asn": "AS37963",
-          "isp": "Hangzhou Alibaba Advertising Co.,Ltd.",
-          "country": "CN",
-          "city": "Beijing",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:45.773925"
-        },
-        {
-          "ip": "156.236.55.65",
-          "port": 21,
-          "hostnames": [],
-          "org": "OCTOPUS WEB SOLUTION INC",
-          "asn": "AS984",
-          "isp": "OCTOPUS WEB SOLUTION INC",
-          "country": "PH",
-          "city": "Manila",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:41.330196"
-        },
-        {
-          "ip": "39.105.185.154",
-          "port": 21,
-          "hostnames": [],
-          "org": "Aliyun Computing Co., LTD",
-          "asn": "AS37963",
-          "isp": "Hangzhou Alibaba Advertising Co.,Ltd.",
-          "country": "CN",
-          "city": "Beijing",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:41.310768"
-        },
-        {
-          "ip": "156.224.58.51",
-          "port": 21,
-          "hostnames": [],
-          "org": "Arosscloud INC",
-          "asn": "AS137951",
-          "isp": "ASLINE LIMITED",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:37.023336"
-        },
-        {
-          "ip": "15.235.133.114",
-          "port": 21,
-          "hostnames": [
-            "ip114.ip-15-235-133.net"
-          ],
-          "org": "OVH SAS",
-          "asn": "AS16276",
-          "isp": "OVH SAS",
-          "country": "SG",
-          "city": "Singapore",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:30.964082"
-        },
-        {
-          "ip": "168.243.48.33",
-          "port": 21,
-          "hostnames": [
-            "ns.telecam.net",
-            "ns.telecam.com.sv",
-            "ns.telcom.com.sv",
-            "ns.symtek.com.sv",
-            "distributions.telecam.net"
-          ],
-          "org": "Telecomunicaciones de America S.A. de C.V.",
-          "asn": "AS262204",
-          "isp": "Telecomunicaciones de America S.A. de C.V.",
-          "country": "SV",
-          "city": "San Salvador",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:18:29.907689"
-        },
-        {
-          "ip": "78.135.83.145",
-          "port": 21,
-          "hostnames": [
-            "cpanel6.hostlab.net.tr",
-            "server.medyaweb.net"
-          ],
-          "org": "HostLAB Bilisim Teknolojileri A.S.",
-          "asn": "AS207326",
-          "isp": "HostLAB Bilisim Teknolojileri A.S.",
-          "country": "TR",
-          "city": "Bursa",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:18:28.332315"
-        },
-        {
-          "ip": "203.135.132.61",
-          "port": 21,
-          "hostnames": [
-            "vps8842.youcloud.hk"
-          ],
-          "org": "WEB HOST LIMITED",
-          "asn": "AS23881",
-          "isp": "UDomain Web Hosting Company Ltd",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:18:18.570541"
-        },
-        {
-          "ip": "162.220.162.107",
-          "port": 21,
-          "hostnames": [],
-          "org": "Interserver, Inc",
-          "asn": "AS19318",
-          "isp": "Interserver, Inc",
-          "country": "US",
-          "city": "New York City",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:18:17.270797"
-        },
-        {
-          "ip": "54.235.180.208",
-          "port": 80,
-          "hostnames": [
-            "ec2-54-235-180-208.compute-1.amazonaws.com"
-          ],
-          "org": "Amazon.com, Inc.",
-          "asn": "AS14618",
-          "isp": "Amazon.com, Inc.",
-          "country": "US",
-          "city": "Ashburn",
-          "os": null,
-          "product": "Apache httpd",
-          "version": "2.4.58",
-          "vulns": [
-            "CVE-2024-47252",
-            "CVE-2024-38475",
-            "CVE-2024-24795",
-            "CVE-2025-49630",
-            "CVE-2023-38709",
-            "CVE-2025-55753",
-            "CVE-2025-58098",
-            "CVE-2013-4365",
-            "CVE-2012-3526",
-            "CVE-2024-38476",
-            "CVE-2024-38477",
-            "CVE-2024-38474",
-            "CVE-2025-66200",
-            "CVE-2024-38472",
-            "CVE-2024-38473",
-            "CVE-2009-0796",
-            "CVE-2012-4001",
-            "CVE-2024-42516",
-            "CVE-2024-27316",
-            "CVE-2012-4360",
-            "CVE-2011-1176",
-            "CVE-2025-49812",
-            "CVE-2011-2688",
-            "CVE-2025-59775",
-            "CVE-2025-53020",
-            "CVE-2013-2765",
-            "CVE-2024-43394",
-            "CVE-2007-4723",
-            "CVE-2013-0941",
-            "CVE-2013-0942",
-            "CVE-2024-36387",
-            "CVE-2025-65082",
-            "CVE-2024-39573",
-            "CVE-2025-23048",
-            "CVE-2009-2299",
-            "CVE-2024-40898",
-            "CVE-2024-43204"
-          ],
-          "tags": [
-            "cloud"
-          ],
-          "lastUpdate": "2026-02-16T07:18:15.835784"
-        },
-        {
-          "ip": "38.14.105.84",
-          "port": 21,
-          "hostnames": [
-            "server-137-175-73-73.da.direct"
-          ],
-          "org": "PEG TECH INC",
-          "asn": "AS54600",
-          "isp": "PEG TECH INC",
-          "country": "US",
-          "city": "San Jose",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:18:11.412010"
-        },
-        {
-          "ip": "94.46.135.160",
-          "port": 21,
-          "hostnames": [
-            "ipv6.web30.xcloudserver.com",
-            "web30.xcloudserver.com",
-            "autoconfig.web30.xcloudserver.com",
-            "cpanel.web30.xcloudserver.com",
-            "cpcontacts.web30.xcloudserver.com",
-            "mail.web30.xcloudserver.com",
-            "www.web30.xcloudserver.com",
-            "autodiscover.web30.xcloudserver.com",
-            "webdisk.web30.xcloudserver.com",
-            "cpcalendars.web30.xcloudserver.com",
-            "webmail.web30.xcloudserver.com",
-            "whm.web30.xcloudserver.com"
-          ],
-          "org": "LINXISP Cloud Servers",
-          "asn": "AS24768",
-          "isp": "ALMOUROLTEC SERVICOS DE INFORMATICA E INTERNET LDA",
-          "country": "PT",
-          "city": "Lisbon",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:18:08.869149"
-        },
-        {
-          "ip": "105.208.30.68",
-          "port": 21,
-          "hostnames": [
-            "105-208-30-68.access.supersonic.co.za"
-          ],
-          "org": "MTN SA",
-          "asn": "AS16637",
-          "isp": "MTN SA",
-          "country": "ZA",
-          "city": "Johannesburg",
-          "os": null,
-          "lastUpdate": "2026-02-16T07:17:55.458645"
-        },
-        {
-          "ip": "123.30.168.99",
-          "port": 21,
-          "hostnames": [
-            "cloud168-99.1hosting.com.vn",
-            "mail.myhost.vn"
-          ],
-          "org": "Vietnam Posts and Telecommunications Group",
-          "asn": "AS45899",
-          "isp": "VNPT Corp",
-          "country": "VN",
-          "city": "Hanoi",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:17:55.066870"
-        },
-        {
-          "ip": "156.224.179.74",
-          "port": 21,
-          "hostnames": [],
-          "org": "CloudFly Net Inc",
-          "asn": "AS135097",
-          "isp": "LUOGELANG (FRANCE) LIMITED",
-          "country": "US",
-          "city": "Los Angeles",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:55.043369"
-        },
-        {
-          "ip": "8.163.9.247",
-          "port": 21,
-          "hostnames": [],
-          "org": "Aliyun Computing Co.LTD",
-          "isp": null,
-          "country": "SG",
-          "city": "Singapore",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:53.317703"
-        },
-        {
-          "ip": "57.140.193.196",
-          "port": 6443,
-          "hostnames": [],
-          "org": "MENLO SECURITY, INC.",
-          "asn": "AS19527",
-          "isp": "Google LLC",
-          "country": "US",
-          "city": "Ashburn",
-          "os": null,
-          "lastUpdate": "2026-02-16T07:17:50.020443"
-        },
-        {
-          "ip": "154.210.68.184",
-          "port": 21,
-          "hostnames": [],
-          "org": "OCTOPUS WEB SOLUTION INC",
-          "asn": "AS35916",
-          "isp": "MULTACOM CORPORATION",
-          "country": "HK",
-          "city": "Hong Kong",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:46.578885"
-        },
-        {
-          "ip": "39.104.65.73",
-          "port": 21,
-          "hostnames": [],
-          "org": "Aliyun Computing Co., LTD",
-          "asn": "AS37963",
-          "isp": "Hangzhou Alibaba Advertising Co.,Ltd.",
-          "country": "CN",
-          "city": "Beijing",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:42.453935"
-        },
-        {
-          "ip": "201.217.154.82",
-          "port": 21,
-          "hostnames": [
-            "r201-217-154-82.ir-static.anteldata.net.uy"
-          ],
-          "org": "CLIENTE ANTEL URUGUAY",
-          "asn": "AS6057",
-          "isp": "Administracion Nacional de Telecomunicaciones",
-          "country": "UY",
-          "city": "Montevideo",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:17:41.415058"
-        },
-        {
-          "ip": "5.181.87.127",
-          "port": 21,
-          "hostnames": [
-            "himselvetii.gb.net"
-          ],
-          "org": "Pitline Ltd",
-          "asn": "AS47585",
-          "isp": "Yigit Hosting Bilisim E-Ticaret Gida Sanayi Ticaret Limited Sirketi",
-          "country": "TR",
-          "city": "Bursa",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:17:37.996356"
-        },
-        {
-          "ip": "162.215.109.205",
-          "port": 21,
-          "hostnames": [
-            "162-215-109-205.unifiedlayer.com",
-            "seoboxes.com"
-          ],
-          "org": "Unified Layer",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Salt Lake City",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:17:37.723160"
-        },
-        {
-          "ip": "23.235.210.228",
-          "port": 21,
-          "hostnames": [
-            "inmotionhosting.com"
-          ],
-          "org": "InMotion Hosting, Inc.",
-          "asn": "AS22611",
-          "isp": "InMotion Hosting, Inc.",
-          "country": "US",
-          "city": "Los Angeles",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:17:29.183705"
-        },
-        {
-          "ip": "193.93.32.214",
-          "port": 21,
-          "hostnames": [],
-          "org": "BYTEFETCH LTD",
-          "asn": "AS39414",
-          "isp": "ByteFetch Ltd",
-          "country": "GB",
-          "city": "Alton",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:25.734783"
-        },
-        {
-          "ip": "156.250.227.49",
-          "port": 21,
-          "hostnames": [],
-          "org": "Digital Core Technology Co., Limited",
-          "asn": "AS132839",
-          "isp": "POWER LINE DATACENTER",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:25.572511"
-        },
-        {
-          "ip": "154.95.152.29",
-          "port": 21,
-          "hostnames": [],
-          "org": "DXTL HK",
-          "asn": "AS134175",
-          "isp": "SH2206-AP",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:22.318912"
-        },
-        {
-          "ip": "162.240.224.165",
-          "port": 21,
-          "hostnames": [
-            "ipv6.vps-13909169.grupoviva.tech",
-            "cpanel.vps-13909169.grupoviva.tech",
-            "autodiscover.vps-13909169.grupoviva.tech",
-            "mail.vps-13909169.grupoviva.tech",
-            "cpcontacts.vps-13909169.grupoviva.tech",
-            "vps-13909169.grupoviva.tech",
-            "www.vps-13909169.grupoviva.tech",
-            "webdisk.vps-13909169.grupoviva.tech",
-            "cpcalendars.vps-13909169.grupoviva.tech",
-            "autoconfig.vps-13909169.grupoviva.tech",
-            "whm.vps-13909169.grupoviva.tech",
-            "webmail.vps-13909169.grupoviva.tech"
-          ],
-          "org": "Unified Layer",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Provo",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:17:13.993561"
-        },
-        {
-          "ip": "47.82.6.73",
-          "port": 21,
-          "hostnames": [],
-          "org": "Alibaba Cloud LLC",
-          "asn": "AS45102",
-          "isp": "Alibaba (US) Technology Co., Ltd.",
-          "country": "US",
-          "city": "San Mateo",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:09.472050"
-        },
-        {
-          "ip": "158.69.48.83",
-          "port": 21,
-          "hostnames": [
-            "158-69-48-83.wnphosts.net",
-            "vps3.facturarenlinea.com.ar"
-          ],
-          "org": "OVH Hosting, Inc.",
-          "asn": "AS16276",
-          "isp": "OVH SAS",
-          "country": "CA",
-          "city": "Montréal",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:07.850428"
-        },
-        {
-          "ip": "193.39.142.173",
-          "port": 21,
-          "hostnames": [
-            "rapidseedbox.com",
-            "www.seedbox.vip"
-          ],
-          "org": "RapidSeedbox Ltd",
-          "asn": "AS60781",
-          "isp": "LeaseWeb Netherlands B.V.",
-          "country": "NL",
-          "city": "Haarlem",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:07.445442"
-        },
-        {
-          "ip": "92.204.89.112",
-          "port": 21,
-          "hostnames": [
-            "prod.sxb1.secureserver.net",
-            "112.89.204.92.host.secureserver.net"
-          ],
-          "org": "DCN Sub Alloc",
-          "asn": "AS21499",
-          "isp": "Host Europe GmbH",
-          "country": "FR",
-          "city": "Strasbourg",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:17:06.452150"
-        },
-        {
-          "ip": "120.55.164.44",
-          "port": 21,
-          "hostnames": [],
-          "org": "Aliyun Computing Co., LTD",
-          "asn": "AS37963",
-          "isp": "Hangzhou Alibaba Advertising Co.,Ltd.",
-          "country": "CN",
-          "city": "Hangzhou",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:17:00.275240"
-        },
-        {
-          "ip": "45.76.49.1",
-          "port": 21,
-          "hostnames": [
-            "45.76.49.1.vultrusercontent.com"
-          ],
-          "org": "Vultr Holdings, LLC",
-          "asn": "AS20473",
-          "isp": "The Constant Company, LLC",
-          "country": "JP",
-          "city": "Ōi",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "cloud",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:59.315959"
-        },
-        {
-          "ip": "160.153.79.151",
-          "port": 21,
-          "hostnames": [
-            "prod.phx3.secureserver.net",
-            "151.79.153.160.host.secureserver.net"
-          ],
-          "org": "GoDaddy.com, LLC",
-          "asn": "AS26496",
-          "isp": "GoDaddy.com, LLC",
-          "country": "US",
-          "city": "Phoenix",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:55.956451"
-        },
-        {
-          "ip": "38.127.216.141",
-          "port": 21,
-          "hostnames": [],
-          "org": "Cogent Communications - IPENG",
-          "asn": "AS174",
-          "isp": "Cogent Communications",
-          "country": "US",
-          "city": "Washington",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:51.105535"
-        },
-        {
-          "ip": "154.195.88.105",
-          "port": 21,
-          "hostnames": [],
-          "org": "OCTOPUS WEB SOLUTION INC",
-          "asn": "AS35916",
-          "isp": "MULTACOM CORPORATION",
-          "country": "MY",
-          "city": "Kuala Lumpur",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:50.671640"
-        },
-        {
-          "ip": "66.85.149.229",
-          "port": 443,
-          "hostnames": [
-            "vps9.atalmeb.com"
-          ],
-          "org": "SECURED SERVERS LLC",
-          "asn": "AS20454",
-          "isp": "SECURED SERVERS LLC",
-          "country": "US",
-          "city": "Mesa",
-          "os": null,
-          "product": "Apache httpd",
-          "version": "2.4.62",
-          "vulns": [
-            "CVE-2024-47252",
-            "CVE-2025-49630",
-            "CVE-2025-55753",
-            "CVE-2025-58098",
-            "CVE-2013-4365",
-            "CVE-2012-3526",
-            "CVE-2009-2299",
-            "CVE-2025-66200",
-            "CVE-2009-0796",
-            "CVE-2012-4001",
-            "CVE-2024-42516",
-            "CVE-2012-4360",
-            "CVE-2011-1176",
-            "CVE-2011-2688",
-            "CVE-2025-59775",
-            "CVE-2025-53020",
-            "CVE-2013-2765",
-            "CVE-2024-43394",
-            "CVE-2007-4723",
-            "CVE-2013-0941",
-            "CVE-2013-0942",
-            "CVE-2025-65082",
-            "CVE-2025-23048",
-            "CVE-2025-49812",
-            "CVE-2024-43204"
-          ],
-          "lastUpdate": "2026-02-16T07:16:45.408086"
-        },
-        {
-          "ip": "192.254.237.117",
-          "port": 21,
-          "hostnames": [
-            "192-254-237-117.unifiedlayer.com"
-          ],
-          "org": "WEBSITEWELCOME.COM (gator3283.hostgator.com)",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Tabiona",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:16:45.367576"
-        },
-        {
-          "ip": "133.130.73.47",
-          "port": 21,
-          "hostnames": [
-            "v133-130-73-47.myvps.jp"
-          ],
-          "org": "GMO Internet Group, Inc.",
-          "asn": "AS7506",
-          "isp": "GMO Internet Group, Inc.",
-          "country": "JP",
-          "city": "Hachiōji",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:43.846919"
-        },
-        {
-          "ip": "103.23.149.208",
-          "port": 21,
-          "hostnames": [],
-          "org": "Gcc Cloud Technology Limited",
-          "asn": "AS152705",
-          "isp": "Gcc Cloud Technology Limited",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:38.093684"
-        },
-        {
-          "ip": "91.99.10.137",
-          "port": 9000,
-          "hostnames": [
-            "static.137.10.99.91.clients.your-server.de"
-          ],
-          "org": "Hetzner Online GmbH",
-          "asn": "AS24940",
-          "isp": "Hetzner Online GmbH",
-          "country": "DE",
-          "city": "Falkenstein",
-          "os": null,
-          "product": "Werkzeug httpd",
-          "version": "2.0.2",
-          "lastUpdate": "2026-02-16T07:16:37.730639"
-        },
-        {
-          "ip": "162.240.224.70",
-          "port": 21,
-          "hostnames": [
-            "www.vps-1732919.geomembranasmyt.com",
-            "ipv6.vps-1732919.geomembranasmyt.com",
-            "cpanel.vps-1732919.geomembranasmyt.com",
-            "webmail.vps-1732919.geomembranasmyt.com",
-            "whm.vps-1732919.geomembranasmyt.com",
-            "cpcontacts.vps-1732919.geomembranasmyt.com",
-            "autoconfig.vps-1732919.geomembranasmyt.com",
-            "mail.vps-1732919.geomembranasmyt.com",
-            "webdisk.vps-1732919.geomembranasmyt.com",
-            "vps-1732919.geomembranasmyt.com",
-            "autodiscover.vps-1732919.geomembranasmyt.com",
-            "cpcalendars.vps-1732919.geomembranasmyt.com"
-          ],
-          "org": "Unified Layer",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Provo",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:33.427458"
-        },
-        {
-          "ip": "45.207.126.226",
-          "port": 21,
-          "hostnames": [],
-          "org": "Cloud Innovation Ltd",
-          "asn": "AS142286",
-          "isp": "LUOGELANG (FRANCE) LIMITED",
-          "country": "HK",
-          "city": "Tseung Kwan O",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:31.993621"
-        },
-        {
-          "ip": "103.120.242.119",
-          "port": 21,
-          "hostnames": [
-            "103-120-242-119.3tvn.net"
-          ],
-          "org": "3T SYSTEM SOLUTIONS COMPANY LIMITED",
-          "asn": "AS45899",
-          "isp": "VNPT Corp",
-          "country": "VN",
-          "city": "Hanoi",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:31.495627"
-        },
-        {
-          "ip": "98.142.97.156",
-          "port": 21,
-          "hostnames": [
-            "whm.server.vividvisionnetwork.com",
-            "autoconfig.server.vividvisionnetwork.com",
-            "cpcontacts.server.vividvisionnetwork.com",
-            "www.server.vividvisionnetwork.com",
-            "server.vividvisionnetwork.com",
-            "autodiscover.server.vividvisionnetwork.com",
-            "mail.server.vividvisionnetwork.com",
-            "webmail.server.vividvisionnetwork.com",
-            "ns2.vividvisionnetwork.com",
-            "ipv6.server.vividvisionnetwork.com",
-            "cpcalendars.server.vividvisionnetwork.com",
-            "webdisk.server.vividvisionnetwork.com",
-            "cpanel.server.vividvisionnetwork.com"
-          ],
-          "org": "HostDime.com, Inc.",
-          "asn": "AS33182",
-          "isp": "HostDime.com, Inc.",
-          "country": "US",
-          "city": "Lockhart",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:28.402933"
-        },
-        {
-          "ip": "154.16.79.161",
-          "port": 21,
-          "hostnames": [
-            "server-154-16-79-161.da.direct"
-          ],
-          "org": "H4Y Technologies LLC",
-          "asn": "AS397373",
-          "isp": "H4Y Technologies LLC",
-          "country": "US",
-          "city": "Charlotte",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:26.638038"
-        },
-        {
-          "ip": "167.114.25.229",
-          "port": 443,
-          "hostnames": [
-            "ip229.ip-167-114-25.net"
-          ],
-          "org": "OVH Hosting, Inc.",
-          "asn": "AS16276",
-          "isp": "OVH SAS",
-          "country": "CA",
-          "city": "Beauharnois",
-          "os": null,
-          "lastUpdate": "2026-02-16T07:16:26.398760"
-        },
-        {
-          "ip": "67.228.115.191",
-          "port": 21,
-          "hostnames": [
-            "bf.73.e443.ip4.static.sl-reverse.com",
-            "server56.qiqiservers.com"
-          ],
-          "org": "IBM Cloud",
-          "asn": "AS36351",
-          "isp": "IBM Cloud",
-          "country": "US",
-          "city": "Dallas",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:21.300703"
-        },
-        {
-          "ip": "94.250.245.65",
-          "port": 21,
-          "hostnames": [
-            "panel.innovea.it",
-            "mail.kalanobleas.es"
-          ],
-          "org": "Dade2 Limited",
-          "asn": "AS48685",
-          "isp": "Opin Kerfi hf",
-          "country": "IS",
-          "city": "Grindavík",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:20.973863"
-        },
-        {
-          "ip": "51.91.101.50",
-          "port": 21,
-          "hostnames": [
-            "50.ip-51-91-101.eu"
-          ],
-          "org": "OVH SAS",
-          "asn": "AS16276",
-          "isp": "OVH SAS",
-          "country": "FR",
-          "city": "Strasbourg",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:16:20.108943"
-        },
-        {
-          "ip": "57.140.227.199",
-          "port": 6443,
-          "hostnames": [],
-          "org": "MENLO SECURITY, INC.",
-          "asn": "AS15169",
-          "isp": "Google LLC",
-          "country": "KR",
-          "city": "Seoul",
-          "os": null,
-          "lastUpdate": "2026-02-16T07:16:16.710586"
-        },
-        {
-          "ip": "47.108.141.24",
-          "port": 21,
-          "hostnames": [],
-          "org": "Aliyun Computing Co., LTD",
-          "asn": "AS37963",
-          "isp": "Hangzhou Alibaba Advertising Co.,Ltd.",
-          "country": "CN",
-          "city": "Chengdu",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:12.811231"
-        },
-        {
-          "ip": "162.215.97.45",
-          "port": 21,
-          "hostnames": [
-            "seoboxes.com",
-            "162-215-97-45.unifiedlayer.com"
-          ],
-          "org": "Unified Layer",
-          "asn": "AS46606",
-          "isp": "Unified Layer",
-          "country": "US",
-          "city": "Salt Lake City",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:09.712304"
-        },
-        {
-          "ip": "198.12.235.50",
-          "port": 21,
-          "hostnames": [
-            "prod.phx3.secureserver.net",
-            "50.235.12.198.host.secureserver.net"
-          ],
-          "org": "GoDaddy.com, LLC",
-          "asn": "AS26496",
-          "isp": "GoDaddy.com, LLC",
-          "country": "US",
-          "city": "Phoenix",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:06.433823"
-        },
-        {
-          "ip": "5.135.88.211",
-          "port": 21,
-          "hostnames": [
-            "s02.mdsoftware.pl"
-          ],
-          "org": "MDDV Sp. z o.o. Mariusz Dalewski",
-          "asn": "AS16276",
-          "isp": "OVH SAS",
-          "country": "FR",
-          "city": "Roubaix",
-          "os": null,
-          "product": "Pure-FTPd",
-          "lastUpdate": "2026-02-16T07:16:03.453885"
-        },
-        {
-          "ip": "67.222.15.215",
-          "port": 21,
-          "hostnames": [
-            "vps.stagingserver-me.com"
-          ],
-          "org": "PrivateSystems Networks WA",
-          "asn": "AS63410",
-          "isp": "PrivateSystems Networks",
-          "country": "US",
-          "city": "Seattle",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls"
-          ],
-          "lastUpdate": "2026-02-16T07:16:03.349922"
-        },
-        {
-          "ip": "93.119.0.57",
-          "port": 21,
-          "hostnames": [
-            "server.thlassche-hosting.nl",
-            "93-119-0-57.colo.transip.net"
-          ],
-          "org": "Signet B.V.",
-          "asn": "AS20857",
-          "isp": "Signet B.V.",
-          "country": "NL",
-          "city": "Lelystad",
-          "os": null,
-          "product": "Pure-FTPd",
-          "tags": [
-            "starttls",
-            "self-signed"
-          ],
-          "lastUpdate": "2026-02-16T07:16:02.876122"
+      "xPosts": [
+        {
+          "id": "2023048301424123910",
+          "text": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+          "author": {
+            "username": "Dogi1313",
+            "displayName": "Dogi",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 59,
+            "reposts": 4,
+            "replies": 12,
+            "views": 12
+          },
+          "timestamp": "2026-02-15T14:54:36.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/Dogi1313/status/2023048301424123910"
+        },
+        {
+          "id": "2023039654883160406",
+          "text": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
+          "author": {
+            "username": "H4ckmanac",
+            "displayName": "Hackmanac",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 143,
+            "reposts": 78,
+            "replies": 2,
+            "views": 2
+          },
+          "timestamp": "2026-02-15T14:20:14.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/H4ckmanac/status/2023039654883160406"
+        },
+        {
+          "id": "2023017971770355759",
+          "text": " Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
+          "author": {
+            "username": "0708America",
+            "displayName": "St.Louis Woman ••America FIRST •",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 93,
+            "reposts": 32,
+            "replies": 7,
+            "views": 7
+          },
+          "timestamp": "2026-02-15T12:54:04.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [
+            "https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…"
+          ],
+          "permalink": "https://x.com/0708America/status/2023017971770355759"
+        },
+        {
+          "id": "2022729558366261344",
+          "text": " New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
+          "author": {
+            "username": "MalGamy12",
+            "displayName": "Gameel Ali ",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 36,
+            "reposts": 5,
+            "replies": 2,
+            "views": 2
+          },
+          "timestamp": "2026-02-14T17:48:01.000Z",
+          "hashtags": [
+            "#Reynolds"
+          ],
+          "mentions": [],
+          "urls": [
+            "https://malops.io/challenges/kernel-shield…",
+            "https://discord.gg/cncpftd3Kt"
+          ],
+          "permalink": "https://x.com/MalGamy12/status/2022729558366261344"
+        },
+        {
+          "id": "2022580452209418346",
+          "text": " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+          "author": {
+            "username": "The_Cyber_News",
+            "displayName": "Cyber Security News",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 57,
+            "reposts": 18,
+            "replies": 5,
+            "views": 5
+          },
+          "timestamp": "2026-02-14T07:55:32.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [
+            "https://cybersecuritynews.com/opensea-0-day-exploit-chain/…"
+          ],
+          "permalink": "https://x.com/The_Cyber_News/status/2022580452209418346"
+        },
+        {
+          "id": "2022490305338183963",
+          "text": "Publicly traded blockchain lender Figure confirmed a customer data breach after a social engineering attack on an employee. Hacker group ShinyHunters claimed it stole and published about 2.5GB of data, potentially including customer names, addresses, dates of birth, and phone",
+          "author": {
+            "username": "WuBlockchain",
+            "displayName": "Wu Blockchain",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 21,
+            "reposts": 11,
+            "replies": 9,
+            "views": 9
+          },
+          "timestamp": "2026-02-14T01:57:19.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/WuBlockchain/status/2022490305338183963"
+        },
+        {
+          "id": "2022426653666975996",
+          "text": "BREAKING: Blockchain lending firm @Figure confirms data breach after an employee fell victim to a social engineering attack, allowing hackers to access a limited number of internal files, according to TechCrunch.\n\nShinyHunters claims responsibility, publishing 2.5GB of",
+          "author": {
+            "username": "SolanaFloor",
+            "displayName": "SolanaFloor",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 25,
+            "reposts": 5,
+            "replies": 4,
+            "views": 4
+          },
+          "timestamp": "2026-02-13T21:44:23.000Z",
+          "hashtags": [],
+          "mentions": [
+            "@Figure"
+          ],
+          "urls": [],
+          "permalink": "https://x.com/SolanaFloor/status/2022426653666975996"
+        },
+        {
+          "id": "2022426489543938131",
+          "text": "If you’re just catching up, $LinhMai is the first Asian elephant born at the National Zoo in 25 years.\n\nWe raised over $60k for her naming campaign. \n\nShe’s the result of decades of work at the Zoo and incredibly rare. Her name means Spirit Blossom and is particularly apt with",
+          "author": {
+            "username": "ponzibaron",
+            "displayName": "Đoc",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 33,
+            "reposts": 6,
+            "replies": 6,
+            "views": 6
+          },
+          "timestamp": "2026-02-13T21:43:44.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/ponzibaron/status/2022426489543938131"
+        },
+        {
+          "id": "2022299833751486862",
+          "text": "Italy  - Siem Srl (Kalisa Holding) has allegedly been compromised by SpaceBears ransomware, threatening to leak sensitive drawings of airports and factories, project data, financial reports, and employee PII. https://dailydarkweb.net/siem-srl-targeted-by-spacebears-ransomware-attack/…",
+          "author": {
+            "username": "DailyDarkWeb",
+            "displayName": "Dark Web Intelligence",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 14,
+            "reposts": 3,
+            "replies": 1,
+            "views": 1
+          },
+          "timestamp": "2026-02-13T13:20:27.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [
+            "https://dailydarkweb.net/siem-srl-targeted-by-spacebears-ransomware-attack/…"
+          ],
+          "permalink": "https://x.com/DailyDarkWeb/status/2022299833751486862"
+        },
+        {
+          "id": "2022294698241482941",
+          "text": "Breach. Spread & Encrypt\n\nConti ransomware exploited Exchange, dumped credentials from LSASS, and spread via WMI. Learn to investigate ransomware attacks with Splunk by tracing web shells and reconstructing attack timelines step by step.\nhttps://hackers-arise.com/digital-forensics-investigating-conti-ransomware-with-splunk/…\n@three_cube",
+          "author": {
+            "username": "_aircorridor",
+            "displayName": "Olexander",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 24,
+            "reposts": 6,
+            "replies": 0,
+            "views": 0
+          },
+          "timestamp": "2026-02-13T13:00:03.000Z",
+          "hashtags": [],
+          "mentions": [
+            "@three_cube"
+          ],
+          "urls": [
+            "https://hackers-arise.com/digital-forensics-investigating-conti-ransomware-with-splunk/…"
+          ],
+          "permalink": "https://x.com/_aircorridor/status/2022294698241482941"
+        },
+        {
+          "id": "2022249640188649845",
+          "text": "𝐒𝐞𝐚𝐬𝐨𝐧 𝟏𝟑 𝐒𝐩𝐞𝐜𝐢𝐚𝐥 𝐀𝐏𝐑 𝐢𝐬 𝐥𝐢𝐯𝐞.\n\nEarn from a 300 amAPT reward pool with boosted returns for new stakers - up to 20% APR.\n\n Stake here: https://stake.amnis.finance/special-APR-offer…\n\n Campaign period: 13th Feb, 2026 – 28th Feb, 2026\n Reward pool: 300 amAPT\n\nStake fresh APT",
+          "author": {
+            "username": "AmnisFinance",
+            "displayName": "Amnis Finance",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 32,
+            "reposts": 7,
+            "replies": 17,
+            "views": 17
+          },
+          "timestamp": "2026-02-13T10:01:00.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [
+            "https://stake.amnis.finance/special-APR-offer…"
+          ],
+          "permalink": "https://x.com/AmnisFinance/status/2022249640188649845"
+        },
+        {
+          "id": "2022197848696291643",
+          "text": "#UNC6384 #MustangPanda #APT\nUpload from \n\n... powershell $Env:temp\\4w42197.msi\n\nref1: https://dreamgroup.com/plugx-diplomacy-mustang-panda-campaign/…\nref2: https://arcticwolf.com/resources/blog/unc6384-weaponizes-zdi-can-25373-vulnerability-to-deploy-plugx/…",
+          "author": {
+            "username": "PrakkiSathwik",
+            "displayName": "Sathwik Ram Prakki",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 29,
+            "reposts": 9,
+            "replies": 1,
+            "views": 1
+          },
+          "timestamp": "2026-02-13T06:35:12.000Z",
+          "hashtags": [
+            "#UNC6384",
+            "#MustangPanda",
+            "#APT"
+          ],
+          "mentions": [],
+          "urls": [
+            "https://dreamgroup.com/plugx-diplomacy-mustang-panda-campaign/…",
+            "https://arcticwolf.com/resources/blog/unc6384-weaponizes-zdi-can-25373-vulnerability-to-deploy-plugx/…"
+          ],
+          "permalink": "https://x.com/PrakkiSathwik/status/2022197848696291643"
         }
-      ]
+      ],
+      "shodanResults": []
     },
     "structured": {
-      "extractedCVEs": [],
-      "domains": [],
+      "extractedCVEs": [
+        "CVE-2025-68947"
+      ],
+      "domains": [
+        "fox2now.com",
+        "malops.io",
+        "discord.gg",
+        "cybersecuritynews.com",
+        "dailydarkweb.net",
+        "hackers-arise.com",
+        "stake.amnis",
+        "4w42197.msi",
+        "dreamgroup.com",
+        "arcticwolf.com"
+      ],
       "ips": [],
-      "ports": [
-        21,
-        443,
-        6443,
-        80,
-        9000
+      "ports": [],
+      "services": [],
+      "keywords": [
+        "APT",
+        "Ransomware",
+        "Vulnerability",
+        "Data Breach",
+        "Phishing"
       ],
-      "services": [
-        "Pure-FTPd",
-        "Apache httpd",
-        "Squid http proxy",
-        "Werkzeug httpd"
-      ],
-      "keywords": [],
       "exploitationClaims": [],
       "tone": "mixed",
-      "topPosts": []
+      "topPosts": [
+        {
+          "author": "H4ckmanac",
+          "excerpt": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
+          "engagement": 299,
+          "url": "https://x.com/H4ckmanac/status/2023039654883160406",
+          "timestamp": "2026-02-15T14:20:14.000Z"
+        },
+        {
+          "author": "0708America",
+          "excerpt": " Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
+          "engagement": 157,
+          "url": "https://x.com/0708America/status/2023017971770355759",
+          "timestamp": "2026-02-15T12:54:04.000Z"
+        },
+        {
+          "author": "The_Cyber_News",
+          "excerpt": " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+          "engagement": 93,
+          "url": "https://x.com/The_Cyber_News/status/2022580452209418346",
+          "timestamp": "2026-02-14T07:55:32.000Z"
+        },
+        {
+          "author": "Dogi1313",
+          "excerpt": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+          "engagement": 67,
+          "url": "https://x.com/Dogi1313/status/2023048301424123910",
+          "timestamp": "2026-02-15T14:54:36.000Z"
+        },
+        {
+          "author": "PrakkiSathwik",
+          "excerpt": "#UNC6384 #MustangPanda #APT\nUpload from \n\n... powershell $Env:temp\\4w42197.msi\n\nref1: https://dreamgroup.com/plugx-diplomacy-mustang-panda-campaign/…\nref2: https://arcticwolf.com/resources/blog/unc6384-weaponizes-zdi-can-25373-vulnerability-to-deploy-plugx/…",
+          "engagement": 47,
+          "url": "https://x.com/PrakkiSathwik/status/2022197848696291643",
+          "timestamp": "2026-02-13T06:35:12.000Z"
+        }
+      ]
     }
   },
   "assessmentLayer": {
@@ -2201,27 +523,27 @@
         "baselineDelta": 0.05
       },
       "components": {
-        "vulnerabilityRatio": 0.03,
-        "socialIntensity": 0,
+        "vulnerabilityRatio": 0,
+        "socialIntensity": 0.1,
         "correlationScore": 0.14,
-        "freshnessScore": 0.92,
+        "freshnessScore": 0.1,
         "baselineDelta": 0
       },
-      "computedScore": 14,
-      "confidenceLevel": 71
+      "computedScore": 7,
+      "confidenceLevel": 35
     },
     "baselineComparison": {
       "previousRiskScore": 50,
-      "currentRiskScore": 14,
-      "delta": -36,
+      "currentRiskScore": 7,
+      "delta": -43,
       "anomalyLevel": "severe",
       "trendDirection": "decreasing"
     },
     "freshness": {
-      "socialAgeHours": 3,
+      "socialAgeHours": 42.3,
       "infraAgeHours": 1,
-      "freshnessScore": 0.92,
-      "status": "high"
+      "freshnessScore": 0.1,
+      "status": "moderate"
     },
     "classification": {
       "type": "opportunistic",
@@ -2233,16 +555,16 @@
       ]
     },
     "iocStats": {
-      "uniqueCVECount": 0,
-      "uniqueDomainCount": 0,
+      "uniqueCVECount": 1,
+      "uniqueDomainCount": 10,
       "uniqueIPCount": 0,
-      "uniquePortCount": 5,
-      "uniqueServiceCount": 4,
-      "totalIndicators": 9,
+      "uniquePortCount": 0,
+      "uniqueServiceCount": 0,
+      "totalIndicators": 11,
       "duplicates": 0,
       "duplicationRatio": 0
     },
-    "narrative": "Today we observed mixed activity related to threat intelligence. The correlation strength is weak (14%), primarily driven by temporal proximity. This pattern is consistent with opportunistic scanning."
+    "narrative": "Today we observed mixed activity related to APT, Ransomware. The correlation strength is weak (14%), primarily driven by temporal proximity. This pattern is consistent with opportunistic scanning."
   },
   "modelMetadata": {
     "strategic": "phi4-mini",
