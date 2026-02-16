@@ -19,6 +19,7 @@ import {
   type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { I18nProvider, useI18n, LanguageSwitcher } from '../../i18n/index.jsx';
 
 // Types matching the JSON structure
 interface DashboardData {
@@ -148,7 +149,7 @@ const CTINode = ({ data }: { data: CTINodeData }) => {
         {data.connections && data.connections.length > 0 && (
           <div style={{ width: '100%' }}>
             <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase' }}>
-              Correlated with
+              {t('dashboard.correlatedWith')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               {data.connections.slice(0, 4).map((conn, i) => (
@@ -171,7 +172,7 @@ const CTINode = ({ data }: { data: CTINodeData }) => {
         {data.links && data.links.length > 0 && (
           <div style={{ width: '100%', marginTop: '10px' }}>
             <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Sources
+{t('dashboard.sources')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {data.links.map((link, i) => (
@@ -257,14 +258,24 @@ const nodeTypes: NodeTypes = {
 // Tab types
 type TabId = 'executive' | 'correlation' | 'detail';
 
-const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'executive', label: 'Executive Summary', icon: '◈' },
-  { id: 'correlation', label: 'Correlation Topology', icon: '◉' },
-  { id: 'detail', label: 'Full Detail', icon: '☰' },
+const TABS: { id: TabId; labelKey: string; icon: string }[] = [
+  { id: 'executive', labelKey: 'tab.executive', icon: '◈' },
+  { id: 'correlation', labelKey: 'tab.correlation', icon: '◉' },
+  { id: 'detail', labelKey: 'tab.detail', icon: '☰' },
 ];
 
-// Main Component
-const CTIDashboard: React.FC = () => {
+// Main Component with I18n Provider wrapper
+const CTIDashboardWithI18n: React.FC = () => {
+  return (
+    <I18nProvider>
+      <CTIDashboardInner />
+    </I18nProvider>
+  );
+};
+
+// Inner component that uses i18n hooks
+const CTIDashboardInner: React.FC = () => {
+  const { t, language } = useI18n();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -276,14 +287,16 @@ const CTIDashboard: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  const dashboardFile = language === 'es' ? '/data/cti-dashboard-es.json' : '/data/cti-dashboard.json';
+
   // Load data
   useEffect(() => {
     loadDashboard();
-  }, []);
+  }, [language]);
 
   const loadDashboard = async () => {
     try {
-      const response = await fetch(`/data/cti-dashboard.json?_cb=${Date.now()}`);
+      const response = await fetch(`${dashboardFile}?_cb=${Date.now()}`);
       if (!response.ok) throw new Error('Dashboard data not available');
       const dashboardData = await response.json();
       setData(dashboardData);
@@ -494,7 +507,7 @@ const CTIDashboard: React.FC = () => {
         target: 'social_source',
         animated: true,
         style: { stroke: '#FFB800', strokeWidth: 3 },
-        label: 'Mentioned in posts',
+        label: t('dashboard.mentionedInPosts'),
         labelStyle: { fill: '#FFB800', fontSize: 10 },
         labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
         markerEnd: { type: MarkerType.ArrowClosed, color: '#FFB800' },
@@ -505,7 +518,7 @@ const CTIDashboard: React.FC = () => {
         target: 'infra_source',
         animated: true,
         style: { stroke: '#FFB800', strokeWidth: 3 },
-        label: 'Found in scans',
+        label: t('dashboard.foundInScans'),
         labelStyle: { fill: '#FFB800', fontSize: 10 },
         labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
         markerEnd: { type: MarkerType.ArrowClosed, color: '#FFB800' },
@@ -533,7 +546,7 @@ const CTIDashboard: React.FC = () => {
         source: 'social_cve',
         target: 'social_source',
         style: { stroke: '#E31B23', strokeWidth: 2, strokeDasharray: '5,5' },
-        label: 'Social only',
+        label: t('dashboard.socialOnly'),
         labelStyle: { fill: '#888', fontSize: 9 },
         labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
         markerEnd: { type: MarkerType.ArrowClosed, color: '#E31B23' },
@@ -544,7 +557,7 @@ const CTIDashboard: React.FC = () => {
         source: 'social_cve',
         target: 'infra_source',
         style: { stroke: '#333', strokeWidth: 1, strokeDasharray: '2,6' },
-        label: 'No match',
+        label: t('dashboard.noMatch'),
         labelStyle: { fill: '#555', fontSize: 9 },
         labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
       });
@@ -787,7 +800,7 @@ const CTIDashboard: React.FC = () => {
             margin: '0 auto 20px',
           }} />
           <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-          <div style={{ fontSize: '14px', letterSpacing: '4px' }}>INITIALIZING CTI</div>
+          <div style={{ fontSize: '14px', letterSpacing: '4px' }}>{t('loading.initializing')}</div>
         </div>
       </div>
     );
@@ -805,7 +818,7 @@ const CTIDashboard: React.FC = () => {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠</div>
-          <div>{error || 'Data unavailable'}</div>
+          <div>{error || t('error.dataUnavailable')}</div>
         </div>
       </div>
     );
@@ -885,7 +898,7 @@ const CTIDashboard: React.FC = () => {
               }}>
                 {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {data!.status.trend}
               </span>
-              <span>Confidence: {data!.status.confidenceLevel}%</span>
+              <span>{t('status.confidence')}: {data!.status.confidenceLevel}%</span>
               <span>{data!.metrics.totalSignals} signals</span>
             </div>
           </div>
@@ -911,7 +924,7 @@ const CTIDashboard: React.FC = () => {
                 fontSize: '12px', color: '#00D26A', textTransform: 'uppercase',
                 letterSpacing: '2px', fontWeight: 600,
               }}>
-                Intelligence Narrative
+                {t('dashboard.intelligenceNarrative')}
               </span>
             </div>
             <p style={{
@@ -971,14 +984,14 @@ const CTIDashboard: React.FC = () => {
                 fontSize: '12px', color: '#3B82F6', textTransform: 'uppercase',
                 letterSpacing: '2px', fontWeight: 600,
               }}>
-                Signal Breakdown
+                {t('dashboard.signalBreakdown')}
               </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <MetricBox label="Critical" value={data!.metrics.criticalCount} color="#E31B23" />
-              <MetricBox label="High" value={data!.metrics.highCount} color="#FF6B35" />
-              <MetricBox label="Medium" value={data!.metrics.mediumCount} color="#FFB800" />
-              <MetricBox label="Low" value={data!.metrics.lowCount} color="#00D26A" />
+              <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
+              <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
+              <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
+              <MetricBox label={t('metrics.low')} value={data!.metrics.lowCount} color="#00D26A" />
             </div>
           </div>
         </div>
@@ -1001,7 +1014,7 @@ const CTIDashboard: React.FC = () => {
               fontSize: '12px', color: '#E31B23', textTransform: 'uppercase',
               letterSpacing: '2px', fontWeight: 600,
             }}>
-              Recommended Actions
+{t('dashboard.recommendedActions')}
             </span>
           </div>
           {data!.executive.recommendedActions
@@ -1093,10 +1106,10 @@ const CTIDashboard: React.FC = () => {
               ◈ Correlation Factors
             </div>
             {[
-              { label: 'CVE Overlap', value: factors?.cveOverlap ?? 0, desc: 'CVEs found in BOTH social and infra', color: '#E31B23' },
-              { label: 'Service Match', value: factors?.serviceMatch ?? 0, desc: 'Services discussed socially that match infra', color: '#3B82F6' },
-              { label: 'Temporal Proximity', value: factors?.temporalProximity ?? 0, desc: 'Data collected within similar timeframe', color: '#00D26A' },
-              { label: 'Infra-Social Alignment', value: factors?.infraSocialAlignment ?? 0, desc: 'Average of CVE + service factors', color: '#8B5CF6' },
+              { label: t('dashboard.cveOverlap'), value: factors?.cveOverlap ?? 0, desc: 'CVEs found in BOTH social and infra', color: '#E31B23' },
+              { label: t('dashboard.serviceMatch'), value: factors?.serviceMatch ?? 0, desc: 'Services discussed socially that match infra', color: '#3B82F6' },
+              { label: t('dashboard.temporalProximity'), value: factors?.temporalProximity ?? 0, desc: 'Data collected within similar timeframe', color: '#00D26A' },
+              { label: t('dashboard.infraSocialAlignment'), value: factors?.infraSocialAlignment ?? 0, desc: 'Average of CVE + service factors', color: '#8B5CF6' },
             ].map((f, i) => (
               <div key={i} style={{ marginBottom: '12px' }}>
                 <div style={{
@@ -1143,7 +1156,7 @@ const CTIDashboard: React.FC = () => {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
                 marginBottom: '12px', paddingBottom: '10px', borderBottom: '1px solid #1a1a1a',
               }}>
-                <span style={{ fontSize: '11px', color: '#888' }}>Computed Score</span>
+                <span style={{ fontSize: '11px', color: '#888' }}>{t('dashboard.computedScore')}</span>
                 <span style={{
                   fontSize: '22px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor,
                 }}>
@@ -1178,7 +1191,7 @@ const CTIDashboard: React.FC = () => {
                 marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #1a1a1a',
                 fontSize: '10px',
               }}>
-                <span style={{ color: '#888' }}>Confidence Level</span>
+                <span style={{ color: '#888' }}>{t('dashboard.confidenceLevel')}</span>
                 <span style={{ color: '#F59E0B', fontWeight: 600, fontFamily: 'Space Grotesk' }}>
                   {scoring.confidenceLevel}%
                 </span>
@@ -1246,10 +1259,10 @@ const CTIDashboard: React.FC = () => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 {[
-                  { label: 'CVEs', value: iocStats.uniqueCVECount, total: data!.indicators?.cves?.length || 0 },
-                  { label: 'Domains', value: iocStats.uniqueDomainCount },
-                  { label: 'IPs', value: iocStats.uniqueIPCount },
-                  { label: 'Total IOCs', value: iocStats.totalIndicators },
+                  { label: t('dashboard.cves'), value: iocStats.uniqueCVECount, total: data!.indicators?.cves?.length || 0 },
+                  { label: t('dashboard.domains'), value: iocStats.uniqueDomainCount },
+                  { label: t('dashboard.ips'), value: iocStats.uniqueIPCount },
+                  { label: t('dashboard.totalIocs'), value: iocStats.totalIndicators },
                 ].map((stat, i) => (
                   <div key={i} style={{
                     padding: '8px', borderRadius: '6px',
@@ -1278,7 +1291,7 @@ const CTIDashboard: React.FC = () => {
                   fontSize: '9px', color: '#555', marginTop: '8px',
                   display: 'flex', justifyContent: 'space-between',
                 }}>
-                  <span>Cross-source duplication</span>
+                  <span>{t('dashboard.crossSourceDuplication')}</span>
                   <span style={{ color: (iocStats.duplicationRatio ?? 0) > 0 ? '#F59E0B' : '#555' }}>
                     {Math.round((iocStats.duplicationRatio ?? 0) * 100)}%
                   </span>
@@ -1302,7 +1315,7 @@ const CTIDashboard: React.FC = () => {
               <div style={{
                 display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '10px',
               }}>
-                <span style={{ color: '#888' }}>Status</span>
+                <span style={{ color: '#888' }}>{t('status.risk')}</span>
                 <span style={{
                   padding: '2px 8px', borderRadius: '10px', fontWeight: 600, fontSize: '9px',
                   background: freshness.status === 'high' ? '#00D26A20' : freshness.status === 'moderate' ? '#F59E0B20' : '#E31B2320',
@@ -1315,13 +1328,13 @@ const CTIDashboard: React.FC = () => {
               <div style={{
                 display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px',
               }}>
-                <span style={{ color: '#888' }}>Social data age</span>
+                <span style={{ color: '#888' }}>{t('dashboard.socialDataAge')}</span>
                 <span style={{ color: '#ccc', fontFamily: 'Space Grotesk' }}>{freshness.socialAgeHours}h</span>
               </div>
               <div style={{
                 display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px',
               }}>
-                <span style={{ color: '#888' }}>Infrastructure age</span>
+                <span style={{ color: '#888' }}>{t('dashboard.infrastructureAge')}</span>
                 <span style={{ color: '#ccc', fontFamily: 'Space Grotesk' }}>{freshness.infraAgeHours}h</span>
               </div>
               <div style={{
@@ -1369,11 +1382,11 @@ const CTIDashboard: React.FC = () => {
               Node Types
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '9px' }}>
-              <LegendItem color="#00D26A" label="Social Intel" />
-              <LegendItem color="#3B82F6" label="Infrastructure" />
-              <LegendItem color="#E31B23" label="CVEs" />
-              <LegendItem color="#8B5CF6" label="Themes" />
-              <LegendItem color="#F59E0B" label="Kill Chain" />
+              <LegendItem color="#00D26A" label={t('dashboard.socialIntel')} />
+              <LegendItem color="#3B82F6" label={t('dashboard.infrastructure')} />
+              <LegendItem color="#E31B23" label={t('indicators.cves')} />
+              <LegendItem color="#8B5CF6" label={t('dashboard.themes')} />
+              <LegendItem color="#F59E0B" label={t('dashboard.killChainLegend')} />
             </div>
             <div style={{ fontSize: '9px', color: '#666', marginTop: '8px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
               Edge Meaning
@@ -1381,11 +1394,11 @@ const CTIDashboard: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ width: '20px', height: '2px', background: '#FFB800' }} />
-                <span style={{ color: '#888' }}>Cross-source match</span>
+                <span style={{ color: '#888' }}>{t('dashboard.crossSourceMatch')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ width: '20px', height: '2px', background: '#555', borderTop: '2px dashed #555' }} />
-                <span style={{ color: '#888' }}>No match found</span>
+                <span style={{ color: '#888' }}>{t('dashboard.noMatchFound')}</span>
               </div>
             </div>
           </div>
@@ -1486,10 +1499,10 @@ const CTIDashboard: React.FC = () => {
             padding: '24px', background: '#111', borderRadius: '12px', border: '1px solid #222',
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
-              <MetricBox label="Critical" value={data!.metrics.criticalCount} color="#E31B23" />
-              <MetricBox label="High" value={data!.metrics.highCount} color="#FF6B35" />
-              <MetricBox label="Medium" value={data!.metrics.mediumCount} color="#FFB800" />
-              <MetricBox label="Low" value={data!.metrics.lowCount} color="#00D26A" />
+              <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
+              <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
+              <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
+              <MetricBox label={t('metrics.low')} value={data!.metrics.lowCount} color="#00D26A" />
             </div>
           </div>
         </div>
@@ -1532,7 +1545,7 @@ const CTIDashboard: React.FC = () => {
                     borderRadius: '8px', border: '1px solid #00D26A30',
                   }}>
                     <div style={{ fontSize: '10px', color: '#00D26A', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                      Key Findings
+{t('dashboard.keyFindings')}
                     </div>
                     {data!.executive.keyFindings.map((finding, i) => (
                       <div key={i} style={{
@@ -1555,7 +1568,7 @@ const CTIDashboard: React.FC = () => {
                 border: '1px solid #00D26A30', boxShadow: '0 0 20px rgba(0, 210, 106, 0.1)',
               }}>
                 <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Kill Chain Phase</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('cti.killChain')}</span>
                   <div style={{
                     marginTop: '4px', padding: '6px 12px', background: '#F59E0B20',
                     border: '1px solid #F59E0B', borderRadius: '4px', color: '#F59E0B',
@@ -1566,7 +1579,7 @@ const CTIDashboard: React.FC = () => {
                 </div>
 
                 <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Correlation Strength</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.correlationStrength')}</span>
                   <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '100px', height: '6px', background: '#222', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{
@@ -1586,7 +1599,7 @@ const CTIDashboard: React.FC = () => {
                 </div>
 
                 <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Classification</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('assessment.classification')}</span>
                   <div style={{
                     marginTop: '4px', padding: '6px 12px', background: '#8B5CF620',
                     border: '1px solid #8B5CF6', borderRadius: '4px', color: '#8B5CF6', fontSize: '12px',
@@ -1599,7 +1612,7 @@ const CTIDashboard: React.FC = () => {
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Technical Assessment</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.technicalAssessment')}</span>
                   <div style={{
                     marginTop: '8px', padding: '16px', background: '#000', borderRadius: '6px',
                     border: '1px solid #222', fontSize: '11px', fontFamily: 'monospace',
@@ -1645,7 +1658,7 @@ const CTIDashboard: React.FC = () => {
                               alignItems: 'center', gap: '8px',
                             }}>
                               <span>⚠</span>
-                              <span>Output truncated — the AI model reached its token limit. Run the pipeline again with a higher num_predict value for a complete analysis.</span>
+                              <span>{t('dashboard.truncated')}</span>
                             </div>
                           )}
                         </>
@@ -1673,7 +1686,7 @@ const CTIDashboard: React.FC = () => {
                     >
                       @{post.author}
                     </a>
-                    <span style={{ fontSize: '10px', color: '#666' }}>{post.engagement} engagement</span>
+                    <span style={{ fontSize: '10px', color: '#666' }}>{post.engagement} {t('dashboard.engagement')}</span>
                   </div>
                   <p style={{ fontSize: '11px', color: '#888', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
                     {post.excerpt.substring(0, 200)}{post.excerpt.length > 200 ? '...' : ''}
@@ -1696,8 +1709,8 @@ const CTIDashboard: React.FC = () => {
               ))}
               {data!.socialIntel && (
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '10px', color: '#666' }}>
-                  <span>Posts: {data!.socialIntel.totalPosts}</span>
-                  <span>Tone: <span style={{
+                  <span>{t('social.totalPosts')}: {data!.socialIntel.totalPosts}</span>
+                  <span>{t('social.tone')}: <span style={{
                     color: data!.socialIntel.tone === 'confirmed' ? '#E31B23' : data!.socialIntel.tone === 'speculative' ? '#FFB800' : '#888',
                     textTransform: 'uppercase',
                   }}>{data!.socialIntel.tone}</span></span>
@@ -1718,7 +1731,7 @@ const CTIDashboard: React.FC = () => {
               )}
               {data!.ctiAnalysis?.methodologies && data!.ctiAnalysis.methodologies.length > 0 && (
                 <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Analysis Methods</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.analysisMethods')}</span>
                   <div style={{ marginTop: '6px' }}>
                     {data!.ctiAnalysis.methodologies.map((m, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontSize: '10px', color: '#888' }}>
@@ -1730,25 +1743,25 @@ const CTIDashboard: React.FC = () => {
               )}
               {data!.modelMetadata && (
                 <div>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Models Used</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.modelsUsed')}</span>
                   <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #222', fontSize: '10px', fontFamily: 'monospace' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#666' }}>Strategic</span>
+                      <span style={{ color: '#666' }}>{t('dashboard.strategic')}</span>
                       <span style={{ color: '#8B5CF6' }}>{data!.modelMetadata.strategic}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#666' }}>Technical</span>
+                      <span style={{ color: '#666' }}>{t('dashboard.technical')}</span>
                       <span style={{ color: '#F59E0B' }}>{data!.modelMetadata.technical}</span>
                     </div>
                     {data!.modelMetadata.quantization && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ color: '#666' }}>Quantization</span>
+                        <span style={{ color: '#666' }}>{t('dashboard.quantization')}</span>
                         <span style={{ color: '#888' }}>{data!.modelMetadata.quantization}</span>
                       </div>
                     )}
                     {data!.modelMetadata.version && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>Version</span>
+                        <span style={{ color: '#666' }}>{t('version')}</span>
                         <span style={{ color: '#888' }}>{data!.modelMetadata.version}</span>
                       </div>
                     )}
@@ -1777,7 +1790,7 @@ const CTIDashboard: React.FC = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '16px' }}>🔍</span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6' }}>Shodan</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6' }}>{t('dashboard.shodan')}</span>
                     <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
                   </div>
                   <span style={{ fontSize: '10px', color: '#666' }}>{data!.infrastructure?.totalHosts || 0} hosts scanned</span>
@@ -1834,7 +1847,7 @@ const CTIDashboard: React.FC = () => {
                     <span style={{ fontSize: '12px', fontWeight: 600, color: '#8B5CF6' }}>MITRE ATT&CK</span>
                     <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
                   </div>
-                  <span style={{ fontSize: '10px', color: '#666' }}>Kill chain: {data!.ctiAnalysis?.killChainPhase || 'N/A'}</span>
+                  <span style={{ fontSize: '10px', color: '#666' }}>{t('dashboard.killChain')}: {data!.ctiAnalysis?.killChainPhase || 'N/A'}</span>
                 </a>
               </div>
             </Section>
@@ -1842,7 +1855,7 @@ const CTIDashboard: React.FC = () => {
             {/* Indicators */}
             <Section title="INDICATORS">
               <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>CVEs</span>
+                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('indicators.cves')}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                   {data!.indicators.cves?.map((cve, i) => (
                     <a key={i} href={`https://nvd.nist.gov/vuln/detail/${cve}`} target="_blank" rel="noopener noreferrer" style={{
@@ -1860,7 +1873,7 @@ const CTIDashboard: React.FC = () => {
                 </div>
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Threat Categories</span>
+                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.threatCategories')}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                   {data!.indicators.keywords?.map((kw, i) => (
                     <span key={i} style={{
@@ -1874,7 +1887,7 @@ const CTIDashboard: React.FC = () => {
               </div>
               {data!.indicators.domains && data!.indicators.domains.length > 0 && (
                 <div>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Domains</span>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.domains')}</span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                     {data!.indicators.domains.map((domain, i) => (
                       <a key={i} href={`https://www.virustotal.com/gui/domain/${domain}`} target="_blank" rel="noopener noreferrer" style={{
@@ -1898,13 +1911,13 @@ const CTIDashboard: React.FC = () => {
             {data!.infrastructure && (
               <Section title="INFRASTRUCTURE">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-                  <MetricBox label="Hosts" value={data!.infrastructure.totalHosts} color="#3B82F6" />
-                  <MetricBox label="Vulnerable" value={data!.infrastructure.vulnerableHosts} color="#E31B23" />
-                  <MetricBox label="Vuln %" value={Math.round((data!.infrastructure.vulnerableHosts / Math.max(data!.infrastructure.totalHosts, 1)) * 100)} color="#FF6B35" />
+                  <MetricBox label={t('dashboard.hosts')} value={data!.infrastructure.totalHosts} color="#3B82F6" />
+                  <MetricBox label={t('dashboard.vulnerable')} value={data!.infrastructure.vulnerableHosts} color="#E31B23" />
+                  <MetricBox label={t('dashboard.vuln')} value={Math.round((data!.infrastructure.vulnerableHosts / Math.max(data!.infrastructure.totalHosts, 1)) * 100)} color="#FF6B35" />
                 </div>
                 {data!.infrastructure.exposedPorts && data!.infrastructure.exposedPorts.length > 0 && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Exposed Ports</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.exposedPorts')}</span>
                     <div style={{ marginTop: '6px' }}>
                       {data!.infrastructure.exposedPorts.map((port, i) => (
                         <a key={i} href={`https://www.shodan.io/search?query=port:${port.port}`} target="_blank" rel="noopener noreferrer" style={{
@@ -1927,7 +1940,7 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.infrastructure.topCountries && data!.infrastructure.topCountries.length > 0 && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Top Countries</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.topCountries')}</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                       {data!.infrastructure.topCountries.map((c, i) => (
                         <span key={i} style={{
@@ -1942,7 +1955,7 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.infrastructure.sampleHosts && data!.infrastructure.sampleHosts.length > 0 && (
                   <div>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Vulnerable Hosts (Sample)</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.vulnerableHostsSample')}</span>
                     <div style={{ marginTop: '6px' }}>
                       {data!.infrastructure.sampleHosts.map((host, i) => (
                         <div key={i} style={{
@@ -1987,13 +2000,13 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.assessmentLayer.freshness && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Data Freshness</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('assessment.freshness')}</span>
                     <div style={{ marginTop: '6px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                       <div style={{ padding: '8px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: data!.assessmentLayer.freshness.status === 'stale' ? '#E31B23' : data!.assessmentLayer.freshness.status === 'moderate' ? '#FFB800' : '#00D26A', fontFamily: 'Space Grotesk' }}>
                           {(data!.assessmentLayer.freshness.freshnessScore * 100).toFixed(0)}%
                         </div>
-                        <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>Score</div>
+                        <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.score')}</div>
                       </div>
                       <div style={{ padding: '8px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
                         <div style={{
@@ -2011,22 +2024,22 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.assessmentLayer.baselineComparison && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Baseline Comparison</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.baselineComparison')}</span>
                     <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #222' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '11px', color: '#888' }}>Previous Score</span>
+                        <span style={{ fontSize: '11px', color: '#888' }}>{t('dashboard.previousScore')}</span>
                         <span style={{ fontSize: '14px', fontWeight: 700, color: '#666', fontFamily: 'Space Grotesk' }}>
                           {data!.assessmentLayer.baselineComparison.previousRiskScore}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '11px', color: '#888' }}>Current Score</span>
+                        <span style={{ fontSize: '11px', color: '#888' }}>{t('dashboard.currentScore')}</span>
                         <span style={{ fontSize: '14px', fontWeight: 700, color: riskColor, fontFamily: 'Space Grotesk' }}>
                           {data!.assessmentLayer.baselineComparison.currentRiskScore}
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#888' }}>Delta</span>
+                        <span style={{ fontSize: '11px', color: '#888' }}>{t('dashboard.delta')}</span>
                         <span style={{
                           fontSize: '14px', fontWeight: 700, fontFamily: 'Space Grotesk',
                           color: data!.assessmentLayer.baselineComparison.delta > 0 ? '#E31B23' : data!.assessmentLayer.baselineComparison.delta < 0 ? '#00D26A' : '#666',
@@ -2044,7 +2057,7 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.assessmentLayer.classification?.rationale && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Classification Rationale</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.classificationRationale')}</span>
                     <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #8B5CF620', fontSize: '11px', color: '#aaa', lineHeight: 1.5 }}>
                       {data!.assessmentLayer.classification.rationale}
                       {data!.assessmentLayer.classification.indicators && data!.assessmentLayer.classification.indicators.length > 0 && (
@@ -2061,7 +2074,7 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.assessmentLayer.correlation?.factors && (
                   <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Correlation Factors</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.correlationFactors')}</span>
                     <div style={{ marginTop: '6px' }}>
                       {Object.entries(data!.assessmentLayer.correlation.factors).map(([key, value], i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -2081,19 +2094,19 @@ const CTIDashboard: React.FC = () => {
                 )}
                 {data!.assessmentLayer.iocStats && (
                   <div>
-                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>Indicator Statistics</span>
+                    <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.indicatorStatistics')}</span>
                     <div style={{ marginTop: '6px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
                       <div style={{ padding: '6px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#E31B23', fontFamily: 'Space Grotesk' }}>{data!.assessmentLayer.iocStats.uniqueCVECount}</div>
-                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>CVEs</div>
+                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>{t('indicators.cves')}</div>
                       </div>
                       <div style={{ padding: '6px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#3B82F6', fontFamily: 'Space Grotesk' }}>{data!.assessmentLayer.iocStats.uniqueDomainCount}</div>
-                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>Domains</div>
+                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.domains')}</div>
                       </div>
                       <div style={{ padding: '6px', background: '#111', borderRadius: '4px', textAlign: 'center' }}>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: '#00D26A', fontFamily: 'Space Grotesk' }}>{data!.assessmentLayer.iocStats.totalIndicators}</div>
-                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>Total</div>
+                        <div style={{ fontSize: '8px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.total')}</div>
                       </div>
                     </div>
                   </div>
@@ -2110,7 +2123,7 @@ const CTIDashboard: React.FC = () => {
                 boxShadow: '0 0 30px rgba(227, 27, 35, 0.1)',
               }}>
                 <div style={{ fontSize: '10px', color: '#E31B23', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Mitigation Steps
+                  {t('dashboard.mitigationSteps')}
                 </div>
                 {data!.executive.recommendedActions
                   ?.filter(action => action.length > 15 && !action.match(/^(RECOMMENDED|ACTIONS?\*)/i))
@@ -2190,8 +2203,9 @@ const CTIDashboard: React.FC = () => {
               {data!.status.riskLevel.toUpperCase()} • {data!.status.riskScore}/100
             </div>
           </div>
-          <div style={{ fontSize: '11px', color: '#555' }}>
-            Generated: {new Date(data!.meta.generatedAt).toLocaleString()}
+          <div style={{ fontSize: '11px', color: '#555', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span>{t('generated')}: {new Date(data!.meta.generatedAt).toLocaleString()}</span>
+            <LanguageSwitcher />
           </div>
         </div>
 
@@ -2253,7 +2267,7 @@ const CTIDashboard: React.FC = () => {
                 }}>
                   {tab.icon}
                 </span>
-                {tab.label}
+                {t(tab.labelKey)}
               </button>
             );
           })}
@@ -2316,4 +2330,4 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => (
   </div>
 );
 
-export default CTIDashboard;
+export default CTIDashboardWithI18n;

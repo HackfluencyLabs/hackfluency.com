@@ -1,0 +1,408 @@
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from 'react';
+
+type Language = 'en' | 'es';
+
+interface Translations {
+  [key: string]: string;
+}
+
+const translations: Record<Language, Translations> = {
+  en: {
+    // Header & General
+    'app.title': 'Threat Intelligence Dashboard',
+    'app.subtitle': 'Real-time Cybersecurity Analysis',
+    'language': 'Language',
+    'language.en': 'English',
+    'language.es': 'Español',
+    
+    // Tabs
+    'tab.executive': 'Executive Summary',
+    'tab.correlation': 'Correlation Topology',
+    'tab.detail': 'Full Detail',
+    
+    // Status
+    'status.risk': 'Risk',
+    'status.score': 'Score',
+    'status.trend': 'Trend',
+    'status.confidence': 'Confidence',
+    'status.level.critical': 'Critical',
+    'status.level.elevated': 'Elevated',
+    'status.level.moderate': 'Moderate',
+    'status.level.low': 'Low',
+    'status.trend.increasing': 'Increasing',
+    'status.trend.stable': 'Stable',
+    'status.trend.decreasing': 'Decreasing',
+    
+    // Metrics
+    'metrics.totalSignals': 'Total Signals',
+    'metrics.critical': 'Critical',
+    'metrics.high': 'High',
+    'metrics.medium': 'Medium',
+    'metrics.low': 'Low',
+    'metrics.categories': 'Categories',
+    
+    // Executive
+    'executive.headline': 'Headline',
+    'executive.summary': 'Summary',
+    'executive.keyFindings': 'Key Findings',
+    'executive.recommendedActions': 'Recommended Actions',
+    
+    // Infrastructure
+    'infra.totalHosts': 'Total Hosts',
+    'infra.exposedPorts': 'Exposed Ports',
+    'infra.vulnerableHosts': 'Vulnerable Hosts',
+    'infra.topCountries': 'Top Countries',
+    'infra.sampleHosts': 'Sample Hosts',
+    
+    // Indicators
+    'indicators.cves': 'CVEs',
+    'indicators.domains': 'Domains',
+    'indicators.ips': 'IPs',
+    'indicators.keywords': 'Keywords',
+    
+    // Timeline
+    'timeline.title': 'Timeline',
+    'timeline.noEvents': 'No recent events',
+    
+    // Sources
+    'sources.title': 'Sources',
+    'sources.lastUpdate': 'Last Update',
+    'sources.signalCount': 'Signal Count',
+    
+    // CTI Analysis
+    'cti.model': 'Analysis Model',
+    'cti.killChain': 'Kill Chain Phase',
+    'cti.threatLandscape': 'Threat Landscape',
+    'cti.correlationStrength': 'Correlation Strength',
+    'cti.analystBrief': 'Analyst Brief',
+    'cti.methodologies': 'Methodologies',
+    
+    // Social Intel
+    'social.totalPosts': 'Total Posts',
+    'social.themes': 'Themes',
+    'social.tone': 'Tone',
+    'social.topPosts': 'Top Posts',
+    
+    // Assessment
+    'assessment.correlation': 'Correlation',
+    'assessment.scoring': 'Scoring',
+    'assessment.baseline': 'Baseline Comparison',
+    'assessment.freshness': 'Data Freshness',
+    'assessment.classification': 'Classification',
+    'assessment.iocStats': 'IOC Statistics',
+    
+    // Misc
+    'loading': 'Loading...',
+    'loading.initializing': 'INITIALIZING CTI',
+    'error': 'Error',
+    'error.unavailable': 'Intelligence data currently unavailable',
+    'error.dataUnavailable': 'Data unavailable',
+    'noData': 'No data available',
+    'generated': 'Generated',
+    'validUntil': 'Valid Until',
+    'version': 'Version',
+    'backToTop': 'Back to Top',
+    'expand': 'Expand',
+    'collapse': 'Collapse',
+    'viewSource': 'View Source',
+    'copy': 'Copy',
+    'copied': 'Copied!',
+    
+    // Dashboard specific
+    'dashboard.correlatedWith': 'Correlated with',
+    'dashboard.sources': 'Sources',
+    'dashboard.intelligenceNarrative': 'Intelligence Narrative',
+    'dashboard.keyFindings': 'Key Findings',
+    'dashboard.signalBreakdown': 'Signal Breakdown',
+    'dashboard.recommendedActions': 'Recommended Actions',
+    'dashboard.mitigationSteps': 'Mitigation Steps',
+    'dashboard.threatCategories': 'Threat Categories',
+    'dashboard.domains': 'Domains',
+    'dashboard.exposedPorts': 'Exposed Ports',
+    'dashboard.topCountries': 'Top Countries',
+    'dashboard.vulnerableHostsSample': 'Vulnerable Hosts (Sample)',
+    'dashboard.baselineComparison': 'Baseline Comparison',
+    'dashboard.previousScore': 'Previous Score',
+    'dashboard.currentScore': 'Current Score',
+    'dashboard.delta': 'Delta',
+    'dashboard.classificationRationale': 'Classification Rationale',
+    'dashboard.correlationFactors': 'Correlation Factors',
+    'dashboard.indicatorStatistics': 'Indicator Statistics',
+    'dashboard.hosts': 'Hosts',
+    'dashboard.vulnerable': 'Vulnerable',
+    'dashboard.vuln': 'Vuln %',
+    'dashboard.threatIntelligence': 'THREAT INTELLIGENCE',
+    'dashboard.correlation': 'correlation',
+    'dashboard.noExplanation': 'No explanation available',
+    'dashboard.correlationStrength': 'Correlation Strength',
+    
+    // Additional hardcoded strings found in component
+    'dashboard.computedScore': 'Computed Score',
+    'dashboard.crossSourceDuplication': 'Cross-source duplication',
+    'dashboard.socialDataAge': 'Social data age',
+    'dashboard.infrastructureAge': 'Infrastructure age',
+    'dashboard.crossSourceMatch': 'Cross-source match',
+    'dashboard.noMatchFound': 'No match found',
+    'dashboard.socialOnly': 'Social only',
+    'dashboard.noMatch': 'No match',
+    'dashboard.mentionedInPosts': 'Mentioned in posts',
+    'dashboard.foundInScans': 'Found in scans',
+    'dashboard.cveOverlap': 'CVE Overlap',
+    'dashboard.serviceMatch': 'Service Match',
+    'dashboard.temporalProximity': 'Temporal Proximity',
+    'dashboard.infraSocialAlignment': 'Infra-Social Alignment',
+    'dashboard.analysisMethods': 'Analysis Methods',
+    'dashboard.modelsUsed': 'Models Used',
+    'dashboard.strategic': 'Strategic',
+    'dashboard.technical': 'Technical',
+    'dashboard.quantization': 'Quantization',
+    'dashboard.shodan': 'Shodan',
+    'dashboard.killChain': 'Kill chain',
+    'dashboard.score': 'Score',
+    'dashboard.total': 'Total',
+    'dashboard.truncated': 'Output truncated — the AI model reached its token limit. Run the pipeline again with a higher num_predict value for a complete analysis.',
+    'dashboard.socialIntel': 'Social Intel',
+    'dashboard.infrastructure': 'Infrastructure',
+    'dashboard.themes': 'Themes',
+    'dashboard.killChainLegend': 'Kill Chain',
+    'dashboard.confidenceLevel': 'Confidence Level',
+    'dashboard.technicalAssessment': 'Technical Assessment',
+    'dashboard.engagement': 'engagement',
+  },
+  es: {
+    // Header & General
+    'app.title': 'Panel de Inteligencia de Amenazas',
+    'app.subtitle': 'Análisis de Ciberseguridad en Tiempo Real',
+    'language': 'Idioma',
+    'language.en': 'English',
+    'language.es': 'Español',
+    
+    // Tabs
+    'tab.executive': 'Resumen Ejecutivo',
+    'tab.correlation': 'Topología de Correlación',
+    'tab.detail': 'Detalles Completos',
+    
+    // Status
+    'status.risk': 'Riesgo',
+    'status.score': 'Puntuación',
+    'status.trend': 'Tendencia',
+    'status.confidence': 'Confianza',
+    'status.level.critical': 'Crítico',
+    'status.level.elevated': 'Elevado',
+    'status.level.moderate': 'Moderado',
+    'status.level.low': 'Bajo',
+    'status.trend.increasing': 'Ascendente',
+    'status.trend.stable': 'Estable',
+    'status.trend.decreasing': 'Descendente',
+    
+    // Metrics
+    'metrics.totalSignals': 'Señales Totales',
+    'metrics.critical': 'Crítico',
+    'metrics.high': 'Alto',
+    'metrics.medium': 'Medio',
+    'metrics.low': 'Bajo',
+    'metrics.categories': 'Categorías',
+    
+    // Executive
+    'executive.headline': 'Titular',
+    'executive.summary': 'Resumen',
+    'executive.keyFindings': 'Hallazgos Clave',
+    'executive.recommendedActions': 'Acciones Recomendadas',
+    
+    // Infrastructure
+    'infra.totalHosts': 'Total de Hosts',
+    'infra.exposedPorts': 'Puertos Expuestos',
+    'infra.vulnerableHosts': 'Hosts Vulnerables',
+    'infra.topCountries': 'Principales Países',
+    'infra.sampleHosts': 'Hosts de Ejemplo',
+    
+    // Indicators
+    'indicators.cves': 'CVEs',
+    'indicators.domains': 'Dominios',
+    'indicators.ips': 'IPs',
+    'indicators.keywords': 'Palabras Clave',
+    
+    // Timeline
+    'timeline.title': 'Línea de Tiempo',
+    'timeline.noEvents': 'Sin eventos recientes',
+    
+    // Sources
+    'sources.title': 'Fuentes',
+    'sources.lastUpdate': 'Última Actualización',
+    'sources.signalCount': 'Cantidad de Señales',
+    
+    // CTI Analysis
+    'cti.model': 'Modelo de Análisis',
+    'cti.killChain': 'Fase de Kill Chain',
+    'cti.threatLandscape': 'Panorama de Amenazas',
+    'cti.correlationStrength': 'Fortaleza de Correlación',
+    'cti.analystBrief': 'Informe del Analista',
+    'cti.methodologies': 'Metodologías',
+    
+    // Social Intel
+    'social.totalPosts': 'Total de Publicaciones',
+    'social.themes': 'Temas',
+    'social.tone': 'Tono',
+    'social.topPosts': 'Principales Publicaciones',
+    
+    // Assessment
+    'assessment.correlation': 'Correlación',
+    'assessment.scoring': 'Puntuación',
+    'assessment.baseline': 'Comparación Base',
+    'assessment.freshness': 'Frescura de Datos',
+    'assessment.classification': 'Clasificación',
+    'assessment.iocStats': 'Estadísticas IOC',
+    
+    // Misc
+    'loading': 'Cargando...',
+    'loading.initializing': 'INICIALIZANDO CTI',
+    'error': 'Error',
+    'error.unavailable': 'Datos de inteligencia no disponibles',
+    'error.dataUnavailable': 'Datos no disponibles',
+    'noData': 'Sin datos disponibles',
+    'generated': 'Generado',
+    'validUntil': 'Válido Hasta',
+    'version': 'Versión',
+    'backToTop': 'Volver Arriba',
+    'expand': 'Expandir',
+    'collapse': 'Colapsar',
+    'viewSource': 'Ver Fuente',
+    'copy': 'Copiar',
+    'copied': '¡Copiado!',
+    
+    // Dashboard specific
+    'dashboard.correlatedWith': 'Correlacionado con',
+    'dashboard.sources': 'Fuentes',
+    'dashboard.intelligenceNarrative': 'Narrativa de Inteligencia',
+    'dashboard.keyFindings': 'Hallazgos Clave',
+    'dashboard.signalBreakdown': 'Desglose de Señales',
+    'dashboard.recommendedActions': 'Acciones Recomendadas',
+    'dashboard.mitigationSteps': 'Pasos de Mitigación',
+    'dashboard.threatCategories': 'Categorías de Amenazas',
+    'dashboard.domains': 'Dominios',
+    'dashboard.exposedPorts': 'Puertos Expuestos',
+    'dashboard.topCountries': 'Principales Países',
+    'dashboard.vulnerableHostsSample': 'Hosts Vulnerables (Muestra)',
+    'dashboard.baselineComparison': 'Comparación Base',
+    'dashboard.previousScore': 'Puntuación Anterior',
+    'dashboard.currentScore': 'Puntuación Actual',
+    'dashboard.delta': 'Delta',
+    'dashboard.classificationRationale': 'Rationalización de Clasificación',
+    'dashboard.correlationFactors': 'Factores de Correlación',
+    'dashboard.indicatorStatistics': 'Estadísticas de Indicadores',
+    'dashboard.hosts': 'Hosts',
+    'dashboard.vulnerable': 'Vulnerables',
+    'dashboard.vuln': '% Vuln',
+    'dashboard.threatIntelligence': 'INTELIGENCIA DE AMENAZAS',
+    'dashboard.correlation': 'correlación',
+    'dashboard.noExplanation': 'Sin explicación disponible',
+    'dashboard.correlationStrength': 'Fortaleza de Correlación',
+    
+    // Additional hardcoded strings found in component
+    'dashboard.computedScore': 'Puntuación Calculada',
+    'dashboard.crossSourceDuplication': 'Duplicación entre fuentes',
+    'dashboard.socialDataAge': 'Antigüedad datos sociales',
+    'dashboard.infrastructureAge': 'Antigüedad infraestructura',
+    'dashboard.crossSourceMatch': 'Coincidencia entre fuentes',
+    'dashboard.noMatchFound': 'Sin coincidencia',
+    'dashboard.socialOnly': 'Solo social',
+    'dashboard.noMatch': 'Sin coincidencia',
+    'dashboard.mentionedInPosts': 'Menciones en posts',
+    'dashboard.foundInScans': 'Encontrado en escaneos',
+    'dashboard.cveOverlap': 'Coincidencia CVE',
+    'dashboard.serviceMatch': 'Coincidencia de Servicios',
+    'dashboard.temporalProximity': 'Proximidad Temporal',
+    'dashboard.infraSocialAlignment': 'Alineación Infra-Social',
+    'dashboard.analysisMethods': 'Métodos de Análisis',
+    'dashboard.modelsUsed': 'Modelos Usados',
+    'dashboard.strategic': 'Estratégico',
+    'dashboard.technical': 'Técnico',
+    'dashboard.quantization': 'Cuantización',
+    'dashboard.shodan': 'Shodan',
+    'dashboard.killChain': 'Cadena de ataque',
+    'dashboard.score': 'Puntuación',
+    'dashboard.total': 'Total',
+    'dashboard.truncated': 'Salida truncada — el modelo de IA alcanzó su límite de tokens. Ejecute el pipeline nuevamente con un valor num_predict mayor para un análisis completo.',
+    'dashboard.socialIntel': 'Inteligencia Social',
+    'dashboard.infrastructure': 'Infraestructura',
+    'dashboard.themes': 'Temas',
+    'dashboard.killChainLegend': 'Cadena de Ataque',
+    'dashboard.confidenceLevel': 'Nivel de Confianza',
+    'dashboard.technicalAssessment': 'Evaluación Técnica',
+    'dashboard.engagement': 'interacciones',
+  }
+};
+
+interface I18nContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+const I18nContext = createContext<I18nContextType | null>(null);
+
+export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cti-language');
+      if (saved === 'en' || saved === 'es') return saved;
+      const browserLang = navigator.language.toLowerCase();
+      if (browserLang.startsWith('es')) return 'es';
+    }
+    return 'en';
+  });
+
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('cti-language', lang);
+  }, []);
+
+  const t = useCallback((key: string): string => {
+    return translations[language][key] || translations['en'][key] || key;
+  }, [language]);
+
+  return (
+    <I18nContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
+};
+
+export const useI18n = (): I18nContextType => {
+  const context = useContext(I18nContext);
+  if (!context) {
+    throw new Error('useI18n must be used within an I18nProvider');
+  }
+  return context;
+};
+
+export const LanguageSwitcher: React.FC = () => {
+  const { language, setLanguage, t } = useI18n();
+  
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span style={{ fontSize: '12px', opacity: 0.7 }}>{t('language')}:</span>
+      <button
+        onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+        style={{
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '6px',
+          padding: '4px 10px',
+          color: '#fff',
+          fontSize: '12px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          transition: 'all 0.2s',
+        }}
+      >
+        <span>{language === 'en' ? '🇺🇸' : '🇪🇸'}</span>
+        <span>{language === 'en' ? 'EN' : 'ES'}</span>
+      </button>
+    </div>
+  );
+};
+
+export default { I18nProvider, useI18n, LanguageSwitcher };
