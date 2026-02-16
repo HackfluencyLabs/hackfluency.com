@@ -1,35 +1,35 @@
 {
   "meta": {
     "version": "3.0.0",
-    "generatedAt": "2026-02-16T15:15:58.538Z",
-    "validUntil": "2026-02-16T21:15:58.538Z"
+    "generatedAt": "2026-02-16T15:40:04.991Z",
+    "validUntil": "2026-02-16T21:40:04.991Z"
   },
   "status": {
     "riskLevel": "low",
-    "riskScore": 7,
+    "riskScore": 11,
     "trend": "decreasing",
-    "confidenceLevel": 35
+    "confidenceLevel": 25
   },
   "executive": {
     "headline": "LOW: Routine monitoring active",
-    "summary": "Our current threat landscape assessment indicates an opportunistic level of cyber threats with moderate confidence in the intelligence gathered; however, no immediate action is required due to its classified as targeted nature but still maintaining a low risk score (7/100). The themes identified—ransomware attacks and data breaches—involve vulnerabilities that are not currently exploited within our infrastructure. With weak correlation between social intel and actual vulnerability status on-site coupled with moderate freshness of the intelligence, we maintain routine monitoring protocols. Key Findings:",
+    "summary": "Our quantified assessment indicates an extremely minimal threat level with only a score of 11 out of possible threats rated at scale from zero up to one hundred (low-risk environment). The identified risks are largely opportunistic, showing weak correlation between social intelligence themes and our current infrastructure status which is devoid of any vulnerable hosts or services. Given the stale nature of this data as well as low confidence in technical assessment findings that suggest targeted attacks with only a 30% certainty level; it suggests there may be no immediate action required at present. KEY FINDINGS:",
     "keyFindings": [
-      "Active social discussion: ransomware attacks, data breaches"
+      "Active social discussion: Zero-Day Vulnerabilities, Ransomware Attacks"
     ],
     "recommendedActions": [
-      "/100). The themes identified—ransomware attacks and data breaches—involve vulnerabilities that are not currently exploited within our infrastructure. With weak correlation between social intel and actual vulnerability status on-site coupled with moderate freshness of the intelligence, we maintain routine monitoring protocols.",
-      "Opportunistic Threats - Social Intelligence suggests a 30% confidence level in opportunistic threats like ransomware attacks; however, no current vulnerabilities are identified within our infrastructure.",
-      "Weak Correlation and Moderate Freshness - The weak correlation (14%) between social intel themes such as CVEs discussed indicates that while there is awareness of potential risks from the broader cyber threat landscape, these do not directly correlate with immediate vulnerability status in your systems; additionally, moderate data freshness suggests a need for continuous monitoring.",
-      "No Immediate Vulnerabilities Detected - Our infrastructure assessment shows no hosts or services currently vulnerable to exploitation.",
-      "%) between the social intelligence themes and our current infrastructural vulnerabilities indicates that while there is awareness of potential threats in broader discussions, these do not directly translate into immediate risks for your systems. This suggests a need for ongoing vigilance but does not necessitate urgent action at this time."
+      "The identified threats, including Zero-Day Vulnerabilities and APT Campaigns are currently not relevant to our infrastructure due to the absence of vulnerable hosts or services.",
+      "Social intelligence themes such as Ransomware Attacks have been discussed but there is a lack of evidence that they directly correlate with any current vulnerabilities within your organization’s IT environment.",
+      "%) between social intel and infrastructure data suggests no immediate threats to our systems are being detected. The absence of vulnerable hosts or services in the analyzed network further supports this conclusion, indicating there is currently nothing for us to be concerned about with regard to these identified themes.",
+      "Continue routine monitoring as per standard security protocols.",
+      "Review and update threat intelligence feeds regularly (every 24-48 hours) due to stale data freshness concerns; ensure timely updates are received from trusted sources, such as MITRE ATT&CK or NIST Cybersecurity Framework resources for accurate information on emerging threats like Zero-Day Vulnerabilities & Ransomware Attacks."
     ]
   },
   "metrics": {
-    "totalSignals": 11,
+    "totalSignals": 5,
     "criticalCount": 0,
     "highCount": 1,
-    "mediumCount": 3,
-    "lowCount": 7,
+    "mediumCount": 2,
+    "lowCount": 2,
     "categories": [
       {
         "name": "Threat Intel",
@@ -40,63 +40,57 @@
   },
   "timeline": [
     {
-      "id": "social_1771254958538_0",
-      "title": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / ...",
+      "id": "social_1771256404991_0",
+      "title": "China-Linked Hackers Exploit VMware ESXi Zero-Days to Escape...",
       "severity": "medium",
       "category": "Social Intel",
-      "timestamp": "2026-02-16T15:15:58.538Z",
-      "sourceUrl": "https://x.com/Dogi1313/status/2023048301424123910"
+      "timestamp": "2026-02-16T15:40:04.991Z",
+      "sourceUrl": "https://x.com/blueteamsec1/status/2020535003889955155"
     },
     {
-      "id": "social_1771254958538_1",
-      "title": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWash...",
+      "id": "social_1771256404991_1",
+      "title": "If Starmer resigns then his last significant act as PM will ...",
       "severity": "medium",
       "category": "Social Intel",
-      "timestamp": "2026-02-16T15:15:58.538Z",
-      "sourceUrl": "https://x.com/H4ckmanac/status/2023039654883160406"
+      "timestamp": "2026-02-16T15:40:04.991Z",
+      "sourceUrl": "https://x.com/ewangibbs/status/2020126825876169046"
     },
     {
-      "id": "social_1771254958538_2",
-      "title": " Of course CARESTL Health \"CLOSED\" 3 north county locations ...",
+      "id": "social_1771256404991_2",
+      "title": "Payment gateway BridgePay confirms ransomware attack behind ...",
       "severity": "medium",
       "category": "Social Intel",
-      "timestamp": "2026-02-16T15:15:58.538Z",
-      "sourceUrl": "https://x.com/0708America/status/2023017971770355759"
+      "timestamp": "2026-02-16T15:40:04.991Z",
+      "sourceUrl": "https://x.com/BleepinComputer/status/2020071882108613080"
     }
   ],
   "sources": [
     {
       "name": "X.com Social Intel",
       "signalCount": 5,
-      "lastUpdate": "2026-02-16T15:15:58.538Z"
+      "lastUpdate": "2026-02-16T15:40:04.991Z"
     },
     {
       "name": "Shodan Infrastructure",
       "signalCount": 0,
-      "lastUpdate": "2026-02-16T15:15:58.538Z"
+      "lastUpdate": "2026-02-16T15:40:04.991Z"
     }
   ],
   "indicators": {
     "cves": [
-      "CVE-2025-68947"
+      "CVE-2024-5242",
+      "CVE-2025-22225"
     ],
     "domains": [
-      "fox2now.com",
-      "malops.io",
-      "discord.gg",
-      "cybersecuritynews.com",
-      "dailydarkweb.net",
-      "hackers-arise.com",
-      "stake.amnis",
-      "4w42197.msi",
-      "dreamgroup.com",
-      "arcticwolf.com"
+      "dlvr.it",
+      "bleepingcomputer.com",
+      "cybersecuritynews.com"
     ],
     "ips": [],
     "keywords": [
-      "ransomware attacks",
-      "data breaches",
-      "vulnerability exploitation"
+      "Zero-Day Vulnerabilities",
+      "Ransomware Attacks",
+      "APT Campaigns"
     ]
   },
   "infrastructure": {
@@ -109,51 +103,51 @@
   "socialIntel": {
     "totalPosts": 5,
     "themes": [
-      "ransomware attacks",
-      "data breaches",
-      "vulnerability exploitation"
+      "Zero-Day Vulnerabilities",
+      "Ransomware Attacks",
+      "APT Campaigns"
     ],
-    "tone": "mixed",
+    "tone": "confirmed",
     "topPosts": [
       {
-        "author": "Dogi1313",
-        "excerpt": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
-        "engagement": 67,
-        "url": "https://x.com/Dogi1313/status/2023048301424123910"
+        "author": "blueteamsec1",
+        "excerpt": "China-Linked Hackers Exploit VMware ESXi Zero-Days to Escape Virtual Machines http://dlvr.it/TQr2gb #CyberSecurity #VMware #Hacking #Ransomware #ZeroDay",
+        "engagement": 81,
+        "url": "https://x.com/blueteamsec1/status/2020535003889955155"
       },
       {
-        "author": "H4ckmanac",
-        "excerpt": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
-        "engagement": 299,
-        "url": "https://x.com/H4ckmanac/status/2023039654883160406"
+        "author": "ewangibbs",
+        "excerpt": "If Starmer resigns then his last significant act as PM will have been blocking Burnham from running for parliament. That would be an apt end to Starmer’s tenure as Labour leader which has been defined by a self-indulgent and reckless campaign to defeat internal opponents.",
+        "engagement": 1095,
+        "url": "https://x.com/ewangibbs/status/2020126825876169046"
       },
       {
-        "author": "0708America",
-        "excerpt": " Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
-        "engagement": 157,
-        "url": "https://x.com/0708America/status/2023017971770355759"
+        "author": "BleepinComputer",
+        "excerpt": "Payment gateway BridgePay confirms ransomware attack behind outage - @Ax_Sharma\nhttps://bleepingcomputer.com/news/security/payment-gateway-bridgepay-confirms-ransomware-attack-behind-outage/…",
+        "engagement": 69,
+        "url": "https://x.com/BleepinComputer/status/2020071882108613080"
       },
       {
-        "author": "MalGamy12",
-        "excerpt": " New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
-        "engagement": 46,
-        "url": "https://x.com/MalGamy12/status/2022729558366261344"
+        "author": "oobs_io",
+        "excerpt": "Technical analysis of the TP-Link ER605 Pre-Auth RCE exploit chain by @yibarrack.\n\nThis writeup documents the reproduction of CVE-2024-5242, 5243, and 5244, detailing a 2-stage exploitation process to bypass ASLR on MIPS32 LE.\n\nFull report:",
+        "engagement": 130,
+        "url": "https://x.com/oobs_io/status/2019587288167248201"
       },
       {
-        "author": "The_Cyber_News",
-        "excerpt": " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
-        "engagement": 93,
-        "url": "https://x.com/The_Cyber_News/status/2022580452209418346"
+        "author": "business",
+        "excerpt": "Coupang, the Seattle-headquartered e-commerce platform known as the “Amazon of South Korea,” dominated discussion at a closed-door congressional meeting this week following a massive data breach that affected about 33.7 million customers",
+        "engagement": 71,
+        "url": "https://x.com/business/status/2019580619898900748"
       }
     ]
   },
   "ctiAnalysis": {
     "model": "ALIENTELLIGENCE/cybersecuritythreatanalysisv2",
     "killChainPhase": "Weaponization",
-    "threatLandscape": "Our current threat landscape assessment indicates an opportunistic level of cyber threats with moderate confidence in the intelligence gathered; however, no immediate action is required due to its classified as targeted nature but still maintaining a low risk score (7/100). The themes identified—ransomware attacks and data breaches—involve vulnerabilities that are not currently exploited within our infrastructure. With weak correlation between social intel and actual vulnerability status on-site coupled with moderate freshness of the intelligence, we maintain routine monitoring protocols. Key Findings:",
-    "analystBrief": "Classification: opportunistic. Confidence: 30%. Correlation: weak. Data freshness: moderate.",
+    "threatLandscape": "Our quantified assessment indicates an extremely minimal threat level with only a score of 11 out of possible threats rated at scale from zero up to one hundred (low-risk environment). The identified risks are largely opportunistic, showing weak correlation between social intelligence themes and our current infrastructure status which is devoid of any vulnerable hosts or services. Given the stale nature of this data as well as low confidence in technical assessment findings that suggest targeted attacks with only a 30% certainty level; it suggests there may be no immediate action required at present. KEY FINDINGS:",
+    "analystBrief": "Classification: opportunistic. Confidence: 30%. Correlation: weak. Data freshness: stale.",
     "correlationStrength": "weak",
-    "technicalAssessment": "**Analysis**\n\nBased on the provided social signals and infrastructure data, I'll analyze the correlation between them and provide insights into potential security threats.\n\n**1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services? Explain the evidence.**\n\nThe provided CVE (CVE-2025-68947) is not a real vulnerability, suggesting it might be a placeholder or fictional exploit. However, assuming it's a legitimate vulnerability, there are no matching infrastructure data to indicate exposed services that could be exploited by this CVE.\n\n**2. INFRASTRUCTURE PATTERNS: What service exposure patterns are significant?**\n\nThe provided infrastructure data is incomplete, with zero total hosts and vulnerable hosts. This makes it challenging to identify any specific service exposure patterns. However, the absence of any infrastructure data suggests a lack of exposed services that could be targeted by attackers.\n\n**3. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign? Justify.**\n\nGiven the lack of infrastructure data and the fictional CVE, I would classify this as an opportunistic scanning attempt rather than a targeted campaign. The absence of any specific service exposure patterns or matching infrastructure data suggests that the attacker is likely engaging in broad-based scanning to identify potential vulnerabilities.\n\n**4. CONFIDENCE: low/moderate/high with reasoning.**\n\nI assign a **low** confidence level to this analysis due to the following reasons:\n\n* The provided CVE is fictional, which makes it challenging to assess the actual threat.\n* The infrastructure data is incomplete and does not provide any specific insights into service exposure patterns.\n* The absence of any matching infrastructure data suggests that the attacker might be engaging in opportunistic scanning rather than a targeted campaign.",
+    "technicalAssessment": "**Analysis**\n\nBased on the provided social signals and infrastructure data, I'll analyze the correlation between social intelligence and infrastructure.\n\n**1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services? Explain the evidence.**\n\nThe given CVEs ([CVE-2024-5242, CVE-2025-22225]) are related to VMware ESXi zero-day vulnerabilities. However, there is no information about exposed services in the infrastructure data. This discrepancy suggests that the social signals might not directly relate to the current infrastructure exposure.\n\n**2. INFRASTRUCTURE PATTERNS: What service exposure patterns are significant?**\n\nThe infrastructure data shows:\n\n* Total Hosts: 0\n* Vulnerable: 0/0 (0.0%)\n* Top Ports: []\n* Infrastructure CVEs: []\n\nThis indicates that there is no exposed infrastructure, which might be a result of the organization's proactive security measures or lack of exposure.\n\n**3. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign? Justify.**\n\nGiven the absence of exposed services and infrastructure, it's unlikely that this is an opportunistic scanning activity. The social signals suggest a more targeted approach, possibly related to APT campaigns or ransomware attacks. However, without further information about the organization's specific vulnerabilities or exposure, it's challenging to confirm.\n\n**4. CONFIDENCE: low/moderate/high with reasoning.**\n\nI would rate my confidence level as **low** (20-30%) due to the following reasons:\n\n* The lack of exposed services and infrastructure makes it difficult to directly correlate the social signals with the current situation.\n* There is no clear indication of a targeted campaign or opportunistic scanning activity, which further reduces the confidence in this analysis.\n\nHowever, I would like to emphasize that this analysis should not be taken as a definitive conclusion.",
     "methodologies": [
       "Deterministic risk scoring (vulnerability ratio)",
       "Code-based IoC extraction",
@@ -167,337 +161,329 @@
     "raw": {
       "xPosts": [
         {
-          "id": "2023048301424123910",
-          "text": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
+          "id": "2020535003889955155",
+          "text": "China-Linked Hackers Exploit VMware ESXi Zero-Days to Escape Virtual Machines http://dlvr.it/TQr2gb #CyberSecurity #VMware #Hacking #Ransomware #ZeroDay",
           "author": {
-            "username": "Dogi1313",
-            "displayName": "Dogi",
+            "username": "blueteamsec1",
+            "displayName": "Blue Team News",
             "verified": false
           },
           "metrics": {
-            "likes": 59,
-            "reposts": 4,
-            "replies": 12,
-            "views": 12
+            "likes": 49,
+            "reposts": 16,
+            "replies": 0,
+            "views": 0
           },
-          "timestamp": "2026-02-15T14:54:36.000Z",
-          "hashtags": [],
-          "mentions": [],
-          "urls": [],
-          "permalink": "https://x.com/Dogi1313/status/2023048301424123910"
-        },
-        {
-          "id": "2023039654883160406",
-          "text": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
-          "author": {
-            "username": "H4ckmanac",
-            "displayName": "Hackmanac",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 143,
-            "reposts": 78,
-            "replies": 2,
-            "views": 2
-          },
-          "timestamp": "2026-02-15T14:20:14.000Z",
-          "hashtags": [],
-          "mentions": [],
-          "urls": [],
-          "permalink": "https://x.com/H4ckmanac/status/2023039654883160406"
-        },
-        {
-          "id": "2023017971770355759",
-          "text": " Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
-          "author": {
-            "username": "0708America",
-            "displayName": "St.Louis Woman ••America FIRST •",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 93,
-            "reposts": 32,
-            "replies": 7,
-            "views": 7
-          },
-          "timestamp": "2026-02-15T12:54:04.000Z",
-          "hashtags": [],
-          "mentions": [],
-          "urls": [
-            "https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…"
-          ],
-          "permalink": "https://x.com/0708America/status/2023017971770355759"
-        },
-        {
-          "id": "2022729558366261344",
-          "text": " New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
-          "author": {
-            "username": "MalGamy12",
-            "displayName": "Gameel Ali ",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 36,
-            "reposts": 5,
-            "replies": 2,
-            "views": 2
-          },
-          "timestamp": "2026-02-14T17:48:01.000Z",
+          "timestamp": "2026-02-08T16:27:39.000Z",
           "hashtags": [
-            "#Reynolds"
+            "#CyberSecurity",
+            "#VMware",
+            "#Hacking",
+            "#Ransomware",
+            "#ZeroDay"
           ],
           "mentions": [],
           "urls": [
-            "https://malops.io/challenges/kernel-shield…",
-            "https://discord.gg/cncpftd3Kt"
+            "http://dlvr.it/TQr2gb"
           ],
-          "permalink": "https://x.com/MalGamy12/status/2022729558366261344"
+          "permalink": "https://x.com/blueteamsec1/status/2020535003889955155"
         },
         {
-          "id": "2022580452209418346",
-          "text": " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
+          "id": "2020126825876169046",
+          "text": "If Starmer resigns then his last significant act as PM will have been blocking Burnham from running for parliament. That would be an apt end to Starmer’s tenure as Labour leader which has been defined by a self-indulgent and reckless campaign to defeat internal opponents.",
+          "author": {
+            "username": "ewangibbs",
+            "displayName": "Ewan Gibbs",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 877,
+            "reposts": 109,
+            "replies": 10,
+            "views": 10
+          },
+          "timestamp": "2026-02-07T13:25:42.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/ewangibbs/status/2020126825876169046"
+        },
+        {
+          "id": "2020071882108613080",
+          "text": "Payment gateway BridgePay confirms ransomware attack behind outage - @Ax_Sharma\nhttps://bleepingcomputer.com/news/security/payment-gateway-bridgepay-confirms-ransomware-attack-behind-outage/…",
+          "author": {
+            "username": "BleepinComputer",
+            "displayName": "BleepingComputer",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 35,
+            "reposts": 17,
+            "replies": 0,
+            "views": 0
+          },
+          "timestamp": "2026-02-07T09:47:22.000Z",
+          "hashtags": [],
+          "mentions": [
+            "@Ax_Sharma"
+          ],
+          "urls": [
+            "https://bleepingcomputer.com/news/security/payment-gateway-bridgepay-confirms-ransomware-attack-behind-outage/…"
+          ],
+          "permalink": "https://x.com/BleepinComputer/status/2020071882108613080"
+        },
+        {
+          "id": "2019587288167248201",
+          "text": "Technical analysis of the TP-Link ER605 Pre-Auth RCE exploit chain by @yibarrack.\n\nThis writeup documents the reproduction of CVE-2024-5242, 5243, and 5244, detailing a 2-stage exploitation process to bypass ASLR on MIPS32 LE.\n\nFull report:",
+          "author": {
+            "username": "oobs_io",
+            "displayName": "Out of Bounds",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 78,
+            "reposts": 26,
+            "replies": 2,
+            "views": 2
+          },
+          "timestamp": "2026-02-06T01:41:46.000Z",
+          "hashtags": [],
+          "mentions": [
+            "@yibarrack"
+          ],
+          "urls": [],
+          "permalink": "https://x.com/oobs_io/status/2019587288167248201"
+        },
+        {
+          "id": "2019580619898900748",
+          "text": "Coupang, the Seattle-headquartered e-commerce platform known as the “Amazon of South Korea,” dominated discussion at a closed-door congressional meeting this week following a massive data breach that affected about 33.7 million customers",
+          "author": {
+            "username": "business",
+            "displayName": "Bloomberg",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 37,
+            "reposts": 17,
+            "replies": 5,
+            "views": 5
+          },
+          "timestamp": "2026-02-06T01:15:16.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/business/status/2019580619898900748"
+        },
+        {
+          "id": "2019453409364226418",
+          "text": " Hackers Exploit SonicWall SSLVPN Logins to Deploy EDR Killer and Bypass Security \n\nSource: https://cybersecuritynews.com/betterment-data-breach/…\n\nThreat actors are actively leveraging compromised SonicWall SSLVPN credentials to breach networks and deploy a sophisticated “EDR killer” that can blind endpoint",
           "author": {
             "username": "The_Cyber_News",
             "displayName": "Cyber Security News",
             "verified": false
           },
           "metrics": {
-            "likes": 57,
-            "reposts": 18,
-            "replies": 5,
-            "views": 5
+            "likes": 100,
+            "reposts": 32,
+            "replies": 1,
+            "views": 1
           },
-          "timestamp": "2026-02-14T07:55:32.000Z",
+          "timestamp": "2026-02-05T16:49:47.000Z",
           "hashtags": [],
           "mentions": [],
           "urls": [
-            "https://cybersecuritynews.com/opensea-0-day-exploit-chain/…"
+            "https://cybersecuritynews.com/betterment-data-breach/…"
           ],
-          "permalink": "https://x.com/The_Cyber_News/status/2022580452209418346"
+          "permalink": "https://x.com/The_Cyber_News/status/2019453409364226418"
         },
         {
-          "id": "2022490305338183963",
-          "text": "Publicly traded blockchain lender Figure confirmed a customer data breach after a social engineering attack on an employee. Hacker group ShinyHunters claimed it stole and published about 2.5GB of data, potentially including customer names, addresses, dates of birth, and phone",
+          "id": "2019238013361090801",
+          "text": " CISA Warns of VMware ESXi 0-day Vulnerability Exploited in Ransomware Attacks \n\nSource: https://cybersecuritynews.com/vmware-esxi-0-day-ransomware-attack/…\n\nCISA recently confirmed that ransomware groups are actively exploiting CVE-2025-22225, a high-severity VMware ESXi sandbox escape vulnerability.\n\nThis flaw, patched",
           "author": {
-            "username": "WuBlockchain",
-            "displayName": "Wu Blockchain",
+            "username": "The_Cyber_News",
+            "displayName": "Cyber Security News",
             "verified": false
           },
           "metrics": {
-            "likes": 21,
-            "reposts": 11,
-            "replies": 9,
-            "views": 9
+            "likes": 484,
+            "reposts": 178,
+            "replies": 10,
+            "views": 10
           },
-          "timestamp": "2026-02-14T01:57:19.000Z",
+          "timestamp": "2026-02-05T02:33:52.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [
+            "https://cybersecuritynews.com/vmware-esxi-0-day-ransomware-attack/…"
+          ],
+          "permalink": "https://x.com/The_Cyber_News/status/2019238013361090801"
+        },
+        {
+          "id": "2019148028238873069",
+          "text": "𝗛𝗼𝘄 𝘁𝗼 𝗘𝗺𝘂𝗹𝗮𝘁𝗲 𝗮 𝗥𝗮𝗻𝘀𝗼𝗺𝘄𝗮𝗿𝗲 𝗔𝘁𝘁𝗮𝗰𝗸\n\n>Killchain\n>MITRE ATT&CK\n>Ethical Considerations\n>Components\n>Encrypter\n>Loader\n>Defense Evasion\n>User Prompt\n>Deployment Script\n>Procedures",
+          "author": {
+            "username": "hetmehtaa",
+            "displayName": "Het Mehta",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 180,
+            "reposts": 36,
+            "replies": 0,
+            "views": 0
+          },
+          "timestamp": "2026-02-04T20:36:18.000Z",
           "hashtags": [],
           "mentions": [],
           "urls": [],
-          "permalink": "https://x.com/WuBlockchain/status/2022490305338183963"
+          "permalink": "https://x.com/hetmehtaa/status/2019148028238873069"
         },
         {
-          "id": "2022426653666975996",
-          "text": "BREAKING: Blockchain lending firm @Figure confirms data breach after an employee fell victim to a social engineering attack, allowing hackers to access a limited number of internal files, according to TechCrunch.\n\nShinyHunters claims responsibility, publishing 2.5GB of",
+          "id": "2018945894767558721",
+          "text": "Cyberattack Alert \n\nJapan - Anabuki Housing Service Co., Ltd. [株式会社穴吹ハウジングサービス]\n\nAnabuki Housing Service Co., Ltd. disclosed a ransomware incident on February 3, 2026, affecting part of its internal servers. \n\nThe attack was detected early in the morning,",
           "author": {
-            "username": "SolanaFloor",
-            "displayName": "SolanaFloor",
+            "username": "H4ckmanac",
+            "displayName": "Hackmanac",
             "verified": false
           },
           "metrics": {
-            "likes": 25,
-            "reposts": 5,
-            "replies": 4,
-            "views": 4
+            "likes": 22,
+            "reposts": 13,
+            "replies": 1,
+            "views": 1
           },
-          "timestamp": "2026-02-13T21:44:23.000Z",
-          "hashtags": [],
-          "mentions": [
-            "@Figure"
-          ],
-          "urls": [],
-          "permalink": "https://x.com/SolanaFloor/status/2022426653666975996"
-        },
-        {
-          "id": "2022426489543938131",
-          "text": "If you’re just catching up, $LinhMai is the first Asian elephant born at the National Zoo in 25 years.\n\nWe raised over $60k for her naming campaign. \n\nShe’s the result of decades of work at the Zoo and incredibly rare. Her name means Spirit Blossom and is particularly apt with",
-          "author": {
-            "username": "ponzibaron",
-            "displayName": "Đoc",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 33,
-            "reposts": 6,
-            "replies": 6,
-            "views": 6
-          },
-          "timestamp": "2026-02-13T21:43:44.000Z",
+          "timestamp": "2026-02-04T07:13:06.000Z",
           "hashtags": [],
           "mentions": [],
           "urls": [],
-          "permalink": "https://x.com/ponzibaron/status/2022426489543938131"
+          "permalink": "https://x.com/H4ckmanac/status/2018945894767558721"
         },
         {
-          "id": "2022299833751486862",
-          "text": "Italy  - Siem Srl (Kalisa Holding) has allegedly been compromised by SpaceBears ransomware, threatening to leak sensitive drawings of airports and factories, project data, financial reports, and employee PII. https://dailydarkweb.net/siem-srl-targeted-by-spacebears-ransomware-attack/…",
+          "id": "2018839480174845982",
+          "text": "#AptFire 110 S 300 E Salt Lake City. SLCFD was dispatched at 1640 to a fire in an apt bldg possibly on the 2nd Flr. Crews arrived and located a fire and began fire attack. Working for a loss stop and under control. No injuries have been reported.",
           "author": {
-            "username": "DailyDarkWeb",
-            "displayName": "Dark Web Intelligence",
+            "username": "SLCScanner",
+            "displayName": "SLCScanner",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 38,
+            "reposts": 2,
+            "replies": 0,
+            "views": 0
+          },
+          "timestamp": "2026-02-04T00:10:14.000Z",
+          "hashtags": [
+            "#AptFire"
+          ],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/SLCScanner/status/2018839480174845982"
+        },
+        {
+          "id": "2018813349224387001",
+          "text": "The \"$5 wrench attack\" is no longer a thought experiment.\n\n70+ physical attacks on bitcoin holders in 2025. Kidnappings up. Home invasions up. SIM swaps up 1,055%.\n\nAnd every major data breach (Ledger, Coinbase) is handing attackers a targeting list.\n\nYour custody model is your",
+          "author": {
+            "username": "MTanguma",
+            "displayName": "Michael Tanguma",
             "verified": false
           },
           "metrics": {
             "likes": 14,
             "reposts": 3,
+            "replies": 2,
+            "views": 2
+          },
+          "timestamp": "2026-02-03T22:26:24.000Z",
+          "hashtags": [],
+          "mentions": [],
+          "urls": [],
+          "permalink": "https://x.com/MTanguma/status/2018813349224387001"
+        },
+        {
+          "id": "2018508084147322921",
+          "text": " Notepad++ Hack Detailed Along With the IoCs and Custom Malware Used \n\nSource: https://cybersecuritynews.com/notepad-hack/\n\nA sophisticated espionage campaign attributed to the Chinese Advanced Persistent Threat (APT) group Lotus Blossom (also known as Billbug).\n\nThe threat actors compromised the",
+          "author": {
+            "username": "The_Cyber_News",
+            "displayName": "Cyber Security News",
+            "verified": false
+          },
+          "metrics": {
+            "likes": 241,
+            "reposts": 75,
             "replies": 1,
             "views": 1
           },
-          "timestamp": "2026-02-13T13:20:27.000Z",
+          "timestamp": "2026-02-03T02:13:23.000Z",
           "hashtags": [],
           "mentions": [],
           "urls": [
-            "https://dailydarkweb.net/siem-srl-targeted-by-spacebears-ransomware-attack/…"
+            "https://cybersecuritynews.com/notepad-hack/"
           ],
-          "permalink": "https://x.com/DailyDarkWeb/status/2022299833751486862"
-        },
-        {
-          "id": "2022294698241482941",
-          "text": "Breach. Spread & Encrypt\n\nConti ransomware exploited Exchange, dumped credentials from LSASS, and spread via WMI. Learn to investigate ransomware attacks with Splunk by tracing web shells and reconstructing attack timelines step by step.\nhttps://hackers-arise.com/digital-forensics-investigating-conti-ransomware-with-splunk/…\n@three_cube",
-          "author": {
-            "username": "_aircorridor",
-            "displayName": "Olexander",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 24,
-            "reposts": 6,
-            "replies": 0,
-            "views": 0
-          },
-          "timestamp": "2026-02-13T13:00:03.000Z",
-          "hashtags": [],
-          "mentions": [
-            "@three_cube"
-          ],
-          "urls": [
-            "https://hackers-arise.com/digital-forensics-investigating-conti-ransomware-with-splunk/…"
-          ],
-          "permalink": "https://x.com/_aircorridor/status/2022294698241482941"
-        },
-        {
-          "id": "2022249640188649845",
-          "text": "𝐒𝐞𝐚𝐬𝐨𝐧 𝟏𝟑 𝐒𝐩𝐞𝐜𝐢𝐚𝐥 𝐀𝐏𝐑 𝐢𝐬 𝐥𝐢𝐯𝐞.\n\nEarn from a 300 amAPT reward pool with boosted returns for new stakers - up to 20% APR.\n\n Stake here: https://stake.amnis.finance/special-APR-offer…\n\n Campaign period: 13th Feb, 2026 – 28th Feb, 2026\n Reward pool: 300 amAPT\n\nStake fresh APT",
-          "author": {
-            "username": "AmnisFinance",
-            "displayName": "Amnis Finance",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 32,
-            "reposts": 7,
-            "replies": 17,
-            "views": 17
-          },
-          "timestamp": "2026-02-13T10:01:00.000Z",
-          "hashtags": [],
-          "mentions": [],
-          "urls": [
-            "https://stake.amnis.finance/special-APR-offer…"
-          ],
-          "permalink": "https://x.com/AmnisFinance/status/2022249640188649845"
-        },
-        {
-          "id": "2022197848696291643",
-          "text": "#UNC6384 #MustangPanda #APT\nUpload from \n\n... powershell $Env:temp\\4w42197.msi\n\nref1: https://dreamgroup.com/plugx-diplomacy-mustang-panda-campaign/…\nref2: https://arcticwolf.com/resources/blog/unc6384-weaponizes-zdi-can-25373-vulnerability-to-deploy-plugx/…",
-          "author": {
-            "username": "PrakkiSathwik",
-            "displayName": "Sathwik Ram Prakki",
-            "verified": false
-          },
-          "metrics": {
-            "likes": 29,
-            "reposts": 9,
-            "replies": 1,
-            "views": 1
-          },
-          "timestamp": "2026-02-13T06:35:12.000Z",
-          "hashtags": [
-            "#UNC6384",
-            "#MustangPanda",
-            "#APT"
-          ],
-          "mentions": [],
-          "urls": [
-            "https://dreamgroup.com/plugx-diplomacy-mustang-panda-campaign/…",
-            "https://arcticwolf.com/resources/blog/unc6384-weaponizes-zdi-can-25373-vulnerability-to-deploy-plugx/…"
-          ],
-          "permalink": "https://x.com/PrakkiSathwik/status/2022197848696291643"
+          "permalink": "https://x.com/The_Cyber_News/status/2018508084147322921"
         }
       ],
       "shodanResults": []
     },
     "structured": {
       "extractedCVEs": [
-        "CVE-2025-68947"
+        "CVE-2024-5242",
+        "CVE-2025-22225"
       ],
       "domains": [
-        "fox2now.com",
-        "malops.io",
-        "discord.gg",
-        "cybersecuritynews.com",
-        "dailydarkweb.net",
-        "hackers-arise.com",
-        "stake.amnis",
-        "4w42197.msi",
-        "dreamgroup.com",
-        "arcticwolf.com"
+        "dlvr.it",
+        "bleepingcomputer.com",
+        "cybersecuritynews.com"
       ],
       "ips": [],
       "ports": [],
       "services": [],
       "keywords": [
-        "APT",
         "Ransomware",
         "Vulnerability",
+        "APT",
         "Data Breach",
         "Phishing"
       ],
-      "exploitationClaims": [],
-      "tone": "mixed",
+      "exploitationClaims": [
+        "Exploited in Ransomware Attacks \n\nSource: https://cybersecuritynews"
+      ],
+      "tone": "confirmed",
       "topPosts": [
         {
-          "author": "H4ckmanac",
-          "excerpt": "Cyberattack Alert \n\nJapan - Washington Hotel Co., Ltd.\n\nWashington Hotel Co., Ltd. disclosed a ransomware attack on February 14, 2026, after unauthorized access to internal servers was detected on February 13. \n\nAttackers compromised business data, while investigations are",
-          "engagement": 299,
-          "url": "https://x.com/H4ckmanac/status/2023039654883160406",
-          "timestamp": "2026-02-15T14:20:14.000Z"
-        },
-        {
-          "author": "0708America",
-          "excerpt": " Of course CARESTL Health \"CLOSED\" 3 north county locations the very SAME DAY the US Government Medicare Data website goes live- exposing medicare FRAUD-The non profit owner is blaming the ransomware attack in 2014 and 2025 Tornado ? https://fox2now.com/news/missouri/carestl-health-closing-multiple-locations/…",
-          "engagement": 157,
-          "url": "https://x.com/0708America/status/2023017971770355759",
-          "timestamp": "2026-02-15T12:54:04.000Z"
+          "author": "ewangibbs",
+          "excerpt": "If Starmer resigns then his last significant act as PM will have been blocking Burnham from running for parliament. That would be an apt end to Starmer’s tenure as Labour leader which has been defined by a self-indulgent and reckless campaign to defeat internal opponents.",
+          "engagement": 1095,
+          "url": "https://x.com/ewangibbs/status/2020126825876169046",
+          "timestamp": "2026-02-07T13:25:42.000Z"
         },
         {
           "author": "The_Cyber_News",
-          "excerpt": " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims",
-          "engagement": 93,
-          "url": "https://x.com/The_Cyber_News/status/2022580452209418346",
-          "timestamp": "2026-02-14T07:55:32.000Z"
+          "excerpt": " CISA Warns of VMware ESXi 0-day Vulnerability Exploited in Ransomware Attacks \n\nSource: https://cybersecuritynews.com/vmware-esxi-0-day-ransomware-attack/…\n\nCISA recently confirmed that ransomware groups are actively exploiting CVE-2025-22225, a high-severity VMware ESXi sandbox escape vulnerability.\n\nThis flaw, patched",
+          "engagement": 840,
+          "url": "https://x.com/The_Cyber_News/status/2019238013361090801",
+          "timestamp": "2026-02-05T02:33:52.000Z"
         },
         {
-          "author": "Dogi1313",
-          "excerpt": "Holy sh!t \n\nThis chart is giving me a heart attack \n\n$SUI / $APT",
-          "engagement": 67,
-          "url": "https://x.com/Dogi1313/status/2023048301424123910",
-          "timestamp": "2026-02-15T14:54:36.000Z"
+          "author": "The_Cyber_News",
+          "excerpt": " Notepad++ Hack Detailed Along With the IoCs and Custom Malware Used \n\nSource: https://cybersecuritynews.com/notepad-hack/\n\nA sophisticated espionage campaign attributed to the Chinese Advanced Persistent Threat (APT) group Lotus Blossom (also known as Billbug).\n\nThe threat actors compromised the",
+          "engagement": 391,
+          "url": "https://x.com/The_Cyber_News/status/2018508084147322921",
+          "timestamp": "2026-02-03T02:13:23.000Z"
         },
         {
-          "author": "PrakkiSathwik",
-          "excerpt": "#UNC6384 #MustangPanda #APT\nUpload from \n\n... powershell $Env:temp\\4w42197.msi\n\nref1: https://dreamgroup.com/plugx-diplomacy-mustang-panda-campaign/…\nref2: https://arcticwolf.com/resources/blog/unc6384-weaponizes-zdi-can-25373-vulnerability-to-deploy-plugx/…",
-          "engagement": 47,
-          "url": "https://x.com/PrakkiSathwik/status/2022197848696291643",
-          "timestamp": "2026-02-13T06:35:12.000Z"
+          "author": "hetmehtaa",
+          "excerpt": "𝗛𝗼𝘄 𝘁𝗼 𝗘𝗺𝘂𝗹𝗮𝘁𝗲 𝗮 𝗥𝗮𝗻𝘀𝗼𝗺𝘄𝗮𝗿𝗲 𝗔𝘁𝘁𝗮𝗰𝗸\n\n>Killchain\n>MITRE ATT&CK\n>Ethical Considerations\n>Components\n>Encrypter\n>Loader\n>Defense Evasion\n>User Prompt\n>Deployment Script\n>Procedures",
+          "engagement": 252,
+          "url": "https://x.com/hetmehtaa/status/2019148028238873069",
+          "timestamp": "2026-02-04T20:36:18.000Z"
+        },
+        {
+          "author": "The_Cyber_News",
+          "excerpt": " Hackers Exploit SonicWall SSLVPN Logins to Deploy EDR Killer and Bypass Security \n\nSource: https://cybersecuritynews.com/betterment-data-breach/…\n\nThreat actors are actively leveraging compromised SonicWall SSLVPN credentials to breach networks and deploy a sophisticated “EDR killer” that can blind endpoint",
+          "engagement": 164,
+          "url": "https://x.com/The_Cyber_News/status/2019453409364226418",
+          "timestamp": "2026-02-05T16:49:47.000Z"
         }
       ]
     }
@@ -524,26 +510,26 @@
       },
       "components": {
         "vulnerabilityRatio": 0,
-        "socialIntensity": 0.1,
+        "socialIntensity": 0.3,
         "correlationScore": 0.14,
-        "freshnessScore": 0.1,
+        "freshnessScore": 0,
         "baselineDelta": 0
       },
-      "computedScore": 7,
-      "confidenceLevel": 35
+      "computedScore": 11,
+      "confidenceLevel": 25
     },
     "baselineComparison": {
       "previousRiskScore": 50,
-      "currentRiskScore": 7,
-      "delta": -43,
+      "currentRiskScore": 11,
+      "delta": -39,
       "anomalyLevel": "severe",
       "trendDirection": "decreasing"
     },
     "freshness": {
-      "socialAgeHours": 42.3,
+      "socialAgeHours": 273.3,
       "infraAgeHours": 1,
-      "freshnessScore": 0.1,
-      "status": "moderate"
+      "freshnessScore": 0,
+      "status": "stale"
     },
     "classification": {
       "type": "opportunistic",
@@ -555,16 +541,16 @@
       ]
     },
     "iocStats": {
-      "uniqueCVECount": 1,
-      "uniqueDomainCount": 10,
+      "uniqueCVECount": 2,
+      "uniqueDomainCount": 3,
       "uniqueIPCount": 0,
       "uniquePortCount": 0,
       "uniqueServiceCount": 0,
-      "totalIndicators": 11,
+      "totalIndicators": 5,
       "duplicates": 0,
       "duplicationRatio": 0
     },
-    "narrative": "Today we observed mixed activity related to APT, Ransomware. The correlation strength is weak (14%), primarily driven by temporal proximity. This pattern is consistent with opportunistic scanning."
+    "narrative": "Today we observed confirmed activity related to Ransomware, Vulnerability. The correlation strength is weak (14%), primarily driven by temporal proximity. Note: Data is stale (273h old), reducing confidence. This pattern is consistent with opportunistic scanning."
   },
   "modelMetadata": {
     "strategic": "phi4-mini",
