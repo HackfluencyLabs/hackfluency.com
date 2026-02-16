@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const translator = require('@parvineyvazov/json-translator');
 const fs = require('fs');
 const path = require('path');
 
@@ -21,51 +22,42 @@ async function translateCTI() {
   }
 
   try {
-    console.log('📖 Leyendo JSON fuente...');
-    const jsonContent = JSON.parse(fs.readFileSync(INPUT_FILE, 'utf8'));
+    console.log('📖 Archivo fuente encontrado');
     
-    const textFields = countTextFields(jsonContent);
-    console.log(`✓ Encontrados ${textFields} campos de texto`);
+    const stats = fs.statSync(INPUT_FILE);
+    console.log(`📊 Tamaño: ${(stats.size / 1024).toFixed(2)} KB`);
     console.log('');
 
     console.log('🔄 Traduciendo al español...');
+    console.log('   Esto puede tomar varios minutos...');
     
-    const translator = require('@parvineyvazov/json-translator');
-    
-    const result = await translator.translateObject(
-      jsonContent,
-      'English',
-      'Spanish'
+    await translator.translateFile(
+      INPUT_FILE,
+      translator.languages.English,
+      [translator.languages.Spanish]
     );
+
+    const generatedFile = INPUT_FILE.replace('.json', '-es.json');
     
-    const translated = Array.isArray(result) ? result[0] : result;
-
-    if (!translated) {
-      throw new Error('La traducción devolvió un resultado vacío');
+    if (fs.existsSync(generatedFile) && generatedFile !== OUTPUT_FILE) {
+      fs.renameSync(generatedFile, OUTPUT_FILE);
     }
 
-    console.log('💾 Guardando traducción...');
-    const outputDir = path.dirname(OUTPUT_FILE);
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
+    if (!fs.existsSync(OUTPUT_FILE)) {
+      throw new Error(`El archivo traducido no se generó en ${OUTPUT_FILE}`);
     }
-
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(translated, null, 2), 'utf8');
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log('');
     console.log(`✅ Traducción completada en ${duration}s`);
     console.log(`📄 Archivo generado: ${OUTPUT_FILE}`);
     
-    const originalStats = fs.statSync(INPUT_FILE);
     const translatedStats = fs.statSync(OUTPUT_FILE);
-    console.log(`📊 Tamaño original: ${(originalStats.size / 1024).toFixed(2)} KB`);
     console.log(`📊 Tamaño traducido: ${(translatedStats.size / 1024).toFixed(2)} KB`);
     
-    const sampleKey = jsonContent.executive?.headline;
-    const sampleTranslated = translated.executive?.headline;
-    console.log(`\n🔍 Ejemplo - Original: "${sampleKey}"`);
-    console.log(`🔍 Ejemplo - Traducido: "${sampleTranslated}"`);
+    const content = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf8'));
+    const sample = content.executive?.headline || 'N/A';
+    console.log(`\n🔍 Muestra: "${sample}"`);
 
   } catch (error) {
     console.error('❌ Error durante la traducción:', error.message);
@@ -79,23 +71,6 @@ async function translateCTI() {
     
     process.exit(1);
   }
-}
-
-function countTextFields(obj) {
-  let count = 0;
-  
-  function traverse(node) {
-    if (typeof node === 'string') {
-      count++;
-    } else if (Array.isArray(node)) {
-      node.forEach(traverse);
-    } else if (typeof node === 'object' && node !== null) {
-      Object.values(node).forEach(traverse);
-    }
-  }
-  
-  traverse(obj);
-  return count;
 }
 
 translateCTI();
