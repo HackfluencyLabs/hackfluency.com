@@ -14,6 +14,7 @@ import {
   ShodanExploit,
   ScraperConfig
 } from '../types/index.js';
+import QueryPreprocessor from '../utils/query-preprocessor.js';
 
 // NO hay queries fallback - siempre requiere contexto social
 // El QueryGenerator debe proporcionar queries basadas en intel real
@@ -231,31 +232,39 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
       return this.getEmptyData();
     }
 
-    // Require contextual queries from QueryGenerator - no fallback
     if (contextualQueries.length === 0) {
       console.error('[ShodanScraper] No contextual queries provided');
-      console.error('[ShodanScraper] Pipeline requires QueryGenerator to provide queries from social intel');
-      throw new Error('[ShodanScraper] Contextual queries required - no generic fallback allowed');
+      throw new Error('[ShodanScraper] Contextual queries required');
     }
 
     const hosts: ShodanHost[] = [];
     const exploits: ShodanExploit[] = [];
     
-    // Only run contextual queries from QueryGenerator (limit to 3 for rate limits)
-    const queriesToRun = contextualQueries.slice(0, 3);
+    const preprocessor = new QueryPreprocessor();
+    const processedQueries = preprocessor.processQueries(
+      contextualQueries, 
+      this.capabilities.plan
+    );
     
-    console.log(`[ShodanScraper] Running ${queriesToRun.length} contextual queries from social intel`);
+    console.log(`[ShodanScraper] Processing ${contextualQueries.length} queries, ${processedQueries.length} valid after optimization`);
+    processedQueries.forEach((pq, i) => {
+      console.log(`  [${i + 1}] ${pq.query} (${pq.estimatedResults} results expected)`);
+      if (pq.optimizations.length > 0) {
+        pq.optimizations.forEach(opt => console.log(`      → ${opt}`));
+      }
+    });
 
-    // Execute all contextual queries
-    for (const query of queriesToRun) {
+    const queriesToRun = processedQueries.slice(0, 3);
+
+    for (const processedQuery of queriesToRun) {
+      const query = processedQuery.query;
       try {
         console.log(`[ShodanScraper] Executing: ${query}`);
         const searchResults = await this.searchHosts(query);
         hosts.push(...searchResults);
         console.log(`[ShodanScraper] Query returned ${searchResults.length} hosts`);
         
-        // Small delay between queries to respect rate limits
-        if (queriesToRun.length > 1 && queriesToRun.indexOf(query) < queriesToRun.length - 1) {
+        if (queriesToRun.length > 1 && queriesToRun.indexOf(processedQuery) < queriesToRun.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
       } catch (error) {
@@ -286,8 +295,22 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
     }));
     exploits.push(...exploitList);
 
-    // No agregamos datos falsos - solo reportamos lo que encontramos
+    const countryCounts = new Map<string, number>();
+    hosts.forEach(h => {
+      if (h.country && h.country !== 'Unknown') {
+        countryCounts.set(h.country, (countryCounts.get(h.country) || 0) + 1);
+      }
+    });
+    const topCountries = Array.from(countryCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([code, count]) => `${code}:${count}`)
+      .join(', ');
+    
     console.log(`[ShodanScraper] Real data: ${hosts.length} hosts, ${exploits.length} CVEs found`);
+    if (topCountries) {
+      console.log(`[ShodanScraper] Top countries: ${topCountries}`);
+    }
 
     return {
       source: DataSource.SHODAN,

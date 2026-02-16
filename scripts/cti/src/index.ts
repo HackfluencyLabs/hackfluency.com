@@ -67,11 +67,20 @@ async function runScrapers(): Promise<XScrapedData | null> {
     const queryResult = await queryGen.generateQueriesFromPosts(xData.posts);
     
     console.log(`[QueryGenerator] ${queryResult.reasoning}`);
-    console.log(`[QueryGenerator] Queries: ${queryResult.queries.join(', ')}`);
+    if (queryResult.extractedIndicators.products.length > 0) {
+      console.log(`[QueryGenerator] Products: ${queryResult.extractedIndicators.products.join(', ')}`);
+    }
+    if (queryResult.extractedIndicators.ports.length > 0) {
+      console.log(`[QueryGenerator] Ports: ${queryResult.extractedIndicators.ports.join(', ')}`);
+    }
+    if (queryResult.extractedIndicators.countries.length > 0) {
+      console.log(`[QueryGenerator] Countries: ${queryResult.extractedIndicators.countries.join(', ')}`);
+    }
+    console.log(`[QueryGenerator] Final queries: ${queryResult.queries.join(' | ')}`);
     
     setContextualQueries(queryResult.queries);
   } else {
-    console.log('[QueryGenerator] No social data - using fallback query for recent changes');
+    console.log('[QueryGenerator] No social data - using fallback query');
     setContextualQueries(['after:1']);
   }
 

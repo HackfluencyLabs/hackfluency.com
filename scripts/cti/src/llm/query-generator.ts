@@ -1,188 +1,254 @@
-/**
- * QueryGenerator - Generates contextual Shodan queries from social intelligence
- * Uses strategic model (phi4-mini) to extract infrastructure indicators from X posts
- * Enforces valid query generation with fallback to time-based queries
- */
-
 import { XPost } from '../types/index.js';
+import QueryPreprocessor from '../utils/query-preprocessor.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || 'phi4-mini';
 const REQUEST_TIMEOUT = parseInt(process.env.CTI_REQUEST_TIMEOUT || '600000', 10);
 
-// Default fallback query - last 24h changes as per requirements
 const DEFAULT_FALLBACK_QUERY = 'after:1';
-
-// Valid Shodan query patterns for validation
-const VALID_SHODAN_PATTERNS = [
-  /^(apache|nginx|iis|mysql|postgres|redis|mongodb|elasticsearch|vpn|ssh|telnet|ftp|rdp|vnc|smb|snmp|ldap|docker|kubernetes):?/i,
-  /^(port|hostname|os|country|city|org|asn|isp|product|version|banner|ssl|http|html|title):/i,
-  /^(cve|vuln|has_screenshot|has_vuln|has_ssl|has_ipv6|has_domain|is_vpn|is_cloud|is_proxy|is_tor|is_iot|is_honeypot):?/i,
-  /^(after|before|net|ip|geo|hash|ip_str):/i,
-  /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/, // IP addresses
-  /CVE-\d{4}-\d{4,7}/i, // CVE IDs
-];
-
-// Invalid patterns that indicate non-query content
-const INVALID_PATTERNS = [
-  /^(no|none|not|n\/a|unknown|insufficient|no data|not applicable)/i,
-  /^(i don't|i cannot|cannot|unable|impossible|irrelevant|not relevant)/i,
-  /^(apartment|elephant|weather|sports|crypto|nft|airdrop|birthday)/i,
-];
 
 export interface QueryGenerationResult {
   queries: string[];
   fromModel: boolean;
   reasoning: string;
+  extractedIndicators: {
+    products: string[];
+    ports: number[];
+    cves: string[];
+    countries: string[];
+  };
 }
 
 export class QueryGenerator {
-  /**
-   * Generate Shodan queries from X posts using strategic model
-   * Always returns at least one valid query (enforced fallback)
-   */
+  private preprocessor = new QueryPreprocessor();
+
   async generateQueriesFromPosts(posts: XPost[]): Promise<QueryGenerationResult> {
     if (posts.length === 0) {
-      console.log('[QueryGenerator] No posts provided, using fallback query');
-      return {
-        queries: [DEFAULT_FALLBACK_QUERY],
-        fromModel: false,
-        reasoning: 'No social data available - using default time-based query for recent changes'
-      };
-    }
-
-    // Extract relevant text from posts
-    const postsText = posts
-      .filter(p => p.text.length > 20)
-      .slice(0, 10)
-      .map((p, i) => `[${i + 1}] ${p.text.substring(0, 200)}`)
-      .join('\n');
-
-    const prompt = `You are a cybersecurity infrastructure analyst. Analyze these social media posts for threat intelligence and identify infrastructure indicators.
-
-POSTS:
-${postsText}
-
-<thinking>
-Step 1: Identify the main security topics and threats discussed in these posts.
-Step 2: Look for mentions of specific software, services, ports, CVEs, or infrastructure patterns.
-Step 3: Consider what Shodan queries would help find vulnerable systems matching these threats.
-Step 4: If posts are too vague or unrelated to infrastructure, plan to use time-based query.
-</thinking>
-
-Based on your analysis, generate 2-3 specific Shodan queries.
-Rules:
-- Use specific products, ports, CVEs, or service names mentioned
-- Return ONLY valid Shodan search syntax
-- If no specific infrastructure indicators found, return "after:1" for recent changes
-- One query per line
-- No markdown, no numbering
-
-Examples:
-product:Apache port:80
-CVE-2024-1234
-ssh port:22 country:US
-after:1
-
-Your queries:`;
-
-    try {
-      console.log('[QueryGenerator] Generating queries from social intel...');
-      const response = await this.callModel(prompt);
-      
-      // Parse and validate queries
-      const queries = this.parseAndValidateQueries(response);
-      
-      if (queries.length > 0) {
-        console.log(`[QueryGenerator] Generated ${queries.length} valid queries from model`);
-        return {
-          queries,
-          fromModel: true,
-          reasoning: 'Generated from social intelligence analysis'
-        };
-      } else {
-        console.log('[QueryGenerator] No valid queries generated, using fallback');
+      console.log('[QueryGenerator] No posts provided');
         return {
           queries: [DEFAULT_FALLBACK_QUERY],
           fromModel: false,
-          reasoning: 'Model output did not contain valid Shodan queries - using default time-based query'
+          reasoning: 'No social data available',
+          extractedIndicators: { products: [], ports: [], cves: [], countries: [] }
+        };
+    }
+
+    const postsText = posts
+      .filter(p => p.text.length > 10)
+      .slice(0, 15)
+      .map((p, i) => `[${i + 1}] @${p.author}: ${p.text.substring(0, 250)}`)
+      .join('\n\n');
+
+    const prompt = `You are an expert cybersecurity threat intelligence analyst specializing in infrastructure reconnaissance.
+
+TASK: Analyze these security-related social media posts and extract infrastructure indicators that can be used for Shodan searches.
+
+INPUT POSTS:
+${postsText}
+
+ANALYSIS REQUIREMENTS:
+1. Identify specific software products, services, or technologies mentioned (e.g., Apache, Nginx, WordPress, Jenkins, etc.)
+2. Extract port numbers if mentioned (e.g., port 80, 443, 22, 3306, etc.)
+3. Identify CVE IDs if present (format: CVE-YYYY-NNNNN)
+4. Look for infrastructure patterns like "exposed", "open", "vulnerable", "default credentials"
+5. Identify specific attack vectors or misconfigurations mentioned
+6. EXTRACT COUNTRIES mentioned (e.g., "Russia", "China", "US", "Iran", "North Korea") - use ISO 3166-1 alpha-2 codes
+
+OUTPUT FORMAT - Return ONLY a JSON object:
+{
+  "products": ["apache", "nginx", "mysql", "wordpress", "etc"],
+  "ports": [80, 443, 22, 3306],
+  "cves": ["CVE-2024-1234"],
+  "countries": ["RU", "CN", "US", "IR", "KP"],
+  "confidence": "high|medium|low",
+  "reasoning": "Brief explanation of what was found"
+}
+
+RULES:
+- Only include products/technologies that are actual Shodan-searchable services
+- Convert all products to lowercase
+- Include only valid CVE format (CVE-YYYY-NNNNN)
+- Countries must be ISO 3166-1 alpha-2 codes (2 letters, uppercase)
+- If no infrastructure indicators found, return empty arrays with low confidence
+- DO NOT include markdown code blocks
+- Return ONLY the JSON object
+
+Your JSON response:`;
+
+    try {
+      console.log('[QueryGenerator] Analyzing posts for infrastructure indicators...');
+      const response = await this.callModel(prompt);
+      
+      const indicators = this.parseIndicators(response);
+      console.log(`[QueryGenerator] Extracted: ${indicators.products.length} products, ${indicators.ports.length} ports, ${indicators.cves.length} CVEs, ${indicators.countries.length} countries`);
+      
+      if (indicators.countries.length > 0) {
+        console.log(`[QueryGenerator] Countries detected: ${indicators.countries.join(', ')}`);
+      }
+      
+      if (indicators.products.length === 0 && indicators.ports.length === 0 && indicators.cves.length === 0 && indicators.countries.length === 0) {
+        console.log('[QueryGenerator] No infrastructure indicators found, using fallback');
+        return {
+          queries: [DEFAULT_FALLBACK_QUERY],
+          fromModel: false,
+          reasoning: indicators.reasoning || 'No infrastructure indicators found in posts',
+          extractedIndicators: indicators
+        };
+      }
+
+      const processedQueries = this.preprocessor.generateQueriesFromIndicators(indicators, 'dev');
+      const validQueries = processedQueries
+        .filter(pq => pq.isValid)
+        .map(pq => pq.query);
+
+      if (validQueries.length > 0) {
+        console.log(`[QueryGenerator] Generated ${validQueries.length} optimized queries`);
+        validQueries.forEach((q, i) => {
+          console.log(`  [${i + 1}] ${q}`);
+        });
+        
+        return {
+          queries: validQueries,
+          fromModel: true,
+          reasoning: indicators.reasoning || 'Generated from infrastructure indicators',
+          extractedIndicators: indicators
+        };
+      } else {
+        console.log('[QueryGenerator] No valid queries after processing, using fallback');
+        return {
+          queries: [DEFAULT_FALLBACK_QUERY],
+          fromModel: false,
+          reasoning: 'Could not generate valid queries from indicators',
+          extractedIndicators: indicators
         };
       }
     } catch (error) {
-      console.error('[QueryGenerator] Error generating queries:', error);
+      console.error('[QueryGenerator] Error:', error);
       return {
         queries: [DEFAULT_FALLBACK_QUERY],
         fromModel: false,
-        reasoning: 'Error during query generation - using fallback query'
+        reasoning: 'Error during generation',
+        extractedIndicators: { products: [], ports: [], cves: [], countries: [] }
       };
     }
   }
 
-  /**
-   * Parse model response and validate each line as a Shodan query
-   */
-  private parseAndValidateQueries(response: string): string[] {
-    const lines = response
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
-    const validQueries: string[] = [];
-
-    for (const line of lines) {
-      // Skip markdown formatting
-      const cleanLine = line
-        .replace(/^```[\w]*\n?/g, '')
-        .replace(/```$/g, '')
-        .replace(/^[-*•]\s*/g, '')
-        .replace(/^\d+[.)]\s*/g, '')
+  private parseIndicators(response: string): {
+    products: string[];
+    ports: number[];
+    cves: string[];
+    countries: string[];
+    confidence: string;
+    reasoning: string;
+  } {
+    try {
+      const cleaned = response
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
         .trim();
 
-      if (cleanLine.length === 0) continue;
-      if (cleanLine.length > 200) continue; // Too long
-      if (INVALID_PATTERNS.some(p => p.test(cleanLine))) continue;
-      
-      // Check if it looks like a valid Shodan query
-      const isValid = VALID_SHODAN_PATTERNS.some(p => p.test(cleanLine)) ||
-        cleanLine.includes('after:') ||
-        cleanLine.includes('before:') ||
-        cleanLine.includes('port:');
+      const parsed = JSON.parse(cleaned);
 
-      if (isValid) {
-        validQueries.push(cleanLine);
+      const products = Array.isArray(parsed.products) 
+        ? parsed.products.filter((p: string) => p && p.length > 1).map((p: string) => p.toLowerCase())
+        : [];
+
+      const ports = Array.isArray(parsed.ports)
+        ? parsed.ports.filter((p: number) => p > 0 && p < 65536)
+        : [];
+
+      const cves = Array.isArray(parsed.cves)
+        ? parsed.cves.filter((c: string) => c && c.match(/CVE-\d{4}-\d+/i))
+        : [];
+
+      const countries = Array.isArray(parsed.countries)
+        ? parsed.countries.filter((c: string) => c && c.match(/^[A-Z]{2}$/))
+        : [];
+
+      return {
+        products,
+        ports,
+        cves,
+        countries,
+        confidence: parsed.confidence || 'low',
+        reasoning: parsed.reasoning || ''
+      };
+    } catch (error) {
+      console.warn('[QueryGenerator] Failed to parse JSON, trying regex extraction');
+      return this.extractIndicatorsWithRegex(response);
+    }
+  }
+
+  private extractIndicatorsWithRegex(response: string): {
+    products: string[];
+    ports: number[];
+    cves: string[];
+    countries: string[];
+    confidence: string;
+    reasoning: string;
+  } {
+    const products: string[] = [];
+    const cves: string[] = [];
+    const countries: string[] = [];
+    
+    const productMatches = response.match(/"products"\s*:\s*\[([^\]]+)\]/);
+    if (productMatches) {
+      const items = productMatches[1].match(/"([^"]+)"/g);
+      if (items) {
+        items.forEach(item => {
+          const clean = item.replace(/"/g, '').toLowerCase().trim();
+          if (clean && clean.length > 1) products.push(clean);
+        });
       }
     }
 
-    // Limit to 3 queries max
-    return validQueries.slice(0, 3);
+    const portMatches = response.match(/"ports"\s*:\s*\[([^\]]+)\]/);
+    const ports: number[] = [];
+    if (portMatches) {
+      const nums = portMatches[1].match(/\d+/g);
+      if (nums) {
+        nums.forEach(n => {
+          const port = parseInt(n);
+          if (port > 0 && port < 65536) ports.push(port);
+        });
+      }
+    }
+
+    const cveMatches = response.match(/CVE-\d{4}-\d+/gi);
+    if (cveMatches) {
+      cveMatches.forEach(cve => {
+        if (!cves.includes(cve.toUpperCase())) {
+          cves.push(cve.toUpperCase());
+        }
+      });
+    }
+
+    const countryMatches = response.match(/"countries"\s*:\s*\[([^\]]+)\]/);
+    if (countryMatches) {
+      const items = countryMatches[1].match(/"([A-Z]{2})"/g);
+      if (items) {
+        items.forEach(item => {
+          const clean = item.replace(/"/g, '').toUpperCase().trim();
+          if (clean && clean.match(/^[A-Z]{2}$/)) countries.push(clean);
+        });
+      }
+    }
+
+    return {
+      products,
+      ports,
+      cves,
+      countries,
+      confidence: 'medium',
+      reasoning: 'Extracted using regex fallback'
+    };
   }
 
-  /**
-   * Validate a single Shodan query format
-   */
-  isValidQuery(query: string): boolean {
-    if (!query || query.length < 2) return false;
-    if (INVALID_PATTERNS.some(p => p.test(query))) return false;
-    return VALID_SHODAN_PATTERNS.some(p => p.test(query)) ||
-      query.includes('after:') ||
-      query.includes('before:') ||
-      query.includes('port:');
-  }
-
-  /**
-   * Call the strategic model for query generation
-   */
   private async callModel(prompt: string): Promise<string> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
     try {
-      const options = {
-        temperature: 0.3,
-        num_predict: 300,
-        top_p: 0.9
-      };
-
       const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -190,8 +256,12 @@ Your queries:`;
         body: JSON.stringify({ 
           model: STRATEGIC_MODEL, 
           prompt, 
-          stream: false, 
-          options 
+          stream: false,
+          options: {
+            temperature: 0.1,
+            num_predict: 500,
+            top_p: 0.9
+          }
         })
       });
 
@@ -210,4 +280,4 @@ Your queries:`;
   }
 }
 
-export default QueryGenerator;
+export defa
