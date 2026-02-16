@@ -18,6 +18,11 @@ on:
         required: true
         default: false
         type: boolean
+      rebuild_history:
+        description: 'Rehacer histórico - Reinicializar análisis completo (borra TODO el historial)'
+        required: true
+        default: false
+        type: boolean
   schedule:
     # Daily CTI refresh at 06:15 UTC
     - cron: '15 6 * * *'
@@ -97,7 +102,7 @@ jobs:
           echo "=== Models ready for CTI pipeline ==="
 
       - name: Clear Cache (if flush requested)
-        if: ${{ inputs.flush_cache }}
+        if: ${{ inputs.flush_cache && !inputs.rebuild_history }}
         run: |
           echo "=== FLUSHING CACHE ==="
           rm -rf ${{ env.CTI_CACHE_DIR }}/* || true
@@ -105,8 +110,33 @@ jobs:
           rm -f ${{ env.CTI_OUTPUT_DIR }}/shodan-data.json || true
           echo "✓ Cache cleared"
 
+      - name: Rebuild History - Full Reset
+        if: ${{ inputs.rebuild_history }}
+        run: |
+          echo "=== REHACER HISTÓRICO - REINICIALIZACIÓN COMPLETA ==="
+          echo "⚠️  ATENCIÓN: Se borrará TODO el historial de análisis"
+          echo ""
+          
+          # Borrar TODO el cache histórico
+          echo "→ Borrando cache histórico..."
+          rm -rf ${{ env.CTI_CACHE_DIR }} || true
+          rm -rf ~/.ollama || true
+          
+          # Borrar datos de salida existentes
+          echo "→ Borrando datos existentes..."
+          rm -rf ${{ env.CTI_OUTPUT_DIR }} || true
+          rm -rf ./DATA || true
+          
+          # Crear directorios limpios
+          mkdir -p ${{ env.CTI_CACHE_DIR }}
+          mkdir -p ${{ env.CTI_OUTPUT_DIR }}
+          
+          echo ""
+          echo "✓ Historial reinicializado - Análisis comenzará desde cero"
+          echo ""
+
       - name: Restore CTI Cache
-        if: ${{ inputs.use_cache && !inputs.flush_cache }}
+        if: ${{ inputs.use_cache && !inputs.flush_cache && !inputs.rebuild_history }}
         uses: actions/cache@v4
         with:
           path: ${{ env.CTI_CACHE_DIR }}
@@ -147,7 +177,7 @@ jobs:
 
       - name: Save Cache
         uses: actions/cache/save@v4
-        if: always()
+        if: ${{ always() && !inputs.rebuild_history }}
         with:
           path: ${{ env.CTI_CACHE_DIR }}
           key: cti-data-${{ github.run_id }}
