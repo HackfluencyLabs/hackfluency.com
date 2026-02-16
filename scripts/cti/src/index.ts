@@ -62,19 +62,24 @@ async function runScrapers(): Promise<XScrapedData | null> {
   }
 
   if (xData && xData.posts.length > 0) {
-    console.log('[Scrape] Generating contextual queries from social intel...');
+    console.log('[Scrape] Generating contextual queries using TWO-STEP architecture...');
+    console.log('  [Architecture] Step 1: Phi4-mini synthesizes social context');
+    console.log('  [Architecture] Step 2: Specialist generates Shodan queries');
     const queryGen = new QueryGenerator();
-    const queryResult = await queryGen.generateQueriesFromPosts(xData.posts);
+    const queryResult = await queryGen.generateQueriesTwoStep(xData.posts);
     
     console.log(`[QueryGenerator] ${queryResult.reasoning}`);
     if (queryResult.extractedIndicators.products.length > 0) {
-      console.log(`[QueryGenerator] Products: ${queryResult.extractedIndicators.products.join(', ')}`);
+      console.log(`[QueryGenerator] Detected Services: ${queryResult.extractedIndicators.products.join(', ')}`);
     }
     if (queryResult.extractedIndicators.ports.length > 0) {
-      console.log(`[QueryGenerator] Ports: ${queryResult.extractedIndicators.ports.join(', ')}`);
+      console.log(`[QueryGenerator] Detected Ports: ${queryResult.extractedIndicators.ports.join(', ')}`);
     }
     if (queryResult.extractedIndicators.countries.length > 0) {
-      console.log(`[QueryGenerator] Countries: ${queryResult.extractedIndicators.countries.join(', ')}`);
+      console.log(`[QueryGenerator] Detected Countries: ${queryResult.extractedIndicators.countries.join(', ')}`);
+    }
+    if (queryResult.extractedIndicators.cves.length > 0) {
+      console.log(`[QueryGenerator] Detected CVEs: ${queryResult.extractedIndicators.cves.join(', ')}`);
     }
     console.log(`[QueryGenerator] Final queries: ${queryResult.queries.join(' | ')}`);
     

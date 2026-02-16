@@ -37,6 +37,8 @@ concurrency:
 env:
   CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
   CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
+  # Current date for temporal context in LLM prompts (auto-updates daily)
+  CTI_CURRENT_DATE: ${{ github.event.repository.updated_at }}
   # Dual-model architecture:
   # REASONER (phi4-mini): Social context, correlation, strategic analysis
   # SPECIALIST (CybersecurityThreatAnalysisV2): Shodan queries, CVEs, ports, technical IOCs

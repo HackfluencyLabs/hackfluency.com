@@ -46,6 +46,38 @@ const MAX_RETRIES = parseInt(process.env.CTI_MAX_RETRIES || '2', 10);
 const STRATEGIC_TOKEN_LIMIT = 8000;
 const TECHNICAL_TOKEN_LIMIT = 6000;
 
+function getCurrentDate(): string {
+  const envDate = process.env.CTI_CURRENT_DATE;
+  if (envDate) {
+    const date = new Date(envDate);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        timeZone: 'UTC'
+      });
+    }
+  }
+  return new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    timeZone: 'UTC'
+  });
+}
+
+function getCurrentYear(): number {
+  const envDate = process.env.CTI_CURRENT_DATE;
+  if (envDate) {
+    const date = new Date(envDate);
+    if (!isNaN(date.getTime())) {
+      return date.getFullYear();
+    }
+  }
+  return new Date().getFullYear();
+}
+
 // ==================== Interfaces ====================
 
 /** Structured signals extracted from X posts (Refactor 2) */
@@ -327,26 +359,47 @@ export class CTIOrchestrator {
       .map((p, i) => `[${i + 1}] ${this.truncateTokenSafe(p.text, 150)}`)
       .join('\n');
 
-    const prompt = `Analyze these security-related social media posts and extract threat intelligence signals.
+    const currentDate = getCurrentDate();
+    const currentYear = getCurrentYear();
+    
+    const prompt = `You are a cybersecurity threat intelligence analyst. Analyze these security-related social media posts and extract structured threat intelligence signals.
 
-POSTS:
+CURRENT DATE: ${currentDate}
+TEMPORAL CONTEXT: Analyze posts as current intelligence from ${currentDate}. Recent threats (${currentYear-1}-${currentYear} CVEs, emerging attack patterns) should be prioritized over historical discussions.
+
+INPUT POSTS:
 ${postsText}
 
-<thinking>
-Step 1: Read through all posts and identify the main security topics being discussed.
-Step 2: Look for mentions of specific attack types, vulnerabilities, or threat actors.
-Step 3: Assess the confidence level - are these confirmed incidents or speculation?
-Step 4: Extract any exploitation claims or evidence of active attacks.
-Step 5: Summarize the key themes and overall tone.
-</thinking>
+EXTRACTION REQUIREMENTS:
+1. THEMES: Identify 2-5 main security topics being discussed (e.g., "Ransomware Attacks", "Zero-Day Vulnerabilities", "APT Campaigns", "Data Breaches")
+   - Use concise, standardized terminology
+   - Focus on actionable threat categories
+   - Prioritize themes from recent posts (February 2026)
 
-Based on your analysis, provide:
-1. Key themes (2-5 main topics)
-2. Any exploitation claims mentioned
-3. Overall tone: speculative, confirmed, or mixed
+2. EXPLOITATION CLAIMS: Extract specific claims about active exploitation
+   - Look for phrases like "being exploited", "in the wild", "active attacks"
+   - Include specific vulnerabilities being exploited
+   - Note any proof-of-concept releases
+   - Check for recent CVEs (2025-2026) indicating current campaigns
 
-Return as JSON:
-{"themes":["theme1","theme2"],"exploitation_claims":["claim1"],"tone":"speculative|confirmed|mixed"}`;
+3. TONE ASSESSMENT: Determine the confidence level of the intelligence
+   - "confirmed": Multiple sources, official advisories, observed attacks, recent confirmations (Feb 2026)
+   - "speculative": Single source, unverified claims, rumors
+   - "mixed": Combination of confirmed and speculative information
+
+4. TEMPORAL ANALYSIS: Consider the posting dates and threat timelines
+   - Are these current active threats or older discussions?
+   - Look for urgency indicators ("just released", "breaking", "0-day")
+
+ANALYSIS GUIDELINES:
+- Be precise and factual
+- Avoid speculation beyond what's in the posts
+- Use lowercase for themes unless proper nouns
+- Prioritize recent and specific threats (February 2026 context)
+- Note any mentions of specific threat actor campaigns active in 2025-2026
+
+OUTPUT FORMAT - Return ONLY valid JSON:
+{"themes":["ransomware attacks","zero-day vulnerabilities"],"exploitation_claims":["CVE-2025-1234 being exploited in the wild"],"tone":"confirmed"}`;
 
     // Check token budget
     this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'X Signal Extraction');
@@ -515,17 +568,45 @@ Vulnerable: ${shodanDigest.vulnerableHosts}/${shodanDigest.totalHosts} (${((shod
 Top Ports: [${shodanDigest.topPorts.slice(0, 5).map(p => `${p.port}/${p.service}`).join(', ')}]
 Infrastructure CVEs: [${shodanDigest.uniqueCVEs.slice(0, 5).join(', ')}]`;
 
-    const prompt = `Analyze correlation between social intelligence and infrastructure. Be concise.
+    const currentDate = getCurrentDate();
+    const currentYear = getCurrentYear();
+    
+    const prompt = `You are a senior cybersecurity technical analyst. Perform a technical assessment of the correlation between social threat intelligence and infrastructure exposure.
+
+ANALYSIS DATE: ${currentDate}
+TEMPORAL CONTEXT: Assess threats as of ${currentDate}. Prioritize CVEs from ${currentYear-1}-${currentYear} as they represent current attack vectors.
 
 ${compactInput}
 
-Respond with:
-1. CVE-SERVICE ALIGNMENT: Do CVEs match exposed services? Explain the evidence.
-2. INFRASTRUCTURE PATTERNS: What service exposure patterns are significant?
-3. TACTICAL CLASSIFICATION: opportunistic scanning or targeted campaign? Justify.
-4. CONFIDENCE: low/moderate/high with reasoning.
+ANALYSIS REQUIREMENTS:
 
-Provide a thorough analysis. Up to 500 words.`;
+1. CVE-SERVICE ALIGNMENT ANALYSIS:
+   - Compare CVEs mentioned in social intelligence with vulnerable services found in infrastructure
+   - Identify which CVEs affect exposed services (e.g., CVE-2024-XXXX affects Apache found on port 80)
+   - Calculate approximate risk: (matching CVEs / total CVEs) * 100
+   - Note any critical or high-severity CVEs present in both sources
+
+2. INFRASTRUCTURE EXPOSURE PATTERNS:
+   - Analyze top exposed ports and services
+   - Identify dangerous configurations (e.g., exposed databases, default credentials, outdated software)
+   - Assess exposure scope: widespread (many hosts) vs targeted (specific services)
+   - Note any high-risk combinations (e.g., RDP on port 3389, SSH with weak configs)
+
+3. TACTICAL CLASSIFICATION:
+   Classify the threat as one of:
+   - "targeted": Specific infrastructure matches threats in social intel, coordinated campaign indicators
+   - "opportunistic": Broad scanning, common vulnerabilities, no specific targeting
+   - "unknown": Insufficient data to determine
+   
+   Justification must cite specific evidence from both sources.
+
+4. CONFIDENCE ASSESSMENT:
+   - "high": Strong CVE-service correlation AND clear tactical indicators
+   - "moderate": Some correlation or partial data
+   - "low": Weak correlation, insufficient data, or conflicting signals
+
+RESPONSE FORMAT:
+Provide detailed technical analysis (400-600 words) covering all four areas with specific evidence.
 
     // Check token budget
     this.assertTokenBudget(prompt, TECHNICAL_TOKEN_LIMIT, 'Technical Validation');
@@ -576,49 +657,62 @@ Provide a thorough analysis. Up to 500 words.`;
     const freshnessStatus = assessmentLayer.freshness.status;
 
     // Build concise input using structured signals
-    const prompt = `Synthesize threat intelligence for executive briefing.
+    const prompt = `You are a C-level cybersecurity advisor. Synthesize threat intelligence into an executive briefing that aligns with the quantified risk assessment.
 
 QUANTIFIED ASSESSMENT:
-- Risk Score: ${riskScore}/100 (${riskLevel} risk)
+- Risk Score: ${riskScore}/100 (${riskLevel.toUpperCase()} risk level)
 - Threat Type: ${threatType} (${assessmentLayer.classification.confidence}% confidence)
-- Correlation: ${correlationStrength} (${Math.round(assessmentLayer.correlation.score * 100)}%)
-- Data Freshness: ${freshnessStatus} (${Math.round(assessmentLayer.freshness.freshnessScore * 100)}%)
+- Cross-source Correlation: ${correlationStrength} (${Math.round(assessmentLayer.correlation.score * 100)}% alignment)
+- Data Freshness: ${freshnessStatus} (${Math.round(assessmentLayer.freshness.freshnessScore * 100)}% current)
 
-SOCIAL INTEL:
-- Themes: ${xSignals.themes.join(', ') || 'None identified'}
-- CVEs discussed: ${xSignals.cves.length}
-- Tone: ${xSignals.tone}
+SOCIAL INTELLIGENCE:
+- Discussion Themes: ${xSignals.themes.join(', ') || 'General security topics'}
+- CVEs in Discussion: ${xSignals.cves.length > 0 ? xSignals.cves.slice(0, 5).join(', ') : 'None identified'}
+- Intelligence Tone: ${xSignals.tone} (confirmed/speculative/mixed)
+- Top Engagement: ${xSignals.topPosts.length} posts analyzed
 
-INFRASTRUCTURE:
-- ${shodanDigest.totalHosts} hosts, ${shodanDigest.vulnerableHosts} vulnerable
-- Top services: ${shodanDigest.topPorts.slice(0, 3).map(p => p.service).join(', ')}
+INFRASTRUCTURE EXPOSURE:
+- Total Hosts Scanned: ${shodanDigest.totalHosts}
+- Vulnerable Hosts: ${shodanDigest.vulnerableHosts} (${shodanDigest.totalHosts > 0 ? Math.round((shodanDigest.vulnerableHosts / shodanDigest.totalHosts) * 100) : 0}%)
+- Top Exposed Services: ${shodanDigest.topPorts.slice(0, 3).map(p => `${p.service}:${p.port}`).join(', ')}
+- Geographic Distribution: ${shodanDigest.topCountries.slice(0, 3).map(c => `${c.country}(${c.count})`).join(', ')}
 
-TECHNICAL ASSESSMENT:
-- Classification: ${technical.tacticalClassification}
-- Confidence: ${technical.confidenceLevel}
+TECHNICAL ANALYSIS:
+- Tactical Classification: ${technical.tacticalClassification} (${technical.confidenceLevel} confidence)
+- CVE-Service Alignment: ${technical.exploitAlignment.substring(0, 100)}...
 
-<thinking>
-Step 1: Consider the quantified risk score (${riskScore}) and threat type (${threatType}) - this defines the overall severity.
-Step 2: Analyze the social intelligence - what threats are being discussed?
-Step 3: Review the infrastructure data - what vulnerable systems are exposed?
-Step 4: Cross-reference using correlation data (${correlationStrength}) - do social and infrastructure align?
-Step 5: Factor in data freshness (${freshnessStatus}) - how reliable is this intelligence?
-Step 6: Synthesize an executive summary that MATCHES the quantified risk level.
+STRATEGIC SYNTHESIS REQUIREMENTS:
 
-IMPORTANT: The executive summary must be consistent with the risk score:
-- Score 0-25: "Routine monitoring, low threat environment"
-- Score 25-50: "Moderate vigilance warranted"
-- Score 50-75: "Elevated risk requiring attention"
-- Score 75-100: "Critical threat requiring immediate action"
-</thinking>
+1. EXECUTIVE SUMMARY (3-5 sentences):
+   - MUST align with ${riskLevel} risk level (${riskScore}/100)
+   - Cover: threat scope, potential impact, and confidence level
+   - Be specific about what threats were identified
+   - Use clear, actionable language suitable for executives
+   - Risk level tone guide:
+     * LOW (0-25): "Routine monitoring, minimal exposure"
+     * MODERATE (25-50): "Moderate vigilance, some exposure detected"
+     * ELEVATED (50-75): "Elevated risk, active threats require attention"
+     * CRITICAL (75-100): "Critical threat, immediate action required"
 
-Based on your analysis, provide:
-1. EXECUTIVE SUMMARY (3-5 sentences that match the ${riskLevel} risk level, covering scope, impact, and confidence)
-2. KEY FINDINGS (2-3 critical observations with supporting evidence)
-3. CORRELATION ANALYSIS (how social intelligence and infrastructure data relate)
-4. RECOMMENDED ACTIONS (top 3-5 priorities appropriate for ${riskLevel} risk, be specific)
+2. KEY FINDINGS (3 bullet points):
+   - Most critical observation with specific evidence
+   - Infrastructure exposure assessment
+   - Intelligence confidence and reliability note
 
-Provide a complete and detailed analysis. Up to 700 words.`;
+3. CORRELATION ANALYSIS (2-3 sentences):
+   - Explain how social discussions relate to infrastructure findings
+   - Cite specific CVEs, services, or patterns that align
+   - Note any gaps or uncertainties
+
+4. RECOMMENDED ACTIONS (4-5 specific priorities):
+   - Must be appropriate for ${riskLevel} risk level
+   - Include immediate tactical steps
+   - Include strategic improvements
+   - Be specific: "Patch CVE-XXXX" not just "Apply patches"
+   - Prioritize by urgency
+
+RESPONSE FORMAT:
+Structure with clear headers. Provide comprehensive analysis (500-800 words) with specific evidence from the data.
 
     // Check token budget
     this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'Strategic Synthesis');
