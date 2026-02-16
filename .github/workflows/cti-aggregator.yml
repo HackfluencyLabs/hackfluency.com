@@ -19,7 +19,7 @@ on:
         default: false
         type: boolean
       rebuild_history:
-        description: 'Rehacer histórico - Reinicializar análisis completo (borra TODO el historial)'
+        description: 'Rehacer histórico - Borra datos CTI previos (NO afecta modelos de IA)'
         required: true
         default: false
         type: boolean
@@ -60,10 +60,31 @@ jobs:
           node-version: '20'
 
       - name: Cache Ollama Models
+        if: ${{ !inputs.rebuild_history }}
         uses: actions/cache@v4
         with:
           path: ~/.ollama
           key: ollama-dual-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}
+
+      - name: Rebuild History - Clean Data Only
+        if: ${{ inputs.rebuild_history }}
+        run: |
+          echo "=== REHACER HISTÓRICO - LIMPIEZA DE DATOS CTI ==="
+          echo "⚠️  Se borrarán los datos históricos de análisis"
+          echo "✓ Los modelos de IA se mantendrán (se descargarán si es necesario)"
+          echo ""
+          
+          # Solo borrar datos CTI, NO los modelos de Ollama
+          rm -rf ${{ env.CTI_CACHE_DIR }} || true
+          rm -rf ${{ env.CTI_OUTPUT_DIR }} || true
+          rm -rf ./DATA || true
+          
+          # Crear directorios limpios
+          mkdir -p ${{ env.CTI_CACHE_DIR }}
+          mkdir -p ${{ env.CTI_OUTPUT_DIR }}
+          
+          echo "✓ Datos CTI reinicializados"
+          echo ""
 
       - name: Install Ollama and Pull Models
         run: |
@@ -109,31 +130,6 @@ jobs:
           rm -f ${{ env.CTI_OUTPUT_DIR }}/x-data.json || true
           rm -f ${{ env.CTI_OUTPUT_DIR }}/shodan-data.json || true
           echo "✓ Cache cleared"
-
-      - name: Rebuild History - Full Reset
-        if: ${{ inputs.rebuild_history }}
-        run: |
-          echo "=== REHACER HISTÓRICO - REINICIALIZACIÓN COMPLETA ==="
-          echo "⚠️  ATENCIÓN: Se borrará TODO el historial de análisis"
-          echo ""
-          
-          # Borrar TODO el cache histórico
-          echo "→ Borrando cache histórico..."
-          rm -rf ${{ env.CTI_CACHE_DIR }} || true
-          rm -rf ~/.ollama || true
-          
-          # Borrar datos de salida existentes
-          echo "→ Borrando datos existentes..."
-          rm -rf ${{ env.CTI_OUTPUT_DIR }} || true
-          rm -rf ./DATA || true
-          
-          # Crear directorios limpios
-          mkdir -p ${{ env.CTI_CACHE_DIR }}
-          mkdir -p ${{ env.CTI_OUTPUT_DIR }}
-          
-          echo ""
-          echo "✓ Historial reinicializado - Análisis comenzará desde cero"
-          echo ""
 
       - name: Restore CTI Cache
         if: ${{ inputs.use_cache && !inputs.flush_cache && !inputs.rebuild_history }}
