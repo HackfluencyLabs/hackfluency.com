@@ -166,8 +166,6 @@ const translations: Record<Language, Translations> = {
     'dashboard.killChain': 'Kill chain',
     'dashboard.killChainModel': 'Kill Chain Model',
     'dashboard.killChainLegend': 'Kill Chain Phase',
-    'dashboard.crossSourceDuplication': 'Cross-source duplication',
-    'dashboard.crossSourceMatch': 'Cross-source match',
     'dashboard.score': 'Score',
     'dashboard.total': 'Total',
     'dashboard.truncated': 'Output truncated — the AI model reached its token limit. Run the pipeline again with a higher num_predict value for a complete analysis.',
@@ -309,7 +307,6 @@ const translations: Record<Language, Translations> = {
     'infra.exposedPorts': 'Puertos Expuestos',
     'infra.vulnerableHosts': 'Hosts Vulnerables',
     'infra.topCountries': 'Principales Países',
-    'infra.sampleHosts': 'Hosts de Ejemplo',
     
     // Indicators
     'indicators.cves': 'CVEs',
@@ -506,10 +503,14 @@ const translations: Record<Language, Translations> = {
     'dashboard.killChainLegend': 'Fase de la cadena de muerte',
     'dashboard.crossSourceDuplication': 'Duplicación entre fuentes',
     'dashboard.crossSourceMatch': 'Coincidencia entre fuentes',
+    'dashboard.noMatchFound': 'Sin coincidencia',
+    'dashboard.socialOnly': 'Solo social',
+    'dashboard.noMatch': 'Sin coincidencia',
     'dashboard.cveOverlap': 'Superposición de CVE',
     'dashboard.serviceMatch': 'Coincidencia de Servicios',
     'dashboard.temporalProximity': 'Proximidad Temporal',
     'dashboard.infraSocialAlignment': 'Alineación Infra-Social',
+    'dashboard.analysisMethods': 'Métodos de Análisis',
   }
 };
 

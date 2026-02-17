@@ -288,79 +288,6 @@ const TABS: { id: TabId; labelKey: string; icon: string }[] = [
   { id: 'detail', labelKey: 'tab.detail', icon: '☰' },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// REUSABLE STYLE CONSTANTS (extracted to reduce redundancy)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const commonFlex = { display: 'flex' as const, alignItems: 'center' as const };
-const commonCard = { padding: '24px', background: '#111', borderRadius: '14px', border: '1px solid #222' };
-const commonGradientCard = (color: string) => ({
-  background: `linear-gradient(135deg, ${color}10, transparent)`,
-  border: `1px solid ${color}30`,
-  borderRadius: '12px',
-});
-const commonSectionHeader = (color: string) => ({
-  display: 'flex' as const, alignItems: 'center' as const, gap: '10px', marginBottom: '18px',
-});
-const commonAccentBar = (color: string) => ({
-  width: '4px', height: '24px', borderRadius: '2px', background: color,
-});
-const commonSectionTitle = (color: string) => ({
-  fontSize: '14px', color, textTransform: 'uppercase' as const, letterSpacing: '2px', fontWeight: 700,
-});
-const commonBadge = (color: string) => ({
-  padding: '4px 12px', borderRadius: '20px', background: `${color}15`, border: `1px solid ${color}60`, color, fontSize: '11px', fontWeight: 600,
-});
-const commonHoverLink = { transition: 'all 0.2s ease', cursor: 'pointer' };
-const commonScrollableBox = { overflowY: 'auto' as const, flex: 1, paddingRight: '6px' };
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// RESPONSIVE HOOK
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const useResponsive = () => {
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-  
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  return {
-    isMobile: windowWidth < 768,
-    isTablet: windowWidth >= 768 && windowWidth < 1024,
-    isDesktop: windowWidth >= 1024,
-    isLargeDesktop: windowWidth >= 1400,
-    windowWidth,
-  };
-};
-
-// Responsive style helpers
-const responsiveGrid = (isMobile: boolean, isTablet: boolean) => ({
-  threeColumn: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1.5fr 1fr',
-  twoColumn: isMobile ? '1fr' : '1fr 1fr',
-  twoColumnUneven: isMobile ? '1fr' : '1.2fr 0.8fr',
-  metricsGrid: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr',
-  fourColumn: isMobile ? '1fr 1fr' : isTablet ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr',
-});
-
-const responsivePanel = (isMobile: boolean) => ({
-  padding: isMobile ? '16px' : '24px 40px',
-  gap: isMobile ? '12px' : '20px',
-});
-
-const responsiveCorrelationPanel = (isMobile: boolean, isTablet: boolean) => ({
-  flexDirection: isMobile ? 'column' : 'row' as const,
-  sidebarWidth: isMobile ? '100%' : isTablet ? '280px' : '340px',
-});
-
-const responsiveHeight = (isMobile: boolean, isTablet: boolean, defaultHeight: string = '320px') => {
-  if (isMobile) return '240px';
-  if (isTablet) return '280px';
-  return defaultHeight;
-};
-
 // Main Component with I18n Provider wrapper
 const CTIDashboardWithI18n: React.FC = () => {
   return (
@@ -373,12 +300,6 @@ const CTIDashboardWithI18n: React.FC = () => {
 // Inner component that uses i18n hooks
 const CTIDashboardInner: React.FC = () => {
   const { t, language } = useI18n();
-  const { isMobile, isTablet, isDesktop } = useResponsive();
-  const gridLayout = responsiveGrid(isMobile, isTablet);
-  const panelLayout = responsivePanel(isMobile);
-  const correlationLayout = responsiveCorrelationPanel(isMobile, isTablet);
-  const heightHelper = (defaultHeight?: string) => responsiveHeight(isMobile, isTablet, defaultHeight);
-  
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -976,7 +897,7 @@ const CTIDashboardInner: React.FC = () => {
     <div style={{
       flex: 1,
       overflow: 'auto',
-      padding: panelLayout.padding,
+      padding: '24px 40px',
       display: 'flex',
       justifyContent: 'center',
     }}>
@@ -1108,14 +1029,14 @@ const CTIDashboardInner: React.FC = () => {
         {data!.assessmentLayer?.narrative && (
           <div style={{ marginBottom: '24px' }}>
             {/* Three Column Layout: Social -> Narrative -> Actions - Fixed Height */}
-            <div style={{ display: 'grid', gridTemplateColumns: gridLayout.threeColumn, gap: panelLayout.gap }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '20px' }}>
               {/* Social Posts Column - Left - Scrollable */}
               <div style={{
                 padding: '20px',
                 background: 'rgba(59, 130, 246, 0.05)',
                 borderRadius: '12px',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
-                height: heightHelper(),
+                height: '320px',
                 display: 'flex',
                 flexDirection: 'column',
               }}>
@@ -1161,7 +1082,7 @@ const CTIDashboardInner: React.FC = () => {
                 border: '2px solid #00D26A40',
                 boxShadow: '0 0 50px rgba(0, 210, 106, 0.12), inset 0 0 40px rgba(0, 210, 106, 0.03)',
                 position: 'relative',
-                height: heightHelper(),
+                height: '320px',
                 overflowY: 'auto',
               }}>
                 <style>{`
@@ -1224,7 +1145,7 @@ const CTIDashboardInner: React.FC = () => {
                   borderRadius: '12px',
                   border: '1px solid rgba(245, 158, 11, 0.25)',
                   boxShadow: '0 0 25px rgba(245, 158, 11, 0.1)',
-                  height: heightHelper(),
+                  height: '320px',
                   display: 'flex',
                   flexDirection: 'column',
                 }}>
@@ -1338,7 +1259,7 @@ const CTIDashboardInner: React.FC = () => {
 
         {/* Key Findings + Quick Metrics Row - Compact */}
         <div style={{
-          display: 'grid', gridTemplateColumns: gridLayout.twoColumnUneven, gap: panelLayout.gap,
+          display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px',
         }}>
           {/* Key Findings */}
           <div style={{
@@ -1415,14 +1336,13 @@ const CTIDashboardInner: React.FC = () => {
     const strengthColor = corrStrength === 'strong' ? '#00D26A' : corrStrength === 'moderate' ? '#F59E0B' : '#E31B23';
 
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: correlationLayout.flexDirection, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+      <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         {/* Left: Correlation Methodology Panel */}
         <div style={{
-          width: correlationLayout.sidebarWidth, flexShrink: 0, overflowY: 'auto', overflowX: 'hidden',
-          background: '#0d0d0d', borderRight: isMobile ? 'none' : '1px solid #1a1a1a',
-          borderBottom: isMobile ? '1px solid #1a1a1a' : 'none',
+          width: '340px', flexShrink: 0, overflowY: 'auto', overflowX: 'hidden',
+          background: '#0d0d0d', borderRight: '1px solid #1a1a1a',
           padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px',
-          minHeight: 0, maxHeight: isMobile ? '40%' : '100%',
+          minHeight: 0, maxHeight: '100%',
         }}>
           {/* Correlation Score Header */}
           <div style={{
@@ -1845,13 +1765,13 @@ const CTIDashboardInner: React.FC = () => {
   // ── Full Detail Panel ──
   const renderDetailPanel = () => (
     <div style={{
-      flex: 1, overflow: 'auto', padding: panelLayout.padding,
+      flex: 1, overflow: 'auto', padding: '24px 40px',
       display: 'flex', justifyContent: 'center',
     }}>
       <div style={{ maxWidth: '1600px', width: '100%' }}>
         {/* Risk Score + Metrics Header Row - Enhanced */}
         <div style={{
-          display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '300px 1fr', gap: panelLayout.gap, marginBottom: '24px',
+          display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', marginBottom: '24px',
         }}>
           {/* Risk Gauge */}
           <div style={{
@@ -1900,7 +1820,7 @@ const CTIDashboardInner: React.FC = () => {
           <div style={{
             padding: '24px', background: '#111', borderRadius: '14px', border: '1px solid #222',
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: gridLayout.metricsGrid, gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
               <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
               <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
               <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
@@ -1910,7 +1830,7 @@ const CTIDashboardInner: React.FC = () => {
         </div>
 
         {/* Two-column detail layout - Enhanced */}
-        <div style={{ display: 'grid', gridTemplateColumns: gridLayout.twoColumn, gap: panelLayout.gap }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           {/* Left Column */}
           <div>
             {/* Executive Summary */}
@@ -2755,41 +2675,8 @@ const CTIDashboardInner: React.FC = () => {
               {t('status.level.' + data!.status.riskLevel)} • {data!.status.riskScore}/100
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div className="generatedAtBadge">
-              <style>{`
-                .generatedAtBadge {
-                  padding: 8px 14px;
-                  border-radius: 8px;
-                  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-                  border: 1px solid rgba(59, 130, 246, 0.4);
-                  position: relative;
-                  animation: borderPulse 3s ease-in-out infinite;
-                }
-                @keyframes borderPulse {
-                  0%, 100% { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 8px rgba(59, 130, 246, 0.2); }
-                  50% { border-color: rgba(139, 92, 246, 0.7); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
-                }
-              `}</style>
-              <span style={{
-                fontSize: '13px',
-                fontWeight: 600,
-                color: '#3B82F6',
-                fontFamily: 'Space Grotesk, sans-serif',
-                letterSpacing: '0.3px',
-                textTransform: 'uppercase',
-              }}>
-                {t('generated')}: <span style={{ color: '#fff', fontWeight: 700 }}>
-                  {new Date(data!.meta.generatedAt).toLocaleString(language === 'es' ? 'es-ES' : 'en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-              </span>
-            </div>
+          <div style={{ fontSize: '11px', color: '#555', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <span>{t('generated')}: {new Date(data!.meta.generatedAt).toLocaleString()}</span>
             <LanguageSwitcher />
           </div>
         </div>
