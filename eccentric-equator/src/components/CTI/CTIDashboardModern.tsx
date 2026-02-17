@@ -2442,7 +2442,7 @@ const CTIDashboardInner: React.FC = () => {
               color: '#00D26A',
               letterSpacing: '1px',
             }}>
-              THREAT INTELLIGENCE
+              {t('dashboard.threatIntelligence')}
             </div>
             <div style={{
               padding: '3px 10px',
