@@ -5,9 +5,9 @@
     "validUntil": "2026-02-17T01:26:54.524Z"
   },
   "status": {
-    "riskLevel": "moderado",
+    "riskLevel": "moderate",
     "riskScore": 27,
-    "trend": "decreciente",
+    "trend": "decreasing",
     "confidenceLevel": 35
   },
   "executive": {
@@ -268,9 +268,9 @@
     "model": "ALIENTELLIGENCE/análisis de amenazas de ciberseguridadv2",
     "killChainPhase": "Armamento",
     "threatLandscape": "RESUMEN EJECUTIVO\n\nNuestra inteligencia sobre amenazas de ciberseguridad indica un nivel de riesgo moderado de 27/100, principalmente debido a amenazas oportunistas como ransomware y vulnerabilidades de día cero discutidas en canales de redes sociales como CVE-2026-2441 y CVE-2025-68947 con un tono confirmado entre las principales discusiones. El análisis muestra que, si bien se detecta cierta exposición en nuestra infraestructura (particularmente OpenSSH:22, nginx:443, Apache httpd:80), el nivel de confianza para las amenazas específicas sigue siendo moderado.\n\nHALLAZGOS CLAVE\n\n* Prevalencia e impacto de la vulnerabilidad: un significativo 48% del total de hosts analizados son vulnerables a vulnerabilidades conocidas. Los servicios más expuestos identificados incluyen servidores web críticos (OpenSSH:22, nginx:443) que podrían ser explotados por ransomware o ataques de día cero.",
-    "analystBrief": "Clasificación: oportunista. Confianza: 30%. Correlación: débil. Actualización de los datos: moderada.",
-    "correlationStrength": "débil",
-    "technicalAssessment": "**Evaluación técnica: correlación entre la inteligencia sobre amenazas sociales y la exposición a la infraestructura**\n\n**Fecha:** 16 de febrero de 2026\n\n**Contexto temporal:** Evalúe las amenazas a partir del 16 de febrero de 2026. Priorice los CVE de 2025 a 2026, ya que representan los vectores de ataque actuales.\n\n**Señales sociales:**\n\n* CVE: [CVE-2026-2441, CVE-2025-68947]\n* IoC: 0 IP, 6 dominios\n* Temas: [Ataques de ransomware, vulnerabilidades de día cero]\n* Reclamaciones de Explotación: [objeto Objeto]; [objeto Objeto]\n* Tono: confirmado\n\n**Infraestructura:**\n\n* Total de anfitriones: 258\n* Vulnerables: 124/258 (48,1%)\n* Puertos principales: [22/OpenSSH, 443/nginx, 80/Apache httpd, 888/Apache httpd, 81/Apache httpd]\n* CVE de infraestructura: [CVE-2013-0941, CVE-2013-0942, CVE-2009-2299, CVE-2013-2765, CVE-2011-1176]\n\n**Requisitos de análisis:**\n\n### 1. ANÁLISIS DE ALINEACIÓN DEL SERVICIO CVE\n\nLa comparación de los CVE mencionados en la inteligencia social con los servicios vulnerables que se encuentran en la infraestructura revela una fuerte correlación:\n\n* CVE-2026-2441 afecta a OpenSSH (puerto 22), que está expuesto en 23 hosts.\n* CVE-2025-68947 afecta a Apache httpd (puertos 80 y 888), que están expuestos en 41 hosts.\n\nCalculando el riesgo aproximado: (CVE coincidentes / CVE totales) * 100 = (2/10) * 100 ≈ 20%.\n\nLos CVE críticos o de alta gravedad presentes en ambas fuentes incluyen:\n\n* CVE-2026-2441 (OpenSSH)\n* CVE-2025-68947 (httpd de Apache)\n\n### 2. PATRONES DE EXPOSICIÓN DE INFRAESTRUCTURA\n\nEl análisis de los principales puertos y servicios expuestos revela:\n\n* Bases de datos expuestas en el puerto 3306 (MySQL) en 15 hosts.\n* Credenciales predeterminadas para SSH en 12 hosts.\n* Software obsoleto, incluido Apache httpd 2.4.7 en 8 hosts.\n\nEvaluación del alcance de la exposición: generalizada (muchos hosts) versus específica (servicios específicos). La exposición es generalizada, con múltiples servicios y puertos expuestos en muchos hosts.\n\n### 3. CLASIFICACIÓN TÁCTICA\n\nClasificar la amenaza como una de:\n\n* \"dirigido\": infraestructura específica coincide con amenazas en inteligencia social, indicadores de campaña coordinados.",
+    "analystBrief": "Clasificación: oportunista. Confianza: 30%. Correlación: baja. Actualización de los datos: media.",
+    "correlationStrength": "baja",
+    "technicalAssessment": "**Evaluación técnica: correlación entre inteligencia social y exposición de infraestructura**\n\n**Contexto temporal:** Amenazas evaluadas a partir del 16 de febrero de 2026. Prioridad para CVE de 2025-2026 como vectores de ataque actuales.\n\n### 1. ALINEACIÓN DE SERVICIOS Y CVE\n\nComparación de CVEs en redes sociales con servicios vulnerables:\n\n* CVE-2026-2441 (OpenSSH) detectado en 23 hosts.\n* CVE-2025-68947 (Apache httpd) detectado en 41 hosts.\n\nCálculo de riesgo: (CVE coincidentes / CVE totales) * 100 ≈ 20%.\n\n### 2. PATRONES DE EXPOSICIÓN\n\n* Bases de datos MySQL expuestas en 15 hosts.\n* Credenciales SSH por defecto en 12 hosts.\n* Software obsoleto (Apache httpd 2.4.7) en 8 hosts.\n\n### 3. CLASIFICACIÓN TÁCTICA\n\nAmenaza clasificada como: OPORTUNISTA.",
     "methodologies": [
       "Puntuación de riesgo determinista (índice de vulnerabilidad)",
       "Extracción de IoC basada en código",
@@ -10616,14 +10616,14 @@
   "assessmentLayer": {
     "correlation": {
       "score": 0.14,
-      "strength": "débil",
+      "strength": "weak",
       "factors": {
         "cveOverlap": 0,
         "serviceMatch": 0,
         "temporalProximity": 0.7,
         "infraSocialAlignment": 0
       },
-      "explanation": "Correlation strength weak (14%) based on 0 CVE overlaps and 0 service matches."
+      "explanation": "La fuerza de correlación es baja (14%) basada en 0 coincidencias de CVE y 0 coincidencias de servicios."
     },
     "scoring": {
       "weights": {
@@ -10654,15 +10654,15 @@
       "socialAgeHours": 39.4,
       "infraAgeHours": 1,
       "freshnessScore": 0.16,
-      "status": "moderado"
+      "status": "moderate"
     },
     "classification": {
       "type": "opportunistic",
       "confidence": 30,
-      "rationale": "Pattern suggests opportunistic scanning. No strong correlation between social and infrastructure indicators.",
+      "rationale": "El patrón sugiere un escaneo oportunista. No existe una correlación sólida entre los indicadores sociales y los de infraestructura.",
       "indicators": [
-        "No significant cross-source correlation",
-        "Low CVE specificity"
+        "Sin correlación significativa entre fuentes",
+        "Baja especificidad de CVE"
       ]
     },
     "iocStats": {
@@ -10675,7 +10675,7 @@
       "duplicates": 0,
       "duplicationRatio": 0
     },
-    "narrative": "Today we observed mixed activity related to Vulnerability, Ransomware. The correlation strength is weak (14%), primarily driven by temporal proximity. This pattern is consistent with opportunistic scanning."
+    "narrative": "Hoy observamos actividad mixta relacionada con Vulnerabilidades y Ransomware. La fuerza de correlación es baja (14%), impulsada principalmente por la proximidad temporal. Este patrón es consistente con el escaneo oportunista."
   },
   "modelMetadata": {
     "strategic": "phi4-mini",

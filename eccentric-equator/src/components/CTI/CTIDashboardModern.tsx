@@ -80,9 +80,11 @@ interface CTINodeData {
   connections?: string[];
   links?: SourceLink[];
   isExpanded?: boolean;
+  t?: (key: string) => string;
 }
 
 const CTINode = ({ data }: { data: CTINodeData }) => {
+  const t = data.t || ((key: string) => key);
   const style = NODE_STYLES[data.type] || DEFAULT_NODE_STYLE;
   const baseSize = data.size || 120;
   const isExpanded = data.isExpanded ?? false;
@@ -283,6 +285,8 @@ const CTIDashboardInner: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [highlightedEdges, setHighlightedEdges] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>('executive');
+  const [socialAgeHovered, setSocialAgeHovered] = useState(false);
+  const [infraAgeHovered, setInfraAgeHovered] = useState(false);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -300,7 +304,7 @@ const CTIDashboardInner: React.FC = () => {
       if (!response.ok) throw new Error('Dashboard data not available');
       const dashboardData = await response.json();
       setData(dashboardData);
-      generateGraph(dashboardData);
+      generateGraph(dashboardData, t);
       setError(null);
     } catch (err) {
       setError('Intelligence data currently unavailable');
@@ -312,7 +316,7 @@ const CTIDashboardInner: React.FC = () => {
 
   // Generate data-driven correlation graph
   // Edges are drawn ONLY where real data relationships exist
-  const generateGraph = (dashboardData: DashboardData) => {
+  const generateGraph = (dashboardData: DashboardData, translateFn: (key: string) => string) => {
     const newNodes: Node[] = [];
     const newEdges: Edge[] = [];
 
@@ -326,7 +330,7 @@ const CTIDashboardInner: React.FC = () => {
     // Collect all social post URLs for the source node
     const allPostUrls: SourceLink[] = (dashboardData.socialIntel?.topPosts || []).filter(p => p.url).map(p => ({
       label: `@${p.author}`,
-      url: p.url,
+      url: p.url!,
       icon: '𝕏',
     }));
 
@@ -354,6 +358,32 @@ const CTIDashboardInner: React.FC = () => {
       icon: '🔍',
     }));
 
+    // Get infrastructure data for expandable info
+    const sampleHosts = dashboardData.infrastructure?.sampleHosts || [];
+    const totalHosts = dashboardData.infrastructure?.totalHosts || 0;
+    const vulnerableCount = dashboardData.infrastructure?.vulnerableHosts || 0;
+    const exposedPorts = dashboardData.infrastructure?.exposedPorts || [];
+    const topCountries = dashboardData.infrastructure?.topCountries || [];
+    const allCVEs = [...new Set(sampleHosts.flatMap(h => h.vulns || []))];
+    
+    // Build comprehensive breakdown for expandable section
+    const infraBreakdown = [
+      `📊 TOTAL: ${totalHosts} hosts scanned`,
+      `⚠️ VULNERABLE: ${vulnerableCount} hosts (${Math.round((vulnerableCount / Math.max(totalHosts, 1)) * 100)}%)`,
+      '',
+      `🌍 BY COUNTRY:`,
+      ...topCountries.map(c => `  • ${c.country}: ${c.count} hosts`),
+      '',
+      `🛠️ BY SERVICE:`,
+      ...exposedPorts.slice(0, 5).map(s => `  • ${s.service}:${s.port} - ${s.count} hosts (${s.percentage}%)`),
+      '',
+      `🚨 TOP CVEs (from ${sampleHosts.length} sample hosts):`,
+      ...allCVEs.slice(0, 10).map(c => `  • ${c}`),
+      '',
+      `📋 SAMPLE HOSTS (${sampleHosts.length} of ${vulnerableCount} vulnerable):`,
+      ...sampleHosts.map(h => `  • ${h.ip}:${h.port} (${h.service}) - ${h.vulns?.length || 0} CVEs`)
+    ].join('\n');
+
     newNodes.push({
       id: 'infra_source',
       type: 'ctiNode',
@@ -362,8 +392,8 @@ const CTIDashboardInner: React.FC = () => {
         label: 'INFRA\nSCAN',
         type: 'domain',
         size: 130,
-        info: `Source: Shodan\nTotal Hosts: ${dashboardData.infrastructure?.totalHosts || 0}\nVulnerable: ${dashboardData.infrastructure?.vulnerableHosts || 0}\nExposure: ${((dashboardData.infrastructure?.vulnerableHosts || 0) / (dashboardData.infrastructure?.totalHosts || 1) * 100).toFixed(1)}%`,
-        connections: [`${dashboardData.infrastructure?.totalHosts || 0} Hosts`, `${dashboardData.infrastructure?.vulnerableHosts || 0} Vulnerable`],
+        info: `Source: Shodan\nTotal Hosts: ${totalHosts}\nVulnerable: ${vulnerableCount}\nExposure: ${((vulnerableCount / Math.max(totalHosts, 1)) * 100).toFixed(1)}%\n\n${infraBreakdown}`,
+        connections: [`${totalHosts} Hosts`, `${vulnerableCount} Vulnerable`],
         links: [
           { label: 'Shodan Dashboard', url: 'https://www.shodan.io/dashboard', icon: '🔍' },
           ...shodanLinks,
@@ -621,37 +651,6 @@ const CTIDashboardInner: React.FC = () => {
       });
     });
 
-    // ── Exposed services (attached to infra source) ──
-    const services = dashboardData.infrastructure?.exposedPorts?.slice(0, 3) || [];
-    services.forEach((svc, i) => {
-      const id = `service_${i}`;
-      const angle = (i / Math.max(services.length - 1, 1)) * (Math.PI / 2);
-      const shortName = svc.service.split(' ').slice(0, 2).join(' ');
-      newNodes.push({
-        id,
-        type: 'ctiNode',
-        position: { x: 450 + Math.cos(angle) * 280, y: Math.sin(angle) * 160 + 120 },
-        data: {
-          label: shortName.toUpperCase(),
-          type: 'domain',
-          size: 70,
-          info: `Service: ${svc.service}\nPort: ${svc.port}\nCount: ${svc.count} hosts (${svc.percentage}%)`,
-          connections: [`Port ${svc.port}`, `${svc.count} hosts`],
-          links: [
-            { label: `Shodan: port ${svc.port}`, url: `https://www.shodan.io/search?query=port:${svc.port}`, icon: '🔍' },
-            { label: `Shodan: ${svc.service.split(' ')[0]}`, url: `https://www.shodan.io/search?query=product:"${encodeURIComponent(svc.service.split(' ')[0])}"`, icon: '🔍' },
-          ],
-        },
-      });
-      newEdges.push({
-        id: `edge_${id}_infra`,
-        source: id,
-        target: 'infra_source',
-        style: { stroke: '#3B82F6', strokeWidth: 1.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#3B82F6' },
-      });
-    });
-
     setNodes(newNodes);
     setEdges(newEdges);
   };
@@ -847,25 +846,55 @@ const CTIDashboardInner: React.FC = () => {
           boxShadow: `0 0 60px ${riskColor}10`,
         }}>
           {/* Ring Gauge */}
-          <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
-            <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="8" />
-              <circle
-                cx="50" cy="50" r="40" fill="none"
-                stroke={riskColor} strokeWidth="8"
-                strokeDasharray={`${data!.status.riskScore * 2.51} 251`}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-dasharray 1s ease' }}
-              />
-            </svg>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
+              <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="8" />
+                <circle
+                  cx="50" cy="50" r="40" fill="none"
+                  stroke={riskColor} strokeWidth="8"
+                  strokeDasharray={`${data!.status.riskScore * 2.51} 251`}
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 1s ease' }}
+                />
+              </svg>
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+              }}>
+                <span style={{ fontSize: '36px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
+                  {data!.status.riskScore}
+                </span>
+                <span style={{ fontSize: '11px', color: '#666' }}>/100</span>
+              </div>
+            </div>
+            {/* Risk Scale - Permanent Display */}
             <div style={{
-              position: 'absolute', inset: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+              display: 'flex', flexDirection: 'column', gap: '4px',
+              padding: '12px',
+              background: '#0a0a0a',
+              borderRadius: '8px',
+              border: '1px solid #1a1a1a',
             }}>
-              <span style={{ fontSize: '36px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
-                {data!.status.riskScore}
-              </span>
-              <span style={{ fontSize: '11px', color: '#666' }}>/100</span>
+              <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+                {t('dashboard.riskScale')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                <span style={{ color: '#00D26A', fontWeight: 600 }}>●</span>
+                <span style={{ color: '#888' }}>{t('dashboard.riskScale.low')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                <span style={{ color: '#FFB800', fontWeight: 600 }}>●</span>
+                <span style={{ color: '#888' }}>{t('dashboard.riskScale.moderate')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                <span style={{ color: '#FF6B35', fontWeight: 600 }}>●</span>
+                <span style={{ color: '#888' }}>{t('dashboard.riskScale.elevated')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                <span style={{ color: '#E31B23', fontWeight: 600 }}>●</span>
+                <span style={{ color: '#888' }}>{t('dashboard.riskScale.critical')}</span>
+              </div>
             </div>
           </div>
 
@@ -886,20 +915,43 @@ const CTIDashboardInner: React.FC = () => {
             <div style={{
               display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#888',
             }}>
-              <span style={{
-                padding: '4px 12px', borderRadius: '20px',
-                background: `${riskColor}15`, border: `1px solid ${riskColor}60`,
-                color: riskColor, fontSize: '11px', fontWeight: 600,
-              }}>
-                {data!.status.riskLevel.toUpperCase()}
-              </span>
-              <span style={{
-                color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
-              }}>
-                {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {data!.status.trend}
-              </span>
+            <span style={{
+              padding: '4px 12px', borderRadius: '20px',
+              background: `${riskColor}15`, border: `1px solid ${riskColor}60`,
+              color: riskColor, fontSize: '11px', fontWeight: 600,
+            }}>
+              {t('status.level.' + data!.status.riskLevel)}
+            </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+                }}>
+                  {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {t('status.trend.' + data!.status.trend)}
+                </span>
+                {data!.assessmentLayer?.baselineComparison && (
+                  <span style={{ 
+                    fontSize: '10px', 
+                    color: '#666', 
+                    padding: '2px 8px',
+                    background: '#0a0a0a',
+                    borderRadius: '4px',
+                    border: '1px solid #1a1a1a',
+                  }}>
+                    {t('dashboard.trendTooltip.previous')}: {data!.assessmentLayer.baselineComparison.previousRiskScore} → {t('dashboard.trendTooltip.current')}: {data!.assessmentLayer.baselineComparison.currentRiskScore}
+                    {data!.assessmentLayer.baselineComparison.delta !== 0 && (
+                      <span style={{ 
+                        marginLeft: '6px', 
+                        color: data!.assessmentLayer.baselineComparison.delta > 0 ? '#E31B23' : '#00D26A',
+                        fontWeight: 600,
+                      }}>
+                        ({data!.assessmentLayer.baselineComparison.delta > 0 ? '+' : ''}{data!.assessmentLayer.baselineComparison.delta})
+                      </span>
+                    )}
+                  </span>
+                )}
+              </div>
               <span>{t('status.confidence')}: {data!.status.confidenceLevel}%</span>
-              <span>{data!.metrics.totalSignals} signals</span>
+              <span>{data!.metrics.totalSignals} {t('metrics.totalSignals').toLowerCase()}</span>
             </div>
           </div>
         </div>
@@ -955,7 +1007,7 @@ const CTIDashboardInner: React.FC = () => {
                 fontSize: '12px', color: '#8B5CF6', textTransform: 'uppercase',
                 letterSpacing: '2px', fontWeight: 600,
               }}>
-                Key Findings
+                {t('executive.keyFindings')}
               </span>
             </div>
             {data!.executive.keyFindings?.map((finding, i) => (
@@ -1085,7 +1137,7 @@ const CTIDashboardInner: React.FC = () => {
               fontSize: '11px', color: strengthColor, textTransform: 'uppercase',
               letterSpacing: '2px', fontWeight: 600, marginTop: '4px',
             }}>
-              {corrStrength} correlation
+              {t('dashboard.correlation')} {t('correlation.strength.' + corrStrength)}
             </div>
             <div style={{
               fontSize: '10px', color: '#666', marginTop: '8px', lineHeight: 1.5,
@@ -1103,13 +1155,13 @@ const CTIDashboardInner: React.FC = () => {
               fontSize: '10px', color: '#888', textTransform: 'uppercase',
               letterSpacing: '1.5px', fontWeight: 600, marginBottom: '14px',
             }}>
-              ◈ Correlation Factors
+              ◈ {t('dashboard.correlationFactors')}
             </div>
             {[
-              { label: t('dashboard.cveOverlap'), value: factors?.cveOverlap ?? 0, desc: 'CVEs found in BOTH social and infra', color: '#E31B23' },
-              { label: t('dashboard.serviceMatch'), value: factors?.serviceMatch ?? 0, desc: 'Services discussed socially that match infra', color: '#3B82F6' },
-              { label: t('dashboard.temporalProximity'), value: factors?.temporalProximity ?? 0, desc: 'Data collected within similar timeframe', color: '#00D26A' },
-              { label: t('dashboard.infraSocialAlignment'), value: factors?.infraSocialAlignment ?? 0, desc: 'Average of CVE + service factors', color: '#8B5CF6' },
+              { label: t('dashboard.cveOverlap'), value: factors?.cveOverlap ?? 0, desc: t('dashboard.factor.cveOverlap.desc'), color: '#E31B23' },
+              { label: t('dashboard.serviceMatch'), value: factors?.serviceMatch ?? 0, desc: t('dashboard.factor.serviceMatch.desc'), color: '#3B82F6' },
+              { label: t('dashboard.temporalProximity'), value: factors?.temporalProximity ?? 0, desc: t('dashboard.factor.temporalProximity.desc'), color: '#00D26A' },
+              { label: t('dashboard.infraSocialAlignment'), value: factors?.infraSocialAlignment ?? 0, desc: t('dashboard.factor.infraSocialAlignment.desc'), color: '#8B5CF6' },
             ].map((f, i) => (
               <div key={i} style={{ marginBottom: '12px' }}>
                 <div style={{
@@ -1150,7 +1202,7 @@ const CTIDashboardInner: React.FC = () => {
                 fontSize: '10px', color: '#888', textTransform: 'uppercase',
                 letterSpacing: '1.5px', fontWeight: 600, marginBottom: '14px',
               }}>
-                ◈ Risk Score Computation
+                ◈ {t('dashboard.riskScoreComputation')}
               </div>
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
@@ -1172,7 +1224,7 @@ const CTIDashboardInner: React.FC = () => {
                     marginBottom: '6px', fontSize: '10px',
                   }}>
                     <span style={{ color: '#888', flex: 1 }}>
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
+                      {t('scoring.' + key) || key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
                     </span>
                     <span style={{ color: '#666', width: '40px', textAlign: 'right' }}>
                       ×{((weight as number) * 100).toFixed(0)}%
@@ -1209,7 +1261,7 @@ const CTIDashboardInner: React.FC = () => {
                 fontSize: '10px', color: '#888', textTransform: 'uppercase',
                 letterSpacing: '1.5px', fontWeight: 600, marginBottom: '12px',
               }}>
-                ◈ Classification
+                ◈ {t('assessment.classification')}
               </div>
               <div style={{
                 padding: '10px 14px', borderRadius: '8px',
@@ -1222,7 +1274,7 @@ const CTIDashboardInner: React.FC = () => {
                   color: classification.type === 'targeted' ? '#E31B23' : classification.type === 'campaign' ? '#F59E0B' : '#3B82F6',
                   textTransform: 'uppercase',
                 }}>
-                  {classification.type}
+                  {t('classification.type.' + classification.type)}
                 </div>
                 <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
                   Confidence: {classification.confidence}%
@@ -1255,14 +1307,14 @@ const CTIDashboardInner: React.FC = () => {
                 fontSize: '10px', color: '#888', textTransform: 'uppercase',
                 letterSpacing: '1.5px', fontWeight: 600, marginBottom: '12px',
               }}>
-                ◈ IOC Statistics
+                ◈ {t('assessment.iocStats')}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 {[
-                  { label: t('dashboard.cves'), value: iocStats.uniqueCVECount, total: data!.indicators?.cves?.length || 0 },
-                  { label: t('dashboard.domains'), value: iocStats.uniqueDomainCount },
-                  { label: t('dashboard.ips'), value: iocStats.uniqueIPCount },
-                  { label: t('dashboard.totalIocs'), value: iocStats.totalIndicators },
+            { label: t('indicators.cves'), value: iocStats.uniqueCVECount, total: data!.indicators?.cves?.length || 0 },
+              { label: t('dashboard.domains'), value: iocStats.uniqueDomainCount },
+              { label: t('indicators.ips'), value: iocStats.uniqueIPCount },
+              { label: t('dashboard.totalIocs'), value: iocStats.totalIndicators },
                 ].map((stat, i) => (
                   <div key={i} style={{
                     padding: '8px', borderRadius: '6px',
@@ -1280,7 +1332,7 @@ const CTIDashboardInner: React.FC = () => {
                     </div>
                     {stat.total !== undefined && stat.total !== stat.value && (
                       <div style={{ fontSize: '8px', color: '#444', marginTop: '2px' }}>
-                        of {stat.total} listed
+                        of {stat.total} {t('dashboard.listed')}
                       </div>
                     )}
                   </div>
@@ -1328,13 +1380,59 @@ const CTIDashboardInner: React.FC = () => {
               <div style={{
                 display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px',
               }}>
-                <span style={{ color: '#888' }}>{t('dashboard.socialDataAge')}</span>
+                <span 
+                  style={{ color: '#888', cursor: 'help' }}
+                  onMouseEnter={() => setSocialAgeHovered(true)}
+                  onMouseLeave={() => setSocialAgeHovered(false)}
+                >
+                  {t('dashboard.socialDataAge')}
+                  {socialAgeHovered && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: '0',
+                      marginBottom: '8px',
+                      background: '#1a1a1a',
+                      border: '1px solid #333',
+                      borderRadius: '6px',
+                      padding: '8px 12px',
+                      zIndex: 100,
+                      width: '200px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                    }}>
+                      <span style={{ fontSize: '10px', color: '#888' }}>{t('dashboard.socialAgeTooltip')}</span>
+                    </div>
+                  )}
+                </span>
                 <span style={{ color: '#ccc', fontFamily: 'Space Grotesk' }}>{freshness.socialAgeHours}h</span>
               </div>
               <div style={{
-                display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px',
+                display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '10px', position: 'relative',
               }}>
-                <span style={{ color: '#888' }}>{t('dashboard.infrastructureAge')}</span>
+                <span 
+                  style={{ color: '#888', cursor: 'help' }}
+                  onMouseEnter={() => setInfraAgeHovered(true)}
+                  onMouseLeave={() => setInfraAgeHovered(false)}
+                >
+                  {t('dashboard.infrastructureAge')}
+                  {infraAgeHovered && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: '0',
+                      marginBottom: '8px',
+                      background: '#1a1a1a',
+                      border: '1px solid #333',
+                      borderRadius: '6px',
+                      padding: '8px 12px',
+                      zIndex: 100,
+                      width: '200px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                    }}>
+                      <span style={{ fontSize: '10px', color: '#888' }}>{t('dashboard.infraAgeTooltip')}</span>
+                    </div>
+                  )}
+                </span>
                 <span style={{ color: '#ccc', fontFamily: 'Space Grotesk' }}>{freshness.infraAgeHours}h</span>
               </div>
               <div style={{
@@ -1363,10 +1461,10 @@ const CTIDashboardInner: React.FC = () => {
             <div style={{
               fontFamily: 'Space Grotesk', fontSize: '13px', fontWeight: 600, color: '#fff',
             }}>
-              DATA-SOURCE CORRELATION MAP
+              ◈ {t('dashboard.correlationMapTitle')}
             </div>
             <div style={{ fontSize: '9px', color: '#666', marginTop: '3px' }}>
-              Edges represent verified data relationships • Dashed = weak/no evidence
+              {t('dashboard.correlationMapLegend')}
             </div>
           </div>
 
@@ -1901,6 +1999,93 @@ const CTIDashboardInner: React.FC = () => {
                       >
                         🔍 {domain} <span style={{ fontSize: '9px', opacity: 0.6 }}>↗</span>
                       </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {data!.indicators.ips && data!.indicators.ips.length > 0 && (
+                <div style={{ marginTop: '12px' }}>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('indicators.ips')}</span>
+                  <div style={{ 
+                    marginTop: '6px', 
+                    maxHeight: '150px', 
+                    overflowY: 'auto', 
+                    background: '#0a0a0a', 
+                    borderRadius: '6px', 
+                    border: '1px solid #1a1a1a',
+                    padding: '8px'
+                  }}>
+                    {data!.indicators.ips.map((ip, i) => (
+                      <div key={i} style={{
+                        padding: '4px 8px',
+                        fontSize: '10px',
+                        fontFamily: 'monospace',
+                        color: '#00D26A',
+                        borderBottom: i < data!.indicators.ips.length - 1 ? '1px solid #1a1a1a' : 'none',
+                      }}>
+                        {ip}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {data!.infrastructure?.sampleHosts && data!.infrastructure.sampleHosts.length > 0 && (
+                <div style={{ marginTop: '12px' }}>
+                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>
+                    {t('dashboard.vulnerableHostsSample')} ({data!.infrastructure.sampleHosts.length} {t('dashboard.hosts').toLowerCase()})
+                  </span>
+                  <div style={{ 
+                    marginTop: '6px', 
+                    maxHeight: '300px', 
+                    overflowY: 'auto', 
+                    background: '#0a0a0a', 
+                    borderRadius: '6px', 
+                    border: '1px solid #1a1a1a',
+                    padding: '8px'
+                  }}>
+                    {data!.infrastructure.sampleHosts.map((host, i) => (
+                      <div key={i} style={{
+                        padding: '8px',
+                        background: i % 2 === 0 ? '#111' : 'transparent',
+                        borderRadius: '4px',
+                        marginBottom: '4px',
+                        borderLeft: '3px solid #E31B23',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#00D26A', fontWeight: 600 }}>
+                            {host.ip}:{host.port}
+                          </span>
+                          <span style={{ fontSize: '9px', color: '#3B82F6', background: '#3B82F620', padding: '2px 6px', borderRadius: '3px' }}>
+                            {host.service}
+                          </span>
+                        </div>
+                        {host.vulns && host.vulns.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {host.vulns.slice(0, 5).map((cve, j) => (
+                              <a 
+                                key={j} 
+                                href={`https://nvd.nist.gov/vuln/detail/${cve}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  fontSize: '9px',
+                                  fontFamily: 'monospace',
+                                  color: '#E31B23',
+                                  textDecoration: 'none',
+                                  padding: '1px 4px',
+                                  background: '#E31B2320',
+                                  borderRadius: '2px',
+                                }}
+                              >
+                                {cve}
+                              </a>
+                            ))}
+                            {host.vulns.length > 5 && (
+                              <span style={{ fontSize: '9px', color: '#666' }}>+{host.vulns.length - 5} more</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

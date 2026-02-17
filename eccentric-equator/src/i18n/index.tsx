@@ -118,6 +118,7 @@ const translations: Record<Language, Translations> = {
     'dashboard.mitigationSteps': 'Mitigation Steps',
     'dashboard.threatCategories': 'Threat Categories',
     'dashboard.domains': 'Domains',
+    'dashboard.totalIocs': 'Total IOCs',
     'dashboard.exposedPorts': 'Exposed Ports',
     'dashboard.topCountries': 'Top Countries',
     'dashboard.vulnerableHostsSample': 'Vulnerable Hosts (Sample)',
@@ -126,18 +127,25 @@ const translations: Record<Language, Translations> = {
     'dashboard.currentScore': 'Current Score',
     'dashboard.delta': 'Delta',
     'dashboard.classificationRationale': 'Classification Rationale',
-    'dashboard.correlationFactors': 'Correlation Factors',
-    'dashboard.indicatorStatistics': 'Indicator Statistics',
+    'dashboard.correlationFactors': 'Factores de Correlación',
+    'dashboard.indicatorStatistics': 'Estadísticas de Indicadores',
     'dashboard.hosts': 'Hosts',
-    'dashboard.vulnerable': 'Vulnerable',
-    'dashboard.vuln': 'Vuln %',
-    'dashboard.threatIntelligence': 'THREAT INTELLIGENCE',
-    'dashboard.correlation': 'correlation',
-    'dashboard.noExplanation': 'No explanation available',
-    'dashboard.correlationStrength': 'Correlation Strength',
+    'dashboard.vulnerable': 'Vulnerables',
+    'dashboard.vuln': '% Vuln',
+    'dashboard.threatIntelligence': 'INTELIGENCIA DE AMENAZAS',
+    'dashboard.correlation': 'correlación',
+    'dashboard.noExplanation': 'Sin explicación disponible',
+    'dashboard.correlationStrength': 'Fortaleza de Correlación',
+    
+    // Factor descriptions
+    'dashboard.factor.cveOverlap.desc': 'CVEs encontradas en redes sociales E infraestructura',
+    'dashboard.factor.serviceMatch.desc': 'Servicios discutidos en redes que coinciden con infraestructura',
+    'dashboard.factor.temporalProximity.desc': 'Datos recopilados en timeframe similar',
+    'dashboard.factor.infraSocialAlignment.desc': 'Promedio de factores CVE + servicios',
     
     // Additional hardcoded strings found in component
     'dashboard.computedScore': 'Computed Score',
+    'dashboard.confidenceLevel': 'Confidence Level',
     'dashboard.crossSourceDuplication': 'Cross-source duplication',
     'dashboard.socialDataAge': 'Social data age',
     'dashboard.infrastructureAge': 'Infrastructure age',
@@ -151,6 +159,10 @@ const translations: Record<Language, Translations> = {
     'dashboard.serviceMatch': 'Service Match',
     'dashboard.temporalProximity': 'Temporal Proximity',
     'dashboard.infraSocialAlignment': 'Infra-Social Alignment',
+    'dashboard.factor.cveOverlap.desc': 'CVEs found in BOTH social media and infrastructure',
+    'dashboard.factor.serviceMatch.desc': 'Services discussed on social media that match infrastructure',
+    'dashboard.factor.temporalProximity.desc': 'Data collected within similar timeframe',
+    'dashboard.factor.infraSocialAlignment.desc': 'Average of CVE overlap and service match factors',
     'dashboard.analysisMethods': 'Analysis Methods',
     'dashboard.modelsUsed': 'Models Used',
     'dashboard.strategic': 'Strategic',
@@ -164,10 +176,51 @@ const translations: Record<Language, Translations> = {
     'dashboard.socialIntel': 'Social Intel',
     'dashboard.infrastructure': 'Infrastructure',
     'dashboard.themes': 'Themes',
-    'dashboard.killChainLegend': 'Kill Chain',
-    'dashboard.confidenceLevel': 'Confidence Level',
-    'dashboard.technicalAssessment': 'Technical Assessment',
+    'dashboard.tone': 'Tone',
+    'dashboard.topPosts': 'Top Posts',
     'dashboard.engagement': 'engagement',
+    
+    // Risk Scale Tooltip
+    'dashboard.riskScale': 'Risk Scale',
+    'dashboard.riskScale.low': 'Low: 0-25',
+    'dashboard.riskScale.moderate': 'Moderate: 26-50',
+    'dashboard.riskScale.elevated': 'Elevated: 51-75',
+    'dashboard.riskScale.critical': 'Critical: 76-100',
+    
+    // Trend Tooltip
+    'dashboard.trendTooltip': 'Historical Comparison',
+    'dashboard.trendTooltip.previous': 'Previous',
+    'dashboard.trendTooltip.current': 'Current',
+    
+    // Classification Types
+    'classification.type.targeted': 'targeted',
+    'classification.type.opportunistic': 'opportunistic',
+    'classification.type.campaign': 'campaign',
+    'classification.type.unknown': 'unknown',
+    
+    // Correlation Strength
+    'correlation.strength.weak': 'weak',
+    'correlation.strength.moderate': 'moderate',
+    'correlation.strength.strong': 'strong',
+    
+    // Freshness Tooltips
+    'dashboard.socialAgeTooltip': 'Time since the last social media post was collected',
+    'dashboard.infraAgeTooltip': 'Time since the last Shodan scan data was collected',
+    
+    // Scoring weights/keys
+    'scoring.vulnerabilityRatio': 'Vulnerability Ratio',
+    'scoring.socialSignals': 'Social Signals',
+    'scoring.infrastructureExposure': 'Infrastructure Exposure',
+    'scoring.cveSeverity': 'CVE Severity',
+    'scoring.campaignAlignment': 'Campaign Alignment',
+    'scoring.dataFreshness': 'Data Freshness',
+    'scoring.socialIntensity': 'Social Intensity',
+    'scoring.correlationScore': 'Correlation Score',
+    'scoring.freshnessScore': 'Freshness Score',
+    'scoring.baselineDelta': 'Baseline Delta',
+    'dashboard.listed': 'listed',
+    'dashboard.correlationMapTitle': 'DATA-SOURCE CORRELATION MAP',
+    'dashboard.correlationMapLegend': 'Edges represent verified data relationships • Dashed = weak/no evidence',
   },
   es: {
     // Header & General
@@ -280,6 +333,7 @@ const translations: Record<Language, Translations> = {
     'dashboard.mitigationSteps': 'Pasos de Mitigación',
     'dashboard.threatCategories': 'Categorías de Amenazas',
     'dashboard.domains': 'Dominios',
+    'dashboard.totalIocs': 'Total IOCs',
     'dashboard.exposedPorts': 'Puertos Expuestos',
     'dashboard.topCountries': 'Principales Países',
     'dashboard.vulnerableHostsSample': 'Hosts Vulnerables (Muestra)',
@@ -300,6 +354,23 @@ const translations: Record<Language, Translations> = {
     
     // Additional hardcoded strings found in component
     'dashboard.computedScore': 'Puntuación Calculada',
+    'dashboard.riskScoreComputation': 'Cálculo de Puntuación de Riesgo',
+    'dashboard.confidenceLevel': 'Nivel de Confianza',
+    
+    // Scoring weights/keys
+    'scoring.vulnerabilityRatio': 'Ratio de Vulnerabilidad',
+    'scoring.socialSignals': 'Señales Sociales',
+    'scoring.infrastructureExposure': 'Exposición de Infraestructura',
+    'scoring.cveSeverity': 'Severidad de CVE',
+    'scoring.campaignAlignment': 'Alineación de Campaña',
+    'scoring.dataFreshness': 'Frescura de Datos',
+    'scoring.socialIntensity': 'Intensidad Social',
+    'scoring.correlationScore': 'Puntuación de Correlación',
+    'scoring.freshnessScore': 'Puntuación de Frescura',
+    'scoring.baselineDelta': 'Delta de Línea Base',
+    'dashboard.listed': 'listados',
+    'dashboard.correlationMapTitle': 'MAPA DE CORRELACIÓN DE FUENTES DE DATOS',
+    'dashboard.correlationMapLegend': 'Las aristas representan relaciones de datos verificadas • Discontinua = evidencia débil/inexistente',
     'dashboard.crossSourceDuplication': 'Duplicación entre fuentes',
     'dashboard.socialDataAge': 'Antigüedad datos sociales',
     'dashboard.infrastructureAge': 'Antigüedad infraestructura',
@@ -313,6 +384,10 @@ const translations: Record<Language, Translations> = {
     'dashboard.serviceMatch': 'Coincidencia de Servicios',
     'dashboard.temporalProximity': 'Proximidad Temporal',
     'dashboard.infraSocialAlignment': 'Alineación Infra-Social',
+    'dashboard.factor.cveOverlap.desc': 'CVEs encontradas en redes sociales E infraestructura',
+    'dashboard.factor.serviceMatch.desc': 'Servicios mencionados en redes sociales que coinciden con infraestructura',
+    'dashboard.factor.temporalProximity.desc': 'Datos recopilados en un período de tiempo similar',
+    'dashboard.factor.infraSocialAlignment.desc': 'Promedio de los factores de coincidencia CVE y servicios',
     'dashboard.analysisMethods': 'Métodos de Análisis',
     'dashboard.modelsUsed': 'Modelos Usados',
     'dashboard.strategic': 'Estratégico',
@@ -330,6 +405,33 @@ const translations: Record<Language, Translations> = {
     'dashboard.confidenceLevel': 'Nivel de Confianza',
     'dashboard.technicalAssessment': 'Evaluación Técnica',
     'dashboard.engagement': 'interacciones',
+    
+    // Risk Scale Tooltip
+    'dashboard.riskScale': 'Escala de Riesgo',
+    'dashboard.riskScale.low': 'Bajo: 0-25',
+    'dashboard.riskScale.moderate': 'Moderado: 26-50',
+    'dashboard.riskScale.elevated': 'Elevado: 51-75',
+    'dashboard.riskScale.critical': 'Crítico: 76-100',
+    
+    // Trend Tooltip
+    'dashboard.trendTooltip': 'Comparación Histórica',
+    'dashboard.trendTooltip.previous': 'Anterior',
+    'dashboard.trendTooltip.current': 'Actual',
+    
+    // Classification Types
+    'classification.type.targeted': 'dirigido',
+    'classification.type.opportunistic': 'oportunista',
+    'classification.type.campaign': 'campaña',
+    'classification.type.unknown': 'desconocido',
+    
+    // Correlation Strength
+    'correlation.strength.weak': 'débil',
+    'correlation.strength.moderate': 'moderada',
+    'correlation.strength.strong': 'fuerte',
+    
+    // Freshness Tooltips
+    'dashboard.socialAgeTooltip': 'Tiempo desde que se recopiló el último post de redes sociales',
+    'dashboard.infraAgeTooltip': 'Tiempo desde que se recopilaron los datos del último escaneo de Shodan',
   }
 };
 

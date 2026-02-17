@@ -541,7 +541,7 @@ OUTPUT FORMAT - Return ONLY valid JSON:
       vulnerableHosts,
       uniqueCVEs: Array.from(allCVEs).slice(0, 20),
       bannerPatterns: Array.from(bannerPatterns).slice(0, 10),
-      sampleHosts
+      sampleHosts: sampleHosts
     };
   }
 
