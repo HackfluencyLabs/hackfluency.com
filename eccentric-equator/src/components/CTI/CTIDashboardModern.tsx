@@ -1687,6 +1687,33 @@ const CTIDashboardInner: React.FC = () => {
                 border: `1px solid ${riskColor}40`,
                 boxShadow: `0 0 30px ${riskColor}15`,
               }}>
+                {/* Risk Scale */}
+                <div style={{ 
+                  marginBottom: '16px', padding: '10px', 
+                  background: '#0a0a0a', borderRadius: '8px',
+                  border: '1px solid #1a1a1a',
+                }}>
+                  <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+                    {t('dashboard.riskScale')}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                    <span style={{ color: '#00D26A', fontWeight: 600 }}>●</span>
+                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.low')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                    <span style={{ color: '#FFB800', fontWeight: 600 }}>●</span>
+                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.moderate')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                    <span style={{ color: '#FF6B35', fontWeight: 600 }}>●</span>
+                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.elevated')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                    <span style={{ color: '#E31B23', fontWeight: 600 }}>●</span>
+                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.critical')}</span>
+                  </div>
+                </div>
+
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px',
                 }}>
@@ -1700,6 +1727,41 @@ const CTIDashboardInner: React.FC = () => {
                     {data!.executive.headline}
                   </div>
                 </div>
+
+                {/* Baseline Comparison */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#888', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+                    }}>
+                      {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {t('status.trend.' + data!.status.trend)}
+                    </span>
+                    {data!.assessmentLayer?.baselineComparison && (
+                      <span style={{ 
+                        fontSize: '10px', 
+                        color: '#666', 
+                        padding: '2px 8px',
+                        background: '#0a0a0a',
+                        borderRadius: '4px',
+                        border: '1px solid #1a1a1a',
+                      }}>
+                        {t('dashboard.trendTooltip.previous')}: {data!.assessmentLayer.baselineComparison.previousRiskScore} → {t('dashboard.trendTooltip.current')}: {data!.assessmentLayer.baselineComparison.currentRiskScore}
+                        {data!.assessmentLayer.baselineComparison.delta !== 0 && (
+                          <span style={{ 
+                            marginLeft: '6px', 
+                            color: data!.assessmentLayer.baselineComparison.delta > 0 ? '#E31B23' : '#00D26A',
+                            fontWeight: 600,
+                          }}>
+                            ({data!.assessmentLayer.baselineComparison.delta > 0 ? '+' : ''}{data!.assessmentLayer.baselineComparison.delta})
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <span>{t('status.confidence')}: {data!.status.confidenceLevel}%</span>
+                  <span>{data!.metrics.totalSignals} {t('metrics.totalSignals').toLowerCase()}</span>
+                </div>
+
                 <p style={{
                   fontSize: '13px', color: '#aaa', lineHeight: 1.7, whiteSpace: 'pre-line',
                 }}>
