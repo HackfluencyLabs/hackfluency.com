@@ -897,22 +897,22 @@ const CTIDashboardInner: React.FC = () => {
     <div style={{
       flex: 1,
       overflow: 'auto',
-      padding: '40px',
+      padding: '24px 40px',
       display: 'flex',
       justifyContent: 'center',
     }}>
-      <div style={{ maxWidth: '900px', width: '100%' }}>
-        {/* Hero Risk Banner */}
+      <div style={{ maxWidth: '1600px', width: '100%' }}>
+        {/* Hero Risk Banner - Compact */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '32px',
-          marginBottom: '40px',
-          padding: '32px',
+          gap: '24px',
+          marginBottom: '24px',
+          padding: '20px 24px',
           background: 'linear-gradient(135deg, #111 0%, #0a0a0a 100%)',
-          borderRadius: '16px',
+          borderRadius: '12px',
           border: `1px solid ${riskColor}30`,
-          boxShadow: `0 0 60px ${riskColor}10`,
+          boxShadow: `0 0 40px ${riskColor}10`,
         }}>
           {/* Ring Gauge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -1025,66 +1025,266 @@ const CTIDashboardInner: React.FC = () => {
           </div>
         </div>
 
-        {/* Narrative */}
+        {/* Intelligence Flow Section - Compact 3 Column Layout */}
         {data!.assessmentLayer?.narrative && (
-          <div style={{
-            marginBottom: '32px',
-            padding: '28px',
-            background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
-            borderRadius: '16px',
-            border: '1px solid #00D26A25',
-            boxShadow: '0 0 40px rgba(0, 210, 106, 0.06)',
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px',
-            }}>
+          <div style={{ marginBottom: '24px' }}>
+            {/* Three Column Layout: Social -> Narrative -> Actions - Fixed Height */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '20px' }}>
+              {/* Social Posts Column - Left - Scrollable */}
               <div style={{
-                width: '4px', height: '20px', borderRadius: '2px', background: '#00D26A',
-              }} />
-              <span style={{
-                fontSize: '12px', color: '#00D26A', textTransform: 'uppercase',
-                letterSpacing: '2px', fontWeight: 600,
+                padding: '20px',
+                background: 'rgba(59, 130, 246, 0.05)',
+                borderRadius: '12px',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                height: '320px',
+                display: 'flex',
+                flexDirection: 'column',
               }}>
-                {t('dashboard.intelligenceNarrative')}
-              </span>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  marginBottom: '14px', paddingBottom: '12px',
+                  borderBottom: '1px solid rgba(59, 130, 246, 0.2)',
+                  flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: '16px' }}>🐦</span>
+                  <span style={{ fontSize: '12px', color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+                    {t('section.socialIntelligence')}
+                  </span>
+                </div>
+
+                <div style={{ overflowY: 'auto', flex: 1, paddingRight: '6px' }}>
+                  {data!.socialIntel?.topPosts?.map((post, i) => (
+                    <div key={i} style={{
+                      marginBottom: '12px', padding: '14px',
+                      background: '#0a0a0a', borderRadius: '10px',
+                      borderLeft: '3px solid #3B82F6',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <a href={post.url} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6', textDecoration: 'none' }}>
+                          @{post.author}
+                        </a>
+                        <span style={{ fontSize: '11px', color: '#666' }}>🔥 {post.engagement}</span>
+                      </div>
+                      <p style={{ fontSize: '12px', color: '#aaa', lineHeight: 1.5, margin: 0 }}>
+                        {post.excerpt.substring(0, 120)}{post.excerpt.length > 120 ? '...' : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Main Narrative Column - Center - Highlighted */}
+              <div style={{
+                padding: '24px',
+                background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
+                borderRadius: '14px',
+                border: '2px solid #00D26A40',
+                boxShadow: '0 0 50px rgba(0, 210, 106, 0.12), inset 0 0 40px rgba(0, 210, 106, 0.03)',
+                position: 'relative',
+                height: '320px',
+                overflowY: 'auto',
+              }}>
+                <style>{`
+                  @keyframes dashAround {
+                    0% { background-position: 0% 0%; }
+                    100% { background-position: 48px 48px; }
+                  }
+                `}</style>
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: '14px',
+                  padding: '3px',
+                  background: `
+                    repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0, 210, 106, 0.8) 6px, rgba(0, 210, 106, 0.8) 10px)
+                  `,
+                  backgroundSize: '20px 20px',
+                  animation: 'dashAround 8s linear infinite',
+                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                }} />
+                <div style={{
+                  boxShadow: '0 0 40px rgba(0, 210, 106, 0.25), inset 0 0 30px rgba(0, 210, 106, 0.08)',
+                  borderRadius: '10px',
+                  padding: '24px',
+                  background: 'rgba(0, 10, 5, 0.7)',
+                  minHeight: 'calc(100% - 6px)',
+                }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
+                    paddingBottom: '12px',
+                    borderBottom: '1px solid #00D26A30',
+                  }}>
+                    <div style={{
+                      width: '6px', height: '28px', borderRadius: '3px', background: '#00D26A',
+                      boxShadow: '0 0 10px #00D26A',
+                    }} />
+                    <span style={{
+                      fontSize: '15px', color: '#00D26A', textTransform: 'uppercase',
+                      letterSpacing: '2px', fontWeight: 700,
+                      textShadow: '0 0 20px rgba(0, 210, 106, 0.5)',
+                    }}>
+                      {t('dashboard.intelligenceNarrative')}
+                    </span>
+                  </div>
+                  <p style={{
+                    fontSize: '17px', color: '#e0e0e0', lineHeight: 1.9,
+                    margin: 0, fontStyle: 'italic',
+                    textShadow: '0 0 30px rgba(0, 210, 106, 0.15)',
+                  }}>
+                    {data!.assessmentLayer.narrative}
+                  </p>
+                </div>
+              </div>
+
+              {/* Recommended Actions Column - Right - Scrollable */}
+              {data!.executive.recommendedActions && data!.executive.recommendedActions.length > 0 && (
+                <div style={{
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  boxShadow: '0 0 25px rgba(245, 158, 11, 0.1)',
+                  height: '320px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    marginBottom: '14px', paddingBottom: '12px',
+                    borderBottom: '1px solid rgba(245, 158, 11, 0.2)',
+                    flexShrink: 0,
+                  }}>
+                    <span style={{ fontSize: '16px' }}>⚡</span>
+                    <span style={{ fontSize: '12px', color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+                      {t('dashboard.recommendedActions')}
+                    </span>
+                  </div>
+                  <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '6px' }}>
+                    {data!.executive.recommendedActions.map((action, i) => (
+                      <div
+                        key={i}
+                        className="action-item"
+                        style={{
+                          padding: '12px 14px',
+                          background: 'rgba(0, 0, 0, 0.35)',
+                          borderRadius: '8px',
+                          borderLeft: '3px solid #F59E0B',
+                          border: '1px solid transparent',
+                          fontSize: '12px',
+                          color: '#ddd',
+                          lineHeight: 1.5,
+                          cursor: 'pointer',
+                          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                          position: 'relative',
+                          overflow: 'visible',
+                          zIndex: 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          const el = e.currentTarget;
+                          el.style.zIndex = '100';
+                          el.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(20, 15, 10, 0.95) 100%)';
+                          el.style.borderColor = 'rgba(245, 158, 11, 0.6)';
+                          el.style.boxShadow = '0 8px 32px rgba(245, 158, 11, 0.3), 0 0 40px rgba(245, 158, 11, 0.15)';
+                          el.style.transform = 'translateX(8px) scale(1.02)';
+                          el.style.padding = '16px 18px';
+                          const textEl = el.querySelector('.action-text') as HTMLElement;
+                          if (textEl) {
+                            textEl.style.maxHeight = '800px';
+                            textEl.style.opacity = '1';
+                          }
+                          const arrowEl = el.querySelector('.action-arrow') as HTMLElement;
+                          if (arrowEl) {
+                            arrowEl.style.opacity = '1';
+                            arrowEl.style.transform = 'translateX(0)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          const el = e.currentTarget;
+                          el.style.zIndex = '1';
+                          el.style.background = 'rgba(0, 0, 0, 0.35)';
+                          el.style.borderColor = 'transparent';
+                          el.style.boxShadow = 'none';
+                          el.style.transform = 'translateX(0) scale(1)';
+                          el.style.padding = '12px 14px';
+                          const textEl = el.querySelector('.action-text') as HTMLElement;
+                          if (textEl) {
+                            textEl.style.maxHeight = '80px';
+                            textEl.style.opacity = '0.9';
+                          }
+                          const arrowEl = el.querySelector('.action-arrow') as HTMLElement;
+                          if (arrowEl) {
+                            arrowEl.style.opacity = '0';
+                            arrowEl.style.transform = 'translateX(-10px)';
+                          }
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ color: '#F59E0B', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>{i + 1}.</span>
+                          <span
+                            className="action-text"
+                            style={{
+                              maxHeight: '80px',
+                              overflow: 'hidden',
+                              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                              display: 'block',
+                            }}
+                          >
+                            {action.replace(/^\.\s*/, '').replace(/\*\*/g, '')}
+                          </span>
+                        </div>
+                        <span
+                          className="action-arrow"
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%) translateX(-10px)',
+                            color: '#F59E0B',
+                            fontSize: '14px',
+                            opacity: 0,
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          →
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <p style={{
-              fontSize: '15px', color: '#ccc', lineHeight: 1.8,
-              margin: 0, fontStyle: 'italic',
-            }}>
-              {data!.assessmentLayer.narrative}
-            </p>
           </div>
         )}
 
-        {/* Key Findings + Quick Metrics Row */}
+        {/* Key Findings + Quick Metrics Row - Compact */}
         <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px',
+          display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px',
         }}>
           {/* Key Findings */}
           <div style={{
-            padding: '24px', background: '#111', borderRadius: '12px',
+            padding: '24px', background: '#111', borderRadius: '14px',
             border: '1px solid #222',
           }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px',
+              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px',
             }}>
               <div style={{
-                width: '4px', height: '20px', borderRadius: '2px', background: '#8B5CF6',
+                width: '4px', height: '24px', borderRadius: '2px', background: '#8B5CF6',
               }} />
               <span style={{
-                fontSize: '12px', color: '#8B5CF6', textTransform: 'uppercase',
-                letterSpacing: '2px', fontWeight: 600,
+                fontSize: '14px', color: '#8B5CF6', textTransform: 'uppercase',
+                letterSpacing: '2px', fontWeight: 700,
               }}>
                 {t('executive.keyFindings')}
               </span>
             </div>
             {data!.executive.keyFindings?.map((finding, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'flex-start', gap: '10px',
-                marginBottom: '10px', fontSize: '13px', color: '#ccc', lineHeight: 1.5,
+                display: 'flex', alignItems: 'flex-start', gap: '12px',
+                marginBottom: '14px', fontSize: '14px', color: '#ddd', lineHeight: 1.6,
               }}>
-                <span style={{ color: '#8B5CF6', flexShrink: 0, marginTop: '2px' }}>▸</span>
+                <span style={{ color: '#8B5CF6', flexShrink: 0, marginTop: '4px', fontSize: '16px' }}>▸</span>
                 <span>{finding}</span>
               </div>
             ))}
@@ -1092,23 +1292,23 @@ const CTIDashboardInner: React.FC = () => {
 
           {/* Quick Metrics */}
           <div style={{
-            padding: '24px', background: '#111', borderRadius: '12px',
+            padding: '24px', background: '#111', borderRadius: '14px',
             border: '1px solid #222',
           }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px',
+              display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px',
             }}>
               <div style={{
-                width: '4px', height: '20px', borderRadius: '2px', background: '#3B82F6',
+                width: '4px', height: '24px', borderRadius: '2px', background: '#3B82F6',
               }} />
               <span style={{
-                fontSize: '12px', color: '#3B82F6', textTransform: 'uppercase',
-                letterSpacing: '2px', fontWeight: 600,
+                fontSize: '14px', color: '#3B82F6', textTransform: 'uppercase',
+                letterSpacing: '2px', fontWeight: 700,
               }}>
                 {t('dashboard.signalBreakdown')}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
               <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
               <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
@@ -1117,52 +1317,7 @@ const CTIDashboardInner: React.FC = () => {
           </div>
         </div>
 
-        {/* Recommended Actions */}
-        <div style={{
-          padding: '28px',
-          background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
-          borderRadius: '16px',
-          border: '1px solid #E31B2330',
-          boxShadow: '0 0 40px rgba(227, 27, 35, 0.06)',
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px',
-          }}>
-            <div style={{
-              width: '4px', height: '20px', borderRadius: '2px', background: '#E31B23',
-            }} />
-            <span style={{
-              fontSize: '12px', color: '#E31B23', textTransform: 'uppercase',
-              letterSpacing: '2px', fontWeight: 600,
-            }}>
-{t('dashboard.recommendedActions')}
-            </span>
-          </div>
-          {data!.executive.recommendedActions
-            ?.filter(action => action.length > 15 && !action.match(/^(RECOMMENDED|ACTIONS?\*)/i))
-            .map((action, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'flex-start', gap: '16px',
-              marginBottom: '16px', padding: '16px',
-              background: 'rgba(0, 0, 0, 0.35)', borderRadius: '10px',
-              border: '1px solid #E31B2315',
-            }}>
-              <div style={{
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, #E31B23 0%, #FF6B35 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '13px', fontWeight: 700, color: '#fff', flexShrink: 0,
-              }}>
-                {i + 1}
-              </div>
-              <span style={{
-                fontSize: '13px', color: '#ccc', lineHeight: 1.6, paddingTop: '3px',
-              }}>
-                {action.replace(/^\.\s*/, '').replace(/\*\*/g, '')}
-              </span>
-            </div>
-          ))}
-        </div>
+
       </div>
     </div>
   );
@@ -1610,20 +1765,20 @@ const CTIDashboardInner: React.FC = () => {
   // ── Full Detail Panel ──
   const renderDetailPanel = () => (
     <div style={{
-      flex: 1, overflow: 'auto', padding: '40px',
+      flex: 1, overflow: 'auto', padding: '24px 40px',
       display: 'flex', justifyContent: 'center',
     }}>
-      <div style={{ maxWidth: '1100px', width: '100%' }}>
-        {/* Risk Score + Metrics Header Row */}
+      <div style={{ maxWidth: '1600px', width: '100%' }}>
+        {/* Risk Score + Metrics Header Row - Enhanced */}
         <div style={{
-          display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', marginBottom: '32px',
+          display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', marginBottom: '24px',
         }}>
           {/* Risk Gauge */}
           <div style={{
-            padding: '24px', background: '#111', borderRadius: '12px',
-            border: '1px solid #222', display: 'flex', alignItems: 'center', gap: '20px',
+            padding: '24px', background: '#111', borderRadius: '14px',
+            border: '1px solid #222', display: 'flex', alignItems: 'center', gap: '24px',
           }}>
-            <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+            <div style={{ position: 'relative', width: '100px', height: '100px' }}>
               <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="10" />
                 <circle cx="50" cy="50" r="40" fill="none"
@@ -1637,35 +1792,35 @@ const CTIDashboardInner: React.FC = () => {
                 position: 'absolute', inset: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
               }}>
-                <span style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'Space Grotesk' }}>
+                <span style={{ fontSize: '32px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
                   {data!.status.riskScore}
                 </span>
-                <span style={{ fontSize: '10px', color: '#666' }}>/100</span>
+                <span style={{ fontSize: '12px', color: '#666' }}>/100</span>
               </div>
             </div>
             <div>
               <span style={{
-                padding: '4px 12px', borderRadius: '20px',
+                padding: '6px 16px', borderRadius: '20px',
                 background: `${riskColor}20`, border: `1px solid ${riskColor}`,
-                color: riskColor, fontSize: '11px', fontWeight: 600,
+                color: riskColor, fontSize: '13px', fontWeight: 700,
               }}>
                 {t('status.level.' + data!.status.riskLevel)}
               </span>
               <div style={{
-                marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px',
+                marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px',
                 color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
               }}>
-                <span>{data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'}</span>
-                <span>{t('status.trend.' + data!.status.trend)}</span>
+                <span style={{ fontSize: '16px' }}>{data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'}</span>
+                <span style={{ fontWeight: 600 }}>{t('status.trend.' + data!.status.trend)}</span>
               </div>
             </div>
           </div>
 
           {/* Metrics Grid */}
           <div style={{
-            padding: '24px', background: '#111', borderRadius: '12px', border: '1px solid #222',
+            padding: '24px', background: '#111', borderRadius: '14px', border: '1px solid #222',
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
               <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
               <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
               <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
@@ -1674,81 +1829,82 @@ const CTIDashboardInner: React.FC = () => {
           </div>
         </div>
 
-        {/* Two-column detail layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        {/* Two-column detail layout - Enhanced */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           {/* Left Column */}
           <div>
             {/* Executive Summary */}
             <Section title={t('section.executiveSummary')}>
               <div style={{
-                padding: '16px',
+                padding: '20px',
                 background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
-                borderRadius: '12px',
+                borderRadius: '14px',
                 border: `1px solid ${riskColor}40`,
                 boxShadow: `0 0 30px ${riskColor}15`,
               }}>
                 {/* Risk Scale */}
-                <div style={{ 
-                  marginBottom: '16px', padding: '10px', 
+                <div style={{
+                  marginBottom: '16px', padding: '12px',
                   background: '#0a0a0a', borderRadius: '8px',
                   border: '1px solid #1a1a1a',
                 }}>
-                  <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
                     {t('dashboard.riskScale')}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
                     <span style={{ color: '#00D26A', fontWeight: 600 }}>●</span>
-                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.low')}</span>
+                    <span style={{ color: '#aaa' }}>{t('dashboard.riskScale.low')}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
                     <span style={{ color: '#FFB800', fontWeight: 600 }}>●</span>
-                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.moderate')}</span>
+                    <span style={{ color: '#aaa' }}>{t('dashboard.riskScale.moderate')}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
                     <span style={{ color: '#FF6B35', fontWeight: 600 }}>●</span>
-                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.elevated')}</span>
+                    <span style={{ color: '#aaa' }}>{t('dashboard.riskScale.elevated')}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
                     <span style={{ color: '#E31B23', fontWeight: 600 }}>●</span>
-                    <span style={{ color: '#888' }}>{t('dashboard.riskScale.critical')}</span>
+                    <span style={{ color: '#aaa' }}>{t('dashboard.riskScale.critical')}</span>
                   </div>
                 </div>
 
                 <div style={{
-                  display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px',
+                  display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px',
                 }}>
                   <div style={{
-                    width: '8px', height: '8px', borderRadius: '50%',
-                    background: riskColor, boxShadow: `0 0 10px ${riskColor}`,
+                    width: '10px', height: '10px', borderRadius: '50%',
+                    background: riskColor, boxShadow: `0 0 12px ${riskColor}`,
                   }} />
                   <div style={{
-                    fontSize: '16px', fontWeight: 700, color: riskColor, fontFamily: 'Space Grotesk',
+                    fontSize: '18px', fontWeight: 700, color: riskColor, fontFamily: 'Space Grotesk',
                   }}>
                     {data!.executive.headline}
                   </div>
                 </div>
 
                 {/* Baseline Comparison */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#888', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#999', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{
                       color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+                      fontWeight: 600,
                     }}>
                       {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {t('status.trend.' + data!.status.trend)}
                     </span>
                     {data!.assessmentLayer?.baselineComparison && (
-                      <span style={{ 
-                        fontSize: '10px', 
-                        color: '#666', 
-                        padding: '2px 8px',
+                      <span style={{
+                        fontSize: '11px',
+                        color: '#888',
+                        padding: '4px 10px',
                         background: '#0a0a0a',
                         borderRadius: '4px',
                         border: '1px solid #1a1a1a',
                       }}>
                         {t('dashboard.trendTooltip.previous')}: {data!.assessmentLayer.baselineComparison.previousRiskScore} → {t('dashboard.trendTooltip.current')}: {data!.assessmentLayer.baselineComparison.currentRiskScore}
                         {data!.assessmentLayer.baselineComparison.delta !== 0 && (
-                          <span style={{ 
-                            marginLeft: '6px', 
+                          <span style={{
+                            marginLeft: '6px',
                             color: data!.assessmentLayer.baselineComparison.delta > 0 ? '#E31B23' : '#00D26A',
                             fontWeight: 600,
                           }}>
@@ -1763,25 +1919,25 @@ const CTIDashboardInner: React.FC = () => {
                 </div>
 
                 <p style={{
-                  fontSize: '13px', color: '#aaa', lineHeight: 1.7, whiteSpace: 'pre-line',
+                  fontSize: '14px', color: '#ccc', lineHeight: 1.8, whiteSpace: 'pre-line',
                 }}>
                   {data!.executive.summary.replace(/\*\*/g, '')}
                 </p>
                 {data!.executive.keyFindings && data!.executive.keyFindings.length > 0 && (
                   <div style={{
-                    marginTop: '16px', padding: '12px',
+                    marginTop: '18px', padding: '14px',
                     background: 'rgba(0, 210, 106, 0.1)',
-                    borderRadius: '8px', border: '1px solid #00D26A30',
+                    borderRadius: '10px', border: '1px solid #00D26A30',
                   }}>
-                    <div style={{ fontSize: '10px', color: '#00D26A', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-{t('dashboard.keyFindings')}
+                    <div style={{ fontSize: '12px', color: '#00D26A', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+                      {t('dashboard.keyFindings')}
                     </div>
                     {data!.executive.keyFindings.map((finding, i) => (
                       <div key={i} style={{
-                        fontSize: '12px', color: '#ccc', display: 'flex',
-                        alignItems: 'flex-start', gap: '8px', marginBottom: '4px',
+                        fontSize: '13px', color: '#ddd', display: 'flex',
+                        alignItems: 'flex-start', gap: '10px', marginBottom: '6px', lineHeight: 1.5,
                       }}>
-                        <span style={{ color: '#00D26A' }}>▸</span>
+                        <span style={{ color: '#00D26A', fontSize: '14px' }}>▸</span>
                         <span>{finding}</span>
                       </div>
                     ))}
@@ -1793,24 +1949,24 @@ const CTIDashboardInner: React.FC = () => {
             {/* Threat Analysis */}
             <Section title={t('section.threatAnalysis')}>
               <div style={{
-                padding: '16px', background: '#0a0a0a', borderRadius: '8px',
+                padding: '20px', background: '#0a0a0a', borderRadius: '10px',
                 border: '1px solid #00D26A30', boxShadow: '0 0 20px rgba(0, 210, 106, 0.1)',
               }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('cti.killChain')}</span>
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('cti.killChain')}</span>
                   <div style={{
-                    marginTop: '4px', marginLeft: '8px', padding: '6px 12px', background: '#F59E0B20',
-                    border: '1px solid #F59E0B', borderRadius: '4px', color: '#F59E0B',
-                    fontSize: '12px', fontWeight: 600, display: 'inline-block',
+                    marginTop: '8px', marginLeft: '10px', padding: '10px 16px', background: '#F59E0B20',
+                    border: '1px solid #F59E0B', borderRadius: '6px', color: '#F59E0B',
+                    fontSize: '14px', fontWeight: 700, display: 'inline-block',
                   }}>
                     {data!.ctiAnalysis?.killChainPhase || 'N/A'}
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.correlationStrength')}</span>
-                  <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '100px', height: '6px', background: '#222', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard.correlationStrength')}</span>
+                  <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '120px', height: '8px', background: '#222', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{
                         width: `${(data!.assessmentLayer?.correlation?.score || 0) * 100}%`,
                         height: '100%',
@@ -1819,7 +1975,7 @@ const CTIDashboardInner: React.FC = () => {
                       }} />
                     </div>
                     <span style={{
-                      fontSize: '11px', textTransform: 'uppercase',
+                      fontSize: '12px', textTransform: 'uppercase', fontWeight: 600,
                       color: data!.assessmentLayer?.correlation?.strength === 'weak' ? '#E31B23' : '#00D26A',
                     }}>
                       {t('correlation.strength.' + (data!.assessmentLayer?.correlation?.strength || 'unknown'))}
@@ -1827,29 +1983,29 @@ const CTIDashboardInner: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('assessment.classification')}</span>
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('assessment.classification')}</span>
                   <div style={{
-                    marginTop: '4px', padding: '6px 12px', background: '#8B5CF620',
-                    border: '1px solid #8B5CF6', borderRadius: '4px', color: '#8B5CF6', fontSize: '12px',
+                    marginTop: '6px', padding: '8px 14px', background: '#8B5CF620',
+                    border: '1px solid #8B5CF6', borderRadius: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600,
                   }}>
                     {(t('classification.type.' + (data!.assessmentLayer?.classification?.type || 'opportunistic'))).toUpperCase()}
-                    <span style={{ color: '#666', marginLeft: '8px' }}>
+                    <span style={{ color: '#888', marginLeft: '8px', fontWeight: 400 }}>
                       {(data!.assessmentLayer?.classification?.confidence || 30)}% {t('status.confidence').toLowerCase()}
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.technicalAssessment')}</span>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard.technicalAssessment')}</span>
                   <div style={{
-                    marginTop: '8px', padding: '16px', background: '#000', borderRadius: '6px',
-                    border: '1px solid #222', fontSize: '11px', fontFamily: 'monospace',
+                    marginTop: '10px', padding: '18px', background: '#000', borderRadius: '8px',
+                    border: '1px solid #222', fontSize: '12px', fontFamily: 'monospace',
                     color: '#00D26A',
-                    lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                     overflowWrap: 'break-word',
                   }}>
-                    <div style={{ marginBottom: '10px', color: '#666', borderBottom: '1px solid #1a1a1a', paddingBottom: '8px' }}>
+                    <div style={{ marginBottom: '12px', color: '#666', borderBottom: '1px solid #1a1a1a', paddingBottom: '10px', fontSize: '11px' }}>
                       {t('dashboard.analyzingThreatIndicators')}
                     </div>
                     {(() => {
@@ -1867,12 +2023,12 @@ const CTIDashboardInner: React.FC = () => {
                       return (
                         <>
                           {cleaned.split('\n\n').map((para, idx) => (
-                            <div key={idx} style={{ marginBottom: '12px' }}>
+                            <div key={idx} style={{ marginBottom: '14px' }}>
                               {para.split('\n').map((line, lidx) => (
                                 <div key={lidx} style={{
                                   color: line.match(/^\d+\./) ? '#F59E0B' : line.startsWith('  •') ? '#8B5CF6' : '#00D26A',
                                   fontWeight: line.match(/^\d+\./) ? 600 : 400,
-                                  marginBottom: line.match(/^\d+\./) ? '4px' : '2px',
+                                  marginBottom: line.match(/^\d+\./) ? '6px' : '4px',
                                 }}>
                                   {line}
                                 </div>
@@ -1881,9 +2037,9 @@ const CTIDashboardInner: React.FC = () => {
                           ))}
                           {isTruncated && (
                             <div style={{
-                              marginTop: '8px', padding: '8px 12px', borderRadius: '6px',
+                              marginTop: '10px', padding: '10px 14px', borderRadius: '6px',
                               background: '#F59E0B10', border: '1px solid #F59E0B30',
-                              fontSize: '10px', color: '#F59E0B', display: 'flex',
+                              fontSize: '11px', color: '#F59E0B', display: 'flex',
                               alignItems: 'center', gap: '8px',
                             }}>
                               <span>⚠</span>
@@ -1893,7 +2049,7 @@ const CTIDashboardInner: React.FC = () => {
                         </>
                       );
                     })()}
-                    <div style={{ marginTop: '10px', color: '#666', borderTop: '1px solid #1a1a1a', paddingTop: '8px' }}>
+                    <div style={{ marginTop: '12px', color: '#666', borderTop: '1px solid #1a1a1a', paddingTop: '10px', fontSize: '11px' }}>
                       {t('dashboard.analysisComplete')}
                     </div>
                   </div>
@@ -1905,27 +2061,27 @@ const CTIDashboardInner: React.FC = () => {
             <Section title={t('section.socialIntelligence')}>
               {data!.socialIntel?.topPosts?.slice(0, 3).map((post, i) => (
                 <div key={i} style={{
-                  padding: '12px', background: '#111', borderRadius: '6px',
-                  border: '1px solid #222', marginBottom: '8px',
+                  padding: '16px', background: '#111', borderRadius: '10px',
+                  border: '1px solid #222', marginBottom: '10px',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <a href={`https://x.com/${post.author}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', fontWeight: 600, color: '#00D26A', textDecoration: 'none' }}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <a href={`https://x.com/${post.author}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', fontWeight: 600, color: '#00D26A', textDecoration: 'none' }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'none'; }}
                     >
                       @{post.author}
                     </a>
-                    <span style={{ fontSize: '10px', color: '#666' }}>{post.engagement} {t('dashboard.engagement')}</span>
+                    <span style={{ fontSize: '12px', color: '#888' }}>{post.engagement} {t('dashboard.engagement')}</span>
                   </div>
-                  <p style={{ fontSize: '11px', color: '#888', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                  <p style={{ fontSize: '13px', color: '#aaa', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
                     {post.excerpt.substring(0, 200)}{post.excerpt.length > 200 ? '...' : ''}
                   </p>
                   {post.url && (
                     <a href={post.url} target="_blank" rel="noopener noreferrer" style={{
                       display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      marginTop: '8px', padding: '4px 12px',
+                      marginTop: '10px', padding: '6px 14px',
                       background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)',
-                      borderRadius: '6px', fontSize: '10px', color: '#7DB4F5', textDecoration: 'none',
+                      borderRadius: '6px', fontSize: '12px', color: '#7DB4F5', textDecoration: 'none',
                       transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.25)'; }}
@@ -1937,11 +2093,11 @@ const CTIDashboardInner: React.FC = () => {
                 </div>
               ))}
               {data!.socialIntel && (
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '10px', color: '#666' }}>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '10px', fontSize: '12px', color: '#888' }}>
                   <span>{t('social.totalPosts')}: {data!.socialIntel.totalPosts}</span>
                   <span>{t('social.tone')}: <span style={{
                     color: data!.socialIntel.tone === 'confirmed' ? '#E31B23' : data!.socialIntel.tone === 'speculative' ? '#FFB800' : '#888',
-                    textTransform: 'uppercase',
+                    textTransform: 'uppercase', fontWeight: 600,
                   }}>{data!.socialIntel.tone}</span></span>
                 </div>
               )}
@@ -1951,20 +2107,20 @@ const CTIDashboardInner: React.FC = () => {
             <Section title={t('section.methodology')}>
               {data!.ctiAnalysis?.analystBrief && (
                 <div style={{
-                  padding: '10px', background: '#111', borderRadius: '6px',
-                  border: '1px solid #222', marginBottom: '12px',
-                  fontSize: '11px', color: '#aaa', lineHeight: 1.5, fontFamily: 'monospace',
+                  padding: '14px', background: '#111', borderRadius: '8px',
+                  border: '1px solid #222', marginBottom: '14px',
+                  fontSize: '13px', color: '#bbb', lineHeight: 1.6, fontFamily: 'monospace',
                 }}>
                   {data!.ctiAnalysis.analystBrief}
                 </div>
               )}
               {data!.ctiAnalysis?.methodologies && data!.ctiAnalysis.methodologies.length > 0 && (
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.analysisMethods')}</span>
-                  <div style={{ marginTop: '6px' }}>
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard.analysisMethods')}</span>
+                  <div style={{ marginTop: '8px' }}>
                     {data!.ctiAnalysis.methodologies.map((m, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontSize: '10px', color: '#888' }}>
-                        <span style={{ color: '#00D26A' }}>✓</span> {m}
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', fontSize: '13px', color: '#aaa' }}>
+                        <span style={{ color: '#00D26A', fontSize: '14px' }}>✓</span> {m}
                       </div>
                     ))}
                   </div>
@@ -1972,26 +2128,26 @@ const CTIDashboardInner: React.FC = () => {
               )}
               {data!.modelMetadata && (
                 <div>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.modelsUsed')}</span>
-                  <div style={{ marginTop: '6px', padding: '10px', background: '#111', borderRadius: '6px', border: '1px solid #222', fontSize: '10px', fontFamily: 'monospace' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#666' }}>{t('dashboard.strategic')}</span>
-                      <span style={{ color: '#8B5CF6' }}>{data!.modelMetadata.strategic}</span>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard.modelsUsed')}</span>
+                  <div style={{ marginTop: '8px', padding: '14px', background: '#111', borderRadius: '8px', border: '1px solid #222', fontSize: '12px', fontFamily: 'monospace' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ color: '#888' }}>{t('dashboard.strategic')}</span>
+                      <span style={{ color: '#8B5CF6', fontWeight: 600 }}>{data!.modelMetadata.strategic}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#666' }}>{t('dashboard.technical')}</span>
-                      <span style={{ color: '#F59E0B' }}>{data!.modelMetadata.technical}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ color: '#888' }}>{t('dashboard.technical')}</span>
+                      <span style={{ color: '#F59E0B', fontWeight: 600 }}>{data!.modelMetadata.technical}</span>
                     </div>
                     {data!.modelMetadata.quantization && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ color: '#666' }}>{t('dashboard.quantization')}</span>
-                        <span style={{ color: '#888' }}>{data!.modelMetadata.quantization}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ color: '#888' }}>{t('dashboard.quantization')}</span>
+                        <span style={{ color: '#aaa' }}>{data!.modelMetadata.quantization}</span>
                       </div>
                     )}
                     {data!.modelMetadata.version && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>{t('version')}</span>
-                        <span style={{ color: '#888' }}>{data!.modelMetadata.version}</span>
+                        <span style={{ color: '#888' }}>{t('version')}</span>
+                        <span style={{ color: '#aaa' }}>{data!.modelMetadata.version}</span>
                       </div>
                     )}
                   </div>
@@ -2005,11 +2161,11 @@ const CTIDashboardInner: React.FC = () => {
             {/* Data Sources */}
             <Section title={t('section.dataSources')}>
               <div style={{
-                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px',
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px',
               }}>
                 {/* Shodan */}
                 <a href="https://www.shodan.io/dashboard" target="_blank" rel="noopener noreferrer" style={{
-                  padding: '12px', background: '#111', borderRadius: '8px',
+                  padding: '14px', background: '#111', borderRadius: '10px',
                   border: '1px solid #3B82F630', textDecoration: 'none',
                   display: 'flex', flexDirection: 'column', gap: '6px',
                   transition: 'all 0.2s ease', cursor: 'pointer',
@@ -2018,16 +2174,16 @@ const CTIDashboardInner: React.FC = () => {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#3B82F630'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '16px' }}>🔍</span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6' }}>{t('dashboard.shodan')}</span>
-                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                    <span style={{ fontSize: '18px' }}>🔍</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#3B82F6' }}>{t('dashboard.shodan')}</span>
+                    <span style={{ fontSize: '11px', color: '#555', marginLeft: 'auto' }}>↗</span>
                   </div>
-                  <span style={{ fontSize: '10px', color: '#666' }}>{data!.infrastructure?.totalHosts || 0} hosts scanned</span>
+                  <span style={{ fontSize: '12px', color: '#888' }}>{data!.infrastructure?.totalHosts || 0} hosts scanned</span>
                 </a>
 
                 {/* X.com / Social */}
                 <a href={`https://x.com/search?q=${encodeURIComponent(data!.indicators?.keywords?.[0] || 'cybersecurity')}`} target="_blank" rel="noopener noreferrer" style={{
-                  padding: '12px', background: '#111', borderRadius: '8px',
+                  padding: '14px', background: '#111', borderRadius: '10px',
                   border: '1px solid #00D26A30', textDecoration: 'none',
                   display: 'flex', flexDirection: 'column', gap: '6px',
                   transition: 'all 0.2s ease', cursor: 'pointer',
@@ -2036,16 +2192,16 @@ const CTIDashboardInner: React.FC = () => {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#00D26A30'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '14px' }}>𝕏</span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#00D26A' }}>X.com Intel</span>
-                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                    <span style={{ fontSize: '16px' }}>𝕏</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#00D26A' }}>X.com Intel</span>
+                    <span style={{ fontSize: '11px', color: '#555', marginLeft: 'auto' }}>↗</span>
                   </div>
-                  <span style={{ fontSize: '10px', color: '#666' }}>{data!.socialIntel?.totalPosts || 0} posts analyzed</span>
+                  <span style={{ fontSize: '12px', color: '#888' }}>{data!.socialIntel?.totalPosts || 0} posts analyzed</span>
                 </a>
 
                 {/* NVD */}
                 <a href="https://nvd.nist.gov/" target="_blank" rel="noopener noreferrer" style={{
-                  padding: '12px', background: '#111', borderRadius: '8px',
+                  padding: '14px', background: '#111', borderRadius: '10px',
                   border: '1px solid #E31B2330', textDecoration: 'none',
                   display: 'flex', flexDirection: 'column', gap: '6px',
                   transition: 'all 0.2s ease', cursor: 'pointer',
@@ -2054,16 +2210,16 @@ const CTIDashboardInner: React.FC = () => {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#E31B2330'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '16px' }}>🛡</span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#E31B23' }}>NVD / NIST</span>
-                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                    <span style={{ fontSize: '18px' }}>🛡</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#E31B23' }}>NVD / NIST</span>
+                    <span style={{ fontSize: '11px', color: '#555', marginLeft: 'auto' }}>↗</span>
                   </div>
-                  <span style={{ fontSize: '10px', color: '#666' }}>{data!.indicators?.cves?.length || 0} CVEs referenced</span>
+                  <span style={{ fontSize: '12px', color: '#888' }}>{data!.indicators?.cves?.length || 0} CVEs referenced</span>
                 </a>
 
                 {/* MITRE ATT&CK */}
                 <a href="https://attack.mitre.org/" target="_blank" rel="noopener noreferrer" style={{
-                  padding: '12px', background: '#111', borderRadius: '8px',
+                  padding: '14px', background: '#111', borderRadius: '10px',
                   border: '1px solid #8B5CF630', textDecoration: 'none',
                   display: 'flex', flexDirection: 'column', gap: '6px',
                   transition: 'all 0.2s ease', cursor: 'pointer',
@@ -2072,42 +2228,42 @@ const CTIDashboardInner: React.FC = () => {
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#8B5CF630'; (e.currentTarget as HTMLElement).style.background = '#111'; }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '16px' }}>🎯</span>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#8B5CF6' }}>MITRE ATT&CK</span>
-                    <span style={{ fontSize: '9px', color: '#555', marginLeft: 'auto' }}>↗</span>
+                    <span style={{ fontSize: '18px' }}>🎯</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#8B5CF6' }}>MITRE ATT&CK</span>
+                    <span style={{ fontSize: '11px', color: '#555', marginLeft: 'auto' }}>↗</span>
                   </div>
-                  <span style={{ fontSize: '10px', color: '#666' }}>{t('dashboard.killChain')}: {data!.ctiAnalysis?.killChainPhase || 'N/A'}</span>
+                  <span style={{ fontSize: '12px', color: '#888' }}>{t('dashboard.killChain')}: {data!.ctiAnalysis?.killChainPhase || 'N/A'}</span>
                 </a>
               </div>
             </Section>
 
             {/* Indicators */}
             <Section title={t('section.indicators')}>
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('indicators.cves')}</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('indicators.cves')}</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                   {data!.indicators.cves?.map((cve, i) => (
                     <a key={i} href={`https://nvd.nist.gov/vuln/detail/${cve}`} target="_blank" rel="noopener noreferrer" style={{
-                      padding: '4px 8px', background: '#E31B2320', border: '1px solid #E31B23',
-                      borderRadius: '4px', fontSize: '10px', color: '#E31B23', fontFamily: 'monospace',
-                      textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                      padding: '6px 10px', background: '#E31B2320', border: '1px solid #E31B23',
+                      borderRadius: '6px', fontSize: '12px', color: '#E31B23', fontFamily: 'monospace',
+                      textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px',
                       transition: 'all 0.2s ease', cursor: 'pointer',
                     }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#E31B2340'; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#E31B2320'; }}
                     >
-                      🛡 {cve} <span style={{ fontSize: '9px', opacity: 0.6 }}>↗</span>
+                      🛡 {cve} <span style={{ fontSize: '10px', opacity: 0.6 }}>↗</span>
                     </a>
                   ))}
                 </div>
               </div>
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.threatCategories')}</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard.threatCategories')}</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                   {data!.indicators.keywords?.map((kw, i) => (
                     <span key={i} style={{
-                      padding: '4px 8px', background: '#8B5CF620', border: '1px solid #8B5CF6',
-                      borderRadius: '4px', fontSize: '10px', color: '#8B5CF6',
+                      padding: '6px 10px', background: '#8B5CF620', border: '1px solid #8B5CF6',
+                      borderRadius: '6px', fontSize: '12px', color: '#8B5CF6', fontWeight: 600,
                     }}>
                       {kw}
                     </span>
@@ -2116,40 +2272,40 @@ const CTIDashboardInner: React.FC = () => {
               </div>
               {data!.indicators.domains && data!.indicators.domains.length > 0 && (
                 <div>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('dashboard.domains')}</span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard.domains')}</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                     {data!.indicators.domains.map((domain, i) => (
                       <a key={i} href={`https://www.virustotal.com/gui/domain/${domain}`} target="_blank" rel="noopener noreferrer" style={{
-                        padding: '4px 8px', background: '#3B82F620', border: '1px solid #3B82F6',
-                        borderRadius: '4px', fontSize: '10px', color: '#3B82F6', fontFamily: 'monospace',
-                        textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '6px 10px', background: '#3B82F620', border: '1px solid #3B82F6',
+                        borderRadius: '6px', fontSize: '12px', color: '#3B82F6', fontFamily: 'monospace',
+                        textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px',
                         transition: 'all 0.2s ease', cursor: 'pointer',
                       }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#3B82F640'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#3B82F620'; }}
                       >
-                        🔍 {domain} <span style={{ fontSize: '9px', opacity: 0.6 }}>↗</span>
+                        🔍 {domain} <span style={{ fontSize: '10px', opacity: 0.6 }}>↗</span>
                       </a>
                     ))}
                   </div>
                 </div>
               )}
               {data!.indicators.ips && data!.indicators.ips.length > 0 && (
-                <div style={{ marginTop: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('indicators.ips')}</span>
-                  <div style={{ 
-                    marginTop: '6px', 
-                    maxHeight: '150px', 
-                    overflowY: 'auto', 
-                    background: '#0a0a0a', 
-                    borderRadius: '6px', 
+                <div style={{ marginTop: '14px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>{t('indicators.ips')}</span>
+                  <div style={{
+                    marginTop: '8px',
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    background: '#0a0a0a',
+                    borderRadius: '8px',
                     border: '1px solid #1a1a1a',
-                    padding: '8px'
+                    padding: '10px'
                   }}>
                     {data!.indicators.ips.map((ip, i) => (
                       <div key={i} style={{
-                        padding: '4px 8px',
-                        fontSize: '10px',
+                        padding: '6px 10px',
+                        fontSize: '12px',
                         fontFamily: 'monospace',
                         color: '#00D26A',
                         borderBottom: i < data!.indicators.ips.length - 1 ? '1px solid #1a1a1a' : 'none',
@@ -2161,58 +2317,58 @@ const CTIDashboardInner: React.FC = () => {
                 </div>
               )}
               {data!.infrastructure?.sampleHosts && data!.infrastructure.sampleHosts.length > 0 && (
-                <div style={{ marginTop: '12px' }}>
-                  <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>
+                <div style={{ marginTop: '14px' }}>
+                  <span style={{ fontSize: '12px', color: '#888', textTransform: 'uppercase', fontWeight: 600 }}>
                     {t('dashboard.vulnerableHostsSample')} ({data!.infrastructure.sampleHosts.length} {t('dashboard.hosts').toLowerCase()})
                   </span>
-                  <div style={{ 
-                    marginTop: '6px', 
-                    maxHeight: '300px', 
-                    overflowY: 'auto', 
-                    background: '#0a0a0a', 
-                    borderRadius: '6px', 
+                  <div style={{
+                    marginTop: '8px',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    background: '#0a0a0a',
+                    borderRadius: '8px',
                     border: '1px solid #1a1a1a',
-                    padding: '8px'
+                    padding: '10px'
                   }}>
                     {data!.infrastructure.sampleHosts.map((host, i) => (
                       <div key={i} style={{
-                        padding: '8px',
+                        padding: '10px',
                         background: i % 2 === 0 ? '#111' : 'transparent',
-                        borderRadius: '4px',
-                        marginBottom: '4px',
+                        borderRadius: '6px',
+                        marginBottom: '6px',
                         borderLeft: '3px solid #E31B23',
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#00D26A', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '13px', fontFamily: 'monospace', color: '#00D26A', fontWeight: 700 }}>
                             {host.ip}:{host.port}
                           </span>
-                          <span style={{ fontSize: '9px', color: '#3B82F6', background: '#3B82F620', padding: '2px 6px', borderRadius: '3px' }}>
+                          <span style={{ fontSize: '11px', color: '#3B82F6', background: '#3B82F620', padding: '4px 8px', borderRadius: '4px' }}>
                             {host.service}
                           </span>
                         </div>
                         {host.vulns && host.vulns.length > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {host.vulns.slice(0, 5).map((cve, j) => (
-                              <a 
-                                key={j} 
+                              <a
+                                key={j}
                                 href={`https://nvd.nist.gov/vuln/detail/${cve}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
-                                  fontSize: '9px',
+                                  fontSize: '11px',
                                   fontFamily: 'monospace',
                                   color: '#E31B23',
                                   textDecoration: 'none',
-                                  padding: '1px 4px',
+                                  padding: '2px 6px',
                                   background: '#E31B2320',
-                                  borderRadius: '2px',
+                                  borderRadius: '4px',
                                 }}
                               >
                                 {cve}
                               </a>
                             ))}
                             {host.vulns.length > 5 && (
-                              <span style={{ fontSize: '9px', color: '#666' }}>+{host.vulns.length - 5} more</span>
+                              <span style={{ fontSize: '11px', color: '#888' }}>+{host.vulns.length - 5} more</span>
                             )}
                           </div>
                         )}
@@ -2601,31 +2757,32 @@ const CTIDashboardInner: React.FC = () => {
 // Helper Components
 const MetricBox = ({ label, value, color }: { label: string; value: number; color: string }) => (
   <div style={{
-    padding: '8px',
+    padding: '12px',
     background: '#111',
-    borderRadius: '6px',
-    border: `1px solid ${color}30`,
+    borderRadius: '8px',
+    border: `1px solid ${color}40`,
     textAlign: 'center',
   }}>
-    <div style={{ fontSize: '18px', fontWeight: 700, color, fontFamily: 'Space Grotesk' }}>
+    <div style={{ fontSize: '24px', fontWeight: 700, color, fontFamily: 'Space Grotesk' }}>
       {value}
     </div>
-    <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>
+    <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', marginTop: '4px' }}>
       {label}
     </div>
   </div>
 );
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div style={{ marginBottom: '20px' }}>
-    <div style={{ 
-      fontSize: '11px', 
-      color: '#666', 
-      textTransform: 'uppercase', 
-      letterSpacing: '1px',
-      marginBottom: '10px',
-      paddingBottom: '6px',
-      borderBottom: '1px solid #222',
+  <div style={{ marginBottom: '24px' }}>
+    <div style={{
+      fontSize: '13px',
+      color: '#888',
+      textTransform: 'uppercase',
+      letterSpacing: '1.5px',
+      fontWeight: 600,
+      marginBottom: '12px',
+      paddingBottom: '8px',
+      borderBottom: '1px solid #333',
     }}>
       {title}
     </div>
