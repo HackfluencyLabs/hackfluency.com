@@ -80,6 +80,10 @@ interface CTINodeData {
   connections?: string[];
   links?: SourceLink[];
   isExpanded?: boolean;
+  expandable?: boolean;
+  childCount?: number;
+  hidden?: boolean;
+  parentId?: string;
   t?: (key: string) => string;
 }
 
@@ -242,12 +246,30 @@ const CTINode = ({ data }: { data: CTINodeData }) => {
         transition: 'all 0.3s ease',
         cursor: 'pointer',
         zIndex: 1,
+        position: 'relative',
       }}
     >
       <Handle type="target" position={Position.Left} style={{ background: '#fff', width: 8, height: 8 }} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%', lineHeight: 1.2 }}>
         {data.label}
       </span>
+      {data.expandable && data.childCount > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: -4,
+          right: -4,
+          background: '#10B981',
+          color: '#fff',
+          borderRadius: '10px',
+          padding: '2px 6px',
+          fontSize: '9px',
+          fontWeight: 700,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          border: '2px solid #0a0a0a',
+        }}>
+          +{data.childCount}
+        </div>
+      )}
       <Handle type="source" position={Position.Right} style={{ background: '#fff', width: 8, height: 8 }} />
     </div>
   );
@@ -282,6 +304,7 @@ const CTIDashboardInner: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Map<string, any>>(new Map());
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [highlightedEdges, setHighlightedEdges] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>('executive');
@@ -334,15 +357,21 @@ const CTIDashboardInner: React.FC = () => {
       icon: '𝕏',
     }));
 
+    const posts = dashboardData.socialIntel?.topPosts?.slice(0, 5) || [];
+    const infraCves = dashboardData.indicators?.cves?.slice(1) || [];
+    const shownInfraCves = infraCves.slice(0, 6);
+
     newNodes.push({
       id: 'social_source',
       type: 'ctiNode',
       position: { x: -450, y: 0 },
       data: {
-        label: 'SOCIAL\nINTEL',
+        label: translateFn('node.socialIntel'),
         type: 'actor',
         size: 130,
-        info: `Source: X.com\nPosts: ${dashboardData.socialIntel?.totalPosts || 0}\nTone: ${dashboardData.socialIntel?.tone || 'N/A'}\nThemes: ${dashboardData.socialIntel?.themes?.join(', ') || 'N/A'}`,
+        expandable: true,
+        childCount: posts.length,
+        info: `${translateFn('node.source')}: X.com\n${translateFn('node.posts')}: ${dashboardData.socialIntel?.totalPosts || 0}\n${translateFn('node.tone')}: ${dashboardData.socialIntel?.tone || translateFn('node.na')}\n${translateFn('node.themes')}: ${dashboardData.socialIntel?.themes?.join(', ') || translateFn('node.na')}`,
         connections: [`${dashboardData.socialIntel?.totalPosts || 0} Posts`, `Tone: ${dashboardData.socialIntel?.tone || 'mixed'}`],
         links: [
           { label: 'X.com Search', url: `https://x.com/search?q=${encodeURIComponent(dashboardData.indicators?.keywords?.[0] || 'cybersecurity')}`, icon: '𝕏' },
@@ -368,20 +397,20 @@ const CTIDashboardInner: React.FC = () => {
     
     // Build comprehensive breakdown for expandable section
     const infraBreakdown = [
-      `📊 TOTAL: ${totalHosts} hosts scanned`,
-      `⚠️ VULNERABLE: ${vulnerableCount} hosts (${Math.round((vulnerableCount / Math.max(totalHosts, 1)) * 100)}%)`,
+      `📊 ${translateFn('infra.totalScanned').replace('{count}', String(totalHosts))}`,
+      `⚠️ ${translateFn('infra.vulnerable').replace('{count}', String(vulnerableCount)).replace('{percentage}', String(Math.round((vulnerableCount / Math.max(totalHosts, 1)) * 100)))}`,
       '',
-      `🌍 BY COUNTRY:`,
-      ...topCountries.map(c => `  • ${c.country}: ${c.count} hosts`),
+      `🌍 ${translateFn('infra.byCountry')}`,
+      ...topCountries.map(c => `  • ${c.country}: ${c.count} ${translateFn('infra.hosts')}`),
       '',
-      `🛠️ BY SERVICE:`,
-      ...exposedPorts.slice(0, 5).map(s => `  • ${s.service}:${s.port} - ${s.count} hosts (${s.percentage}%)`),
+      `🛠️ ${translateFn('infra.byService')}`,
+      ...exposedPorts.slice(0, 5).map(s => `  • ${s.service}:${s.port} - ${s.count} ${translateFn('infra.hosts')} (${s.percentage}%)`),
       '',
-      `🚨 TOP CVEs (from ${sampleHosts.length} sample hosts):`,
+      `🚨 ${translateFn('infra.topCVEs').replace('{count}', String(sampleHosts.length))}`,
       ...allCVEs.slice(0, 10).map(c => `  • ${c}`),
       '',
-      `📋 SAMPLE HOSTS (${sampleHosts.length} of ${vulnerableCount} vulnerable):`,
-      ...sampleHosts.map(h => `  • ${h.ip}:${h.port} (${h.service}) - ${h.vulns?.length || 0} CVEs`)
+      `📋 ${translateFn('infra.sampleHosts').replace('{count}', String(sampleHosts.length)).replace('{total}', String(vulnerableCount))}`,
+      ...sampleHosts.map(h => `  • ${h.ip}:${h.port} (${h.service}) - ${h.vulns?.length || 0} ${translateFn('infra.cves')}`)
     ].join('\n');
 
     newNodes.push({
@@ -389,10 +418,12 @@ const CTIDashboardInner: React.FC = () => {
       type: 'ctiNode',
       position: { x: 450, y: 0 },
       data: {
-        label: 'INFRA\nSCAN',
+        label: translateFn('node.infraScan'),
         type: 'domain',
         size: 130,
-        info: `Source: Shodan\nTotal Hosts: ${totalHosts}\nVulnerable: ${vulnerableCount}\nExposure: ${((vulnerableCount / Math.max(totalHosts, 1)) * 100).toFixed(1)}%\n\n${infraBreakdown}`,
+        expandable: true,
+        childCount: shownInfraCves.length,
+        info: `${translateFn('node.source')}: Shodan\n${translateFn('node.totalHosts')}: ${totalHosts}\n${translateFn('node.vulnerable')}: ${vulnerableCount}\n${translateFn('node.exposure')}: ${((vulnerableCount / Math.max(totalHosts, 1)) * 100).toFixed(1)}%\n\n${infraBreakdown}`,
         connections: [`${totalHosts} Hosts`, `${vulnerableCount} Vulnerable`],
         links: [
           { label: 'Shodan Dashboard', url: 'https://www.shodan.io/dashboard', icon: '🔍' },
@@ -410,11 +441,11 @@ const CTIDashboardInner: React.FC = () => {
       type: 'ctiNode',
       position: { x: 0, y: 0 },
       data: {
-        label: `${corrPct}%\nCORRELATION`,
+        label: `${corrPct}%\n${translateFn('node.correlation')}`,
         type: corrStrength === 'strong' ? 'root' : corrStrength === 'moderate' ? 'killchain' : 'keyword',
         size: 140,
-        info: `Correlation: ${corrStrength} (${corrPct}%)\nCVE Overlap: ${Math.round(cveOverlap * 100)}%\nService Match: ${Math.round(serviceMatch * 100)}%\nTemporal Proximity: ${Math.round(temporalProximity * 100)}%\nInfra-Social Alignment: ${Math.round((factors?.infraSocialAlignment ?? 0) * 100)}%`,
-        connections: [correlation?.explanation || 'No explanation available'],
+        info: `${translateFn('assessment.correlation')}: ${translateFn(`correlation.strength.${corrStrength}`)} (${corrPct}%)\n${translateFn('dashboard.cveOverlap')}: ${Math.round(cveOverlap * 100)}%\n${translateFn('dashboard.serviceMatch')}: ${Math.round(serviceMatch * 100)}%\n${translateFn('dashboard.temporalProximity')}: ${Math.round(temporalProximity * 100)}%\n${translateFn('dashboard.infraSocialAlignment')}: ${Math.round((factors?.infraSocialAlignment ?? 0) * 100)}%`,
+        connections: [correlation?.explanation || t('dashboard.noExplanation')],
       },
     });
 
@@ -428,7 +459,7 @@ const CTIDashboardInner: React.FC = () => {
       target: 'correlation_hub',
       animated: temporalProximity > 0.3,
       style: { stroke: '#00D26A', strokeWidth: socialEdgeWidth, strokeDasharray: corrStrength === 'weak' ? '8,6' : undefined },
-      label: `Temporal ${Math.round(temporalProximity * 100)}%`,
+      label: `${translateFn('dashboard.temporalProximity')} ${Math.round(temporalProximity * 100)}%`,
       labelStyle: { fill: '#888', fontSize: 10, fontFamily: 'Space Grotesk' },
       labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#00D26A' },
@@ -440,14 +471,13 @@ const CTIDashboardInner: React.FC = () => {
       target: 'correlation_hub',
       animated: serviceMatch > 0.3,
       style: { stroke: '#3B82F6', strokeWidth: infraEdgeWidth, strokeDasharray: corrStrength === 'weak' ? '8,6' : undefined },
-      label: `CVE Overlap ${Math.round(cveOverlap * 100)}%`,
+      label: `${translateFn('dashboard.cveOverlap')} ${Math.round(cveOverlap * 100)}%`,
       labelStyle: { fill: '#888', fontSize: 10, fontFamily: 'Space Grotesk' },
       labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#3B82F6' },
     });
 
     // ── Social intel sub-nodes (actors) ──
-    const posts = dashboardData.socialIntel?.topPosts?.slice(0, 5) || [];
     posts.forEach((post, i) => {
       const id = `actor_${i}`;
       const label = post.author.length > 12 ? post.author.substring(0, 10) + '..' : post.author;
@@ -464,6 +494,8 @@ const CTIDashboardInner: React.FC = () => {
           label: label.toUpperCase(),
           type: 'actor',
           size: 75,
+          parentId: 'social_source',
+          hidden: true,
           info: `Author: @${post.author}\nEngagement: ${post.engagement}\n${post.excerpt?.substring(0, 100)}...`,
           connections: dashboardData.socialIntel?.themes?.slice(0, 2) || [],
           links: actorLinks,
@@ -479,8 +511,6 @@ const CTIDashboardInner: React.FC = () => {
     });
 
     // ── Infrastructure CVE sub-nodes (from Shodan) ──
-    const infraCves = dashboardData.indicators?.cves?.slice(1) || []; // Skip first (social CVE)
-    const shownInfraCves = infraCves.slice(0, 6);
     shownInfraCves.forEach((cve, i) => {
       const id = `infra_cve_${i}`;
       const angle = (-Math.PI / 2) + (i / Math.max(shownInfraCves.length - 1, 1)) * Math.PI;
@@ -492,7 +522,9 @@ const CTIDashboardInner: React.FC = () => {
           label: cve.replace('CVE-', ''),
           type: 'cve',
           size: 70,
-          info: `CVE: ${cve}\nSource: Shodan Infrastructure\nFound in: Vulnerable hosts`,
+          parentId: 'infra_source',
+          hidden: true,
+          info: `${translateFn('node.cve')}: ${cve}\n${translateFn('node.source')}: ${translateFn('node.shodanInfra')}\n${translateFn('node.foundIn')}: ${translateFn('node.vulnerableHosts')}`,
           connections: ['Infrastructure Only'],
           links: [
             { label: 'NVD Detail', url: `https://nvd.nist.gov/vuln/detail/${cve}`, icon: '🛡' },
@@ -563,7 +595,7 @@ const CTIDashboardInner: React.FC = () => {
           label: socialCves[0].replace('CVE-', ''),
           type: 'cve',
           size: 80,
-          info: `CVE: ${socialCves[0]}\nSource: Social Intel ONLY\n⚠ NOT found in infrastructure scans\nNo cross-source validation`,
+          info: `${translateFn('node.cve')}: ${socialCves[0]}\n${translateFn('node.source')}: ${translateFn('node.socialIntelOnly')}\n⚠ ${translateFn('node.notFoundInfra')}\n${translateFn('node.noCrossValidation')}`,
           connections: ['Social Intel Only'],
           links: [
             { label: 'NVD Detail', url: `https://nvd.nist.gov/vuln/detail/${socialCves[0]}`, icon: '🛡' },
@@ -603,11 +635,11 @@ const CTIDashboardInner: React.FC = () => {
         label: killChain.toUpperCase(),
         type: 'killchain',
         size: 95,
-        info: `Phase: ${killChain}\nClassification: ${dashboardData.assessmentLayer?.classification?.type || 'unknown'}\nConfidence: ${dashboardData.assessmentLayer?.classification?.confidence || 0}%\n${dashboardData.assessmentLayer?.classification?.rationale || ''}`,
+        info: `${translateFn('dashboard.killChain')}: ${killChain}\n${translateFn('assessment.classification')}: ${translateFn(`classification.type.${dashboardData.assessmentLayer?.classification?.type || 'unknown'}`)}\n${translateFn('status.confidence')}: ${dashboardData.assessmentLayer?.classification?.confidence || 0}%\n${dashboardData.assessmentLayer?.classification?.rationale || ''}`,
         connections: dashboardData.assessmentLayer?.classification?.indicators || [],
         links: [
           { label: 'MITRE ATT&CK', url: 'https://attack.mitre.org/', icon: '🎯' },
-          { label: 'Kill Chain Model', url: 'https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html', icon: '📋' },
+          { label: translateFn('dashboard.killChainModel'), url: 'https://www.lockheedmartin.com/en-us/capabilities/cyber/cyber-kill-chain.html', icon: '📋' },
         ],
       },
     });
@@ -616,7 +648,7 @@ const CTIDashboardInner: React.FC = () => {
       source: 'correlation_hub',
       target: 'killchain',
       style: { stroke: '#F59E0B', strokeWidth: 2 },
-      label: `${dashboardData.assessmentLayer?.classification?.type || 'unknown'}`,
+      label: translateFn(`classification.type.${dashboardData.assessmentLayer?.classification?.type || 'unknown'}`),
       labelStyle: { fill: '#F59E0B', fontSize: 10 },
       labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' },
@@ -635,7 +667,7 @@ const CTIDashboardInner: React.FC = () => {
           label: kw.split(' ')[0].toUpperCase(),
           type: 'keyword',
           size: 70,
-          info: `Theme: ${kw}\nSource: Social Intelligence\nExtracted from X.com discussions`,
+          info: `${translateFn('node.theme')}: ${kw}\n${translateFn('node.source')}: ${translateFn('node.socialIntelligence')}\n${translateFn('node.extractedFrom')}`,
           connections: [kw],
           links: [
             { label: `Search "${kw.split(' ')[0]}" on X`, url: `https://x.com/search?q=${encodeURIComponent(kw)}`, icon: '𝕏' },
@@ -668,6 +700,18 @@ const CTIDashboardInner: React.FC = () => {
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     event.stopPropagation();
     
+    const isParentNode = node.id === 'social_source' || node.id === 'infra_source';
+    
+    if (isParentNode) {
+      const newExpandedParents = new Set(expandedParents);
+      if (newExpandedParents.has(node.id)) {
+        newExpandedParents.delete(node.id);
+      } else {
+        newExpandedParents.add(node.id);
+      }
+      setExpandedParents(newExpandedParents);
+    }
+    
     const isCurrentlyExpanded = expandedNodes.has(node.id);
     
     if (isCurrentlyExpanded) {
@@ -696,7 +740,7 @@ const CTIDashboardInner: React.FC = () => {
       const allConnectedEdgeIds = [...highlightedEdges, ...newConnectedEdgeIds];
       setHighlightedEdges([...new Set(allConnectedEdgeIds)]);
     }
-  }, [expandedNodes, edges, highlightedEdges]);
+  }, [expandedNodes, edges, highlightedEdges, expandedParents]);
 
   const onConnectionClick = useCallback((edgeId: string) => {
     const edge = edges.find(e => e.id === edgeId);
@@ -722,27 +766,38 @@ const CTIDashboardInner: React.FC = () => {
 
   // Precomputed nodes with expansion/dim state
   const computedNodes = useMemo(() => {
-    return nodes.map((node) => {
-      const isExpanded = expandedNodes.has(node.id);
-      const isConnected = expandedKeysList.some(key =>
-        key === node.id || edges.some(e =>
-          (e.source === key && e.target === node.id) || (e.target === key && e.source === node.id)
-        )
-      );
-      const shouldDim = expandedNodes.size > 0 && !isExpanded && !isConnected;
+    return nodes
+      .filter(node => {
+        const parentId = node.data?.parentId;
+        if (parentId && node.data?.hidden) {
+          return expandedParents.has(parentId);
+        }
+        return true;
+      })
+      .map((node) => {
+        const parentId = node.data?.parentId;
+        const isChildHidden = parentId && node.data?.hidden && !expandedParents.has(parentId);
+        const isExpanded = expandedNodes.has(node.id);
+        const isConnected = expandedKeysList.some(key =>
+          key === node.id || edges.some(e =>
+            (e.source === key && e.target === node.id) || (e.target === key && e.source === node.id)
+          )
+        );
+        const shouldDim = expandedNodes.size > 0 && !isExpanded && !isConnected;
 
-      return {
-        ...node,
-        data: { ...node.data, isExpanded },
-        style: {
-          ...node.style,
-          opacity: shouldDim ? 0.15 : 1,
-          transition: isDragging ? 'none' : 'all 0.3s ease',
-          zIndex: isExpanded ? 100 : 1,
-        },
-      };
-    });
-  }, [nodes, expandedNodes, expandedKeysList, edges, isDragging]);
+        return {
+          ...node,
+          data: { ...node.data, isExpanded },
+          style: {
+            ...node.style,
+            opacity: isChildHidden ? 0 : (shouldDim ? 0.15 : 1),
+            display: isChildHidden ? 'none' : 'block',
+            transition: isDragging ? 'none' : 'all 0.3s ease',
+            zIndex: isExpanded ? 100 : 1,
+          },
+        };
+      });
+  }, [nodes, expandedNodes, expandedKeysList, edges, isDragging, expandedParents]);
 
   // Precomputed edges with highlight/dim state
   const computedEdges = useMemo(() => {
@@ -753,7 +808,21 @@ const CTIDashboardInner: React.FC = () => {
       '#00D26A': '#4ADE80',
     };
 
-    return edges.map(edge => {
+    const nodeParentMap = new Map(nodes.map(n => [n.id, n.data?.parentId]));
+
+    return edges
+      .filter(edge => {
+        const sourceParent = nodeParentMap.get(edge.source);
+        const targetParent = nodeParentMap.get(edge.target);
+        if (sourceParent && sourceParent !== 'infra_source' && sourceParent !== 'social_source') {
+          return expandedParents.has(sourceParent);
+        }
+        if (targetParent && targetParent !== 'infra_source' && targetParent !== 'social_source') {
+          return expandedParents.has(targetParent);
+        }
+        return true;
+      })
+      .map(edge => {
       const isHighlighted = highlightedEdgeSet.has(edge.id);
       const shouldDim = expandedNodes.size > 0 && !isHighlighted;
       const baseStroke = edge.style?.stroke as string | undefined;
@@ -772,7 +841,7 @@ const CTIDashboardInner: React.FC = () => {
         },
       };
     });
-  }, [edges, highlightedEdgeSet, expandedNodes]);
+  }, [edges, highlightedEdgeSet, expandedNodes, expandedParents, nodes]);
 
   const riskColor = RISK_COLORS[data?.status?.riskLevel?.toLowerCase() ?? ''] || '#6B7280';
 
@@ -1277,7 +1346,7 @@ const CTIDashboardInner: React.FC = () => {
                   {t('classification.type.' + classification.type)}
                 </div>
                 <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
-                  Confidence: {classification.confidence}%
+                  {t('status.confidence')}: {classification.confidence}%
                 </div>
               </div>
               {classification.rationale && (
@@ -1362,7 +1431,7 @@ const CTIDashboardInner: React.FC = () => {
                 fontSize: '10px', color: '#888', textTransform: 'uppercase',
                 letterSpacing: '1.5px', fontWeight: 600, marginBottom: '12px',
               }}>
-                ◈ Data Freshness
+                ◈ {t('dashboard.dataFreshness')}
               </div>
               <div style={{
                 display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '10px',
@@ -1477,7 +1546,7 @@ const CTIDashboardInner: React.FC = () => {
             backdropFilter: 'blur(10px)',
           }}>
             <div style={{ fontSize: '9px', color: '#666', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Node Types
+              {t('dashboard.nodeTypes')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '9px' }}>
               <LegendItem color="#00D26A" label={t('dashboard.socialIntel')} />
@@ -1487,7 +1556,7 @@ const CTIDashboardInner: React.FC = () => {
               <LegendItem color="#F59E0B" label={t('dashboard.killChainLegend')} />
             </div>
             <div style={{ fontSize: '9px', color: '#666', marginTop: '8px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Edge Meaning
+              {t('dashboard.edgeMeaning')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1580,14 +1649,14 @@ const CTIDashboardInner: React.FC = () => {
                 background: `${riskColor}20`, border: `1px solid ${riskColor}`,
                 color: riskColor, fontSize: '11px', fontWeight: 600,
               }}>
-                {data!.status.riskLevel.toUpperCase()}
+                {t('status.level.' + data!.status.riskLevel)}
               </span>
               <div style={{
                 marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px',
                 color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
               }}>
                 <span>{data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'}</span>
-                <span>{data!.status.trend}</span>
+                <span>{t('status.trend.' + data!.status.trend)}</span>
               </div>
             </div>
           </div>
@@ -1610,7 +1679,7 @@ const CTIDashboardInner: React.FC = () => {
           {/* Left Column */}
           <div>
             {/* Executive Summary */}
-            <Section title="EXECUTIVE SUMMARY">
+            <Section title={t('section.executiveSummary')}>
               <div style={{
                 padding: '16px',
                 background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
@@ -1660,7 +1729,7 @@ const CTIDashboardInner: React.FC = () => {
             </Section>
 
             {/* Threat Analysis */}
-            <Section title="THREAT ANALYSIS">
+            <Section title={t('section.threatAnalysis')}>
               <div style={{
                 padding: '16px', background: '#0a0a0a', borderRadius: '8px',
                 border: '1px solid #00D26A30', boxShadow: '0 0 20px rgba(0, 210, 106, 0.1)',
@@ -1668,7 +1737,7 @@ const CTIDashboardInner: React.FC = () => {
                 <div style={{ marginBottom: '12px' }}>
                   <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('cti.killChain')}</span>
                   <div style={{
-                    marginTop: '4px', padding: '6px 12px', background: '#F59E0B20',
+                    marginTop: '4px', marginLeft: '8px', padding: '6px 12px', background: '#F59E0B20',
                     border: '1px solid #F59E0B', borderRadius: '4px', color: '#F59E0B',
                     fontSize: '12px', fontWeight: 600, display: 'inline-block',
                   }}>
@@ -1702,9 +1771,9 @@ const CTIDashboardInner: React.FC = () => {
                     marginTop: '4px', padding: '6px 12px', background: '#8B5CF620',
                     border: '1px solid #8B5CF6', borderRadius: '4px', color: '#8B5CF6', fontSize: '12px',
                   }}>
-                    {(data!.assessmentLayer?.classification?.type || 'opportunistic').toUpperCase()}
+                    {(t('classification.type.' + (data!.assessmentLayer?.classification?.type || 'opportunistic'))).toUpperCase()}
                     <span style={{ color: '#666', marginLeft: '8px' }}>
-                      {(data!.assessmentLayer?.classification?.confidence || 30)}% confidence
+                      {(data!.assessmentLayer?.classification?.confidence || 30)}% {t('status.confidence').toLowerCase()}
                     </span>
                   </div>
                 </div>
@@ -1719,10 +1788,10 @@ const CTIDashboardInner: React.FC = () => {
                     overflowWrap: 'break-word',
                   }}>
                     <div style={{ marginBottom: '10px', color: '#666', borderBottom: '1px solid #1a1a1a', paddingBottom: '8px' }}>
-                      {`> ANALYZING THREAT INDICATORS...`}
+                      {t('dashboard.analyzingThreatIndicators')}
                     </div>
                     {(() => {
-                      const raw = data!.ctiAnalysis?.technicalAssessment || 'No technical assessment available';
+                      const raw = data!.ctiAnalysis?.technicalAssessment || t('dashboard.noTechnicalAssessment');
                       const cleaned = raw
                         .replace(/\*\*(\d+\.\s*)/g, '\n$1')
                         .replace(/\*\*/g, '')
@@ -1763,7 +1832,7 @@ const CTIDashboardInner: React.FC = () => {
                       );
                     })()}
                     <div style={{ marginTop: '10px', color: '#666', borderTop: '1px solid #1a1a1a', paddingTop: '8px' }}>
-                      {`> ANALYSIS COMPLETE`}
+                      {t('dashboard.analysisComplete')}
                     </div>
                   </div>
                 </div>
@@ -1771,7 +1840,7 @@ const CTIDashboardInner: React.FC = () => {
             </Section>
 
             {/* Social Intel */}
-            <Section title="SOCIAL INTELLIGENCE">
+            <Section title={t('section.socialIntelligence')}>
               {data!.socialIntel?.topPosts?.slice(0, 3).map((post, i) => (
                 <div key={i} style={{
                   padding: '12px', background: '#111', borderRadius: '6px',
@@ -1800,7 +1869,7 @@ const CTIDashboardInner: React.FC = () => {
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.25)'; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.1)'; }}
                     >
-                      <span>𝕏</span> View on X <span style={{ opacity: 0.6 }}>↗</span>
+                      <span>𝕏</span> {t('social.viewOnX')} <span style={{ opacity: 0.6 }}>↗</span>
                     </a>
                   )}
                 </div>
@@ -1817,7 +1886,7 @@ const CTIDashboardInner: React.FC = () => {
             </Section>
 
             {/* Methodology */}
-            <Section title="METHODOLOGY">
+            <Section title={t('section.methodology')}>
               {data!.ctiAnalysis?.analystBrief && (
                 <div style={{
                   padding: '10px', background: '#111', borderRadius: '6px',
@@ -1872,7 +1941,7 @@ const CTIDashboardInner: React.FC = () => {
           {/* Right Column */}
           <div>
             {/* Data Sources */}
-            <Section title="DATA SOURCES">
+            <Section title={t('section.dataSources')}>
               <div style={{
                 display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px',
               }}>
@@ -1951,7 +2020,7 @@ const CTIDashboardInner: React.FC = () => {
             </Section>
 
             {/* Indicators */}
-            <Section title="INDICATORS">
+            <Section title={t('section.indicators')}>
               <div style={{ marginBottom: '12px' }}>
                 <span style={{ fontSize: '10px', color: '#666', textTransform: 'uppercase' }}>{t('indicators.cves')}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
@@ -2094,7 +2163,7 @@ const CTIDashboardInner: React.FC = () => {
 
             {/* Infrastructure */}
             {data!.infrastructure && (
-              <Section title="INFRASTRUCTURE">
+              <Section title={t('section.infrastructure')}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
                   <MetricBox label={t('dashboard.hosts')} value={data!.infrastructure.totalHosts} color="#3B82F6" />
                   <MetricBox label={t('dashboard.vulnerable')} value={data!.infrastructure.vulnerableHosts} color="#E31B23" />
@@ -2173,7 +2242,7 @@ const CTIDashboardInner: React.FC = () => {
 
             {/* Assessment Details */}
             {data!.assessmentLayer && (
-              <Section title="ASSESSMENT DETAILS">
+              <Section title={t('section.assessmentDetails')}>
                 {data!.assessmentLayer.narrative && (
                   <div style={{
                     padding: '12px', background: '#0f1a0f', borderRadius: '8px',
@@ -2300,7 +2369,7 @@ const CTIDashboardInner: React.FC = () => {
             )}
 
             {/* Recommended Actions */}
-            <Section title="RECOMMENDED ACTIONS">
+            <Section title={t('section.recommendedActions')}>
               <div style={{
                 padding: '16px',
                 background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
@@ -2385,7 +2454,7 @@ const CTIDashboardInner: React.FC = () => {
               fontWeight: 600,
               letterSpacing: '0.5px',
             }}>
-              {data!.status.riskLevel.toUpperCase()} • {data!.status.riskScore}/100
+              {t('status.level.' + data!.status.riskLevel)} • {data!.status.riskScore}/100
             </div>
           </div>
           <div style={{ fontSize: '11px', color: '#555', display: 'flex', alignItems: 'center', gap: '16px' }}>
