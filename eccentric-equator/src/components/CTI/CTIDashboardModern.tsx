@@ -1760,7 +1760,7 @@ const CTIDashboardInner: React.FC = () => {
                       fontSize: '11px', textTransform: 'uppercase',
                       color: data!.assessmentLayer?.correlation?.strength === 'weak' ? '#E31B23' : '#00D26A',
                     }}>
-                      {data!.assessmentLayer?.correlation?.strength || 'N/A'}
+                      {t('correlation.strength.' + (data!.assessmentLayer?.correlation?.strength || 'unknown'))}
                     </span>
                   </div>
                 </div>
