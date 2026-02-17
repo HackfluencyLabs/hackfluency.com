@@ -417,6 +417,8 @@ const translations: Record<Language, Translations> = {
     'dashboard.computedScore': 'Puntuación Calculada',
     'dashboard.riskScoreComputation': 'Cálculo de Puntuación de Riesgo',
     'dashboard.confidenceLevel': 'Nivel de Confianza',
+    'dashboard.socialDataAge': 'Edad de datos sociales',
+    'dashboard.infrastructureAge': 'Edad de datos de infraestructura',
     
     // Scoring weights/keys
     'scoring.vulnerabilityRatio': 'Ratio de Vulnerabilidad',
