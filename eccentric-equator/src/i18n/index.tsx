@@ -188,9 +188,9 @@ const translations: Record<Language, Translations> = {
     'dashboard.riskScale.critical': 'Critical: 76-100',
     
     // Trend Tooltip
-    'dashboard.trendTooltip': 'Historical Comparison',
-    'dashboard.trendTooltip.previous': 'Previous',
-    'dashboard.trendTooltip.current': 'Current',
+    'dashboard.trendTooltip': 'Comparación Histórica',
+    'dashboard.trendTooltip.previous': 'Anterior',
+    'dashboard.trendTooltip.current': 'Actual',
     
     // Classification Types
     'classification.type.targeted': 'targeted',
@@ -400,6 +400,18 @@ const translations: Record<Language, Translations> = {
     'dashboard.technical': 'Técnico',
     'dashboard.quantization': 'Cuantización',
     'dashboard.engagement': 'interacciones',
+    
+    // Risk Scale
+    'dashboard.riskScale': 'Escala de Riesgo',
+    'dashboard.riskScale.low': 'Bajo: 0-25',
+    'dashboard.riskScale.moderate': 'Moderado: 26-50',
+    'dashboard.riskScale.elevated': 'Elevado: 51-75',
+    'dashboard.riskScale.critical': 'Crítico: 76-100',
+    
+    // Trend Tooltip
+    'dashboard.trendTooltip': 'Comparación Histórica',
+    'dashboard.trendTooltip.previous': 'Anterior',
+    'dashboard.trendTooltip.current': 'Actual',
     
     // Additional hardcoded strings found in component
     'dashboard.computedScore': 'Puntuación Calculada',
