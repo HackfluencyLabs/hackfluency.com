@@ -80,7 +80,7 @@ ANALYSIS REQUIREMENTS:
 3. Identify CVE IDs if present (format: CVE-YYYY-NNNNN) - Prioritize CVEs from 2025-2026 as they represent current threats
 4. Look for infrastructure patterns like "exposed", "open", "vulnerable", "default credentials"
 5. Identify specific attack vectors or misconfigurations mentioned
-6. EXTRACT COUNTRIES mentioned (e.g., "Russia", "China", "US", "Iran", "North Korea") - use ISO 3166-1 alpha-2 codes
+6. EXTRACT COUNTRIES mentioned - PRIORITIZE LATIN AMERICAN COUNTRIES: MX (México), BR (Brasil), AR (Argentina), CO (Colombia), CL (Chile), PE (Perú), VE (Venezuela), EC (Ecuador), GT (Guatemala), CU (Cuba), BO (Bolivia), DO (República Dominicana), HN (Honduras), PY (Paraguay), NI (Nicaragua), SV (El Salvador), CR (Costa Rica), PA (Panamá), UY (Uruguay). Use ISO 3166-1 alpha-2 codes.
 7. Assess TEMPORAL RELEVANCE - Are these current active threats or older discussions?
 
 OUTPUT FORMAT - Return ONLY a JSON object:
@@ -359,7 +359,7 @@ Extract and summarize the cybersecurity landscape from these posts:
 
 4. MENTIONED CVEs: CVE IDs referenced (prioritize ${currentYear-1}-${currentYear})
 
-5. MENTIONED COUNTRIES: Any geographic references? (ISO codes: US, CN, RU, etc.)
+5. MENTIONED COUNTRIES: Any geographic references? PRIORITIZE LATIN AMERICA: MX, BR, AR, CO, CL, PE, VE, EC, GT, CU, BO, DO, HN, PY, NI, SV, CR, PA, UY. Also accept: US, CN, RU, etc.
 
 6. THREAT ACTORS: Any APT groups, threat actors, or attribution mentioned?
 
@@ -456,11 +456,12 @@ Urgency: ${synthesis.urgency}
 SHODAN QUERY GENERATION RULES:
 1. Generate 2-3 highly targeted queries
 2. Use PRODUCT + PORT combinations for precision (e.g., "product:Apache port:80")
-3. If countries mentioned, use geographic filters (e.g., "product:SSH country:CN")
-4. For CVEs, use service-specific queries targeting vulnerable versions
-5. Avoid generic queries that return millions of results
-6. Consider attack vectors: if "credential stuffing" mentioned, target auth services
-7. Use plan-friendly syntax (avoid vuln:/cve: filters which require paid plans)
+3. If countries mentioned, use geographic filters - PRIORITIZE LATIN AMERICAN COUNTRIES: MX (México), BR (Brasil), AR (Argentina), CO (Colombia), CL (Chile), PE (Perú), etc.
+4. If NO countries mentioned, DEFAULT to Latin American countries: MX, BR, AR, CO, CL, PE
+5. For CVEs, use service-specific queries targeting vulnerable versions
+6. Avoid generic queries that return millions of results
+7. Consider attack vectors: if "credential stuffing" mentioned, target auth services
+8. Use plan-friendly syntax (avoid vuln:/cve: filters which require paid plans)
 
 QUERY STRATEGY:
 - Query 1: Most specific (service + port + country if available)

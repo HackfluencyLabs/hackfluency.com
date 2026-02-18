@@ -16,9 +16,10 @@ import {
   ScraperConfig
 } from '../types/index.js';
 
-// Query única optimizada - combina términos CTI en una sola búsqueda
-// Usa OR para capturar múltiples amenazas sin múltiples requests
-const CTI_QUERY = '(ransomware OR "data breach" OR CVE-2024 OR "zero-day" OR APT) (attack OR exploit OR campaign) -filter:replies min_faves:10';
+// Query enfocada en Latinoamérica - combina términos CTI con contexto regional
+// Incluye keywords en español y portugués para máxima cobertura regional
+// Prioriza amenazas frescas: CVE-2025 y CVE-2026
+const CTI_QUERY = '(ransomware OR "data breach" OR CVE-2025 OR CVE-2026 OR "zero-day" OR APT) (attack OR exploit OR campaign OR vulnerabilidad OR ataque OR explotación) (latam OR latinoamerica OR latinamerica OR brasil OR mexico OR méxico OR colombia OR argentina OR chile OR peru OR perú OR venezuela OR ecuador OR guatemala OR cuba OR bolivia OR "puerto rico" OR "costa rica" OR panama OR paraguay OR uruguay) -filter:replies min_faves:5';
 
 export class XScraper extends BaseScraper<XScrapedData> {
   private browser: Browser | null = null;
@@ -95,8 +96,8 @@ export class XScraper extends BaseScraper<XScrapedData> {
     const context = await this.browser.newContext({
       viewport: { width: 1920, height: 1080 },
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-      locale: 'en-US',
-      timezoneId: 'America/New_York'
+      locale: 'es-419',
+      timezoneId: 'America/Santiago'
     });
 
     this.page = await context.newPage();

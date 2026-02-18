@@ -22,6 +22,12 @@ import QueryPreprocessor from '../utils/query-preprocessor.js';
 // Variable global para queries contextuales del QueryGenerator
 let contextualQueries: string[] = [];
 
+// Países Latinoamericanos soportados (ISO 3166-1 alpha-2)
+const LATAM_COUNTRIES = [
+  'MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU',
+  'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY'
+];
+
 /**
  * Set contextual queries from QueryGenerator before running Shodan
  * This enables context-aware infrastructure discovery based on social intel
@@ -243,7 +249,7 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
     const preprocessor = new QueryPreprocessor();
     const processedQueries = preprocessor.processQueries(
       contextualQueries, 
-      this.capabilities.plan
+      this.capabilities.plan === 'unknown' ? 'dev' : this.capabilities.plan
     );
     
     console.log(`[ShodanScraper] Processing ${contextualQueries.length} queries, ${processedQueries.length} valid after optimization`);
@@ -339,9 +345,18 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
 
   /**
    * Busca hosts en Shodan
+   * Enfoque Latinoamérica: Valida que los resultados sean de países LATAM
    */
   private async searchHosts(query: string): Promise<ShodanHost[]> {
-    const url = `${this.baseUrl}/shodan/host/search?key=${this.apiKey}&query=${encodeURIComponent(query)}&limit=100`;
+    // Asegurar que la query incluya filtro de países LATAM si no lo tiene
+    let latamQuery = query;
+    if (!query.toLowerCase().includes('country:')) {
+      // Si no tiene filtro de país, agregar filtro de países LATAM
+      const countryFilter = LATAM_COUNTRIES.map(c => `country:${c}`).join(' OR ');
+      latamQuery = `(${query}) AND (${countryFilter})`;
+    }
+
+    const url = `${this.baseUrl}/shodan/host/search?key=${this.apiKey}&query=${encodeURIComponent(latamQuery)}&limit=100`;
     
     const response = await fetch(url);
     

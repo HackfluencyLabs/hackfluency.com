@@ -44,6 +44,9 @@ env:
   # SPECIALIST (CybersecurityThreatAnalysisV2): Shodan queries, CVEs, ports, technical IOCs
   OLLAMA_MODEL_REASONER: phi4-mini
   OLLAMA_MODEL_SPECIALIST: ALIENTELLIGENCE/cybersecuritythreatanalysisv2
+  # Translation model for multi-language support
+  TRANSLATION_MODEL: translategemma:4b
+  TARGET_LANGUAGE: 'Spanish (Latin America)'
   # No fallback: pipeline aborts if models are unavailable
 
 jobs:
@@ -66,7 +69,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ollama
-          key: ollama-dual-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}
+          key: ollama-triple-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}-${{ env.TRANSLATION_MODEL }}
 
       - name: Rebuild History - Clean Data Only
         if: ${{ inputs.rebuild_history }}
@@ -115,14 +118,25 @@ jobs:
           echo "OLLAMA_MODEL_REASONER=${{ env.OLLAMA_MODEL_REASONER }}" >> "$GITHUB_ENV"
           echo "OLLAMA_MODEL_SPECIALIST=${{ env.OLLAMA_MODEL_SPECIALIST }}" >> "$GITHUB_ENV"
 
-          echo "=== Testing both models ==="
+          echo "=== Pulling TRANSLATION model (translategemma:4b) ==="
+          ollama pull "${{ env.TRANSLATION_MODEL }}"
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to pull translation model ${{ env.TRANSLATION_MODEL }}"
+            exit 1
+          fi
+          echo "✓ Translation model ready: ${{ env.TRANSLATION_MODEL }}"
+
+          echo "=== Testing all models ==="
           echo "Testing reasoner..."
           ollama run "${{ env.OLLAMA_MODEL_REASONER }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
           echo ""
           echo "Testing specialist..."
           ollama run "${{ env.OLLAMA_MODEL_SPECIALIST }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
           echo ""
-          echo "=== Models ready for CTI pipeline ==="
+          echo "Testing translation model..."
+          ollama run "${{ env.TRANSLATION_MODEL }}" "Translate 'Hello' to Spanish" --verbose 2>&1 | head -c 200 || true
+          echo ""
+          echo "=== All models ready for CTI pipeline ==="
 
       - name: Clear Cache (if flush requested)
         if: ${{ inputs.flush_cache && !inputs.rebuild_history }}
@@ -158,10 +172,10 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      # Dual-model pipeline execution:
+      # Triple-model pipeline execution:
       # 1. X.com scrape → 2. QueryGenerator (SPECIALIST) → 3. Contextual Shodan → 
-      # 4. Process → 5. CTI Agents (REASONER+SPECIALIST) → 6. Dashboard
-      - name: Run CTI Pipeline (Dual-Model)
+      # 4. Process → 5. CTI Agents (REASONER+SPECIALIST) → 6. Dashboard → 7. Translation
+      - name: Run CTI Pipeline (Triple-Model)
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
@@ -170,6 +184,8 @@ jobs:
           OLLAMA_HOST: http://localhost:11434
           OLLAMA_MODEL_REASONER: ${{ env.OLLAMA_MODEL_REASONER }}
           OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
+          TRANSLATION_MODEL: ${{ env.TRANSLATION_MODEL }}
+          TARGET_LANGUAGE: ${{ env.TARGET_LANGUAGE }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 
@@ -188,20 +204,6 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-      - name: Translate Dashboard to Spanish
-        if: ${{ success() }}
-        working-directory: ./scripts
-        env:
-          CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
-          TRANSLATION_DELAY: 50
-        run: |
-          echo "=== INSTALANDO DEPENDENCIAS DE TRADUCCIÓN ==="
-          npm ci
-          echo "=== TRADUCIENDO DASHBOARD AL ESPAÑOL ==="
-          echo "Input: $CTI_PUBLIC_DIR/cti-dashboard.json"
-          node cti-translator.js
-          echo "✓ Traducción completada"
-
       - name: Clear Cloudflare Cache
         if: ${{ success() }}
         run: |
@@ -217,5 +219,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git add ./eccentric-equator/public/data/cti-dashboard.json || true
           git add ./eccentric-equator/public/data/cti-dashboard-es.json || true
-          git diff --staged --quiet || git commit -m "chore: update CTI intelligence dashboard [cache-busted]"
+          git diff --staged --quiet || git commit -m "chore: update CTI intelligence dashboard (EN + ES) [cache-busted]"
           git push || true

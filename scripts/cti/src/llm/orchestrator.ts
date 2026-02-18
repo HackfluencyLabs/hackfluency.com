@@ -34,6 +34,7 @@ import {
   ModelMetadata
 } from '../types/index.js';
 import HistoricalCache from '../cache/historical-cache.js';
+import LLMTranslator from '../translation/llm-translator.js';
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 const STRATEGIC_MODEL = process.env.OLLAMA_MODEL_STRATEGIC || process.env.OLLAMA_MODEL_REASONER || 'phi4-mini';
@@ -51,19 +52,19 @@ function getCurrentDate(): string {
   if (envDate) {
     const date = new Date(envDate);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString('en-US', { 
+      return date.toLocaleDateString('es-ES', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric',
-        timeZone: 'UTC'
+        timeZone: 'America/Santiago'
       });
     }
   }
-  return new Date().toLocaleDateString('en-US', { 
+  return new Date().toLocaleDateString('es-ES', { 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric',
-    timeZone: 'UTC'
+    timeZone: 'America/Santiago'
   });
 }
 
@@ -306,6 +307,13 @@ export class CTIOrchestrator {
         assessmentLayer
       });
 
+      // Step 8: LLM Translation to Spanish
+      console.log('\n[Step 8] Translating dashboard to Spanish with TranslateGemma...');
+      const translator = new LLMTranslator();
+      const dashboardEs = await translator.translateDashboard(dashboard);
+      await this.saveDashboard(dashboardEs, 'cti-dashboard-es.json');
+      console.log('  ✓ Spanish dashboard saved: cti-dashboard-es.json');
+
       return {
         success: true,
         dashboard,
@@ -362,9 +370,10 @@ export class CTIOrchestrator {
     const currentDate = getCurrentDate();
     const currentYear = getCurrentYear();
     
-    const prompt = `You are a cybersecurity threat intelligence analyst. Analyze these security-related social media posts and extract structured threat intelligence signals.
+    const prompt = `You are a cybersecurity threat intelligence analyst specializing in Latin American cybersecurity landscape. Analyze these security-related social media posts and extract structured threat intelligence signals.
 
 CURRENT DATE: ${currentDate}
+REGIONAL CONTEXT: Focus on threats affecting LATIN AMERICA (México, Brasil, Argentina, Colombia, Chile, Perú, and other regional countries). Prioritize threats to regional critical infrastructure, financial sector, government, and telecommunications.
 TEMPORAL CONTEXT: Analyze posts as current intelligence from ${currentDate}. Recent threats (${currentYear-1}-${currentYear} CVEs, emerging attack patterns) should be prioritized over historical discussions.
 
 INPUT POSTS:
@@ -374,29 +383,32 @@ EXTRACTION REQUIREMENTS:
 1. THEMES: Identify 2-5 main security topics being discussed (e.g., "Ransomware Attacks", "Zero-Day Vulnerabilities", "APT Campaigns", "Data Breaches")
    - Use concise, standardized terminology
    - Focus on actionable threat categories
-   - Prioritize themes from recent posts (February 2026)
+   - Prioritize themes affecting Latin American organizations
+   - Consider Spanish/Portuguese threat terminology
 
 2. EXPLOITATION CLAIMS: Extract specific claims about active exploitation
-   - Look for phrases like "being exploited", "in the wild", "active attacks"
+   - Look for phrases like "being exploited", "in the wild", "active attacks", "en explotación", "ataques activos"
    - Include specific vulnerabilities being exploited
    - Note any proof-of-concept releases
    - Check for recent CVEs (2025-2026) indicating current campaigns
 
 3. TONE ASSESSMENT: Determine the confidence level of the intelligence
-   - "confirmed": Multiple sources, official advisories, observed attacks, recent confirmations (Feb 2026)
+   - "confirmed": Multiple sources, official advisories (CSIRTs, CERTs), observed attacks, recent confirmations
    - "speculative": Single source, unverified claims, rumors
    - "mixed": Combination of confirmed and speculative information
 
-4. TEMPORAL ANALYSIS: Consider the posting dates and threat timelines
-   - Are these current active threats or older discussions?
-   - Look for urgency indicators ("just released", "breaking", "0-day")
+4. REGIONAL RELEVANCE: Assess threat relevance to Latin America
+   - Are targets in the region mentioned?
+   - Any references to LATAM financial sector, government, critical infrastructure?
+   - Consider local threat actors or regional campaigns
 
 ANALYSIS GUIDELINES:
 - Be precise and factual
 - Avoid speculation beyond what's in the posts
 - Use lowercase for themes unless proper nouns
-- Prioritize recent and specific threats (February 2026 context)
+- Prioritize recent and specific threats (${currentDate} context)
 - Note any mentions of specific threat actor campaigns active in 2025-2026
+- Consider regional CERTs/CSIRTs as authoritative sources (CERT.br, CSIRT-MX, CLCERT, etc.)
 
 OUTPUT FORMAT - Return ONLY valid JSON:
 {"themes":["ransomware attacks","zero-day vulnerabilities"],"exploitation_claims":["CVE-2025-1234 being exploited in the wild"],"tone":"confirmed"}`;
@@ -571,9 +583,10 @@ Infrastructure CVEs: [${shodanDigest.uniqueCVEs.slice(0, 5).join(', ')}]`;
     const currentDate = getCurrentDate();
     const currentYear = getCurrentYear();
     
-    const prompt = `You are a senior cybersecurity technical analyst. Perform a technical assessment of the correlation between social threat intelligence and infrastructure exposure.
+    const prompt = `You are a senior cybersecurity technical analyst specializing in Latin American infrastructure security. Perform a technical assessment of the correlation between social threat intelligence and infrastructure exposure in the LATAM region.
 
 ANALYSIS DATE: ${currentDate}
+REGIONAL CONTEXT: Assessment focused on LATIN AMERICAN infrastructure (México, Brasil, Argentina, Colombia, Chile, Perú, and regional countries). Consider regional critical infrastructure patterns and common exposures in the region.
 TEMPORAL CONTEXT: Assess threats as of ${currentDate}. Prioritize CVEs from ${currentYear-1}-${currentYear} as they represent current attack vectors.
 
 ${compactInput}
@@ -585,12 +598,14 @@ ANALYSIS REQUIREMENTS:
    - Identify which CVEs affect exposed services (e.g., CVE-2024-XXXX affects Apache found on port 80)
    - Calculate approximate risk: (matching CVEs / total CVEs) * 100
    - Note any critical or high-severity CVEs present in both sources
+   - Consider regional software deployment patterns common in LATAM
 
 2. INFRASTRUCTURE EXPOSURE PATTERNS:
    - Analyze top exposed ports and services
    - Identify dangerous configurations (e.g., exposed databases, default credentials, outdated software)
    - Assess exposure scope: widespread (many hosts) vs targeted (specific services)
    - Note any high-risk combinations (e.g., RDP on port 3389, SSH with weak configs)
+   - Consider regional ISP patterns and common exposed services in LATAM
 
 3. TACTICAL CLASSIFICATION:
    Classify the threat as one of:
@@ -657,7 +672,7 @@ Provide detailed technical analysis (400-600 words) covering all four areas with
     const freshnessStatus = assessmentLayer.freshness.status;
 
     // Build concise input using structured signals
-    const prompt = `You are a C-level cybersecurity advisor. Synthesize threat intelligence into an executive briefing that aligns with the quantified risk assessment.
+    const prompt = `You are a C-level cybersecurity advisor specializing in Latin American market. Synthesize threat intelligence into an executive briefing that aligns with the quantified risk assessment for LATAM organizations.
 
 QUANTIFIED ASSESSMENT:
 - Risk Score: ${riskScore}/100 (${riskLevel.toUpperCase()} risk level)
@@ -670,12 +685,13 @@ SOCIAL INTELLIGENCE:
 - CVEs in Discussion: ${xSignals.cves.length > 0 ? xSignals.cves.slice(0, 5).join(', ') : 'None identified'}
 - Intelligence Tone: ${xSignals.tone} (confirmed/speculative/mixed)
 - Top Engagement: ${xSignals.topPosts.length} posts analyzed
+- Regional Focus: Latin American threat landscape
 
 INFRASTRUCTURE EXPOSURE:
-- Total Hosts Scanned: ${shodanDigest.totalHosts}
+- Total Hosts Scanned: ${shodanDigest.totalHosts} (Latin American infrastructure)
 - Vulnerable Hosts: ${shodanDigest.vulnerableHosts} (${shodanDigest.totalHosts > 0 ? Math.round((shodanDigest.vulnerableHosts / shodanDigest.totalHosts) * 100) : 0}%)
 - Top Exposed Services: ${shodanDigest.topPorts.slice(0, 3).map(p => `${p.service}:${p.port}`).join(', ')}
-- Geographic Distribution: ${shodanDigest.topCountries.slice(0, 3).map(c => `${c.country}(${c.count})`).join(', ')}
+- Geographic Distribution: ${shodanDigest.topCountries.slice(0, 3).map(c => `${c.country}(${c.count})`).join(', ')} (LATAM countries)
 
 TECHNICAL ANALYSIS:
 - Tactical Classification: ${technical.tacticalClassification} (${technical.confidenceLevel} confidence)
@@ -685,34 +701,36 @@ STRATEGIC SYNTHESIS REQUIREMENTS:
 
 1. EXECUTIVE SUMMARY (3-5 sentences):
    - MUST align with ${riskLevel} risk level (${riskScore}/100)
-   - Cover: threat scope, potential impact, and confidence level
-   - Be specific about what threats were identified
-   - Use clear, actionable language suitable for executives
+   - Cover: threat scope specific to Latin American organizations, potential impact on regional critical infrastructure, and confidence level
+   - Be specific about what threats were identified affecting LATAM
+   - Use clear, actionable language suitable for executives in Latin America
+   - Consider regional context: financial sector, government, telecommunications, critical infrastructure
    - Risk level tone guide:
-     * LOW (0-25): "Routine monitoring, minimal exposure"
-     * MODERATE (25-50): "Moderate vigilance, some exposure detected"
-     * ELEVATED (50-75): "Elevated risk, active threats require attention"
-     * CRITICAL (75-100): "Critical threat, immediate action required"
+     * LOW (0-25): "Routine monitoring, minimal exposure in regional infrastructure"
+     * MODERATE (25-50): "Moderate vigilance, some exposure detected in LATAM systems"
+     * ELEVATED (50-75): "Elevated risk, active threats require attention in regional organizations"
+     * CRITICAL (75-100): "Critical threat, immediate action required to protect LATAM infrastructure"
 
 2. KEY FINDINGS (3 bullet points):
-   - Most critical observation with specific evidence
-   - Infrastructure exposure assessment
-   - Intelligence confidence and reliability note
+   - Most critical observation with specific evidence affecting Latin America
+   - Infrastructure exposure assessment in regional context
+   - Intelligence confidence and reliability note (consider regional CERT/CSIRT sources)
 
 3. CORRELATION ANALYSIS (2-3 sentences):
-   - Explain how social discussions relate to infrastructure findings
-   - Cite specific CVEs, services, or patterns that align
-   - Note any gaps or uncertainties
+   - Explain how social discussions relate to infrastructure findings in LATAM
+   - Cite specific CVEs, services, or patterns that align with regional exposure
+   - Note any gaps or uncertainties in regional coverage
 
-4. RECOMMENDED ACTIONS (4-5 specific priorities):
+4. RECOMMENDED ACTIONS (4-5 specific priorities for LATAM organizations):
    - Must be appropriate for ${riskLevel} risk level
-   - Include immediate tactical steps
-   - Include strategic improvements
+   - Include immediate tactical steps relevant to regional infrastructure
+   - Include strategic improvements considering LATAM cybersecurity maturity
    - Be specific: "Patch CVE-XXXX" not just "Apply patches"
-   - Prioritize by urgency
+   - Prioritize by urgency for regional critical sectors (finance, government, telecom)
+   - Consider coordination with regional CERTs/CSIRTs (CERT.br, CSIRT-MX, CLCERT, etc.)
 
 RESPONSE FORMAT:
-Structure with clear headers. Provide comprehensive analysis (500-800 words) with specific evidence from the data.`;
+Structure with clear headers. Provide comprehensive analysis (500-800 words) with specific evidence from the data focused on Latin American cybersecurity context.`;
 
     // Check token budget
     this.assertTokenBudget(prompt, STRATEGIC_TOKEN_LIMIT, 'Strategic Synthesis');
@@ -1828,6 +1846,22 @@ Structure with clear headers. Provide comprehensive analysis (500-800 words) wit
       await fs.mkdir(this.outputDir, { recursive: true });
       await fs.writeFile(path.join(this.outputDir, 'orchestrator-debug.json'), JSON.stringify(outputs, null, 2));
     } catch { /* non-critical */ }
+  }
+
+  /**
+   * Guarda el dashboard traducido en el directorio de salida público
+   */
+  private async saveDashboard(dashboard: any, filename: string): Promise<void> {
+    try {
+      const publicDir = process.env.CTI_PUBLIC_DIR || './eccentric-equator/public/data';
+      await fs.mkdir(publicDir, { recursive: true });
+      await fs.writeFile(
+        path.join(publicDir, filename),
+        JSON.stringify(dashboard, null, 2)
+      );
+    } catch (error) {
+      console.error(`[Orchestrator] Failed to save ${filename}:`, error);
+    }
   }
 
   // ==================== Empty State Factories ====================

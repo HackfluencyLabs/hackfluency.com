@@ -39,6 +39,37 @@ export enum DataSource {
   ABUSE_CH = 'abuse.ch'
 }
 
+// Países Latinoamericanos - Enfoque Regional CTI
+export const LATAM_COUNTRIES = [
+  'MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU',
+  'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY'
+] as const;
+
+export type LatamCountryCode = typeof LATAM_COUNTRIES[number];
+
+// Mapeo de códigos a nombres de países
+export const LATAM_COUNTRY_NAMES: Record<LatamCountryCode, string> = {
+  MX: 'México',
+  BR: 'Brasil',
+  AR: 'Argentina',
+  CO: 'Colombia',
+  CL: 'Chile',
+  PE: 'Perú',
+  VE: 'Venezuela',
+  EC: 'Ecuador',
+  GT: 'Guatemala',
+  CU: 'Cuba',
+  BO: 'Bolivia',
+  DO: 'República Dominicana',
+  HN: 'Honduras',
+  PY: 'Paraguay',
+  NI: 'Nicaragua',
+  SV: 'El Salvador',
+  CR: 'Costa Rica',
+  PA: 'Panamá',
+  UY: 'Uruguay'
+};
+
 // ==================== Base Interfaces ====================
 
 export interface BaseScrapedData {

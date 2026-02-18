@@ -12,6 +12,11 @@ export interface ProcessedQuery {
 }
 
 export class QueryPreprocessor {
+  // Países Latinoamericanos para enfoque regional
+  static readonly LATAM_COUNTRIES = [
+    'MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU', 'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY'
+  ];
+
   // Patrones de queries Shodan válidos por categoría
   private static readonly VALID_FILTERS = [
     // Productos y servicios
@@ -202,10 +207,10 @@ export class QueryPreprocessor {
     );
 
     // O puede ser un IP o rango
-    const isIpOrRange = query.match(/\d{1,3}\.\d{1,3}\.\d{1,3}/);
+    const isIpOrRange = query.match(/\d{1,3}\.\d{1,3}\.\d{1,3}/) !== null;
 
     // O puede ser after:/before:
-    const isTimeQuery = query.match(/^(after|before):\d+$/);
+    const isTimeQuery = query.match(/^(after|before):\d+$/) !== null;
 
     return hasValidFilter || isKnownProduct || isIpOrRange || isTimeQuery;
   }
@@ -236,14 +241,17 @@ export class QueryPreprocessor {
 
   /**
    * Query de fallback cuando no hay contexto
+   * Enfoque Latinoamérica: Queries con países LATAM
    */
   getFallbackQuery(plan: string): ProcessedQuery {
-    // Para plan dev, usar queries que seguro tienen resultados
+    // Para plan dev, usar queries enfocadas en Latinoamérica
     const fallbackQueries = [
-      'product:apache port:80',
-      'product:nginx port:443',
-      'port:22',
-      'after:1',
+      'product:apache country:MX',
+      'product:nginx country:BR',
+      'port:22 country:AR',
+      'product:mysql country:CO',
+      'port:443 country:CL',
+      'product:postgresql country:PE',
     ];
 
     const query = fallbackQueries[Math.floor(Math.random() * fallbackQueries.length)];
@@ -252,13 +260,14 @@ export class QueryPreprocessor {
       query,
       original: 'fallback',
       isValid: true,
-      optimizations: ['Using fallback query for plan developer'],
-      estimatedResults: 'high'
+      optimizations: ['Using LATAM-focused fallback query for regional infrastructure scanning'],
+      estimatedResults: 'medium'
     };
   }
 
   /**
    * Genera queries a partir de indicadores extraídos
+   * Enfoque Latinoamérica: Prioriza países LATAM en todas las queries
    */
   generateQueriesFromIndicators(indicators: {
     products?: string[];
@@ -268,60 +277,76 @@ export class QueryPreprocessor {
     orgs?: string[];
   }, plan: string = 'dev'): ProcessedQuery[] {
     const queries: string[] = [];
-    const countries = indicators.countries || [];
+    let countries = indicators.countries || [];
+
+    // Si no hay países específicos, usar países LATAM por defecto
+    if (countries.length === 0) {
+      countries = QueryPreprocessor.LATAM_COUNTRIES.slice(0, 5); // Top 5: MX, BR, AR, CO, CL
+    } else {
+      // Filtrar solo países LATAM, si no hay, agregar MX como fallback
+      const latamOnly = countries.filter(c => QueryPreprocessor.LATAM_COUNTRIES.includes(c.toUpperCase()));
+      if (latamOnly.length === 0) {
+        countries = ['MX', 'BR', 'AR'];
+      } else {
+        countries = latamOnly;
+      }
+    }
 
     if (countries.length > 0) {
       const country = countries[0];
-      
+
       if (indicators.products && indicators.products.length > 0) {
         const product = indicators.products[0].toLowerCase();
         queries.push(`product:${product} country:${country}`);
       }
-      
+
       if (indicators.ports && indicators.ports.length > 0) {
         const port = indicators.ports[0];
         if (!queries.some(q => q.includes(`port:${port}`) && q.includes(`country:${country}`))) {
           queries.push(`port:${port} country:${country}`);
         }
       }
-      
+
       if (queries.length === 0) {
         queries.push(`ssh country:${country}`);
       }
     }
 
-    // Producto + Puerto (mejor combinación sin país)
+    // Producto + Puerto + País LATAM (combinación óptima para la región)
     if (indicators.products && indicators.products.length > 0) {
       const product = indicators.products[0].toLowerCase();
-      const port = indicators.ports && indicators.ports.length > 0 
-        ? indicators.ports[0] 
+      const port = indicators.ports && indicators.ports.length > 0
+        ? indicators.ports[0]
         : this.getDefaultPortForProduct(product);
-      
-      const query = `product:${product} port:${port}`;
+      const country = countries[0] || 'MX';
+
+      const query = `product:${product} port:${port} country:${country}`;
       if (!queries.includes(query)) {
         queries.push(query);
       }
     }
 
-    // Solo puerto si hay varios
+    // Solo puerto + País LATAM si hay varios
     if (indicators.ports && indicators.ports.length > 0) {
       const port = indicators.ports[0];
-      if (!queries.some(q => q.includes(`port:${port}`))) {
-        queries.push(`port:${port} product:apache`);
+      const country = countries[1] || countries[0] || 'BR';
+      if (!queries.some(q => q.includes(`port:${port}`) && q.includes(`country:`))) {
+        queries.push(`port:${port} country:${country}`);
       }
     }
 
-    // Producto específico
+    // Producto específico + País LATAM
     if (indicators.products && indicators.products.length > 1) {
       const product = indicators.products[1].toLowerCase();
-      if (!queries.some(q => q.includes(product))) {
-        queries.push(`product:${product}`);
+      const country = countries[2] || countries[0] || 'AR';
+      if (!queries.some(q => q.includes(product) && q.includes(`country:`))) {
+        queries.push(`product:${product} country:${country}`);
       }
     }
 
-    // Si no hay nada, usar fallback
+    // Si no hay nada, usar fallback con países LATAM
     if (queries.length === 0) {
-      queries.push('after:1');
+      queries.push('product:apache country:MX');
     }
 
     return this.processQueries(queries, plan as any);
