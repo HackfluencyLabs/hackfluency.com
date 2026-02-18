@@ -123,6 +123,161 @@ const values = [
     });
   </script>
 
+  <!-- Newsletter Subscription Script -->
+  <script>
+    // ===== CONFIGURATION =====
+    const SUPABASE_URL = "https://yfofmawbvlontugygfcj.supabase.co/rest/v1/emails";
+    const SUPABASE_ANON_KEY = "sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz";
+
+    const MAX_EMAIL_LENGTH = 254;
+    const ALLOWED_EMAIL_CHARS = /^[a-zA-Z0-9@._-]+$/;
+
+    // ===== DOM ELEMENTS =====
+    const emailInput = document.getElementById("email-input");
+    const message = document.getElementById("form-message");
+
+    // ===== VALIDATION FUNCTIONS =====
+
+    /**
+     * Sanitizes email: trim and remove disallowed characters
+     */
+    function sanitizeEmail(email) {
+      email = email.trim();
+      email = email.replace(/[^a-zA-Z0-9@._-]/g, '');
+      return email;
+    }
+
+    /**
+     * Validates email format with regex
+     */
+    function validateEmailFormat(email) {
+      const emailRegex = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
+      return emailRegex.test(email);
+    }
+
+    /**
+     * Validates email length (RFC 5321: 254 characters)
+     */
+    function validateEmailLength(email) {
+      return email.length <= MAX_EMAIL_LENGTH;
+    }
+
+    /**
+     * Full email validation
+     * Returns { valid: boolean, error?: string }
+     */
+    function validateEmail(email) {
+      if (!email) {
+        return { valid: false, error: "Email is required" };
+      }
+
+      if (!validateEmailLength(email)) {
+        return { valid: false, error: `Email exceeds ${MAX_EMAIL_LENGTH} characters` };
+      }
+
+      if (!ALLOWED_EMAIL_CHARS.test(email)) {
+        return { valid: false, error: "Invalid characters. Only letters, numbers, @._- allowed" };
+      }
+
+      if (!validateEmailFormat(email)) {
+        return { valid: false, error: "Invalid email format. Use user@domain.com" };
+      }
+
+      return { valid: true };
+    }
+
+    // ===== REAL-TIME VALIDATION =====
+    if (emailInput && message) {
+      emailInput.addEventListener("input", function(e) {
+        const email = e.target.value;
+        const validation = validateEmail(email);
+
+        if (email.length === 0) {
+          message.textContent = "";
+          message.className = "form-message";
+          return;
+        }
+
+        if (!validation.valid) {
+          message.textContent = validation.error;
+          message.className = "form-message error";
+          return;
+        }
+
+        message.textContent = "Valid email";
+        message.className = "form-message success";
+      });
+
+      // Clear message on blur if empty
+      emailInput.addEventListener("blur", function(e) {
+        const email = e.target.value;
+        if (email.length === 0) {
+          message.textContent = "";
+          message.className = "form-message";
+        }
+      });
+
+      // ===== FORM SUBMISSION =====
+      document
+        .getElementById("subscribe-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const email = sanitizeEmail(emailInput.value);
+          const validation = validateEmail(email);
+
+          // Pre-submit validation
+          if (!validation.valid) {
+            message.textContent = validation.error;
+            message.className = "form-message error";
+            return;
+          }
+
+          // Status: submitting
+          message.className = "form-message info";
+          message.textContent = "Subscribing...";
+
+          try {
+            const response = await fetch(SUPABASE_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Prefer": "return=minimal"
+              },
+              body: JSON.stringify({ email })
+            });
+
+            // Success: email inserted
+            if (response.status === 201 || response.status === 204) {
+              message.textContent = "Successfully subscribed!";
+              emailInput.value = "";
+              message.className = "form-message success";
+              return;
+            }
+
+            // Duplicate: email already exists
+            if (response.status === 409) {
+              message.textContent = "Already subscribed.";
+              message.className = "form-message warning";
+              return;
+            }
+
+            // Other server error
+            message.textContent = "Error. Please try again.";
+            message.className = "form-message error";
+
+          } catch (error) {
+            // Network error
+            console.error(error);
+            message.textContent = "Network error. Check connection.";
+            message.className = "form-message error";
+          }
+        });
+    }
+  </script>
+
   <!-- Navigation -->
   <nav class="nav">
     <div class="nav-container">
@@ -137,6 +292,7 @@ const values = [
         <a href="/dashboards">Sign-In</a>
       </div>
       <div class="nav-actions">
+        <a href="/cti/" class="nav-btn-threat">Threat Intelligence</a>
         <a href="/dashboards" class="nav-btn-dashboard">Sign-In</a>
         <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="nav-cta">Book a Call</a>
       </div>
@@ -157,6 +313,7 @@ const values = [
           <a href="/dashboards" class="mobile-nav-link">Sign-In</a>
         </nav>
         <div class="mobile-nav-actions">
+          <a href="/cti/" class="mobile-nav-btn-threat">Threat Intelligence</a>
           <a href="/dashboards" class="mobile-nav-btn-dashboard">Sign-In</a>
           <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="mobile-nav-cta">Book a Call</a>
         </div>
@@ -414,7 +571,25 @@ const values = [
             <a href="https://matrix.to/#/#eXcomm:matrix.org" target="_blank" rel="noopener noreferrer" aria-label="Join our Matrix community">Matrix</a>
           </nav>
         </div>
-      </div>
+        </div>
+
+        <!-- Newsletter Subscription -->
+        <div class="newsletter-section">
+          <h4 class="newsletter-title">Stay Updated</h4>
+          <p class="newsletter-subtitle">Get the latest cybersecurity insights and company updates.</p>
+          <form id="subscribe-form" class="subscribe-form">
+            <input
+              type="email"
+              id="email-input"
+              placeholder="your@email.com"
+              required
+              aria-label="Email address"
+              autocomplete="email"
+            />
+            <button type="submit" class="subscribe-btn">Subscribe</button>
+            <p id="form-message" class="form-message"></p>
+          </form>
+        </div>
 
       <!-- Trustpilot Widget Section -->
       <div class="trustpilot-section">
@@ -551,6 +726,29 @@ const values = [
     .nav-actions {
       display: flex;
     }
+  }
+
+  .nav-btn-threat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #0099FF 0%, #00B4D8 100%);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(0, 153, 255, 0.3);
+  }
+
+  .nav-btn-threat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 153, 255, 0.5);
+    background: linear-gradient(135deg, #00B4D8 0%, #0099FF 100%);
   }
 
   .nav-btn-dashboard {
@@ -1436,6 +1634,119 @@ const values = [
     color: var(--gray-400);
   }
 
+  /* Newsletter Subscription */
+  .newsletter-section {
+    text-align: center;
+    padding: 32px 24px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin-bottom: 48px;
+  }
+
+  .newsletter-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .newsletter-subtitle {
+    font-size: 0.9rem;
+    color: var(--gray-400);
+    margin-bottom: 20px;
+  }
+
+  .subscribe-form {
+    display: flex;
+    gap: 12px;
+    max-width: 480px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .subscribe-form input[type="email"] {
+    flex: 1;
+    min-width: 220px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--white);
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .subscribe-form input[type="email"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 210, 106, 0.1);
+  }
+
+  .subscribe-form input[type="email"]::placeholder {
+    color: var(--gray-500);
+  }
+
+  .subscribe-btn {
+    padding: 14px 28px;
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: 10px;
+    color: #000000;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .subscribe-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--primary-glow);
+  }
+
+  .subscribe-btn:active {
+    transform: scale(0.98);
+  }
+
+  .form-message {
+    width: 100%;
+    font-size: 0.85rem;
+    margin-top: 12px;
+    min-height: 1.2em;
+    text-align: center;
+    transition: color 0.3s ease;
+  }
+
+  .form-message.success {
+    color: var(--primary);
+  }
+
+  .form-message.error {
+    color: #ff453a;
+  }
+
+  .form-message.warning {
+    color: #ffd60a;
+  }
+
+  .form-message.info {
+    color: var(--gray-400);
+  }
+
+  @media (max-width: 640px) {
+    .subscribe-form {
+      flex-direction: column;
+    }
+
+    .subscribe-form input[type="email"],
+    .subscribe-btn {
+      width: 100%;
+    }
+  }
+
   /* Trustpilot Widget Section */
   .trustpilot-section {
     padding: 40px 0;
@@ -1538,6 +1849,29 @@ const values = [
     transition: all 0.3s ease;
     min-height: 56px;
     text-decoration: none;
+  }
+  
+  .mobile-nav-btn-threat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #0099FF 0%, #00B4D8 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    min-height: 56px;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(0, 153, 255, 0.3);
+  }
+  
+  .mobile-nav-btn-threat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 153, 255, 0.5);
+    background: linear-gradient(135deg, #00B4D8 0%, #0099FF 100%);
   }
   
   .mobile-nav-btn-dashboard:hover {

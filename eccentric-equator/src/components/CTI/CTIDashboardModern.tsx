@@ -20,6 +20,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { I18nProvider, useI18n, LanguageSwitcher } from '../../i18n/index.jsx';
+import { subscribeEmail } from '../../lib/subscription';
 
 // Types matching the JSON structure
 interface DashboardData {
@@ -1396,7 +1397,85 @@ const CTIDashboardInner: React.FC = () => {
           </div>
         </div>
 
-
+        {/* Newsletter Subscription */}
+        <div style={{
+          marginTop: '24px',
+          padding: '24px',
+          background: 'linear-gradient(135deg, #0a1428 0%, #0a1a2e 100%)',
+          borderRadius: '14px',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          boxShadow: '0 0 30px rgba(59, 130, 246, 0.15)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #0099FF 0%, #00B4D8 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(0, 153, 255, 0.4)',
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', fontFamily: 'Space Grotesk' }}>
+                Receive Updates Directly in your Email
+              </div>
+              <div style={{ fontSize: '12px', color: '#888' }}>
+                Get the latest threat intelligence delivered to your inbox
+              </div>
+            </div>
+          </div>
+          
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const input = e.currentTarget.elements.namedItem('email') as HTMLInputElement;
+            const msgEl = document.getElementById('cti-form-message');
+            const result = await subscribeEmail(input.value);
+            if (msgEl) {
+              msgEl.textContent = result.message;
+              msgEl.style.color = result.success ? '#00D26A' : '#ff453a';
+            }
+            if (result.success) input.value = '';
+          }} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <input
+              type="email"
+              name="email"
+              placeholder="your@email.com"
+              required
+              style={{
+                flex: '1',
+                minWidth: '200px',
+                padding: '12px 16px',
+                background: 'rgba(0, 0, 0, 0.3)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: '8px',
+                color: '#ffffff',
+                fontSize: '14px',
+                outline: 'none',
+              }}
+            />
+            <button type="submit" style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #0099FF 0%, #00B4D8 100%)',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(0, 153, 255, 0.3)',
+            }}>
+              Subscribe
+            </button>
+          </form>
+          <p id="cti-form-message" style={{ marginTop: '12px', fontSize: '13px', minHeight: '20px' }}></p>
+        </div>
       </div>
     </div>
   );
