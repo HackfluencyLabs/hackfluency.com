@@ -1,0 +1,16 @@
+[LLMTranslator] Translating 2/118 (2213 chars)
+[LLMTranslator] Translation failed for string 1: DOMException [AbortError]: This operation was aborted
+[LLMTranslator] Translating 3/118 (46 chars)
+    at node:internal/deps/undici/undici:14902:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async LLMTranslator.callTranslateGemma (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/translation/llm-translator.ts:294:24)
+    at async LLMTranslator.translateBatch (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/translation/llm-translator.ts:272:28)
+    at async LLMTranslator.translateDashboard (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/translation/llm-translator.ts:172:31)
+    at async CTIOrchestrator.run (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/llm/orchestrator.ts:313:27)
+    at async runAnalysis (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/index.ts:124:18)
+    at async runFullPipeline (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/index.ts:177:26)
+    at async main (/home/runner/work/hackfluency.com/hackfluency.com/scripts/cti/src/index.ts:213:9)
+[LLMTranslator] Translating 4/118 (36 chars)
+[LLMTranslator] Translating 5/118 (59 chars)
+[LLMTranslator] Translating 6/118 (203 chars)
+[LLMTranslator] Translating 7/118 (301 chars)

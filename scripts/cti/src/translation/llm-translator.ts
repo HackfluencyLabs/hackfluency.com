@@ -283,14 +283,21 @@ export class LLMTranslator {
 
   /**
    * Llama a translategemma via Ollama para un solo texto
+   * Timeout proporcional al tamaño del texto (aprox 1000 chars por minuto)
    */
-  private async callTranslateGemma(text: string): Promise<string> {
+  private async callTranslateGemma(text: string, attempt: number = 1): Promise<string> {
     const prompt = this.buildTranslationPrompt(text);
 
+    // Calcular timeout basado en longitud del texto
+    // Base: 30 segundos + 3 segundos por cada 100 caracteres
+    const timeoutMs = Math.min(30000 + (text.length * 30), 300000); // Max 5 minutos
+
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000); // 1 min timeout por texto
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
+      console.log(`[LLMTranslator] Calling Ollama (${text.length} chars, timeout: ${Math.round(timeoutMs/1000)}s, attempt: ${attempt})`);
+
       const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -301,7 +308,7 @@ export class LLMTranslator {
           stream: false,
           options: {
             temperature: 0.1,
-            num_predict: Math.min(text.length * 2, 4000), // Ajustar según longitud del texto
+            num_predict: Math.min(text.length * 2, 4000),
             top_p: 0.95,
           },
         }),
@@ -313,6 +320,13 @@ export class LLMTranslator {
 
       const data = await response.json() as { response: string };
       return data.response.trim();
+    } catch (error) {
+      if (attempt < 3) {
+        console.log(`[LLMTranslator] Attempt ${attempt} failed, retrying in ${attempt * 2}s...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+        return this.callTranslateGemma(text, attempt + 1);
+      }
+      throw error;
     } finally {
       clearTimeout(timeout);
     }
