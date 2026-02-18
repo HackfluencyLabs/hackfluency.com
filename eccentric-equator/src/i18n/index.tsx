@@ -159,6 +159,14 @@ const translations: Record<Language, Translations> = {
     'dashboard.factor.infraSocialAlignment.desc': 'Overall alignment between infrastructure and social indicators',
     'dashboard.analysisMethods': 'Analysis Methods',
     'dashboard.modelsUsed': 'Models Used',
+    
+    // Subscription
+    'subscription.title': 'Receive Updates Directly in your Email',
+    'subscription.subtitle': 'Get the latest threat intelligence delivered to your inbox',
+    'subscription.placeholder': 'your@email.com',
+    'subscription.button': 'Subscribe',
+    'subscription.success': 'Successfully subscribed! Check your email.',
+    'subscription.error': 'Subscription failed. Please try again.',
     'dashboard.strategic': 'Strategic',
     'dashboard.technical': 'Technical',
     'dashboard.quantization': 'Quantization',
@@ -511,6 +519,14 @@ const translations: Record<Language, Translations> = {
     'dashboard.temporalProximity': 'Proximidad Temporal',
     'dashboard.infraSocialAlignment': 'Alineación Infra-Social',
     'dashboard.analysisMethods': 'Métodos de Análisis',
+    
+    // Suscripción
+    'subscription.title': 'Recibe Actualizaciones Directamente en tu Email',
+    'subscription.subtitle': 'Obtén la última inteligencia de amenazas en tu bandeja de entrada',
+    'subscription.placeholder': 'tu@email.com',
+    'subscription.button': 'Suscribirse',
+    'subscription.success': '¡Suscripción exitosa! Revisa tu correo.',
+    'subscription.error': 'Error en la suscripción. Intenta de nuevo.',
   }
 };
 

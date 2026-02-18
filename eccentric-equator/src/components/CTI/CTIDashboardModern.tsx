@@ -22,6 +22,19 @@ import '@xyflow/react/dist/style.css';
 import { I18nProvider, useI18n, LanguageSwitcher } from '../../i18n/index.jsx';
 import { subscribeEmail } from '../../lib/subscription';
 
+// Helper to safely translate or use value directly if already translated
+const useSafeTranslate = (t: (key: string) => string) => {
+  return (key: string | undefined, fallbackValue?: string): string => {
+    if (!key) return fallbackValue || '';
+    // Try to get translation
+    const translated = t(key);
+    // If translation exists and is different from key, use it
+    if (translated !== key) return translated;
+    // Otherwise return the key itself (which might already be translated from backend)
+    return key;
+  };
+};
+
 // Types matching the JSON structure
 interface DashboardData {
   meta: { version: string; generatedAt: string; validUntil: string };
@@ -32,7 +45,7 @@ interface DashboardData {
   sources: Array<{ name: string; signalCount: number; lastUpdate: string }>;
   indicators: { cves: string[]; domains: string[]; ips: string[]; keywords: string[] };
   infrastructure?: { totalHosts: number; exposedPorts: Array<{ port: number; service: string; count: number; percentage: number }>; topCountries: Array<{ country: string; count: number }>; vulnerableHosts: number; sampleHosts?: Array<{ ip: string; port: number; service: string; vulns: string[] }> };
-  socialIntel?: { totalPosts: number; themes: string[]; tone: string; topPosts: Array<{ excerpt: string; author: string; engagement: number; url?: string }> };
+  socialIntel?: { totalPosts: number; themes: string[]; tone: string; topPosts: Array<{ excerpt: string; author: { username: string; displayName?: string; verified?: boolean } | string; engagement: number; url?: string }> };
   ctiAnalysis?: { model: string; killChainPhase: string; threatLandscape: string; analystBrief?: string; correlationStrength?: string; technicalAssessment?: string; methodologies?: string[] };
   assessmentLayer?: {
     correlation: { score: number; strength: string; explanation: string; factors?: { cveOverlap: number; serviceMatch: number; temporalProximity: number; infraSocialAlignment: number } };
@@ -431,11 +444,14 @@ const CTIDashboardInner: React.FC = () => {
 
     // ── Source cluster nodes (the two primary data sources) ──
     // Collect all social post URLs for the source node
-    const allPostUrls: SourceLink[] = (dashboardData.socialIntel?.topPosts || []).filter(p => p.url).map(p => ({
-      label: `@${p.author}`,
-      url: p.url!,
-      icon: '𝕏',
-    }));
+    const allPostUrls: SourceLink[] = (dashboardData.socialIntel?.topPosts || []).filter(p => p.url).map(p => {
+      const authorUsername = typeof p.author === 'string' ? p.author : p.author?.username || 'unknown';
+      return {
+        label: `@${authorUsername}`,
+        url: p.url!,
+        icon: '𝕏',
+      };
+    });
 
     const posts = dashboardData.socialIntel?.topPosts?.slice(0, 5) || [];
     const infraCves = dashboardData.indicators?.cves?.slice(1) || [];
@@ -515,6 +531,10 @@ const CTIDashboardInner: React.FC = () => {
     // ── Central correlation hub ──
     const corrScore = correlation?.score ?? 0;
     const corrStrength = correlation?.strength ?? 'weak';
+    const corrStrengthTranslated = translateFn(`correlation.strength.${corrStrength}`);
+    const corrStrengthDisplay = corrStrengthTranslated !== `correlation.strength.${corrStrength}` 
+      ? corrStrengthTranslated 
+      : corrStrength;
     const corrPct = Math.round(corrScore * 100);
     newNodes.push({
       id: 'correlation_hub',
@@ -522,10 +542,10 @@ const CTIDashboardInner: React.FC = () => {
       position: { x: 0, y: 0 },
       data: {
         label: `${corrPct}%\n${translateFn('node.correlation')}`,
-        type: corrStrength === 'strong' ? 'root' : corrStrength === 'moderate' ? 'killchain' : 'keyword',
+        type: corrStrength === 'strong' || corrStrength === 'fuerte' ? 'root' : corrStrength === 'moderate' || corrStrength === 'moderada' ? 'killchain' : 'keyword',
         size: 140,
-        info: `${translateFn('assessment.correlation')}: ${translateFn(`correlation.strength.${corrStrength}`)} (${corrPct}%)\n${translateFn('dashboard.cveOverlap')}: ${Math.round(cveOverlap * 100)}%\n${translateFn('dashboard.serviceMatch')}: ${Math.round(serviceMatch * 100)}%\n${translateFn('dashboard.temporalProximity')}: ${Math.round(temporalProximity * 100)}%\n${translateFn('dashboard.infraSocialAlignment')}: ${Math.round((factors?.infraSocialAlignment ?? 0) * 100)}%`,
-        connections: [correlation?.explanation || t('dashboard.noExplanation')],
+        info: `${translateFn('assessment.correlation')}: ${corrStrengthDisplay} (${corrPct}%)\n${translateFn('dashboard.cveOverlap')}: ${Math.round(cveOverlap * 100)}%\n${translateFn('dashboard.serviceMatch')}: ${Math.round(serviceMatch * 100)}%\n${translateFn('dashboard.temporalProximity')}: ${Math.round(temporalProximity * 100)}%\n${translateFn('dashboard.infraSocialAlignment')}: ${Math.round((factors?.infraSocialAlignment ?? 0) * 100)}%`,
+        connections: [correlation?.explanation || translateFn('dashboard.noExplanation')],
       },
     });
 
@@ -560,11 +580,12 @@ const CTIDashboardInner: React.FC = () => {
     // ── Social intel sub-nodes (actors) ──
     posts.forEach((post, i) => {
       const id = `actor_${i}`;
-      const label = post.author.length > 12 ? post.author.substring(0, 10) + '..' : post.author;
+      const authorUsername = typeof post.author === 'string' ? post.author : post.author?.username || 'unknown';
+      const label = authorUsername.length > 12 ? authorUsername.substring(0, 10) + '..' : authorUsername;
       const angle = (-Math.PI / 2) + (i / Math.max(posts.length - 1, 1)) * Math.PI;
       const actorLinks: SourceLink[] = [];
       if (post.url) actorLinks.push({ label: 'View Post on X', url: post.url, icon: '𝕏' });
-      actorLinks.push({ label: `@${post.author} Profile`, url: `https://x.com/${post.author}`, icon: '👤' });
+      actorLinks.push({ label: `@${authorUsername} Profile`, url: `https://x.com/${authorUsername}`, icon: '👤' });
 
       newNodes.push({
         id,
@@ -576,7 +597,7 @@ const CTIDashboardInner: React.FC = () => {
           size: 75,
           parentId: 'social_source',
           hidden: true,
-          info: `Author: @${post.author}\nEngagement: ${post.engagement}\n${post.excerpt?.substring(0, 100)}...`,
+          info: `Author: @${authorUsername}\nEngagement: ${post.engagement}\n${post.excerpt?.substring(0, 100)}...`,
           connections: dashboardData.socialIntel?.themes?.slice(0, 2) || [],
           links: actorLinks,
         },
@@ -707,6 +728,11 @@ const CTIDashboardInner: React.FC = () => {
 
     // ── Kill Chain Phase (connected to correlation hub) ──
     const killChain = dashboardData.ctiAnalysis?.killChainPhase || 'Unknown';
+    const classificationType = dashboardData.assessmentLayer?.classification?.type || 'unknown';
+    const classificationTranslated = translateFn(`classification.type.${classificationType}`);
+    const classificationDisplay = classificationTranslated !== `classification.type.${classificationType}` 
+      ? classificationTranslated 
+      : classificationType;
     newNodes.push({
       id: 'killchain',
       type: 'ctiNode',
@@ -715,7 +741,7 @@ const CTIDashboardInner: React.FC = () => {
         label: killChain.toUpperCase(),
         type: 'killchain',
         size: 95,
-        info: `${translateFn('dashboard.killChain')}: ${killChain}\n${translateFn('assessment.classification')}: ${translateFn(`classification.type.${dashboardData.assessmentLayer?.classification?.type || 'unknown'}`)}\n${translateFn('status.confidence')}: ${dashboardData.assessmentLayer?.classification?.confidence || 0}%\n${dashboardData.assessmentLayer?.classification?.rationale || ''}`,
+        info: `${translateFn('dashboard.killChain')}: ${killChain}\n${translateFn('assessment.classification')}: ${classificationDisplay}\n${translateFn('status.confidence')}: ${dashboardData.assessmentLayer?.classification?.confidence || 0}%\n${dashboardData.assessmentLayer?.classification?.rationale || ''}`,
         connections: dashboardData.assessmentLayer?.classification?.indicators || [],
         links: [
           { label: 'MITRE ATT&CK', url: 'https://attack.mitre.org/', icon: '🎯' },
@@ -728,7 +754,7 @@ const CTIDashboardInner: React.FC = () => {
       source: 'correlation_hub',
       target: 'killchain',
       style: { stroke: '#F59E0B', strokeWidth: 2 },
-      label: translateFn(`classification.type.${dashboardData.assessmentLayer?.classification?.type || 'unknown'}`),
+      label: classificationDisplay,
       labelStyle: { fill: '#F59E0B', fontSize: 10 },
       labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.9 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' },
@@ -1069,13 +1095,18 @@ const CTIDashboardInner: React.FC = () => {
               background: `${riskColor}15`, border: `1px solid ${riskColor}60`,
               color: riskColor, fontSize: '11px', fontWeight: 600,
             }}>
-              {t('status.level.' + data!.status.riskLevel)}
+              {t('status.level.' + data!.status.riskLevel) !== 'status.level.' + data!.status.riskLevel 
+                ? t('status.level.' + data!.status.riskLevel) 
+                : data!.status.riskLevel}
             </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{
-                  color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+                  color: data!.status.trend === 'decreasing' || data!.status.trend === 'descendente' ? '#00D26A' : data!.status.trend === 'stable' || data!.status.trend === 'estable' ? '#FFB800' : '#E31B23',
                 }}>
-                  {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {t('status.trend.' + data!.status.trend)}
+                  {data!.status.trend === 'decreasing' || data!.status.trend === 'descendente' ? '↓' : data!.status.trend === 'stable' || data!.status.trend === 'estable' ? '→' : '↑'} 
+                  {t('status.trend.' + data!.status.trend) !== 'status.trend.' + data!.status.trend 
+                    ? t('status.trend.' + data!.status.trend) 
+                    : data!.status.trend}
                 </span>
                 {data!.assessmentLayer?.baselineComparison && (
                   <span style={{ 
@@ -1133,24 +1164,27 @@ const CTIDashboardInner: React.FC = () => {
                 </div>
 
                 <div style={{ overflowY: 'auto', flex: 1, paddingRight: '6px' }}>
-                  {data!.socialIntel?.topPosts?.map((post, i) => (
-                    <div key={i} style={{
-                      marginBottom: '12px', padding: '14px',
-                      background: '#0a0a0a', borderRadius: '10px',
-                      borderLeft: '3px solid #3B82F6',
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <a href={post.url} target="_blank" rel="noopener noreferrer"
-                          style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6', textDecoration: 'none' }}>
-                          @{post.author}
-                        </a>
-                        <span style={{ fontSize: '11px', color: '#666' }}>🔥 {post.engagement}</span>
+                  {data!.socialIntel?.topPosts?.map((post, i) => {
+                    const authorUsername = typeof post.author === 'string' ? post.author : post.author?.username || 'unknown';
+                    return (
+                      <div key={i} style={{
+                        marginBottom: '12px', padding: '14px',
+                        background: '#0a0a0a', borderRadius: '10px',
+                        borderLeft: '3px solid #3B82F6',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <a href={`https://x.com/${authorUsername}`} target="_blank" rel="noopener noreferrer"
+                            style={{ fontSize: '12px', fontWeight: 600, color: '#3B82F6', textDecoration: 'none' }}>
+                            @{authorUsername}
+                          </a>
+                          <span style={{ fontSize: '11px', color: '#666' }}>🔥 {post.engagement}</span>
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#aaa', lineHeight: 1.5, margin: 0 }}>
+                          {post.excerpt?.substring(0, 120)}{post.excerpt?.length > 120 ? '...' : ''}
+                        </p>
                       </div>
-                      <p style={{ fontSize: '12px', color: '#aaa', lineHeight: 1.5, margin: 0 }}>
-                        {post.excerpt.substring(0, 120)}{post.excerpt.length > 120 ? '...' : ''}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1424,10 +1458,10 @@ const CTIDashboardInner: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff', fontFamily: 'Space Grotesk' }}>
-                Receive Updates Directly in your Email
+                {t('subscription.title')}
               </div>
               <div style={{ fontSize: '12px', color: '#888' }}>
-                Get the latest threat intelligence delivered to your inbox
+                {t('subscription.subtitle')}
               </div>
             </div>
           </div>
@@ -1438,7 +1472,16 @@ const CTIDashboardInner: React.FC = () => {
             const msgEl = document.getElementById('cti-form-message');
             const result = await subscribeEmail(input.value);
             if (msgEl) {
-              msgEl.textContent = result.message;
+              // Map backend messages to translation keys
+              let translatedMessage = result.message;
+              if (result.success) {
+                translatedMessage = t('subscription.success');
+              } else if (result.message.includes('Already subscribed')) {
+                translatedMessage = t('subscription.error'); // Could add specific key if needed
+              } else if (result.message.includes('Invalid email') || result.message.includes('Email is required')) {
+                translatedMessage = t('subscription.error');
+              }
+              msgEl.textContent = translatedMessage;
               msgEl.style.color = result.success ? '#00D26A' : '#ff453a';
             }
             if (result.success) input.value = '';
@@ -1446,7 +1489,7 @@ const CTIDashboardInner: React.FC = () => {
             <input
               type="email"
               name="email"
-              placeholder="your@email.com"
+              placeholder={t('subscription.placeholder')}
               required
               style={{
                 flex: '1',
@@ -1471,7 +1514,7 @@ const CTIDashboardInner: React.FC = () => {
               cursor: 'pointer',
               boxShadow: '0 4px 16px rgba(0, 153, 255, 0.3)',
             }}>
-              Subscribe
+              {t('subscription.button')}
             </button>
           </form>
           <p id="cti-form-message" style={{ marginTop: '12px', fontSize: '13px', minHeight: '20px' }}></p>
@@ -1963,14 +2006,22 @@ const CTIDashboardInner: React.FC = () => {
                 background: `${riskColor}20`, border: `1px solid ${riskColor}`,
                 color: riskColor, fontSize: '13px', fontWeight: 700,
               }}>
-                {t('status.level.' + data!.status.riskLevel)}
+                {t('status.level.' + data!.status.riskLevel) !== 'status.level.' + data!.status.riskLevel 
+                  ? t('status.level.' + data!.status.riskLevel) 
+                  : data!.status.riskLevel}
               </span>
               <div style={{
                 marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px',
-                color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+                color: data!.status.trend === 'decreasing' || data!.status.trend === 'descendente' ? '#00D26A' : data!.status.trend === 'stable' || data!.status.trend === 'estable' ? '#FFB800' : '#E31B23',
               }}>
-                <span style={{ fontSize: '16px' }}>{data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'}</span>
-                <span style={{ fontWeight: 600 }}>{t('status.trend.' + data!.status.trend)}</span>
+                <span style={{ fontSize: '16px' }}>
+                  {data!.status.trend === 'decreasing' || data!.status.trend === 'descendente' ? '↓' : data!.status.trend === 'stable' || data!.status.trend === 'estable' ? '→' : '↑'}
+                </span>
+                <span style={{ fontWeight: 600 }}>
+                  {t('status.trend.' + data!.status.trend) !== 'status.trend.' + data!.status.trend 
+                    ? t('status.trend.' + data!.status.trend) 
+                    : data!.status.trend}
+                </span>
               </div>
             </div>
           </div>
@@ -2046,10 +2097,13 @@ const CTIDashboardInner: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: '#999', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{
-                      color: data!.status.trend === 'decreasing' ? '#00D26A' : data!.status.trend === 'stable' ? '#FFB800' : '#E31B23',
+                      color: data!.status.trend === 'decreasing' || data!.status.trend === 'descendente' ? '#00D26A' : data!.status.trend === 'stable' || data!.status.trend === 'estable' ? '#FFB800' : '#E31B23',
                       fontWeight: 600,
                     }}>
-                      {data!.status.trend === 'decreasing' ? '↓' : data!.status.trend === 'stable' ? '→' : '↑'} {t('status.trend.' + data!.status.trend)}
+                      {data!.status.trend === 'decreasing' || data!.status.trend === 'descendente' ? '↓' : data!.status.trend === 'stable' || data!.status.trend === 'estable' ? '→' : '↑'} 
+                      {t('status.trend.' + data!.status.trend) !== 'status.trend.' + data!.status.trend 
+                        ? t('status.trend.' + data!.status.trend) 
+                        : data!.status.trend}
                     </span>
                     {data!.assessmentLayer?.baselineComparison && (
                       <span style={{
@@ -2218,44 +2272,47 @@ const CTIDashboardInner: React.FC = () => {
 
             {/* Social Intel */}
             <Section title={t('section.socialIntelligence')}>
-              {data!.socialIntel?.topPosts?.slice(0, 3).map((post, i) => (
-                <div key={i} style={{
-                  padding: '16px', background: '#111', borderRadius: '10px',
-                  border: '1px solid #222', marginBottom: '10px',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <a href={`https://x.com/${post.author}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', fontWeight: 600, color: '#00D26A', textDecoration: 'none' }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'none'; }}
-                    >
-                      @{post.author}
-                    </a>
-                    <span style={{ fontSize: '12px', color: '#888' }}>{post.engagement} {t('dashboard.engagement')}</span>
+              {data!.socialIntel?.topPosts?.slice(0, 3).map((post, i) => {
+                const authorUsername = typeof post.author === 'string' ? post.author : post.author?.username || 'unknown';
+                return (
+                  <div key={i} style={{
+                    padding: '16px', background: '#111', borderRadius: '10px',
+                    border: '1px solid #222', marginBottom: '10px',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <a href={`https://x.com/${authorUsername}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', fontWeight: 600, color: '#00D26A', textDecoration: 'none' }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = 'none'; }}
+                      >
+                        @{authorUsername}
+                      </a>
+                      <span style={{ fontSize: '12px', color: '#888' }}>{post.engagement} {t('dashboard.engagement')}</span>
+                    </div>
+                    <p style={{ fontSize: '13px', color: '#aaa', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                      {post.excerpt?.substring(0, 200)}{post.excerpt?.length > 200 ? '...' : ''}
+                    </p>
+                    {post.url && (
+                      <a href={post.url} target="_blank" rel="noopener noreferrer" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        marginTop: '10px', padding: '6px 14px',
+                        background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '6px', fontSize: '12px', color: '#7DB4F5', textDecoration: 'none',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.25)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.1)'; }}
+                      >
+                        <span>𝕏</span> {t('social.viewOnX')} <span style={{ opacity: 0.6 }}>↗</span>
+                      </a>
+                    )}
                   </div>
-                  <p style={{ fontSize: '13px', color: '#aaa', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                    {post.excerpt.substring(0, 200)}{post.excerpt.length > 200 ? '...' : ''}
-                  </p>
-                  {post.url && (
-                    <a href={post.url} target="_blank" rel="noopener noreferrer" style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      marginTop: '10px', padding: '6px 14px',
-                      background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)',
-                      borderRadius: '6px', fontSize: '12px', color: '#7DB4F5', textDecoration: 'none',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.25)'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59, 130, 246, 0.1)'; }}
-                    >
-                      <span>𝕏</span> {t('social.viewOnX')} <span style={{ opacity: 0.6 }}>↗</span>
-                    </a>
-                  )}
-                </div>
-              ))}
+                );
+              })}
               {data!.socialIntel && (
                 <div style={{ display: 'flex', gap: '16px', marginTop: '10px', fontSize: '12px', color: '#888' }}>
                   <span>{t('social.totalPosts')}: {data!.socialIntel.totalPosts}</span>
                   <span>{t('social.tone')}: <span style={{
-                    color: data!.socialIntel.tone === 'confirmed' ? '#E31B23' : data!.socialIntel.tone === 'speculative' ? '#FFB800' : '#888',
+                    color: data!.socialIntel.tone === 'confirmed' || data!.socialIntel.tone === 'confirmado' ? '#E31B23' : data!.socialIntel.tone === 'speculative' || data!.socialIntel.tone === 'especulativo' ? '#FFB800' : '#888',
                     textTransform: 'uppercase', fontWeight: 600,
                   }}>{data!.socialIntel.tone}</span></span>
                 </div>
@@ -2831,7 +2888,9 @@ const CTIDashboardInner: React.FC = () => {
               fontWeight: 600,
               letterSpacing: '0.5px',
             }}>
-              {t('status.level.' + data!.status.riskLevel)} • {data!.status.riskScore}/100
+              {t('status.level.' + data!.status.riskLevel) !== 'status.level.' + data!.status.riskLevel 
+                ? t('status.level.' + data!.status.riskLevel) 
+                : data!.status.riskLevel} • {data!.status.riskScore}/100
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
