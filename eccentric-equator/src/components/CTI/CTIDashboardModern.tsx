@@ -370,7 +370,7 @@ const responsiveCorrelationPanel = (isMobile: boolean, isTablet: boolean) => ({
 });
 
 const responsiveHeight = (isMobile: boolean, isTablet: boolean, defaultHeight: string = '320px') => {
-  if (isMobile) return '240px';
+  if (isMobile) return 'auto';
   if (isTablet) return '280px';
   return defaultHeight;
 };
@@ -1011,18 +1011,19 @@ const CTIDashboardInner: React.FC = () => {
         {/* Hero Risk Banner - Compact */}
         <div style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '24px',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          gap: isMobile ? '16px' : '24px',
           marginBottom: '24px',
-          padding: '20px 24px',
+          padding: isMobile ? '16px' : '20px 24px',
           background: 'linear-gradient(135deg, #111 0%, #0a0a0a 100%)',
           borderRadius: '12px',
           border: `1px solid ${riskColor}30`,
           boxShadow: `0 0 40px ${riskColor}10`,
+          flexDirection: isMobile ? 'column' : 'row',
         }}>
           {/* Ring Gauge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '16px', width: isMobile ? '100%' : 'auto' }}>
+            <div style={{ position: 'relative', width: isMobile ? '80px' : '120px', height: isMobile ? '80px' : '120px', flexShrink: 0 }}>
               <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="8" />
                 <circle
@@ -1037,19 +1038,20 @@ const CTIDashboardInner: React.FC = () => {
                 position: 'absolute', inset: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
               }}>
-                <span style={{ fontSize: '36px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
+                <span style={{ fontSize: isMobile ? '24px' : '36px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
                   {data!.status.riskScore}
                 </span>
-                <span style={{ fontSize: '11px', color: '#666' }}>/100</span>
+                <span style={{ fontSize: isMobile ? '9px' : '11px', color: '#666' }}>/100</span>
               </div>
             </div>
             {/* Risk Scale - Permanent Display */}
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '4px',
-              padding: '12px',
+              padding: isMobile ? '8px' : '12px',
               background: '#0a0a0a',
               borderRadius: '8px',
               border: '1px solid #1a1a1a',
+              flex: isMobile ? '1' : 'none',
             }}>
               <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
                 {t('dashboard.riskScale')}
@@ -1073,22 +1075,27 @@ const CTIDashboardInner: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px',
+              display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '8px',
+              flexDirection: isMobile ? 'column' : 'row',
             }}>
               <div style={{
                 width: '10px', height: '10px', borderRadius: '50%',
                 background: riskColor, boxShadow: `0 0 12px ${riskColor}`,
+                flexShrink: 0,
+                marginTop: isMobile ? '6px' : '0',
               }} />
               <span style={{
-                fontFamily: 'Space Grotesk', fontSize: '22px', fontWeight: 700, color: riskColor,
+                fontFamily: 'Space Grotesk', fontSize: isMobile ? '16px' : '22px', fontWeight: 700, color: riskColor,
+                lineHeight: isMobile ? '1.3' : '1.2',
               }}>
                 {data!.executive.headline}
               </span>
             </div>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#888',
+              display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', fontSize: isMobile ? '11px' : '12px', color: '#888',
+              flexWrap: 'wrap',
             }}>
             <span style={{
               padding: '4px 12px', borderRadius: '20px',
@@ -1140,16 +1147,21 @@ const CTIDashboardInner: React.FC = () => {
         {data!.assessmentLayer?.narrative && (
           <div style={{ marginBottom: '24px' }}>
             {/* Three Column Layout: Social -> Narrative -> Actions - Fixed Height */}
-            <div style={{ display: 'grid', gridTemplateColumns: gridLayout.threeColumn, gap: panelLayout.gap }}>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: isMobile ? '1fr' : gridLayout.threeColumn, 
+              gap: panelLayout.gap 
+            }}>
               {/* Social Posts Column - Left - Scrollable */}
               <div style={{
-                padding: '20px',
+                padding: isMobile ? '16px' : '20px',
                 background: 'rgba(59, 130, 246, 0.05)',
                 borderRadius: '12px',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
-                height: heightHelper(),
+                height: isMobile ? 'auto' : heightHelper(),
                 display: 'flex',
                 flexDirection: 'column',
+                maxHeight: isMobile ? '400px' : 'none',
               }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
@@ -1190,14 +1202,16 @@ const CTIDashboardInner: React.FC = () => {
 
               {/* Main Narrative Column - Center - Highlighted */}
               <div style={{
-                padding: '24px',
+                padding: isMobile ? '16px' : '24px',
                 background: 'linear-gradient(135deg, #0f1a0f 0%, #0a140a 100%)',
                 borderRadius: '14px',
                 border: '2px solid #00D26A40',
                 boxShadow: '0 0 50px rgba(0, 210, 106, 0.12), inset 0 0 40px rgba(0, 210, 106, 0.03)',
                 position: 'relative',
-                height: heightHelper(),
+                height: isMobile ? 'auto' : heightHelper(),
                 overflowY: 'auto',
+                maxHeight: isMobile ? '500px' : 'none',
+                order: isMobile ? '-1' : '0',
               }}>
                 <style>{`
                   @keyframes dashAround {
@@ -1254,14 +1268,15 @@ const CTIDashboardInner: React.FC = () => {
               {/* Recommended Actions Column - Right - Scrollable */}
               {data!.executive.recommendedActions && data!.executive.recommendedActions.length > 0 && (
                 <div style={{
-                  padding: '20px',
+                  padding: isMobile ? '16px' : '20px',
                   background: 'linear-gradient(135deg, #1a0f0f 0%, #0f0a0a 100%)',
                   borderRadius: '12px',
                   border: '1px solid rgba(245, 158, 11, 0.25)',
                   boxShadow: '0 0 25px rgba(245, 158, 11, 0.1)',
-                  height: heightHelper(),
+                  height: isMobile ? 'auto' : heightHelper(),
                   display: 'flex',
                   flexDirection: 'column',
+                  maxHeight: isMobile ? '400px' : 'none',
                 }}>
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
@@ -1422,11 +1437,11 @@ const CTIDashboardInner: React.FC = () => {
                 {t('dashboard.signalBreakdown')}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
-              <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
-              <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
-              <MetricBox label={t('metrics.low')} value={data!.metrics.lowCount} color="#00D26A" />
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr', gap: isMobile ? '8px' : '12px' }}>
+              <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" isMobile={isMobile} />
+              <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" isMobile={isMobile} />
+              <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" isMobile={isMobile} />
+              <MetricBox label={t('metrics.low')} value={data!.metrics.lowCount} color="#00D26A" isMobile={isMobile} />
             </div>
           </div>
         </div>
@@ -1543,30 +1558,30 @@ const CTIDashboardInner: React.FC = () => {
           width: correlationLayout.sidebarWidth, flexShrink: 0, overflowY: 'auto', overflowX: 'hidden',
           background: '#0d0d0d', borderRight: isMobile ? 'none' : '1px solid #1a1a1a',
           borderBottom: isMobile ? '1px solid #1a1a1a' : 'none',
-          padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px',
-          minHeight: 0, maxHeight: isMobile ? '40%' : '100%',
+          padding: isMobile ? '16px' : '20px', display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '16px',
+          minHeight: 0, maxHeight: isMobile ? '50%' : '100%',
         }}>
           {/* Correlation Score Header */}
           <div style={{
-            padding: '20px', borderRadius: '12px',
+            padding: isMobile ? '16px' : '20px', borderRadius: '12px',
             background: `linear-gradient(135deg, ${strengthColor}10, transparent)`,
             border: `1px solid ${strengthColor}30`,
             textAlign: 'center',
           }}>
             <div style={{
-              fontFamily: 'Space Grotesk', fontSize: '42px', fontWeight: 700,
+              fontFamily: 'Space Grotesk', fontSize: isMobile ? '32px' : '42px', fontWeight: 700,
               color: strengthColor, lineHeight: 1,
             }}>
               {Math.round(corrScore * 100)}%
             </div>
             <div style={{
-              fontSize: '11px', color: strengthColor, textTransform: 'uppercase',
+              fontSize: isMobile ? '10px' : '11px', color: strengthColor, textTransform: 'uppercase',
               letterSpacing: '2px', fontWeight: 600, marginTop: '4px',
             }}>
               {t('dashboard.correlation')} {t('correlation.strength.' + corrStrength)}
             </div>
             <div style={{
-              fontSize: '10px', color: '#666', marginTop: '8px', lineHeight: 1.5,
+              fontSize: isMobile ? '9px' : '10px', color: '#666', marginTop: '8px', lineHeight: 1.5,
             }}>
               {corr?.explanation || 'No explanation available'}
             </div>
@@ -1878,34 +1893,36 @@ const CTIDashboardInner: React.FC = () => {
         <div style={{ flex: 1, position: 'relative' }}>
           {/* Graph Header */}
           <div style={{
-            position: 'absolute', top: '16px', left: '16px', zIndex: 10,
-            padding: '10px 16px',
-            background: 'rgba(10, 10, 10, 0.9)',
+            position: 'absolute', top: isMobile ? '8px' : '16px', left: isMobile ? '8px' : '16px', zIndex: 10,
+            padding: isMobile ? '8px 12px' : '10px 16px',
+            background: 'rgba(10, 10, 10, 0.95)',
             borderRadius: '8px', border: '1px solid #222',
             backdropFilter: 'blur(10px)',
+            maxWidth: isMobile ? 'calc(100% - 80px)' : 'none',
           }}>
             <div style={{
-              fontFamily: 'Space Grotesk', fontSize: '13px', fontWeight: 600, color: '#fff',
+              fontFamily: 'Space Grotesk', fontSize: isMobile ? '11px' : '13px', fontWeight: 600, color: '#fff',
             }}>
               ◈ {t('dashboard.correlationMapTitle')}
             </div>
-            <div style={{ fontSize: '9px', color: '#666', marginTop: '3px' }}>
+            <div style={{ fontSize: isMobile ? '8px' : '9px', color: '#666', marginTop: '3px' }}>
               {t('dashboard.correlationMapLegend')}
             </div>
           </div>
 
           {/* Legend */}
           <div style={{
-            position: 'absolute', bottom: '16px', left: '16px', zIndex: 10,
-            padding: '10px 14px',
-            background: 'rgba(10, 10, 10, 0.9)',
+            position: 'absolute', bottom: isMobile ? '8px' : '16px', left: isMobile ? '8px' : '16px', zIndex: 10,
+            padding: isMobile ? '8px 10px' : '10px 14px',
+            background: 'rgba(10, 10, 10, 0.95)',
             borderRadius: '8px', border: '1px solid #222',
             backdropFilter: 'blur(10px)',
+            maxWidth: isMobile ? 'calc(100% - 80px)' : 'none',
           }}>
-            <div style={{ fontSize: '9px', color: '#666', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ fontSize: isMobile ? '8px' : '9px', color: '#666', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>
               {t('dashboard.nodeTypes')}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '9px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '2px' : '4px', fontSize: isMobile ? '8px' : '9px' }}>
               <LegendItem color="#00D26A" label={t('dashboard.socialIntel')} />
               <LegendItem color="#3B82F6" label={t('dashboard.infrastructure')} />
               <LegendItem color="#E31B23" label={t('indicators.cves')} />
@@ -1940,9 +1957,13 @@ const CTIDashboardInner: React.FC = () => {
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             fitView
-            fitViewOptions={{ padding: 0.3 }}
+            fitViewOptions={{ padding: isMobile ? 0.1 : 0.3 }}
             style={{ background: '#0a0a0a' }}
             defaultEdgeOptions={{ type: 'smoothstep' }}
+            zoomOnPinch={true}
+            zoomOnScroll={false}
+            panOnScroll={false}
+            preventScrolling={false}
           >
             <Background color="#1a1a1a" gap={30} size={1} />
             <Controls style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }} />
@@ -1977,10 +1998,12 @@ const CTIDashboardInner: React.FC = () => {
         }}>
           {/* Risk Gauge */}
           <div style={{
-            padding: '24px', background: '#111', borderRadius: '14px',
-            border: '1px solid #222', display: 'flex', alignItems: 'center', gap: '24px',
+            padding: isMobile ? '16px' : '24px', background: '#111', borderRadius: '14px',
+            border: '1px solid #222', display: 'flex', alignItems: 'center', gap: isMobile ? '16px' : '24px',
+            flexDirection: isMobile ? 'column' : 'row',
+            textAlign: isMobile ? 'center' : 'left',
           }}>
-            <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+            <div style={{ position: 'relative', width: isMobile ? '80px' : '100px', height: isMobile ? '80px' : '100px' }}>
               <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#222" strokeWidth="10" />
                 <circle cx="50" cy="50" r="40" fill="none"
@@ -1994,17 +2017,17 @@ const CTIDashboardInner: React.FC = () => {
                 position: 'absolute', inset: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
               }}>
-                <span style={{ fontSize: '32px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
+                <span style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: 700, fontFamily: 'Space Grotesk', color: riskColor }}>
                   {data!.status.riskScore}
                 </span>
-                <span style={{ fontSize: '12px', color: '#666' }}>/100</span>
+                <span style={{ fontSize: isMobile ? '10px' : '12px', color: '#666' }}>/100</span>
               </div>
             </div>
             <div>
               <span style={{
                 padding: '6px 16px', borderRadius: '20px',
                 background: `${riskColor}20`, border: `1px solid ${riskColor}`,
-                color: riskColor, fontSize: '13px', fontWeight: 700,
+                color: riskColor, fontSize: isMobile ? '12px' : '13px', fontWeight: 700,
               }}>
                 {t('status.level.' + data!.status.riskLevel) !== 'status.level.' + data!.status.riskLevel 
                   ? t('status.level.' + data!.status.riskLevel) 
@@ -2030,17 +2053,17 @@ const CTIDashboardInner: React.FC = () => {
           <div style={{
             padding: '24px', background: '#111', borderRadius: '14px', border: '1px solid #222',
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: gridLayout.metricsGrid, gap: '12px' }}>
-              <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" />
-              <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" />
-              <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" />
-              <MetricBox label={t('metrics.low')} value={data!.metrics.lowCount} color="#00D26A" />
+            <div style={{ display: 'grid', gridTemplateColumns: gridLayout.metricsGrid, gap: isMobile ? '8px' : '12px' }}>
+              <MetricBox label={t('metrics.critical')} value={data!.metrics.criticalCount} color="#E31B23" isMobile={isMobile} />
+              <MetricBox label={t('metrics.high')} value={data!.metrics.highCount} color="#FF6B35" isMobile={isMobile} />
+              <MetricBox label={t('metrics.medium')} value={data!.metrics.mediumCount} color="#FFB800" isMobile={isMobile} />
+              <MetricBox label={t('metrics.low')} value={data!.metrics.lowCount} color="#00D26A" isMobile={isMobile} />
             </div>
           </div>
         </div>
 
         {/* Two-column detail layout - Enhanced */}
-        <div style={{ display: 'grid', gridTemplateColumns: gridLayout.twoColumn, gap: panelLayout.gap }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : gridLayout.twoColumn, gap: panelLayout.gap }}>
           {/* Left Column */}
           <div>
             {/* Executive Summary */}
@@ -2598,10 +2621,10 @@ const CTIDashboardInner: React.FC = () => {
             {/* Infrastructure */}
             {data!.infrastructure && (
               <Section title={t('section.infrastructure')}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-                  <MetricBox label={t('dashboard.hosts')} value={data!.infrastructure.totalHosts} color="#3B82F6" />
-                  <MetricBox label={t('dashboard.vulnerable')} value={data!.infrastructure.vulnerableHosts} color="#E31B23" />
-                  <MetricBox label={t('dashboard.vuln')} value={Math.round((data!.infrastructure.vulnerableHosts / Math.max(data!.infrastructure.totalHosts, 1)) * 100)} color="#FF6B35" />
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr 1fr' : '1fr 1fr 1fr', gap: isMobile ? '6px' : '8px', marginBottom: '12px' }}>
+                  <MetricBox label={t('dashboard.hosts')} value={data!.infrastructure.totalHosts} color="#3B82F6" isMobile={isMobile} />
+                  <MetricBox label={t('dashboard.vulnerable')} value={data!.infrastructure.vulnerableHosts} color="#E31B23" isMobile={isMobile} />
+                  <MetricBox label={t('dashboard.vuln')} value={Math.round((data!.infrastructure.vulnerableHosts / Math.max(data!.infrastructure.totalHosts, 1)) * 100)} color="#FF6B35" isMobile={isMobile} />
                 </div>
                 {data!.infrastructure.exposedPorts && data!.infrastructure.exposedPorts.length > 0 && (
                   <div style={{ marginBottom: '12px' }}>
@@ -2858,20 +2881,22 @@ const CTIDashboardInner: React.FC = () => {
       <div style={{
         background: 'linear-gradient(180deg, #111 0%, #0d0d0d 100%)',
         borderBottom: '1px solid #222',
-        padding: '0 32px',
+        padding: isMobile ? '0 16px' : '0 32px',
         flexShrink: 0,
       }}>
         {/* Header Row */}
         <div style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isMobile ? 'flex-start' : 'center',
           justifyContent: 'space-between',
           padding: '16px 0 0',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '12px' : '0',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{
               fontFamily: 'Space Grotesk, sans-serif',
-              fontSize: '20px',
+              fontSize: isMobile ? '16px' : '20px',
               fontWeight: 700,
               color: '#00D26A',
               letterSpacing: '1px',
@@ -2887,13 +2912,14 @@ const CTIDashboardInner: React.FC = () => {
               fontSize: '10px',
               fontWeight: 600,
               letterSpacing: '0.5px',
+              whiteSpace: 'nowrap',
             }}>
               {t('status.level.' + data!.status.riskLevel) !== 'status.level.' + data!.status.riskLevel 
                 ? t('status.level.' + data!.status.riskLevel) 
                 : data!.status.riskLevel} • {data!.status.riskScore}/100
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', flexWrap: 'wrap' }}>
             <div className="generatedAtBadge">
               <style>{`
                 .generatedAtBadge {
@@ -2935,8 +2961,10 @@ const CTIDashboardInner: React.FC = () => {
         {/* Tab Bar */}
         <div style={{
           display: 'flex',
-          gap: '4px',
+          gap: isMobile ? '2px' : '4px',
           marginTop: '12px',
+          flexWrap: isMobile ? 'wrap' : 'nowrap',
+          justifyContent: isMobile ? 'stretch' : 'flex-start',
         }}>
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -2945,7 +2973,7 @@ const CTIDashboardInner: React.FC = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 style={{
-                  padding: '10px 20px',
+                  padding: isMobile ? '8px 12px' : '10px 20px',
                   background: isActive
                     ? 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)'
                     : 'transparent',
@@ -2955,20 +2983,23 @@ const CTIDashboardInner: React.FC = () => {
                   borderBottom: isActive
                     ? '1px solid #0a0a0a'
                     : '1px solid transparent',
-                  borderRadius: '8px 8px 0 0',
+                  borderRadius: isMobile ? '6px' : '8px 8px 0 0',
                   color: isActive ? '#fff' : '#666',
                   cursor: 'pointer',
-                  fontSize: '12px',
+                  fontSize: isMobile ? '11px' : '12px',
                   fontWeight: isActive ? 600 : 400,
                   fontFamily: 'Space Grotesk, sans-serif',
                   letterSpacing: '0.5px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  justifyContent: 'center',
+                  gap: isMobile ? '4px' : '8px',
                   transition: 'all 0.2s ease',
                   position: 'relative',
-                  bottom: '-1px',
+                  bottom: isMobile ? '0' : '-1px',
                   marginBottom: 0,
+                  flex: isMobile ? '1' : 'none',
+                  minWidth: isMobile ? '80px' : 'auto',
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
@@ -3006,18 +3037,18 @@ const CTIDashboardInner: React.FC = () => {
 };
 
 // Helper Components
-const MetricBox = ({ label, value, color }: { label: string; value: number; color: string }) => (
+const MetricBox = ({ label, value, color, isMobile }: { label: string; value: number; color: string; isMobile?: boolean }) => (
   <div style={{
-    padding: '12px',
+    padding: isMobile ? '10px' : '12px',
     background: '#111',
     borderRadius: '8px',
     border: `1px solid ${color}40`,
     textAlign: 'center',
   }}>
-    <div style={{ fontSize: '24px', fontWeight: 700, color, fontFamily: 'Space Grotesk' }}>
+    <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: 700, color, fontFamily: 'Space Grotesk' }}>
       {value}
     </div>
-    <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', marginTop: '4px' }}>
+    <div style={{ fontSize: isMobile ? '9px' : '11px', color: '#888', textTransform: 'uppercase', marginTop: '4px' }}>
       {label}
     </div>
   </div>
