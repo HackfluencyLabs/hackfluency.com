@@ -1215,28 +1215,47 @@ const CTIDashboardInner: React.FC = () => {
               }}>
                 <style>{`
                   @keyframes dashAround {
-                    0% { background-position: 0% 0%; }
-                    100% { background-position: 48px 48px; }
+                    0% { background-position: 0 0; }
+                    100% { background-position: 28px 28px; }
+                  }
+                  .narrative-border {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    border-radius: 14px;
+                    padding: 2px;
+                    background: repeating-linear-gradient(
+                      45deg,
+                      transparent,
+                      transparent 4px,
+                      rgba(0, 210, 106, 0.6) 4px,
+                      rgba(0, 210, 106, 0.6) 8px
+                    );
+                    background-size: 14px 14px;
+                    animation: dashAround 6s linear infinite;
+                    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                    -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+                    pointer-events: none;
+                  }
+                  @supports not (mask-composite: exclude) {
+                    .narrative-border {
+                      background: linear-gradient(135deg, #00D26A30, transparent);
+                      animation: none;
+                    }
                   }
                 `}</style>
-                <div style={{
-                  position: 'absolute', inset: 0, borderRadius: '14px',
-                  padding: '3px',
-                  background: `
-                    repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0, 210, 106, 0.8) 6px, rgba(0, 210, 106, 0.8) 10px)
-                  `,
-                  backgroundSize: '20px 20px',
-                  animation: 'dashAround 8s linear infinite',
-                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude',
-                }} />
+                <div className="narrative-border" />
                 <div style={{
                   boxShadow: '0 0 40px rgba(0, 210, 106, 0.25), inset 0 0 30px rgba(0, 210, 106, 0.08)',
                   borderRadius: '10px',
-                  padding: '24px',
+                  padding: isMobile ? '16px' : '24px',
                   background: 'rgba(0, 10, 5, 0.7)',
-                  minHeight: 'calc(100% - 6px)',
+                  minHeight: isMobile ? 'auto' : 'calc(100% - 6px)',
+                  position: 'relative',
+                  zIndex: 1,
                 }}>
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
@@ -1889,59 +1908,80 @@ const CTIDashboardInner: React.FC = () => {
           )}
         </div>
 
-        {/* Right: Graph Visualization */}
-        <div style={{ flex: 1, position: 'relative' }}>
-          {/* Graph Header */}
-          <div style={{
-            position: 'absolute', top: isMobile ? '8px' : '16px', left: isMobile ? '8px' : '16px', zIndex: 10,
-            padding: isMobile ? '8px 12px' : '10px 16px',
-            background: 'rgba(10, 10, 10, 0.95)',
-            borderRadius: '8px', border: '1px solid #222',
-            backdropFilter: 'blur(10px)',
-            maxWidth: isMobile ? 'calc(100% - 80px)' : 'none',
-          }}>
+          {/* Right: Graph Visualization */}
+        <div style={{ flex: 1, position: 'relative', minHeight: isMobile ? '350px' : 'auto' }}>
+          {/* Graph Header - Hide on mobile to save space */}
+          {!isMobile && (
             <div style={{
-              fontFamily: 'Space Grotesk', fontSize: isMobile ? '11px' : '13px', fontWeight: 600, color: '#fff',
+              position: 'absolute', top: '16px', left: '16px', zIndex: 10,
+              padding: '10px 16px',
+              background: 'rgba(10, 10, 10, 0.95)',
+              borderRadius: '8px', border: '1px solid #222',
+              backdropFilter: 'blur(10px)',
             }}>
-              ◈ {t('dashboard.correlationMapTitle')}
+              <div style={{
+                fontFamily: 'Space Grotesk', fontSize: '13px', fontWeight: 600, color: '#fff',
+              }}>
+                ◈ {t('dashboard.correlationMapTitle')}
+              </div>
+              <div style={{ fontSize: '9px', color: '#666', marginTop: '3px' }}>
+                {t('dashboard.correlationMapLegend')}
+              </div>
             </div>
-            <div style={{ fontSize: isMobile ? '8px' : '9px', color: '#666', marginTop: '3px' }}>
-              {t('dashboard.correlationMapLegend')}
-            </div>
-          </div>
+          )}
 
-          {/* Legend */}
+          {/* Legend - Compact version for mobile */}
           <div style={{
-            position: 'absolute', bottom: isMobile ? '8px' : '16px', left: isMobile ? '8px' : '16px', zIndex: 10,
-            padding: isMobile ? '8px 10px' : '10px 14px',
+            position: 'absolute', 
+            bottom: isMobile ? '4px' : '16px', 
+            left: isMobile ? '4px' : '16px', 
+            zIndex: 10,
+            padding: isMobile ? '6px 8px' : '10px 14px',
             background: 'rgba(10, 10, 10, 0.95)',
-            borderRadius: '8px', border: '1px solid #222',
+            borderRadius: isMobile ? '6px' : '8px', 
+            border: '1px solid #222',
             backdropFilter: 'blur(10px)',
-            maxWidth: isMobile ? 'calc(100% - 80px)' : 'none',
+            maxWidth: isMobile ? '140px' : 'none',
           }}>
-            <div style={{ fontSize: isMobile ? '8px' : '9px', color: '#666', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ 
+              fontSize: isMobile ? '7px' : '9px', 
+              color: '#666', 
+              marginBottom: isMobile ? '3px' : '6px', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1px',
+              display: isMobile ? 'none' : 'block',
+            }}>
               {t('dashboard.nodeTypes')}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '2px' : '4px', fontSize: isMobile ? '8px' : '9px' }}>
-              <LegendItem color="#00D26A" label={t('dashboard.socialIntel')} />
-              <LegendItem color="#3B82F6" label={t('dashboard.infrastructure')} />
-              <LegendItem color="#E31B23" label={t('indicators.cves')} />
-              <LegendItem color="#8B5CF6" label={t('dashboard.themes')} />
-              <LegendItem color="#F59E0B" label={t('dashboard.killChainLegend')} />
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: isMobile ? '1px 4px' : '4px', 
+              fontSize: isMobile ? '7px' : '9px' 
+            }}>
+              <LegendItem color="#00D26A" label={t('dashboard.socialIntel')} isMobile={isMobile} />
+              <LegendItem color="#3B82F6" label={t('dashboard.infrastructure')} isMobile={isMobile} />
+              <LegendItem color="#E31B23" label={t('indicators.cves')} isMobile={isMobile} />
+              <LegendItem color="#8B5CF6" label={t('dashboard.themes')} isMobile={isMobile} />
+              {!isMobile && <LegendItem color="#F59E0B" label={t('dashboard.killChainLegend')} isMobile={isMobile} />}
             </div>
-            <div style={{ fontSize: '9px', color: '#666', marginTop: '8px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {t('dashboard.edgeMeaning')}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '20px', height: '2px', background: '#FFB800' }} />
-                <span style={{ color: '#888' }}>{t('dashboard.crossSourceMatch')}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '20px', height: '2px', background: '#555', borderTop: '2px dashed #555' }} />
-                <span style={{ color: '#888' }}>{t('dashboard.noMatchFound')}</span>
-              </div>
-            </div>
+            {!isMobile && (
+              <>
+                <div style={{ fontSize: '9px', color: '#666', marginTop: '8px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  {t('dashboard.edgeMeaning')}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '20px', height: '2px', background: '#FFB800' }} />
+                    <span style={{ color: '#888' }}>{t('dashboard.crossSourceMatch')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ width: '20px', height: '2px', background: '#555', borderTop: '2px dashed #555' }} />
+                    <span style={{ color: '#888' }}>{t('dashboard.noMatchFound')}</span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* React Flow Graph */}
@@ -1957,7 +1997,7 @@ const CTIDashboardInner: React.FC = () => {
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             fitView
-            fitViewOptions={{ padding: isMobile ? 0.1 : 0.3 }}
+            fitViewOptions={{ padding: isMobile ? 0.05 : 0.3 }}
             style={{ background: '#0a0a0a' }}
             defaultEdgeOptions={{ type: 'smoothstep' }}
             zoomOnPinch={true}
@@ -1965,20 +2005,24 @@ const CTIDashboardInner: React.FC = () => {
             panOnScroll={false}
             preventScrolling={false}
           >
-            <Background color="#1a1a1a" gap={30} size={1} />
-            <Controls style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }} />
-            <MiniMap
-              nodeColor={(node) => {
-                const nodeType = (node.data as Record<string, unknown>)?.type as string || 'default';
-                const colors: Record<string, string> = {
-                  cve: '#E31B23', domain: '#3B82F6', keyword: '#8B5CF6',
-                  actor: '#00D26A', killchain: '#F59E0B', root: '#00D26A',
-                };
-                return colors[nodeType] || '#6B7280';
-              }}
-              style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }}
-              maskColor="rgba(0, 0, 0, 0.8)"
-            />
+            <Background color="#1a1a1a" gap={isMobile ? 20 : 30} size={1} />
+            {!isMobile && (
+              <Controls style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }} />
+            )}
+            {!isMobile && (
+              <MiniMap
+                nodeColor={(node) => {
+                  const nodeType = (node.data as Record<string, unknown>)?.type as string || 'default';
+                  const colors: Record<string, string> = {
+                    cve: '#E31B23', domain: '#3B82F6', keyword: '#8B5CF6',
+                    actor: '#00D26A', killchain: '#F59E0B', root: '#00D26A',
+                  };
+                  return colors[nodeType] || '#6B7280';
+                }}
+                style={{ background: '#111', border: '1px solid #222', borderRadius: '8px' }}
+                maskColor="rgba(0, 0, 0, 0.8)"
+              />
+            )}
           </ReactFlow>
         </div>
       </div>
@@ -3072,16 +3116,17 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
   </div>
 );
 
-const LegendItem = ({ color, label }: { color: string; label: string }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+const LegendItem = ({ color, label, isMobile }: { color: string; label: string; isMobile?: boolean }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '3px' : '6px' }}>
     <div style={{
-      width: '10px',
-      height: '10px',
+      width: isMobile ? '6px' : '10px',
+      height: isMobile ? '6px' : '10px',
       borderRadius: '50%',
       background: color,
-      boxShadow: `0 0 8px ${color}80`,
+      boxShadow: `0 0 ${isMobile ? '4px' : '8px'} ${color}80`,
+      flexShrink: 0,
     }} />
-    <span style={{ color: '#888' }}>{label}</span>
+    <span style={{ color: '#888', whiteSpace: 'nowrap' }}>{label}</span>
   </div>
 );
 
