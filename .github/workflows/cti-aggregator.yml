@@ -18,9 +18,6 @@ on:
         required: true
         default: false
         type: boolean
-  schedule:
-    # Daily CTI refresh at 06:15 UTC
-    - cron: '15 6 * * *'
 
 permissions:
   contents: write
