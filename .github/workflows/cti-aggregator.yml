@@ -1,13 +1,8 @@
-# Workflow name: CTI Aggregator - Threat Intelligence Pipeline
+name: CTI Aggregator - Threat Intelligence Pipeline
 
 on:
   workflow_dispatch:
     inputs:
-      run_scrapers:
-        description: 'Ejecutar scrapers (X + Shodan)'
-        required: true
-        default: true
-        type: boolean
       reinicializar_proceso:
         description: 'Reinicializar proceso (☐ Ticket: Borra todo menos LLMs y dependencias: Ollama, Playwright)'
         required: true
@@ -30,17 +25,11 @@ env:
   CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
   CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
   CTI_HISTORY_DIR: ${{ github.workspace }}/DATA/cti-history
-  # Current date for temporal context in LLM prompts (auto-updates daily)
   CTI_CURRENT_DATE: ${{ github.event.repository.updated_at }}
-  # Dual-model architecture:
-  # REASONER (phi4-mini): Social context, correlation, strategic analysis
-  # SPECIALIST (CybersecurityThreatAnalysisV2): Shodan queries, CVEs, ports, technical IOCs
   OLLAMA_MODEL_REASONER: phi4-mini
   OLLAMA_MODEL_SPECIALIST: ALIENTELLIGENCE/cybersecuritythreatanalysisv2
-  # Translation model for multi-language support
   TRANSLATION_MODEL: translategemma:4b
   TARGET_LANGUAGE: 'Spanish (Latin America)'
-  # GPT4Free Enrichment: ☐ Ticket
   USE_GPT4FREE: 'false'
 
 jobs:
@@ -58,13 +47,11 @@ jobs:
         with:
           node-version: '20'
 
-      # Obtener fecha para directorio histórico
       - name: Get History Date
         id: history-date
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-      # SIEMPRE limpiar cache liviano temporal (no afecta históricos ni LLMs)
       - name: Clean Temp Cache
         run: |
           echo "=== Limpiando cache temporal ==="
@@ -72,7 +59,6 @@ jobs:
           rm -rf ${{ env.CTI_OUTPUT_DIR }}/* || true
           echo "✓ Cache temporal limpiado"
 
-      # Reinicializar proceso: borrar TODO incluyendo históricos
       - name: Reinicializar Proceso (Borrar todo menos LLMs)
         if: ${{ inputs.reinicializar_proceso }}
         run: |
@@ -83,7 +69,6 @@ jobs:
           rm -rf ${{ env.CTI_OUTPUT_DIR }} || true
           echo "✓ Todo eliminado excepto LLMs y dependencias"
 
-      # Siempre crear estructura de directorios
       - name: Setup Directories
         run: |
           mkdir -p ${{ env.CTI_CACHE_DIR }}
@@ -100,7 +85,6 @@ jobs:
 
       - name: Install Ollama and Pull Models
         run: |
-          # Install Ollama
           curl -fsSL https://ollama.com/install.sh | sh
           ollama serve &
           sleep 10
@@ -121,7 +105,6 @@ jobs:
           fi
           echo "✓ Specialist model ready: ${{ env.OLLAMA_MODEL_SPECIALIST }}"
 
-          # Export to environment for the pipeline
           echo "OLLAMA_MODEL_REASONER=${{ env.OLLAMA_MODEL_REASONER }}" >> "$GITHUB_ENV"
           echo "OLLAMA_MODEL_SPECIALIST=${{ env.OLLAMA_MODEL_SPECIALIST }}" >> "$GITHUB_ENV"
 
@@ -149,23 +132,19 @@ jobs:
         working-directory: ./scripts/cti
         run: npm ci
 
-      - name: Install Playwright (Chromium only)
-        if: ${{ inputs.run_scrapers }}
+      - name: Install Playwright
         run: npx playwright install chromium --with-deps
 
       - name: Setup X Cookies
-        if: ${{ inputs.run_scrapers }}
         run: |
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      # Pipeline: usa históricos si existen, si no hace scraper fresco
       - name: Run CTI Pipeline (Triple-Model + GPT4Free Enrichment)
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
           X_COOKIES_PATH: ${{ github.workspace }}/DATA/x-cookies.json
-          # No use_cache - siempre usa históricos si existen
           OLLAMA_HOST: http://localhost:11434
           OLLAMA_MODEL_REASONER: ${{ env.OLLAMA_MODEL_REASONER }}
           OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
@@ -175,9 +154,8 @@ jobs:
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 
-      # GUARDAR HISTÓRICOS SIEMPRE (a menos que reinicializar_proceso)
       - name: Save History - X Data
-        if: ${{ inputs.run_scrapers && !inputs.reinicializar_proceso }}
+        if: ${{ !inputs.reinicializar_proceso }}
         run: |
           echo "=== Guardando histórico X Data ==="
           if [ -f "${{ env.CTI_OUTPUT_DIR }}/x-data.json" ]; then
@@ -237,21 +215,14 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}' || echo "Cache purge skipped (no credentials)"
 
-      # Commit de todo: dashboards + históricos
       - name: Commit All Updates
         if: ${{ !inputs.reinicializar_proceso }}
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          
-          # Dashboards
           git add ./eccentric-equator/public/data/cti-dashboard.json || true
           git add ./eccentric-equator/public/data/cti-dashboard-es.json || true
-          
-          # Históricos
           git add ./DATA/cti-history/ || true
-          
-          # Verificar cambios
           if git diff --staged --quiet; then
             echo "No hay cambios para commit"
           else
@@ -259,7 +230,6 @@ jobs:
             git push
           fi
 
-      # Commit solo dashboards si reinicializar_proceso
       - name: Commit Dashboard Only
         if: ${{ inputs.reinicializar_proceso }}
         run: |
