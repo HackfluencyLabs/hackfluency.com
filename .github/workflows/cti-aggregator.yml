@@ -1,4 +1,4 @@
-name: CTI Aggregator - Threat Intelligence Pipeline
+# Workflow name: CTI Aggregator - Threat Intelligence Pipeline
 
 on:
   workflow_dispatch:
@@ -8,18 +8,13 @@ on:
         required: true
         default: true
         type: boolean
-      use_cache:
-        description: 'Usar cache si existe (24h TTL)'
-        required: true
-        default: true
-        type: boolean
-      flush_cache:
-        description: 'Borrar cache y forzar recoleccion fresca'
+      reinicializar_proceso:
+        description: 'Reinicializar proceso (☐ Ticket: Borra todo menos LLMs y dependencias: Ollama, Playwright)'
         required: true
         default: false
         type: boolean
-      rebuild_history:
-        description: 'Rehacer histórico - Borra datos CTI previos (NO afecta modelos de IA)'
+      use_gpt4free:
+        description: 'Usar GPT4Free para traducción (☐ Ticket: GPT4Free Enrichment)'
         required: true
         default: false
         type: boolean
@@ -37,6 +32,7 @@ concurrency:
 env:
   CTI_CACHE_DIR: ${{ github.workspace }}/DATA/cti-cache
   CTI_OUTPUT_DIR: ${{ github.workspace }}/DATA/cti-output
+  CTI_HISTORY_DIR: ${{ github.workspace }}/DATA/cti-history
   # Current date for temporal context in LLM prompts (auto-updates daily)
   CTI_CURRENT_DATE: ${{ github.event.repository.updated_at }}
   # Dual-model architecture:
@@ -47,13 +43,14 @@ env:
   # Translation model for multi-language support
   TRANSLATION_MODEL: translategemma:4b
   TARGET_LANGUAGE: 'Spanish (Latin America)'
-  # No fallback: pipeline aborts if models are unavailable
+  # GPT4Free Enrichment: ☐ Ticket
+  USE_GPT4FREE: 'false'
 
 jobs:
   cti-pipeline:
     name: CTI Pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     
     steps:
       - name: Checkout
@@ -64,32 +61,45 @@ jobs:
         with:
           node-version: '20'
 
+      # Obtener fecha para directorio histórico
+      - name: Get History Date
+        id: history-date
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      # SIEMPRE limpiar cache liviano temporal (no afecta históricos ni LLMs)
+      - name: Clean Temp Cache
+        run: |
+          echo "=== Limpiando cache temporal ==="
+          rm -rf ${{ env.CTI_CACHE_DIR }}/* || true
+          rm -rf ${{ env.CTI_OUTPUT_DIR }}/* || true
+          echo "✓ Cache temporal limpiado"
+
+      # Reinicializar proceso: borrar TODO incluyendo históricos
+      - name: Reinicializar Proceso (Borrar todo menos LLMs)
+        if: ${{ inputs.reinicializar_proceso }}
+        run: |
+          echo "=== REINICIALIZAR PROCESO - Borrando todo menos LLMs y dependencias ==="
+          echo "⚠️  Se eliminarán: históricos, cache, outputs"
+          rm -rf ${{ env.CTI_HISTORY_DIR }} || true
+          rm -rf ${{ env.CTI_CACHE_DIR }} || true
+          rm -rf ${{ env.CTI_OUTPUT_DIR }} || true
+          echo "✓ Todo eliminado excepto LLMs y dependencias"
+
+      # Siempre crear estructura de directorios
+      - name: Setup Directories
+        run: |
+          mkdir -p ${{ env.CTI_CACHE_DIR }}
+          mkdir -p ${{ env.CTI_OUTPUT_DIR }}
+          mkdir -p ${{ env.CTI_HISTORY_DIR }}/${{ steps.history-date.outputs.date }}
+          echo "✓ Directorios creados"
+
       - name: Cache Ollama Models
-        if: ${{ !inputs.rebuild_history }}
+        if: ${{ !inputs.reinicializar_proceso }}
         uses: actions/cache@v4
         with:
           path: ~/.ollama
           key: ollama-triple-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}-${{ env.TRANSLATION_MODEL }}
-
-      - name: Rebuild History - Clean Data Only
-        if: ${{ inputs.rebuild_history }}
-        run: |
-          echo "=== REHACER HISTÓRICO - LIMPIEZA DE DATOS CTI ==="
-          echo "⚠️  Se borrarán los datos históricos de análisis"
-          echo "✓ Los modelos de IA se mantendrán (se descargarán si es necesario)"
-          echo ""
-          
-          # Solo borrar datos CTI, NO los modelos de Ollama
-          rm -rf ${{ env.CTI_CACHE_DIR }} || true
-          rm -rf ${{ env.CTI_OUTPUT_DIR }} || true
-          rm -rf ./DATA || true
-          
-          # Crear directorios limpios
-          mkdir -p ${{ env.CTI_CACHE_DIR }}
-          mkdir -p ${{ env.CTI_OUTPUT_DIR }}
-          
-          echo "✓ Datos CTI reinicializados"
-          echo ""
 
       - name: Install Ollama and Pull Models
         run: |
@@ -138,26 +148,6 @@ jobs:
           echo ""
           echo "=== All models ready for CTI pipeline ==="
 
-      - name: Clear Cache (if flush requested)
-        if: ${{ inputs.flush_cache && !inputs.rebuild_history }}
-        run: |
-          echo "=== FLUSHING CACHE ==="
-          rm -rf ${{ env.CTI_CACHE_DIR }}/* || true
-          rm -f ${{ env.CTI_OUTPUT_DIR }}/x-data.json || true
-          rm -f ${{ env.CTI_OUTPUT_DIR }}/shodan-data.json || true
-          echo "✓ Cache cleared"
-
-      - name: Restore CTI Cache
-        if: ${{ inputs.use_cache && !inputs.flush_cache && !inputs.rebuild_history }}
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CTI_CACHE_DIR }}
-          key: cti-data-${{ github.run_id }}
-          restore-keys: cti-data-
-
-      - name: Setup Directories
-        run: mkdir -p ${{ env.CTI_CACHE_DIR }} ${{ env.CTI_OUTPUT_DIR }}
-
       - name: Install Dependencies
         working-directory: ./scripts/cti
         run: npm ci
@@ -172,29 +162,66 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      # Triple-model pipeline execution:
-      # 1. X.com scrape → 2. QueryGenerator (SPECIALIST) → 3. Contextual Shodan → 
-      # 4. Process → 5. CTI Agents (REASONER+SPECIALIST) → 6. Dashboard → 7. Translation
-      - name: Run CTI Pipeline (Triple-Model)
+      # Pipeline: usa históricos si existen, si no hace scraper fresco
+      - name: Run CTI Pipeline (Triple-Model + GPT4Free Enrichment)
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
           X_COOKIES_PATH: ${{ github.workspace }}/DATA/x-cookies.json
-          USE_CACHE: ${{ inputs.use_cache }}
+          # No use_cache - siempre usa históricos si existen
           OLLAMA_HOST: http://localhost:11434
           OLLAMA_MODEL_REASONER: ${{ env.OLLAMA_MODEL_REASONER }}
           OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
           TRANSLATION_MODEL: ${{ env.TRANSLATION_MODEL }}
           TARGET_LANGUAGE: ${{ env.TARGET_LANGUAGE }}
+          USE_GPT4FREE: ${{ inputs.use_gpt4free }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 
-      - name: Save Cache
-        uses: actions/cache/save@v4
-        if: ${{ always() && !inputs.rebuild_history }}
-        with:
-          path: ${{ env.CTI_CACHE_DIR }}
-          key: cti-data-${{ github.run_id }}
+      # GUARDAR HISTÓRICOS SIEMPRE (a menos que reinicializar_proceso)
+      - name: Save History - X Data
+        if: ${{ inputs.run_scrapers && !inputs.reinicializar_proceso }}
+        run: |
+          echo "=== Guardando histórico X Data ==="
+          if [ -f "${{ env.CTI_OUTPUT_DIR }}/x-data.json" ]; then
+            cp "${{ env.CTI_OUTPUT_DIR }}/x-data.json" "${{ env.CTI_HISTORY_DIR }}/${{ steps.history-date.outputs.date }}/x-data.json"
+            echo "✓ x-data.json guardado"
+          else
+            echo "⚠ x-data.json no encontrado, omitido"
+          fi
+
+      - name: Save History - Shodan Data
+        if: ${{ !inputs.reinicializar_proceso }}
+        run: |
+          echo "=== Guardando histórico Shodan Data ==="
+          if [ -f "${{ env.CTI_OUTPUT_DIR }}/shodan-data.json" ]; then
+            cp "${{ env.CTI_OUTPUT_DIR }}/shodan-data.json" "${{ env.CTI_HISTORY_DIR }}/${{ steps.history-date.outputs.date }}/shodan-data.json"
+            echo "✓ shodan-data.json guardado"
+          else
+            echo "⚠ shodan-data.json no encontrado, omitido"
+          fi
+
+      - name: Save History - Dashboard EN
+        if: ${{ !inputs.reinicializar_proceso }}
+        run: |
+          echo "=== Guardando histórico Dashboard EN ==="
+          if [ -f "${{ env.CTI_OUTPUT_DIR }}/cti-dashboard.json" ]; then
+            cp "${{ env.CTI_OUTPUT_DIR }}/cti-dashboard.json" "${{ env.CTI_HISTORY_DIR }}/${{ steps.history-date.outputs.date }}/cti-dashboard.json"
+            echo "✓ cti-dashboard.json guardado"
+          else
+            echo "⚠ cti-dashboard.json no encontrado, omitido"
+          fi
+
+      - name: Save History - Dashboard ES
+        if: ${{ !inputs.reinicializar_proceso }}
+        run: |
+          echo "=== Guardando histórico Dashboard ES ==="
+          if [ -f "${{ env.CTI_OUTPUT_DIR }}/cti-dashboard-es.json" ]; then
+            cp "${{ env.CTI_OUTPUT_DIR }}/cti-dashboard-es.json" "${{ env.CTI_HISTORY_DIR }}/${{ steps.history-date.outputs.date }}/cti-dashboard-es.json"
+            echo "✓ cti-dashboard-es.json guardado"
+          else
+            echo "⚠ cti-dashboard-es.json no encontrado, omitido"
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -213,11 +240,35 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}' || echo "Cache purge skipped (no credentials)"
 
-      - name: Commit Dashboard Update
+      # Commit de todo: dashboards + históricos
+      - name: Commit All Updates
+        if: ${{ !inputs.reinicializar_proceso }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          
+          # Dashboards
+          git add ./eccentric-equator/public/data/cti-dashboard.json || true
+          git add ./eccentric-equator/public/data/cti-dashboard-es.json || true
+          
+          # Históricos
+          git add ./DATA/cti-history/ || true
+          
+          # Verificar cambios
+          if git diff --staged --quiet; then
+            echo "No hay cambios para commit"
+          else
+            git commit -m "chore: CTI update + history ${{ steps.history-date.outputs.date }} [run-${{ github.run_id }}]"
+            git push
+          fi
+
+      # Commit solo dashboards si reinicializar_proceso
+      - name: Commit Dashboard Only
+        if: ${{ inputs.reinicializar_proceso }}
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add ./eccentric-equator/public/data/cti-dashboard.json || true
           git add ./eccentric-equator/public/data/cti-dashboard-es.json || true
-          git diff --staged --quiet || git commit -m "chore: update CTI intelligence dashboard (EN + ES) [cache-busted]"
+          git diff --staged --quiet || git commit -m "chore: CTI update [proceso reinicializado - run-${{ github.run_id }}]"
           git push || true

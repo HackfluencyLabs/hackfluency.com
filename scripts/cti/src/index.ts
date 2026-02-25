@@ -26,12 +26,64 @@ import HistoricalCache from './cache/historical-cache.js';
 import MinimalDashboardGenerator from './dashboard/minimal-dashboard.js';
 
 const OUTPUT_DIR = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
+const HISTORY_DIR = process.env.CTI_HISTORY_DIR || './DATA/cti-history';
 const COMMANDS = ['scrape', 'analyze', 'dashboard', 'all'] as const;
 type Command = typeof COMMANDS[number];
 
 async function saveData(filename: string, data: unknown): Promise<void> {
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
   await fs.writeFile(path.join(OUTPUT_DIR, filename), JSON.stringify(data, null, 2));
+}
+
+/**
+ * Busca el directorio de histórico más reciente con archivos válidos
+ */
+async function getLatestHistoryDir(): Promise<string | null> {
+  try {
+    const entries = await fs.readdir(HISTORY_DIR, { withFileTypes: true });
+    const dirs = entries
+      .filter(e => e.isDirectory())
+      .map(e => e.name)
+      .sort()
+      .reverse();
+    
+    if (dirs.length === 0) return null;
+    
+    const latestDir = path.join(HISTORY_DIR, dirs[0]);
+    const xDataPath = path.join(latestDir, 'x-data.json');
+    const shodanDataPath = path.join(latestDir, 'shodan-data.json');
+    
+    try {
+      await fs.access(xDataPath);
+      await fs.access(shodanDataPath);
+      return latestDir;
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Copia archivos de histórico a output
+ */
+async function copyFromHistory(historyDir: string): Promise<{ xData: unknown; shodanData: unknown } | null> {
+  try {
+    const xDataPath = path.join(historyDir, 'x-data.json');
+    const shodanDataPath = path.join(historyDir, 'shodan-data.json');
+    
+    const xData = JSON.parse(await fs.readFile(xDataPath, 'utf-8'));
+    const shodanData = JSON.parse(await fs.readFile(shodanDataPath, 'utf-8'));
+    
+    await saveData('x-data.json', xData);
+    await saveData('shodan-data.json', shodanData);
+    
+    return { xData, shodanData };
+  } catch (error) {
+    console.error('[History] Error copying from history:', error);
+    return null;
+  }
 }
 
 async function runScrapers(): Promise<XScrapedData | null> {
@@ -45,63 +97,80 @@ async function runScrapers(): Promise<XScrapedData | null> {
   };
 
   let xData: XScrapedData | null = null;
+  let shodanData: unknown = null;
 
-  if (process.env.X_COOKIES_JSON || process.env.X_COOKIES_PATH) {
-    console.log('[Scrape] Running X.com scraper...');
-    const xScraper = new XScraper({ ...baseConfig, source: DataSource.X_COM });
-    const result = await xScraper.execute();
-    if (result.success) {
-      xData = result.data;
-      await saveData('x-data.json', result.data);
-      console.log(`[X.com] ✓ ${result.data.posts.length} posts collected (cache=${result.fromCache})`);
-    } else {
-      console.log(`[X.com] ✗ ${result.error}`);
+  // === ESTRATEGIA: Usar históricos si existen, si no hacer scraper ===
+  const historyDir = await getLatestHistoryDir();
+  
+  if (historyDir) {
+    console.log('[Scrape] Using historical data from:', path.basename(historyDir));
+    const historyData = await copyFromHistory(historyDir);
+    if (historyData) {
+      xData = historyData.xData as XScrapedData;
+      shodanData = historyData.shodanData;
+      console.log(`[History] ✓ Loaded ${xData?.posts?.length || 0} X posts, ${(shodanData as any)?.hosts?.length || 0} Shodan hosts`);
     }
-  } else {
-    console.log('[X.com] Skipped (set X_COOKIES_JSON or X_COOKIES_PATH)');
   }
-
-  if (xData && xData.posts.length > 0) {
-    console.log('[Scrape] Generating contextual queries using TWO-STEP architecture...');
-    console.log('  [Architecture] Step 1: Phi4-mini synthesizes social context');
-    console.log('  [Architecture] Step 2: Specialist generates Shodan queries');
-    const queryGen = new QueryGenerator();
-    const queryResult = await queryGen.generateQueriesTwoStep(xData.posts);
-    
-    console.log(`[QueryGenerator] ${queryResult.reasoning}`);
-    if (queryResult.extractedIndicators.products.length > 0) {
-      console.log(`[QueryGenerator] Detected Services: ${queryResult.extractedIndicators.products.join(', ')}`);
-    }
-    if (queryResult.extractedIndicators.ports.length > 0) {
-      console.log(`[QueryGenerator] Detected Ports: ${queryResult.extractedIndicators.ports.join(', ')}`);
-    }
-    if (queryResult.extractedIndicators.countries.length > 0) {
-      console.log(`[QueryGenerator] Detected Countries: ${queryResult.extractedIndicators.countries.join(', ')}`);
-    }
-    if (queryResult.extractedIndicators.cves.length > 0) {
-      console.log(`[QueryGenerator] Detected CVEs: ${queryResult.extractedIndicators.cves.join(', ')}`);
-    }
-    console.log(`[QueryGenerator] Final queries: ${queryResult.queries.join(' | ')}`);
-    
-    setContextualQueries(queryResult.queries);
-  } else {
-    console.log('[QueryGenerator] No social data - using fallback query');
-    setContextualQueries(['after:1']);
-  }
-
-  // Shodan Scraper - Infrastructure Intelligence
-  if (process.env.SHODAN_API_KEY) {
-    console.log('[Scrape] Running Shodan scraper...');
-    const shodan = new ShodanScraper({ ...baseConfig, source: DataSource.SHODAN });
-    const result = await shodan.execute();
-    if (result.success) {
-      await saveData('shodan-data.json', result.data);
-      console.log(`[Shodan] ✓ ${result.data.hosts.length} hosts collected (cache=${result.fromCache})`);
+  
+  // Si no hay histórico, ejecutar scrapers normalmente
+  if (!xData || !shodanData) {
+    if (process.env.X_COOKIES_JSON || process.env.X_COOKIES_PATH) {
+      console.log('[Scrape] Running X.com scraper...');
+      const xScraper = new XScraper({ ...baseConfig, source: DataSource.X_COM });
+      const result = await xScraper.execute();
+      if (result.success) {
+        xData = result.data;
+        await saveData('x-data.json', result.data);
+        console.log(`[X.com] ✓ ${result.data.posts.length} posts collected (cache=${result.fromCache})`);
+      } else {
+        console.log(`[X.com] ✗ ${result.error}`);
+      }
     } else {
-      console.log(`[Shodan] ✗ ${result.error}`);
+      console.log('[X.com] Skipped (set X_COOKIES_JSON or X_COOKIES_PATH)');
     }
-  } else {
-    console.log('[Shodan] Skipped (SHODAN_API_KEY not set)');
+
+    if (xData && xData.posts.length > 0) {
+      console.log('[Scrape] Generating contextual queries using TWO-STEP architecture...');
+      console.log('  [Architecture] Step 1: Phi4-mini synthesizes social context');
+      console.log('  [Architecture] Step 2: Specialist generates Shodan queries');
+      const queryGen = new QueryGenerator();
+      const queryResult = await queryGen.generateQueriesTwoStep(xData.posts);
+      
+      console.log(`[QueryGenerator] ${queryResult.reasoning}`);
+      if (queryResult.extractedIndicators.products.length > 0) {
+        console.log(`[QueryGenerator] Detected Services: ${queryResult.extractedIndicators.products.join(', ')}`);
+      }
+      if (queryResult.extractedIndicators.ports.length > 0) {
+        console.log(`[QueryGenerator] Detected Ports: ${queryResult.extractedIndicators.ports.join(', ')}`);
+      }
+      if (queryResult.extractedIndicators.countries.length > 0) {
+        console.log(`[QueryGenerator] Detected Countries: ${queryResult.extractedIndicators.countries.join(', ')}`);
+      }
+      if (queryResult.extractedIndicators.cves.length > 0) {
+        console.log(`[QueryGenerator] Detected CVEs: ${queryResult.extractedIndicators.cves.join(', ')}`);
+      }
+      console.log(`[QueryGenerator] Final queries: ${queryResult.queries.join(' | ')}`);
+      
+      setContextualQueries(queryResult.queries);
+    } else {
+      console.log('[QueryGenerator] No social data - using fallback query');
+      setContextualQueries(['after:1']);
+    }
+
+    // Shodan Scraper - Infrastructure Intelligence
+    if (process.env.SHODAN_API_KEY) {
+      console.log('[Scrape] Running Shodan scraper...');
+      const shodan = new ShodanScraper({ ...baseConfig, source: DataSource.SHODAN });
+      const result = await shodan.execute();
+      if (result.success) {
+        await saveData('shodan-data.json', result.data);
+        console.log(`[Shodan] ✓ ${result.data.hosts.length} hosts collected (cache=${result.fromCache})`);
+      } else {
+        console.log(`[Shodan] ✗ ${result.error}`);
+      }
+    } else {
+      console.log('[Shodan] Skipped (SHODAN_API_KEY not set)');
+    }
   }
 
   return xData;
