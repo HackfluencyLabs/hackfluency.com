@@ -18,11 +18,20 @@ const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
 const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '8', 10);
 const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
 const ENABLE_TRANSLATION_CACHE = process.env.TRANSLATION_CACHE_ENABLED === 'true';
-const TRANSLATION_PROVIDER = 'anylang';
+const TRANSLATION_PROVIDER = 'hybrid-translation';
 const QUALITY_MIN_RATIO = parseFloat(process.env.TRANSLATION_MIN_LENGTH_RATIO || '0.55');
 const QUALITY_MAX_RATIO = parseFloat(process.env.TRANSLATION_MAX_LENGTH_RATIO || '2.2');
 const ENABLE_LANGUAGE_TOOL = process.env.ENABLE_LANGUAGE_TOOL !== 'false';
 const LANGUAGETOOL_URL = process.env.LANGUAGETOOL_URL || 'https://api.languagetool.org/v2/check';
+const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
+const PRIMARY_OLLAMA_TRANSLATOR_MODEL = process.env.OLLAMA_MODEL_TRANSLATOR || 'zongwei/gemma3-translator:1b';
+const TRANSLATION_REWRITE_MODEL = process.env.OLLAMA_MODEL_TRANSLATION_REWRITE || process.env.OLLAMA_MODEL_REASONER || 'phi4-mini';
+const ENABLE_OLLAMA_PRIMARY_TRANSLATION = process.env.ENABLE_OLLAMA_PRIMARY_TRANSLATION !== 'false';
+const ENABLE_LLM_REWRITE = process.env.ENABLE_LLM_TRANSLATION_REWRITE === 'true';
+const OLLAMA_TRANSLATION_TIMEOUT_MS = parseInt(process.env.OLLAMA_TRANSLATION_TIMEOUT_MS || '120000', 10);
+const OLLAMA_TRANSLATION_RETRIES = parseInt(process.env.OLLAMA_TRANSLATION_RETRIES || '3', 10);
+const OLLAMA_TRANSLATION_BUDGET_MS = parseInt(process.env.OLLAMA_TRANSLATION_BUDGET_MS || '480000', 10);
+const OLLAMA_REWRITE_BUDGET_MS = parseInt(process.env.OLLAMA_REWRITE_BUDGET_MS || '240000', 10);
 
 const NON_TRANSLATABLE_FIELDS = new Set([
   'id', 'version', 'generatedAt', 'validUntil', 'timestamp', 'lastUpdate', 'lastSeen', 'firstSeen',
@@ -43,6 +52,20 @@ const TECHNICAL_PATTERNS = [
   /^#\w+/,
 ];
 
+const ENGLISH_STOPWORDS = new Set([
+  'the', 'and', 'with', 'from', 'that', 'this', 'these', 'those', 'while', 'there', 'which', 'are', 'is', 'was', 'were', 'have', 'has', 'had', 'for', 'into', 'about', 'over', 'under', 'without', 'between', 'within', 'across', 'through', 'ongoing', 'findings', 'analysis', 'recommended', 'actions',
+]);
+
+const PROTECTED_BRAND_TERMS = [
+  'Shodan',
+  'X.com',
+  'LATAM',
+  'Apache httpd',
+  'SIEM',
+  'CERT.br',
+  'CSIRT-MX',
+];
+
 interface CacheEntry {
   original: string;
   translated: string;
@@ -60,9 +83,12 @@ export class LLMTranslator {
   private cache: Map<string, CacheEntry>;
   private cacheFile: string;
   private anylangModule: AnylangModule | null = anylangAdapter as unknown as AnylangModule;
+  private translationStartedAt: number;
+  private ollamaPrimaryDisabled = false;
 
   constructor() {
     this.cache = new Map();
+    this.translationStartedAt = Date.now();
     this.cacheFile = path.join(
       process.env.CTI_CACHE_DIR || './DATA/cti-cache',
       'translation-cache.json'
@@ -70,7 +96,9 @@ export class LLMTranslator {
   }
 
   async translateDashboard(dashboard: any): Promise<any> {
-    console.log('[LLMTranslator] Starting translation process with anylang...');
+    this.translationStartedAt = Date.now();
+    this.ollamaPrimaryDisabled = false;
+    console.log(`[LLMTranslator] Starting translation process (${ENABLE_OLLAMA_PRIMARY_TRANSLATION ? `ollama:${PRIMARY_OLLAMA_TRANSLATOR_MODEL}` : 'anylang'})...`);
 
     if (ENABLE_TRANSLATION_CACHE) {
       await this.loadCache();
@@ -190,22 +218,26 @@ export class LLMTranslator {
       return `${normalized}: ${translatedBody}`.trim();
     }
 
-    const primary = await this.translateWithAnylang(text);
-    const primaryChecked = await this.postProcessSpanish(primary);
+    const { prepared, placeholders } = this.protectTechnicalSegments(text);
 
-    if (this.isAcceptableTranslation(text, primaryChecked)) {
-      return primaryChecked;
+    const primary = await this.translateTextSmart(prepared);
+    const primaryChecked = this.restoreTechnicalSegments(await this.postProcessSpanish(primary), placeholders);
+    const primaryFinal = await this.rewriteSpanishWithLLM(primaryChecked, text);
+
+    if (this.isAcceptableTranslation(text, primaryFinal)) {
+      return primaryFinal;
     }
 
     console.warn('[LLMTranslator] Primary translation quality below threshold, retrying with fallback');
-    const fallback = await this.translateWithLibreFallback(text);
-    const fallbackChecked = await this.postProcessSpanish(fallback);
+    const fallback = await this.translateWithLibreFallback(prepared);
+    const fallbackChecked = this.restoreTechnicalSegments(await this.postProcessSpanish(fallback), placeholders);
+    const fallbackFinal = await this.rewriteSpanishWithLLM(fallbackChecked, text);
 
-    if (this.isAcceptableTranslation(text, fallbackChecked)) {
-      return fallbackChecked;
+    if (this.isAcceptableTranslation(text, fallbackFinal)) {
+      return fallbackFinal;
     }
 
-    return primaryChecked || text;
+    return primaryFinal || text;
   }
 
   private isAcceptableTranslation(original: string, translated: string): boolean {
@@ -221,7 +253,150 @@ export class LLMTranslator {
       return false;
     }
 
+    const englishRatio = this.getEnglishStopwordRatio(target);
+    if (target.split(/\s+/).length >= 12 && englishRatio > 0.22) {
+      return false;
+    }
+
     return true;
+  }
+
+  private async translateTextSmart(text: string): Promise<string> {
+    const translateOne = (input: string) => this.translatePrimary(input);
+
+    if (text.length <= 280) {
+      return translateOne(text);
+    }
+
+    const parts = this.splitLongText(text);
+    const translatedParts = await Promise.all(parts.map(part => translateOne(part)));
+    return translatedParts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  private splitLongText(text: string): string[] {
+    const fragments = text
+      .split(/(?<=[.!?])\s+(?=[A-Z0-9])/)
+      .map(fragment => fragment.trim())
+      .filter(Boolean);
+
+    if (fragments.length <= 1) return [text];
+
+    const merged: string[] = [];
+    let current = '';
+
+    for (const fragment of fragments) {
+      if (!current) {
+        current = fragment;
+        continue;
+      }
+
+      if ((current.length + fragment.length + 1) <= 260) {
+        current = `${current} ${fragment}`;
+      } else {
+        merged.push(current);
+        current = fragment;
+      }
+    }
+
+    if (current) merged.push(current);
+    return merged;
+  }
+
+  private protectTechnicalSegments(text: string): { prepared: string; placeholders: Map<string, string> } {
+    const placeholders = new Map<string, string>();
+    let prepared = text;
+    let index = 0;
+    const protectedTermsPattern = PROTECTED_BRAND_TERMS
+      .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+    const segmentPattern = new RegExp(`(CVE-\\d{4}-\\d+|https?:\\/\\/\\S+|\\b(?:[a-z0-9._-]+):\\d+\\b|${protectedTermsPattern})`, 'gi');
+
+    prepared = prepared.replace(segmentPattern, (match) => {
+      const key = `__HFSEGMENT_${index++}__`;
+      placeholders.set(key, match);
+      return key;
+    });
+
+    return { prepared, placeholders };
+  }
+
+  private restoreTechnicalSegments(text: string, placeholders: Map<string, string>): string {
+    let restored = text;
+    for (const [key, value] of placeholders.entries()) {
+      const safe = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      restored = restored.replace(new RegExp(safe, 'g'), value);
+    }
+    return restored;
+  }
+
+  private getEnglishStopwordRatio(text: string): number {
+    const words = (text.toLowerCase().match(/[a-záéíóúñü]+/g) || []).map(w => w.trim());
+    if (words.length === 0) return 0;
+    const englishHits = words.filter(word => ENGLISH_STOPWORDS.has(word)).length;
+    return englishHits / words.length;
+  }
+
+
+  private async rewriteSpanishWithLLM(candidate: string, original: string): Promise<string> {
+    if (!ENABLE_LLM_REWRITE || !candidate || candidate.trim().length < 40) {
+      return candidate;
+    }
+
+    if (this.elapsedMs() > OLLAMA_REWRITE_BUDGET_MS) {
+      return candidate;
+    }
+
+    try {
+      const prompt = [
+        'You are an expert English-to-Spanish cybersecurity translator.',
+        'Rewrite the Spanish text for fluency and correctness while preserving technical meaning.',
+        'STRICT RULES:',
+        '- Keep ALL CVE IDs, URLs, ports, IPs and product names exactly unchanged.',
+        '- Keep company/product brands unchanged: Shodan, X.com, LATAM, Apache httpd, SIEM, CERT.br, CSIRT-MX.',
+        '- Return only the corrected Spanish text, no explanations.',
+        '',
+        `Original English: ${original}`,
+        `Current Spanish: ${candidate}`,
+      ].join('\n');
+
+      const rewritten = await this.callOllamaRewrite(prompt);
+      const cleaned = this.postRewriteCleanup((rewritten || '').trim());
+      if (!cleaned) return candidate;
+      if (!this.isAcceptableTranslation(original, cleaned)) return candidate;
+      return cleaned;
+    } catch {
+      return candidate;
+    }
+  }
+
+  private postRewriteCleanup(text: string): string {
+    let out = text.replace(/^```(?:text)?\s*/i, '').replace(/```$/i, '').trim();
+    for (const term of PROTECTED_BRAND_TERMS) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'gi');
+      out = out.replace(regex, term);
+    }
+    return out;
+  }
+
+  private async callOllamaRewrite(prompt: string): Promise<string> {
+    const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: TRANSLATION_REWRITE_MODEL,
+        prompt,
+        stream: false,
+        options: { temperature: 0.1, num_predict: 900, top_p: 0.9 }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama HTTP ${response.status}`);
+    }
+
+    const payload = await response.json() as { response?: string };
+    return (payload.response || '').trim();
   }
 
   private async postProcessSpanish(text: string): Promise<string> {
@@ -276,6 +451,84 @@ export class LLMTranslator {
 
   private async getAnylangModule(): Promise<AnylangModule | null> {
     return this.anylangModule;
+  }
+
+  private elapsedMs(): number {
+    return Date.now() - this.translationStartedAt;
+  }
+
+  private shouldUsePrimaryOllama(): boolean {
+    if (!ENABLE_OLLAMA_PRIMARY_TRANSLATION) return false;
+    if (this.ollamaPrimaryDisabled) return false;
+    if (this.elapsedMs() > OLLAMA_TRANSLATION_BUDGET_MS) {
+      this.ollamaPrimaryDisabled = true;
+      console.warn('[LLMTranslator] Ollama primary translation budget exhausted, switching to fallback provider');
+      return false;
+    }
+    return true;
+  }
+
+  private async translatePrimary(text: string): Promise<string> {
+    if (this.shouldUsePrimaryOllama()) {
+      const viaOllama = await this.translateWithOllamaTranslator(text);
+      if (viaOllama && viaOllama.trim().length > 0) {
+        return viaOllama;
+      }
+    }
+
+    return this.translateWithAnylang(text);
+  }
+
+  private async translateWithOllamaTranslator(text: string): Promise<string> {
+    const prompt = [
+      'Translate from English to neutral professional Spanish for cybersecurity CTI dashboards.',
+      'Rules:',
+      '- Preserve CVE IDs, URLs, IPs, domains, hashes and port notations exactly as-is.',
+      '- Keep product/brand names unchanged (Shodan, X.com, LATAM, Apache httpd, SIEM, CERT.br, CSIRT-MX).',
+      '- Return ONLY translated Spanish text.',
+      '',
+      text,
+    ].join('\n');
+
+    for (let attempt = 0; attempt <= OLLAMA_TRANSLATION_RETRIES; attempt++) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), OLLAMA_TRANSLATION_TIMEOUT_MS);
+      try {
+        const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: PRIMARY_OLLAMA_TRANSLATOR_MODEL,
+            prompt,
+            stream: false,
+            options: { temperature: 0.1, num_predict: 1200, top_p: 0.9 }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Ollama HTTP ${response.status}`);
+        }
+
+        const payload = await response.json() as { response?: string };
+        const candidate = this.postRewriteCleanup((payload.response || '').trim());
+        if (candidate) return candidate;
+      } catch {
+        if (attempt >= OLLAMA_TRANSLATION_RETRIES) {
+          this.ollamaPrimaryDisabled = true;
+          return text;
+        }
+        await this.sleep(2000 * (attempt + 1));
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    return text;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private extractTranslation(value: any): string | null {
