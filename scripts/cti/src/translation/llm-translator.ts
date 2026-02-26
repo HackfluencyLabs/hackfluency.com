@@ -11,7 +11,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { createRequire } from 'module';
 
 const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'es';
 const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
@@ -68,19 +67,14 @@ interface TranslationCache {
   [hash: string]: CacheEntry;
 }
 
-type AnylangModule = Record<string, any>;
+import * as anylangAdapter from './anylang-adapter.js';
 
-async function dynamicImport(moduleName: string): Promise<any> {
-  return new Function('m', 'return import(m)')(moduleName) as Promise<any>;
-}
-
-const require = createRequire(import.meta.url);
+type AnylangModule = { translate: (...args: any[]) => Promise<any> };
 
 export class LLMTranslator {
   private cache: Map<string, CacheEntry>;
   private cacheFile: string;
-  private anylangModule: AnylangModule | null = null;
-  private anylangLoadAttempted = false;
+  private anylangModule: AnylangModule | null = anylangAdapter as unknown as AnylangModule;
 
   constructor() {
     this.cache = new Map();
@@ -279,21 +273,7 @@ export class LLMTranslator {
   }
 
   private async getAnylangModule(): Promise<AnylangModule | null> {
-    if (this.anylangLoadAttempted) return this.anylangModule;
-
-    this.anylangLoadAttempted = true;
-    if (this.anylangModule) return this.anylangModule;
-
-    try {
-      // Verificar primero resolución del paquete para evitar stacktraces ruidosos
-      require.resolve('anylang');
-      this.anylangModule = await dynamicImport('anylang');
-      console.log('[LLMTranslator] anylang module loaded successfully');
-      return this.anylangModule;
-    } catch (error) {
-      console.warn('[LLMTranslator] anylang falló al cargar; usando HTTP fallback de traducción.');
-      return null;
-    }
+    return this.anylangModule;
   }
 
   private extractTranslation(value: any): string | null {
@@ -316,8 +296,6 @@ export class LLMTranslator {
     if (module) {
       const fns: Array<((...args: any[]) => Promise<any>) | undefined> = [
         module.translate,
-        module.default?.translate,
-        typeof module.default === 'function' ? module.default : undefined,
       ];
 
       for (const fn of fns) {
