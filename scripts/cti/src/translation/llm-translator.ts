@@ -237,7 +237,7 @@ export class LLMTranslator {
       return fallbackFinal;
     }
 
-    return primaryFinal || text;
+    return this.chooseBestTranslation(text, primaryFinal, fallbackFinal);
   }
 
   private isAcceptableTranslation(original: string, translated: string): boolean {
@@ -259,6 +259,22 @@ export class LLMTranslator {
     }
 
     return true;
+  }
+
+  private chooseBestTranslation(original: string, primary: string, fallback: string): string {
+    if (this.isAcceptableTranslation(original, primary)) return primary;
+    if (this.isAcceptableTranslation(original, fallback)) return fallback;
+
+    const primaryEnglishRatio = this.getEnglishStopwordRatio(primary);
+    const fallbackEnglishRatio = this.getEnglishStopwordRatio(fallback);
+
+    if (fallbackEnglishRatio < primaryEnglishRatio) return fallback;
+    if (primaryEnglishRatio < fallbackEnglishRatio) return primary;
+
+    if (primary.trim().toLowerCase() !== original.trim().toLowerCase()) return primary;
+    if (fallback.trim().toLowerCase() !== original.trim().toLowerCase()) return fallback;
+
+    return fallback || primary || original;
   }
 
   private async translateTextSmart(text: string): Promise<string> {
@@ -479,7 +495,7 @@ export class LLMTranslator {
     return this.translateWithAnylang(text);
   }
 
-  private async translateWithOllamaTranslator(text: string): Promise<string> {
+  private async translateWithOllamaTranslator(text: string): Promise<string | null> {
     const prompt = [
       'Translate from English to neutral professional Spanish for cybersecurity CTI dashboards.',
       'Rules:',
@@ -516,7 +532,7 @@ export class LLMTranslator {
       } catch {
         if (attempt >= OLLAMA_TRANSLATION_RETRIES) {
           this.ollamaPrimaryDisabled = true;
-          return text;
+          return null;
         }
         await this.sleep(2000 * (attempt + 1));
       } finally {
@@ -524,7 +540,7 @@ export class LLMTranslator {
       }
     }
 
-    return text;
+    return null;
   }
 
   private sleep(ms: number): Promise<void> {
