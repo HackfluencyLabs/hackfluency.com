@@ -3,7 +3,7 @@
  *
  * Arquitectura:
  * 1) Extrae strings traducibles del JSON (filtrando campos técnicos)
- * 2) Traduce con `anylang` (si está disponible) usando API moderna gratuita
+ * 2) Traduce con `anylang` como módulo principal del flujo (siempre disponible vía adapter interno)
  * 3) Fallback HTTP a LibreTranslate-compatible endpoint
  * 4) Cache persistente para evitar re-traducciones
  */
@@ -11,13 +11,13 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import * as anylangAdapter from './anylang-adapter.js';
 
 const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'es';
 const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
 const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '8', 10);
 const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
 const TRANSLATION_PROVIDER = 'anylang';
-const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || 'https://translate.argosopentech.com/translate';
 const QUALITY_MIN_RATIO = parseFloat(process.env.TRANSLATION_MIN_LENGTH_RATIO || '0.55');
 const QUALITY_MAX_RATIO = parseFloat(process.env.TRANSLATION_MAX_LENGTH_RATIO || '2.2');
 const ENABLE_LANGUAGE_TOOL = process.env.ENABLE_LANGUAGE_TOOL !== 'false';
@@ -62,16 +62,12 @@ interface TranslationCache {
   [hash: string]: CacheEntry;
 }
 
-type AnylangModule = Record<string, any>;
-
-async function dynamicImport(moduleName: string): Promise<any> {
-  return new Function('m', 'return import(m)')(moduleName) as Promise<any>;
-}
+type AnylangModule = { translate: (...args: any[]) => Promise<any> };
 
 export class LLMTranslator {
   private cache: Map<string, CacheEntry>;
   private cacheFile: string;
-  private anylangModule: AnylangModule | null = null;
+  private anylangModule: AnylangModule | null = anylangAdapter as unknown as AnylangModule;
 
   constructor() {
     this.cache = new Map();
@@ -270,16 +266,7 @@ export class LLMTranslator {
   }
 
   private async getAnylangModule(): Promise<AnylangModule | null> {
-    if (this.anylangModule) return this.anylangModule;
-
-    try {
-      this.anylangModule = await dynamicImport('anylang');
-      console.log('[LLMTranslator] anylang module loaded successfully');
-      return this.anylangModule;
-    } catch (error) {
-      console.warn('[LLMTranslator] anylang module is not available, using HTTP fallback:', error);
-      return null;
-    }
+    return this.anylangModule;
   }
 
   private extractTranslation(value: any): string | null {
@@ -302,8 +289,6 @@ export class LLMTranslator {
     if (module) {
       const fns: Array<((...args: any[]) => Promise<any>) | undefined> = [
         module.translate,
-        module.default?.translate,
-        typeof module.default === 'function' ? module.default : undefined,
       ];
 
       for (const fn of fns) {
@@ -330,23 +315,12 @@ export class LLMTranslator {
   }
 
   private async translateWithLibreFallback(text: string): Promise<string> {
-    const response = await fetch(LIBRETRANSLATE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        q: text,
-        source: SOURCE_LANGUAGE,
-        target: TARGET_LANGUAGE,
-        format: 'text',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`LibreTranslate HTTP ${response.status}`);
+    try {
+      const data = await anylangAdapter.translate(text, { from: SOURCE_LANGUAGE, to: TARGET_LANGUAGE }) as { translatedText?: string };
+      return (data.translatedText || text).trim();
+    } catch {
+      return text;
     }
-
-    const data = await response.json() as { translatedText?: string };
-    return (data.translatedText || text).trim();
   }
 
   private reconstructJson(original: any, translations: Map<string, string>): any {
