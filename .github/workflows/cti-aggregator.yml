@@ -35,6 +35,8 @@ env:
   OLLAMA_REWRITE_BUDGET_MS: '420000'
   ENABLE_LLM_TRANSLATION_REWRITE: 'true'
   OLLAMA_MODEL_TRANSLATION_REWRITE: phi4-mini
+  LIBRETRANSLATE_URL: 'http://127.0.0.1:5000/translate'
+  TRANSLATION_FALLBACK_URLS: 'https://ftapi.pythonanywhere.com/translate'
 
 jobs:
   cti-pipeline:
@@ -147,6 +149,26 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
+
+      - name: Start LibreTranslate (local fallback service)
+        run: |
+          docker run -d --name libretranslate \
+            -p 5000:5000 \
+            libretranslate/libretranslate:latest
+
+          echo "Waiting for LibreTranslate health..."
+          for i in {1..30}; do
+            if curl -fsS "http://127.0.0.1:5000/languages" > /dev/null; then
+              echo "✓ LibreTranslate is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "❌ LibreTranslate failed to start"
+          docker logs libretranslate || true
+          exit 1
+
       - name: Run CTI Pipeline
         working-directory: ./scripts/cti
         env:
@@ -160,6 +182,8 @@ jobs:
           USE_HISTORY_DATA: ${{ env.USE_HISTORY_DATA }}
           TRANSLATION_CACHE_ENABLED: ${{ env.TRANSLATION_CACHE_ENABLED }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
+          LIBRETRANSLATE_URL: ${{ env.LIBRETRANSLATE_URL }}
+          TRANSLATION_FALLBACK_URLS: ${{ env.TRANSLATION_FALLBACK_URLS }}
         run: npx tsx src/index.ts all
 
       - name: Save History - X Data
