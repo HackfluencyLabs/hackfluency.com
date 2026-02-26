@@ -17,24 +17,16 @@ const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'es';
 const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
 const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '8', 10);
 const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
+const ENABLE_TRANSLATION_CACHE = process.env.TRANSLATION_CACHE_ENABLED === 'true';
 const TRANSLATION_PROVIDER = 'anylang';
 const QUALITY_MIN_RATIO = parseFloat(process.env.TRANSLATION_MIN_LENGTH_RATIO || '0.55');
 const QUALITY_MAX_RATIO = parseFloat(process.env.TRANSLATION_MAX_LENGTH_RATIO || '2.2');
 const ENABLE_LANGUAGE_TOOL = process.env.ENABLE_LANGUAGE_TOOL !== 'false';
 const LANGUAGETOOL_URL = process.env.LANGUAGETOOL_URL || 'https://api.languagetool.org/v2/check';
 
-const TRANSLATABLE_FIELDS = new Set([
-  'headline', 'summary', 'keyFindings', 'recommendedActions', 'title', 'themes',
-  'excerpt', 'threatLandscape', 'analystBrief', 'technicalAssessment', 'keywords',
-  'methodologies', 'narrative', 'explanation', 'rationale', 'reasoning',
-]);
-
 const NON_TRANSLATABLE_FIELDS = new Set([
   'id', 'version', 'generatedAt', 'validUntil', 'timestamp', 'lastUpdate', 'lastSeen', 'firstSeen',
-  'cves', 'domains', 'ips', 'country', 'port', 'count', 'percentage', 'killChainPhase', 'service',
-  'model', 'correlationStrength', 'riskLevel', 'trend', 'tone', 'severity', 'category',
-  'confidenceLevel', 'url', 'author', 'displayName', 'username', 'name', 'org', 'asn', 'isp',
-  'city', 'os', 'product', 'type', 'classification', 'urgency', 'confidence', 'ip', 'tweetId',
+  'cves', 'domains', 'ips', 'url', 'ip', 'tweetId',
   'hashtags', 'mentions', 'source', 'permalink',
 ]);
 
@@ -80,7 +72,9 @@ export class LLMTranslator {
   async translateDashboard(dashboard: any): Promise<any> {
     console.log('[LLMTranslator] Starting translation process with anylang...');
 
-    await this.loadCache();
+    if (ENABLE_TRANSLATION_CACHE) {
+      await this.loadCache();
+    }
 
     const stringsMap = this.extractTranslatableStrings(dashboard);
     console.log(`[LLMTranslator] Found ${stringsMap.size} unique strings to translate`);
@@ -91,7 +85,7 @@ export class LLMTranslator {
     const translations = new Map<string, string>();
 
     for (const [original] of stringsMap) {
-      const cached = this.getCachedTranslation(original);
+      const cached = ENABLE_TRANSLATION_CACHE ? this.getCachedTranslation(original) : null;
       if (cached) {
         translations.set(original, cached);
       } else {
@@ -106,9 +100,13 @@ export class LLMTranslator {
       toTranslate.forEach((str, idx) => {
         const translated = newTranslations[idx] || str;
         translations.set(str, translated);
-        this.addToCache(str, translated);
+        if (ENABLE_TRANSLATION_CACHE) {
+          this.addToCache(str, translated);
+        }
       });
-      await this.saveCache();
+      if (ENABLE_TRANSLATION_CACHE) {
+        await this.saveCache();
+      }
     }
 
     return this.reconstructJson(dashboard, translations);
@@ -143,7 +141,7 @@ export class LLMTranslator {
   }
 
   private shouldTranslate(fieldName: string, value: string): boolean {
-    if (!value || value.trim().length < 3) return false;
+    if (!value || value.trim().length < 1) return false;
 
     if (NON_TRANSLATABLE_FIELDS.has(fieldName)) return false;
 
@@ -151,9 +149,7 @@ export class LLMTranslator {
       if (pattern.test(value.trim())) return false;
     }
 
-    if (TRANSLATABLE_FIELDS.has(fieldName)) return true;
-
-    return value.split(/\s+/).length >= 3;
+    return true;
   }
 
   private async translateBatch(texts: string[]): Promise<string[]> {
@@ -181,6 +177,19 @@ export class LLMTranslator {
   }
 
   private async translateWithQuality(text: string): Promise<string> {
+    const severity = text.match(/^(LOW|MEDIUM|HIGH|CRITICAL)\s*:\s*(.+)$/i);
+    if (severity) {
+      const translatedBody = await this.translateWithQuality(severity[2]);
+      const labelMap: Record<string, string> = {
+        LOW: 'BAJO',
+        MEDIUM: 'MEDIO',
+        HIGH: 'ALTO',
+        CRITICAL: 'CRÍTICO',
+      };
+      const normalized = labelMap[severity[1].toUpperCase()] || severity[1].toUpperCase();
+      return `${normalized}: ${translatedBody}`.trim();
+    }
+
     const primary = await this.translateWithAnylang(text);
     const primaryChecked = await this.postProcessSpanish(primary);
 

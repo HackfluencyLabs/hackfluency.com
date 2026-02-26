@@ -8,11 +8,6 @@ on:
         required: true
         default: false
         type: boolean
-      use_gpt4free:
-        description: 'Usar GPT4Free para traducción (☐ Ticket: GPT4Free Enrichment)'
-        required: true
-        default: false
-        type: boolean
 
 permissions:
   contents: write
@@ -30,7 +25,8 @@ env:
   OLLAMA_MODEL_SPECIALIST: ALIENTELLIGENCE/cybersecuritythreatanalysisv2
   TARGET_LANGUAGE: 'es'
   SOURCE_LANGUAGE: 'en'
-  USE_GPT4FREE: 'false'
+  USE_HISTORY_DATA: 'false'
+  TRANSLATION_CACHE_ENABLED: 'false'
 
 jobs:
   cti-pipeline:
@@ -131,7 +127,7 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      - name: Run CTI Pipeline (Triple-Model + GPT4Free Enrichment)
+      - name: Run CTI Pipeline
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
@@ -141,7 +137,8 @@ jobs:
           OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
           TARGET_LANGUAGE: ${{ env.TARGET_LANGUAGE }}
           SOURCE_LANGUAGE: ${{ env.SOURCE_LANGUAGE }}
-          USE_GPT4FREE: ${{ inputs.use_gpt4free }}
+          USE_HISTORY_DATA: ${{ env.USE_HISTORY_DATA }}
+          TRANSLATION_CACHE_ENABLED: ${{ env.TRANSLATION_CACHE_ENABLED }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 
