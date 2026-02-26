@@ -307,8 +307,8 @@ export class CTIOrchestrator {
         assessmentLayer
       });
 
-      // Step 8: LLM Translation to Spanish
-      console.log('\n[Step 8] Translating dashboard to Spanish with TranslateGemma...');
+      // Step 8: Translation to Spanish (anylang + free API fallback)
+      console.log('\n[Step 8] Translating dashboard to Spanish with anylang...');
       const translator = new LLMTranslator();
       const dashboardEs = await translator.translateDashboard(dashboard);
       await this.saveDashboard(dashboardEs, 'cti-dashboard-es.json');

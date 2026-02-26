@@ -27,6 +27,7 @@ import MinimalDashboardGenerator from './dashboard/minimal-dashboard.js';
 
 const OUTPUT_DIR = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
 const HISTORY_DIR = process.env.CTI_HISTORY_DIR || './DATA/cti-history';
+const USE_HISTORY_DATA = process.env.USE_HISTORY_DATA === 'true';
 const COMMANDS = ['scrape', 'analyze', 'dashboard', 'all'] as const;
 type Command = typeof COMMANDS[number];
 
@@ -99,17 +100,21 @@ async function runScrapers(): Promise<XScrapedData | null> {
   let xData: XScrapedData | null = null;
   let shodanData: unknown = null;
 
-  // === ESTRATEGIA: Usar históricos si existen, si no hacer scraper ===
-  const historyDir = await getLatestHistoryDir();
-  
-  if (historyDir) {
-    console.log('[Scrape] Using historical data from:', path.basename(historyDir));
-    const historyData = await copyFromHistory(historyDir);
-    if (historyData) {
-      xData = historyData.xData as XScrapedData;
-      shodanData = historyData.shodanData;
-      console.log(`[History] ✓ Loaded ${xData?.posts?.length || 0} X posts, ${(shodanData as any)?.hosts?.length || 0} Shodan hosts`);
+  // Históricos solo modo explícito (auxiliar); por defecto cada run es fresco
+  if (USE_HISTORY_DATA) {
+    const historyDir = await getLatestHistoryDir();
+
+    if (historyDir) {
+      console.log('[Scrape] Using historical data from:', path.basename(historyDir));
+      const historyData = await copyFromHistory(historyDir);
+      if (historyData) {
+        xData = historyData.xData as XScrapedData;
+        shodanData = historyData.shodanData;
+        console.log(`[History] ✓ Loaded ${xData?.posts?.length || 0} X posts, ${(shodanData as any)?.hosts?.length || 0} Shodan hosts`);
+      }
     }
+  } else {
+    console.log('[Scrape] Historical replay disabled (USE_HISTORY_DATA=false). Collecting fresh data.');
   }
   
   // Si no hay histórico, ejecutar scrapers normalmente
