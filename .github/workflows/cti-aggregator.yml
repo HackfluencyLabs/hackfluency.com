@@ -28,8 +28,8 @@ env:
   CTI_CURRENT_DATE: ${{ github.event.repository.updated_at }}
   OLLAMA_MODEL_REASONER: phi4-mini
   OLLAMA_MODEL_SPECIALIST: ALIENTELLIGENCE/cybersecuritythreatanalysisv2
-  TRANSLATION_MODEL: translategemma:4b
-  TARGET_LANGUAGE: 'Spanish (Latin America)'
+  TARGET_LANGUAGE: 'es'
+  SOURCE_LANGUAGE: 'en'
   USE_GPT4FREE: 'false'
 
 jobs:
@@ -81,7 +81,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ollama
-          key: ollama-triple-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}-${{ env.TRANSLATION_MODEL }}
+          key: ollama-dual-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}
 
       - name: Install Ollama and Pull Models
         run: |
@@ -108,14 +108,6 @@ jobs:
           echo "OLLAMA_MODEL_REASONER=${{ env.OLLAMA_MODEL_REASONER }}" >> "$GITHUB_ENV"
           echo "OLLAMA_MODEL_SPECIALIST=${{ env.OLLAMA_MODEL_SPECIALIST }}" >> "$GITHUB_ENV"
 
-          echo "=== Pulling TRANSLATION model (translategemma:4b) ==="
-          ollama pull "${{ env.TRANSLATION_MODEL }}"
-          if [ $? -ne 0 ]; then
-            echo "ERROR: Failed to pull translation model ${{ env.TRANSLATION_MODEL }}"
-            exit 1
-          fi
-          echo "✓ Translation model ready: ${{ env.TRANSLATION_MODEL }}"
-
           echo "=== Testing all models ==="
           echo "Testing reasoner..."
           ollama run "${{ env.OLLAMA_MODEL_REASONER }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
@@ -123,14 +115,13 @@ jobs:
           echo "Testing specialist..."
           ollama run "${{ env.OLLAMA_MODEL_SPECIALIST }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
           echo ""
-          echo "Testing translation model..."
-          ollama run "${{ env.TRANSLATION_MODEL }}" "Translate 'Hello' to Spanish" --verbose 2>&1 | head -c 200 || true
-          echo ""
           echo "=== All models ready for CTI pipeline ==="
 
       - name: Install Dependencies
         working-directory: ./scripts/cti
-        run: npm ci
+        run: |
+          npm install --package-lock-only
+          npm ci
 
       - name: Install Playwright
         run: npx playwright install chromium --with-deps
@@ -148,8 +139,8 @@ jobs:
           OLLAMA_HOST: http://localhost:11434
           OLLAMA_MODEL_REASONER: ${{ env.OLLAMA_MODEL_REASONER }}
           OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
-          TRANSLATION_MODEL: ${{ env.TRANSLATION_MODEL }}
           TARGET_LANGUAGE: ${{ env.TARGET_LANGUAGE }}
+          SOURCE_LANGUAGE: ${{ env.SOURCE_LANGUAGE }}
           USE_GPT4FREE: ${{ inputs.use_gpt4free }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
