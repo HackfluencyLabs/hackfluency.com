@@ -1,110 +1,54 @@
 /**
- * LLM Translator - Sistema de traducción de dashboard CTI usando TranslateGemma
- * 
+ * Translator - Sistema de traducción de dashboard CTI sin TranslateGemma.
+ *
  * Arquitectura:
- * 1. Extrae strings traducibles del JSON (filtrando campos técnicos)
- * 2. Usa translategemma:4b vía Ollama para traducir
- * 3. Sistema de cache persistente para evitar re-traducciones
- * 4. Reconstruye el JSON manteniendo estructura original
- * 
- * Diseñado para multi-idioma: cambiar MODEL y TARGET_LANG para otros idiomas
+ * 1) Extrae strings traducibles del JSON (filtrando campos técnicos)
+ * 2) Traduce con `anylang` (si está disponible) usando API moderna gratuita
+ * 3) Fallback HTTP a LibreTranslate-compatible endpoint
+ * 4) Cache persistente para evitar re-traducciones
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-// Configuración
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const TRANSLATION_MODEL = process.env.TRANSLATION_MODEL || 'translategemma:4b';
-const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'Spanish (Latin America)';
-const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '5', 10);
+const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'es';
+const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
+const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '8', 10);
 const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
+const TRANSLATION_PROVIDER = 'anylang';
+const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || 'https://translate.argosopentech.com/translate';
+const QUALITY_MIN_RATIO = parseFloat(process.env.TRANSLATION_MIN_LENGTH_RATIO || '0.55');
+const QUALITY_MAX_RATIO = parseFloat(process.env.TRANSLATION_MAX_LENGTH_RATIO || '2.2');
+const ENABLE_LANGUAGE_TOOL = process.env.ENABLE_LANGUAGE_TOOL !== 'false';
+const LANGUAGETOOL_URL = process.env.LANGUAGETOOL_URL || 'https://api.languagetool.org/v2/check';
 
-// Campos que SÍ se traducen
 const TRANSLATABLE_FIELDS = new Set([
-  'headline',
-  'summary',
-  'keyFindings',
-  'recommendedActions',
-  'title',
-  'themes',
-  'excerpt',
-  'threatLandscape',
-  'analystBrief',
-  'technicalAssessment',
-  'keywords',
-  'methodologies',
-  'narrative',
-  'explanation',
-  'rationale',
-  'reasoning',
+  'headline', 'summary', 'keyFindings', 'recommendedActions', 'title', 'themes',
+  'excerpt', 'threatLandscape', 'analystBrief', 'technicalAssessment', 'keywords',
+  'methodologies', 'narrative', 'explanation', 'rationale', 'reasoning',
 ]);
 
-// Campos que NUNCA se traducen
 const NON_TRANSLATABLE_FIELDS = new Set([
-  'id',
-  'version',
-  'generatedAt',
-  'validUntil',
-  'timestamp',
-  'lastUpdate',
-  'lastSeen',
-  'firstSeen',
-  'cves',
-  'domains',
-  'ips',
-  'country',
-  'port',
-  'count',
-  'percentage',
-  'killChainPhase',
-  'service',
-  'model',
-  'killChainPhase',
-  'correlationStrength',
-  'riskLevel',
-  'trend',
-  'tone',
-  'severity',
-  'category',
-  'confidenceLevel',
-  'url',
-  'author',
-  'displayName',
-  'username',
-  'name',
-  'org',
-  'asn',
-  'isp',
-  'city',
-  'os',
-  'product',
-  'version',
-  'type',
-  'classification',
-  'urgency',
-  'confidence',
-  'ip',
-  'tweetId',
-  'hashtags',
-  'mentions',
-  'source',
-  'permalink',
+  'id', 'version', 'generatedAt', 'validUntil', 'timestamp', 'lastUpdate', 'lastSeen', 'firstSeen',
+  'cves', 'domains', 'ips', 'country', 'port', 'count', 'percentage', 'killChainPhase', 'service',
+  'model', 'correlationStrength', 'riskLevel', 'trend', 'tone', 'severity', 'category',
+  'confidenceLevel', 'url', 'author', 'displayName', 'username', 'name', 'org', 'asn', 'isp',
+  'city', 'os', 'product', 'type', 'classification', 'urgency', 'confidence', 'ip', 'tweetId',
+  'hashtags', 'mentions', 'source', 'permalink',
 ]);
 
-// Patrones que indican contenido técnico/no traducible
 const TECHNICAL_PATTERNS = [
-  /^CVE-\d{4}-\d+/i, // CVEs
-  /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/, // IPs
-  /^(http|https):\/\//, // URLs
-  /^\d{4}-\d{2}-\d{2}T/, // ISO timestamps
-  /^[A-Z]{2}$/, // Country codes
-  /^\d+:\d+$/, // Port:Service
-  /^[a-f0-9]{32,64}$/i, // Hashes
-  /^v?\d+\.\d+/, // Version numbers
-  /^@\w+/, // Usernames
-  /^#\w+/, // Hashtags
+  /^CVE-\d{4}-\d+/i,
+  /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
+  /^(http|https):\/\//,
+  /^\d{4}-\d{2}-\d{2}T/,
+  /^[A-Z]{2}$/,
+  /^\d+:\d+$/,
+  /^[a-f0-9]{32,64}$/i,
+  /^v?\d+\.\d+/,
+  /^@\w+/,
+  /^#\w+/,
 ];
 
 interface CacheEntry {
@@ -118,40 +62,35 @@ interface TranslationCache {
   [hash: string]: CacheEntry;
 }
 
+type AnylangModule = Record<string, any>;
+
+async function dynamicImport(moduleName: string): Promise<any> {
+  return new Function('m', 'return import(m)')(moduleName) as Promise<any>;
+}
+
 export class LLMTranslator {
   private cache: Map<string, CacheEntry>;
   private cacheFile: string;
-  private outputDir: string;
+  private anylangModule: AnylangModule | null = null;
 
   constructor() {
     this.cache = new Map();
-    this.outputDir = process.env.CTI_OUTPUT_DIR || './DATA/cti-output';
     this.cacheFile = path.join(
       process.env.CTI_CACHE_DIR || './DATA/cti-cache',
       'translation-cache.json'
     );
   }
 
-  /**
-   * Traduce el dashboard completo
-   */
   async translateDashboard(dashboard: any): Promise<any> {
-    console.log('[LLMTranslator] Starting translation process...');
+    console.log('[LLMTranslator] Starting translation process with anylang...');
 
-    // Cargar cache
     await this.loadCache();
 
-    // Extraer strings
-    console.log('[LLMTranslator] Extracting translatable strings...');
     const stringsMap = this.extractTranslatableStrings(dashboard);
     console.log(`[LLMTranslator] Found ${stringsMap.size} unique strings to translate`);
 
-    if (stringsMap.size === 0) {
-      console.log('[LLMTranslator] No strings to translate, returning original');
-      return dashboard;
-    }
+    if (stringsMap.size === 0) return dashboard;
 
-    // Separar cached vs nuevos
     const toTranslate: string[] = [];
     const translations = new Map<string, string>();
 
@@ -166,50 +105,40 @@ export class LLMTranslator {
 
     console.log(`[LLMTranslator] ${translations.size} from cache, ${toTranslate.length} to translate`);
 
-    // Traducir nuevos strings
     if (toTranslate.length > 0) {
-      console.log(`[LLMTranslator] Translating ${toTranslate.length} strings with ${TRANSLATION_MODEL}...`);
       const newTranslations = await this.translateBatch(toTranslate);
-
       toTranslate.forEach((str, idx) => {
         const translated = newTranslations[idx] || str;
         translations.set(str, translated);
         this.addToCache(str, translated);
       });
-
-      // Guardar cache actualizado
       await this.saveCache();
     }
 
-    // Reconstruir JSON
-    console.log('[LLMTranslator] Reconstructing translated dashboard...');
-    const translatedDashboard = this.reconstructJson(dashboard, translations);
-
-    console.log('[LLMTranslator] Translation completed successfully');
-    return translatedDashboard;
+    return this.reconstructJson(dashboard, translations);
   }
 
-  /**
-   * Extrae strings traducibles del JSON
-   */
   private extractTranslatableStrings(obj: any): Map<string, string> {
     const strings = new Map<string, string>();
     const seen = new Set<string>();
 
-    const traverse = (current: any, path: string[] = []) => {
+    const traverse = (current: any, currentPath: string[] = []) => {
       if (typeof current === 'string') {
-        const fieldName = path[path.length - 1] || '';
-
+        const fieldName = currentPath[currentPath.length - 1] || '';
         if (this.shouldTranslate(fieldName, current) && !seen.has(current)) {
           strings.set(current, '');
           seen.add(current);
         }
-      } else if (Array.isArray(current)) {
-        current.forEach((item, idx) => traverse(item, [...path, idx.toString()]));
-      } else if (current && typeof current === 'object') {
-        Object.entries(current).forEach(([key, value]) => {
-          traverse(value, [...path, key]);
-        });
+        return;
+      }
+
+      if (Array.isArray(current)) {
+        current.forEach((item, idx) => traverse(item, [...currentPath, idx.toString()]));
+        return;
+      }
+
+      if (current && typeof current === 'object') {
+        Object.entries(current).forEach(([key, value]) => traverse(value, [...currentPath, key]));
       }
     };
 
@@ -217,153 +146,226 @@ export class LLMTranslator {
     return strings;
   }
 
-  /**
-   * Determina si un campo debe traducirse
-   */
   private shouldTranslate(fieldName: string, value: string): boolean {
-    // No traducir si está en blacklist explícito
-    if (NON_TRANSLATABLE_FIELDS.has(fieldName)) {
-      return false;
+    if (!value || value.trim().length < 3) return false;
+
+    if (NON_TRANSLATABLE_FIELDS.has(fieldName)) return false;
+
+    for (const pattern of TECHNICAL_PATTERNS) {
+      if (pattern.test(value.trim())) return false;
     }
 
-    // Traducir si está en whitelist explícito
-    if (TRANSLATABLE_FIELDS.has(fieldName)) {
-      return !this.isTechnicalValue(value);
+    if (TRANSLATABLE_FIELDS.has(fieldName)) return true;
+
+    return value.split(/\s+/).length >= 3;
+  }
+
+  private async translateBatch(texts: string[]): Promise<string[]> {
+    const results: string[] = [];
+
+    for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+      const batch = texts.slice(i, i + BATCH_SIZE);
+      const translatedBatch = await Promise.all(
+        batch.map(async (text, idx) => {
+          try {
+            const translated = await this.translateWithQuality(text);
+            if (!translated || translated.trim().length === 0) return text;
+            console.log(`[LLMTranslator] Translated ${i + idx + 1}/${texts.length}`);
+            return translated;
+          } catch (error) {
+            console.error(`[LLMTranslator] Translation failed for string ${i + idx}:`, error);
+            return text;
+          }
+        })
+      );
+      results.push(...translatedBatch);
     }
 
-    // No traducir si parece técnico
-    if (this.isTechnicalValue(value)) {
-      return false;
+    return results;
+  }
+
+  private async translateWithQuality(text: string): Promise<string> {
+    const primary = await this.translateWithAnylang(text);
+    const primaryChecked = await this.postProcessSpanish(primary);
+
+    if (this.isAcceptableTranslation(text, primaryChecked)) {
+      return primaryChecked;
     }
 
-    // No traducir strings muy cortos (probablemente nombres propios o códigos)
-    const wordCount = value.split(/\s+/).filter(w => w.length > 0).length;
-    if (wordCount <= 2 && value.length < 20) {
-      return false;
+    console.warn('[LLMTranslator] Primary translation quality below threshold, retrying with fallback');
+    const fallback = await this.translateWithLibreFallback(text);
+    const fallbackChecked = await this.postProcessSpanish(fallback);
+
+    if (this.isAcceptableTranslation(text, fallbackChecked)) {
+      return fallbackChecked;
     }
 
-    // No traducir si solo contiene números y símbolos
-    if (!/[a-zA-Z]/.test(value)) {
+    return primaryChecked || text;
+  }
+
+  private isAcceptableTranslation(original: string, translated: string): boolean {
+    const source = original.trim();
+    const target = translated.trim();
+
+    if (!target || target.length < 2) return false;
+
+    const ratio = target.length / Math.max(source.length, 1);
+    if (ratio < QUALITY_MIN_RATIO || ratio > QUALITY_MAX_RATIO) return false;
+
+    if (source.toLowerCase() === target.toLowerCase() && source.split(/\s+/).length >= 4) {
       return false;
     }
 
     return true;
   }
 
-  /**
-   * Verifica si un valor es técnico/no traducible
-   */
-  private isTechnicalValue(value: string): boolean {
-    return TECHNICAL_PATTERNS.some(pattern => pattern.test(value));
-  }
+  private async postProcessSpanish(text: string): Promise<string> {
+    const normalized = text
+      .replace(/\s+/g, ' ')
+      .replace(/\s+([,.;!?])/g, '$1')
+      .replace(/\(\s+/g, '(')
+      .replace(/\s+\)/g, ')')
+      .trim();
 
-  /**
-   * Traduce un batch de strings uno por uno para mejor calidad
-   */
-  private async translateBatch(strings: string[]): Promise<string[]> {
-    const results: string[] = [];
-
-    // TranslateGemma funciona mejor con texto individual
-    for (let i = 0; i < strings.length; i++) {
-      const text = strings[i];
-      console.log(`[LLMTranslator] Translating ${i + 1}/${strings.length} (${text.length} chars)`);
-
-      try {
-        const translated = await this.callTranslateGemma(text);
-        results.push(translated);
-      } catch (error) {
-        console.error(`[LLMTranslator] Translation failed for string ${i}:`, error);
-        // Fallback: mantener original
-        results.push(text);
-      }
+    if (!ENABLE_LANGUAGE_TOOL || !normalized) {
+      return normalized;
     }
-
-    return results;
-  }
-
-  /**
-   * Llama a translategemma via Ollama para un solo texto
-   * Timeout proporcional al tamaño del texto (aprox 1000 chars por minuto)
-   */
-  private async callTranslateGemma(text: string, attempt: number = 1): Promise<string> {
-    const prompt = this.buildTranslationPrompt(text);
-
-    // Calcular timeout basado en longitud del texto
-    // Base: 30 segundos + 3 segundos por cada 100 caracteres
-    const timeoutMs = Math.min(30000 + (text.length * 30), 300000); // Max 5 minutos
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      console.log(`[LLMTranslator] Calling Ollama (${text.length} chars, timeout: ${Math.round(timeoutMs/1000)}s, attempt: ${attempt})`);
+      const params = new URLSearchParams();
+      params.set('language', 'es');
+      params.set('text', normalized);
 
-      const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
+      const response = await fetch(LANGUAGETOOL_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          model: TRANSLATION_MODEL,
-          prompt,
-          stream: false,
-          options: {
-            temperature: 0.1,
-            num_predict: Math.min(text.length * 2, 4000),
-            top_p: 0.95,
-          },
-        }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
       });
 
-      if (!response.ok) {
-        throw new Error(`Ollama HTTP ${response.status}`);
+      if (!response.ok) return normalized;
+
+      const data = await response.json() as {
+        matches?: Array<{
+          offset: number;
+          length: number;
+          replacements?: Array<{ value: string }>;
+        }>;
+      };
+
+      const matches = (data.matches || [])
+        .filter(match => match.replacements && match.replacements.length > 0)
+        .sort((a, b) => b.offset - a.offset);
+
+      let corrected = normalized;
+      for (const match of matches) {
+        const replacement = match.replacements?.[0]?.value;
+        if (!replacement) continue;
+        corrected = corrected.slice(0, match.offset) + replacement + corrected.slice(match.offset + match.length);
       }
 
-      const data = await response.json() as { response: string };
-      return data.response.trim();
-    } catch (error) {
-      if (attempt < 3) {
-        console.log(`[LLMTranslator] Attempt ${attempt} failed, retrying in ${attempt * 2}s...`);
-        await new Promise(resolve => setTimeout(resolve, attempt * 2000));
-        return this.callTranslateGemma(text, attempt + 1);
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeout);
+      return corrected.trim();
+    } catch {
+      return normalized;
     }
   }
 
-  /**
-   * Construye el prompt para translategemma siguiendo documentación oficial
-   */
-  private buildTranslationPrompt(text: string): string {
-    return `You are a professional English (EN) to Spanish (ES) translator. Your goal is to accurately convey the meaning and nuances of the original English text while adhering to Spanish grammar, vocabulary, and cultural sensitivities.
-Produce only the Spanish translation, without any additional explanations or commentary. Please translate the following English text into Spanish:
+  private async getAnylangModule(): Promise<AnylangModule | null> {
+    if (this.anylangModule) return this.anylangModule;
 
-
-${text}`;
+    try {
+      this.anylangModule = await dynamicImport('anylang');
+      console.log('[LLMTranslator] anylang module loaded successfully');
+      return this.anylangModule;
+    } catch (error) {
+      console.warn('[LLMTranslator] anylang module is not available, using HTTP fallback:', error);
+      return null;
+    }
   }
 
+  private extractTranslation(value: any): string | null {
+    if (typeof value === 'string') return value;
+    if (!value || typeof value !== 'object') return null;
 
+    const candidates = [value.translation, value.translatedText, value.text, value.result];
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate;
+      }
+    }
 
-  /**
-   * Reconstruye el JSON con las traducciones
-   */
+    return null;
+  }
+
+  private async translateWithAnylang(text: string): Promise<string> {
+    const module = await this.getAnylangModule();
+
+    if (module) {
+      const fns: Array<((...args: any[]) => Promise<any>) | undefined> = [
+        module.translate,
+        module.default?.translate,
+        typeof module.default === 'function' ? module.default : undefined,
+      ];
+
+      for (const fn of fns) {
+        if (!fn) continue;
+        try {
+          const byOptions = await fn(text, { from: SOURCE_LANGUAGE, to: TARGET_LANGUAGE });
+          const translated = this.extractTranslation(byOptions);
+          if (translated) return translated.trim();
+        } catch {
+          // try next signature
+        }
+
+        try {
+          const byPositional = await fn(text, SOURCE_LANGUAGE, TARGET_LANGUAGE);
+          const translated = this.extractTranslation(byPositional);
+          if (translated) return translated.trim();
+        } catch {
+          // try next implementation
+        }
+      }
+    }
+
+    return this.translateWithLibreFallback(text);
+  }
+
+  private async translateWithLibreFallback(text: string): Promise<string> {
+    const response = await fetch(LIBRETRANSLATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q: text,
+        source: SOURCE_LANGUAGE,
+        target: TARGET_LANGUAGE,
+        format: 'text',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`LibreTranslate HTTP ${response.status}`);
+    }
+
+    const data = await response.json() as { translatedText?: string };
+    return (data.translatedText || text).trim();
+  }
+
   private reconstructJson(original: any, translations: Map<string, string>): any {
-    // Deep clone
     const result = JSON.parse(JSON.stringify(original));
 
-    const traverseAndReplace = (current: any, path: string[] = []) => {
+    const traverseAndReplace = (current: any, currentPath: string[] = []) => {
       if (typeof current === 'string') {
         const translated = translations.get(current);
-        if (translated) {
-          this.setValueAtPath(result, path, translated);
-        }
-      } else if (Array.isArray(current)) {
-        current.forEach((item, idx) => traverseAndReplace(item, [...path, idx.toString()]));
-      } else if (current && typeof current === 'object') {
-        Object.entries(current).forEach(([key, value]) => {
-          traverseAndReplace(value, [...path, key]);
-        });
+        if (translated) this.setValueAtPath(result, currentPath, translated);
+        return;
+      }
+
+      if (Array.isArray(current)) {
+        current.forEach((item, idx) => traverseAndReplace(item, [...currentPath, idx.toString()]));
+        return;
+      }
+
+      if (current && typeof current === 'object') {
+        Object.entries(current).forEach(([key, value]) => traverseAndReplace(value, [...currentPath, key]));
       }
     };
 
@@ -371,34 +373,22 @@ ${text}`;
     return result;
   }
 
-  /**
-   * Establece un valor en una ruta del objeto
-   */
-  private setValueAtPath(obj: any, path: string[], value: any): void {
+  private setValueAtPath(obj: any, currentPath: string[], value: any): void {
     let current = obj;
-    for (let i = 0; i < path.length - 1; i++) {
-      const key = path[i];
-      if (!(key in current)) {
-        console.warn(`[LLMTranslator] Path not found: ${path.join('.')}`);
-        return;
-      }
+    for (let i = 0; i < currentPath.length - 1; i++) {
+      const key = currentPath[i];
+      if (!(key in current)) return;
       current = current[key];
     }
-    const lastKey = path[path.length - 1];
-    if (current && typeof current === 'object') {
-      current[lastKey] = value;
-    }
+
+    const lastKey = currentPath[currentPath.length - 1];
+    if (current && typeof current === 'object') current[lastKey] = value;
   }
 
-  /**
-   * Carga el cache desde disco
-   */
   private async loadCache(): Promise<void> {
     try {
       const data = await fs.readFile(this.cacheFile, 'utf-8');
       const parsed: TranslationCache = JSON.parse(data);
-
-      // Filtrar entradas expiradas
       const now = new Date();
       const ttlMs = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
 
@@ -411,19 +401,14 @@ ${text}`;
 
       console.log(`[LLMTranslator] Loaded ${this.cache.size} cached translations`);
     } catch {
-      console.log('[LLMTranslator] No translation cache found, starting fresh');
       this.cache = new Map();
+      console.log('[LLMTranslator] No translation cache found, starting fresh');
     }
   }
 
-  /**
-   * Guarda el cache en disco
-   */
   private async saveCache(): Promise<void> {
     try {
-      // Asegurar que existe el directorio
       await fs.mkdir(path.dirname(this.cacheFile), { recursive: true });
-
       const data: TranslationCache = Object.fromEntries(this.cache);
       await fs.writeFile(this.cacheFile, JSON.stringify(data, null, 2));
       console.log(`[LLMTranslator] Saved ${this.cache.size} translations to cache`);
@@ -432,31 +417,22 @@ ${text}`;
     }
   }
 
-  /**
-   * Obtiene traducción del cache
-   */
   private getCachedTranslation(text: string): string | null {
     const hash = this.hashText(text);
     const entry = this.cache.get(hash);
     return entry?.translated || null;
   }
 
-  /**
-   * Agrega traducción al cache
-   */
   private addToCache(original: string, translated: string): void {
     const hash = this.hashText(original);
     this.cache.set(hash, {
       original,
       translated,
       timestamp: new Date().toISOString(),
-      model: TRANSLATION_MODEL,
+      model: TRANSLATION_PROVIDER,
     });
   }
 
-  /**
-   * Genera hash de un texto
-   */
   private hashText(text: string): string {
     return crypto.createHash('md5').update(text).digest('hex');
   }

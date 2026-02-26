@@ -14,8 +14,11 @@ export interface ProcessedQuery {
 export class QueryPreprocessor {
   // Países Latinoamericanos para enfoque regional
   static readonly LATAM_COUNTRIES = [
-    'MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU', 'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY'
+    'MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU', 'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY',
+    'BZ', 'GY', 'SR', 'HT', 'JM', 'TT'
   ];
+
+  private static readonly LATAM_PRIORITY_COUNTRIES = ['MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'EC', 'UY', 'CR', 'PA'];
 
   // Patrones de queries Shodan válidos por categoría
   private static readonly VALID_FILTERS = [
@@ -46,6 +49,18 @@ export class QueryPreprocessor {
 
   // Puertos comunes con muchos resultados
   private static readonly COMMON_PORTS = [80, 443, 22, 21, 25, 3306, 5432, 6379, 8080, 8443];
+
+  private pickRegionalFallbackCountry(seed: string): string {
+    const hash = Array.from(seed).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return QueryPreprocessor.LATAM_PRIORITY_COUNTRIES[hash % QueryPreprocessor.LATAM_PRIORITY_COUNTRIES.length];
+  }
+
+  private normalizeToLatamCountry(country: string): string {
+    const normalized = country.trim().toUpperCase();
+    return QueryPreprocessor.LATAM_COUNTRIES.includes(normalized)
+      ? normalized
+      : this.pickRegionalFallbackCountry(normalized);
+  }
 
   /**
    * Pre-procesa una lista de queries
@@ -118,8 +133,8 @@ export class QueryPreprocessor {
     // Corregir espacios en filtros
     fixed = fixed.replace(/(\w+):\s+/g, '$1:');
 
-    // Corregir CVEs mal formados (CVE-2025-123 -> CVE-2024-123)
-    fixed = fixed.replace(/CVE-2025-(\d+)/gi, 'CVE-2024-$1');
+    // Corregir CVEs mal formados sin alterar su año
+    fixed = fixed.replace(/\bCVE[-_ ]?(\d{4})[-_ ]?(\d{3,})\b/gi, 'CVE-$1-$2');
 
     // Corregir combinaciones inválidas
     fixed = fixed.replace(/\bOR\b/gi, 'or');
@@ -132,11 +147,11 @@ export class QueryPreprocessor {
     // Corregir "port80" -> "port:80"
     fixed = fixed.replace(/port(\d+)/gi, 'port:$1');
 
-    // Eliminar CVEs inválidos o muy recientes (posiblemente falsos)
-    if (fixed.match(/CVE-202[5-9]-\d+/i)) {
-      fixed = fixed.replace(/CVE-202[5-9]-\d+/gi, '');
-      fixed = fixed.replace(/\s+/g, ' ').trim();
-    }
+    // Eliminar CVEs con años fuera de rango razonable
+    fixed = fixed.replace(/\bCVE-(19\d{2}|20(0\d|1\d|[3-9]\d))-\d+\b/gi, '').replace(/\s+/g, ' ').trim();
+
+    // Si viene un país fuera de LATAM, reasignarlo a un país LATAM prioritario
+    fixed = fixed.replace(/\bcountry:([a-z]{2})\b/gi, (_match, country) => `country:${this.normalizeToLatamCountry(country)}`);
 
     return fixed;
   }
@@ -178,7 +193,7 @@ export class QueryPreprocessor {
     }
 
     // Eliminar duplicados
-    const uniqueParts = [...new Set(parts)];
+    const uniqueParts = [...new Set(optimized.split(/\s+/))];
     if (uniqueParts.length !== parts.length) {
       optimized = uniqueParts.join(' ');
       optimizations.push('Removed duplicate filters');
@@ -245,14 +260,7 @@ export class QueryPreprocessor {
    */
   getFallbackQuery(plan: string): ProcessedQuery {
     // Para plan dev, usar queries enfocadas en Latinoamérica
-    const fallbackQueries = [
-      'product:apache country:MX',
-      'product:nginx country:BR',
-      'port:22 country:AR',
-      'product:mysql country:CO',
-      'port:443 country:CL',
-      'product:postgresql country:PE',
-    ];
+    const fallbackQueries = QueryPreprocessor.LATAM_PRIORITY_COUNTRIES.map(country => `product:apache country:${country}`);
 
     const query = fallbackQueries[Math.floor(Math.random() * fallbackQueries.length)];
 
@@ -281,14 +289,14 @@ export class QueryPreprocessor {
 
     // Si no hay países específicos, usar países LATAM por defecto
     if (countries.length === 0) {
-      countries = QueryPreprocessor.LATAM_COUNTRIES.slice(0, 5); // Top 5: MX, BR, AR, CO, CL
+      countries = QueryPreprocessor.LATAM_PRIORITY_COUNTRIES.slice(0, 6);
     } else {
-      // Filtrar solo países LATAM, si no hay, agregar MX como fallback
+      // Filtrar/normalizar solo países LATAM; si no hay, usar set prioritario
       const latamOnly = countries.filter(c => QueryPreprocessor.LATAM_COUNTRIES.includes(c.toUpperCase()));
       if (latamOnly.length === 0) {
-        countries = ['MX', 'BR', 'AR'];
+        countries = QueryPreprocessor.LATAM_PRIORITY_COUNTRIES.slice(0, 6);
       } else {
-        countries = latamOnly;
+        countries = [...new Set(latamOnly.map(c => this.normalizeToLatamCountry(c)))];
       }
     }
 
