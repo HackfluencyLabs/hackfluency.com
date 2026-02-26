@@ -11,18 +11,13 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import * as anylangAdapter from './anylang-adapter.js';
 
 const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'es';
 const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
 const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '8', 10);
 const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
 const TRANSLATION_PROVIDER = 'anylang';
-const LIBRETRANSLATE_URL = process.env.LIBRETRANSLATE_URL || 'https://translate.argosopentech.com/translate';
-const TRANSLATION_FALLBACK_URLS = (process.env.TRANSLATION_FALLBACK_URLS || '')
-  .split(',')
-  .map(url => url.trim())
-  .filter(Boolean);
-const TRANSLATION_HTTP_TIMEOUT_MS = parseInt(process.env.TRANSLATION_HTTP_TIMEOUT_MS || '12000', 10);
 const QUALITY_MIN_RATIO = parseFloat(process.env.TRANSLATION_MIN_LENGTH_RATIO || '0.55');
 const QUALITY_MAX_RATIO = parseFloat(process.env.TRANSLATION_MAX_LENGTH_RATIO || '2.2');
 const ENABLE_LANGUAGE_TOOL = process.env.ENABLE_LANGUAGE_TOOL !== 'false';
@@ -66,8 +61,6 @@ interface CacheEntry {
 interface TranslationCache {
   [hash: string]: CacheEntry;
 }
-
-import * as anylangAdapter from './anylang-adapter.js';
 
 type AnylangModule = { translate: (...args: any[]) => Promise<any> };
 
@@ -322,51 +315,12 @@ export class LLMTranslator {
   }
 
   private async translateWithLibreFallback(text: string): Promise<string> {
-    const fallbackEndpoints = [
-      LIBRETRANSLATE_URL,
-      ...TRANSLATION_FALLBACK_URLS,
-      'https://libretranslate.de/translate',
-      'https://translate.astian.org/translate',
-    ];
-
-    const uniqueEndpoints = [...new Set(fallbackEndpoints)];
-
-    for (const endpoint of uniqueEndpoints) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), TRANSLATION_HTTP_TIMEOUT_MS);
-
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            q: text,
-            source: SOURCE_LANGUAGE,
-            target: TARGET_LANGUAGE,
-            format: 'text',
-          }),
-        });
-
-        clearTimeout(timeout);
-
-        if (!response.ok) {
-          console.warn(`[LLMTranslator] Fallback endpoint failed (${endpoint}): HTTP ${response.status}`);
-          continue;
-        }
-
-        const data = await response.json() as { translatedText?: string; translation?: string };
-        const translated = (data.translatedText || data.translation || '').trim();
-        if (translated) {
-          return translated;
-        }
-      } catch (error) {
-        console.warn(`[LLMTranslator] Fallback endpoint unreachable (${endpoint}):`, error);
-      }
+    try {
+      const data = await anylangAdapter.translate(text, { from: SOURCE_LANGUAGE, to: TARGET_LANGUAGE }) as { translatedText?: string };
+      return (data.translatedText || text).trim();
+    } catch {
+      return text;
     }
-
-    // Último recurso: no romper pipeline, devolver original
-    return text;
   }
 
   private reconstructJson(original: any, translations: Map<string, string>): any {
