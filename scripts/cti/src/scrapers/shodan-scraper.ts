@@ -25,8 +25,10 @@ let contextualQueries: string[] = [];
 // Países Latinoamericanos soportados (ISO 3166-1 alpha-2)
 const LATAM_COUNTRIES = [
   'MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU',
-  'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY'
+  'BO', 'DO', 'HN', 'PY', 'NI', 'SV', 'CR', 'PA', 'UY', 'BZ', 'GY', 'SR', 'HT', 'JM', 'TT'
 ];
+
+const LATAM_PRIORITY_COUNTRIES = ['MX', 'BR', 'AR', 'CO', 'CL', 'PE', 'EC', 'UY'];
 
 /**
  * Set contextual queries from QueryGenerator before running Shodan
@@ -348,12 +350,11 @@ export class ShodanScraper extends BaseScraper<ShodanScrapedData> {
    * Enfoque Latinoamérica: Valida que los resultados sean de países LATAM
    */
   private async searchHosts(query: string): Promise<ShodanHost[]> {
-    // Asegurar que la query incluya filtro de países LATAM si no lo tiene
+    // Asegurar enfoque LATAM: si no hay país, usar un conjunto prioritario regional
     let latamQuery = query;
     if (!query.toLowerCase().includes('country:')) {
-      // Si no tiene filtro de país, agregar filtro de países LATAM
-      const countryFilter = LATAM_COUNTRIES.map(c => `country:${c}`).join(' OR ');
-      latamQuery = `(${query}) AND (${countryFilter})`;
+      const countryFilter = LATAM_PRIORITY_COUNTRIES.map(country => `country:${country}`).join(' OR ');
+      latamQuery = `(${query}) (${countryFilter})`;
     }
 
     const url = `${this.baseUrl}/shodan/host/search?key=${this.apiKey}&query=${encodeURIComponent(latamQuery)}&limit=100`;

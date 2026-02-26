@@ -18,8 +18,34 @@ import {
 
 // Query enfocada en Latinoamérica - combina términos CTI con contexto regional
 // Incluye keywords en español y portugués para máxima cobertura regional
-// Prioriza amenazas frescas: CVE-2025 y CVE-2026
-const CTI_QUERY = '(ransomware OR "data breach" OR CVE-2025 OR CVE-2026 OR "zero-day" OR APT) (attack OR exploit OR campaign OR vulnerabilidad OR ataque OR explotación) (latam OR latinoamerica OR latinamerica OR brasil OR mexico OR méxico OR colombia OR argentina OR chile OR peru OR perú OR venezuela OR ecuador OR guatemala OR cuba OR bolivia OR "puerto rico" OR "costa rica" OR panama OR paraguay OR uruguay) -filter:replies min_faves:5';
+function buildLatamCTIQuery(): string {
+  const currentYear = new Date().getUTCFullYear();
+  const previousYear = currentYear - 1;
+
+  const threatTerms = [
+    'ransomware', '"data breach"', '"zero-day"', 'APT', 'botnet', 'malware',
+    'vulnerabilidad', 'ataque', 'explotación', '"fuga de datos"', '"acceso inicial"',
+    'vazamento', '"acesso inicial"', '"ameaça"'
+  ].join(' OR ');
+
+  const indicatorTerms = [
+    `CVE-${currentYear}`,
+    `CVE-${previousYear}`,
+    'exploit', 'campaign', '"credential stuffing"', 'phishing', 'RCE'
+  ].join(' OR ');
+
+  const latamTerms = [
+    'latam', 'latinoamerica', 'latinamerica', 'brasil', 'mexico', 'méxico', 'colombia',
+    'argentina', 'chile', 'peru', 'perú', 'venezuela', 'ecuador', 'guatemala', 'cuba',
+    'bolivia', '"puerto rico"', '"costa rica"', 'panama', 'paraguay', 'uruguay',
+    'honduras', 'nicaragua', 'elsalvador', 'república dominicana', 'dominican republic',
+    'belize', 'guyana', 'suriname', 'haiti', 'jamaica', '"trinidad and tobago"'
+  ].join(' OR ');
+
+  return `(${threatTerms}) (${indicatorTerms}) (${latamTerms}) -filter:replies -filter:retweets min_faves:3`;
+}
+
+const CTI_QUERY = buildLatamCTIQuery();
 
 export class XScraper extends BaseScraper<XScrapedData> {
   private browser: Browser | null = null;
