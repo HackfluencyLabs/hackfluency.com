@@ -237,7 +237,26 @@ export class LLMTranslator {
       return fallbackFinal;
     }
 
-    return this.chooseBestTranslation(text, primaryFinal, fallbackFinal);
+    const bestEffort = this.chooseBestTranslation(text, primaryFinal, fallbackFinal);
+
+    // Último intento: si aún luce muy anglófono, forzar traducción de rescate
+    if (this.getEnglishStopwordRatio(bestEffort) > 0.18 || bestEffort.trim().toLowerCase() === text.trim().toLowerCase()) {
+      const rescueRaw = await this.translateWithAnylang(prepared);
+      const rescueChecked = this.restoreTechnicalSegments(await this.postProcessSpanish(rescueRaw), placeholders);
+      const rescueFinal = await this.rewriteSpanishWithLLM(rescueChecked, text);
+
+      if (this.isAcceptableTranslation(text, rescueFinal)) {
+        return rescueFinal;
+      }
+
+      const rescueEnglishRatio = this.getEnglishStopwordRatio(rescueFinal);
+      const bestEnglishRatio = this.getEnglishStopwordRatio(bestEffort);
+      if (rescueEnglishRatio < bestEnglishRatio) {
+        return rescueFinal;
+      }
+    }
+
+    return bestEffort;
   }
 
   private isAcceptableTranslation(original: string, translated: string): boolean {
