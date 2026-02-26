@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "playwright": "^1.42.0",
-    "zod": "^3.22.0"
+    "zod": "^3.22.0",
+    "anylang": "file:./vendor/anylang"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
