@@ -263,6 +263,8 @@ export class LLMTranslator {
     } catch {
       return normalized;
     }
+
+    return null;
   }
 
   private async getAnylangModule(): Promise<AnylangModule | null> {
