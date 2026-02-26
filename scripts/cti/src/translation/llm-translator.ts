@@ -3,7 +3,7 @@
  *
  * Arquitectura:
  * 1) Extrae strings traducibles del JSON (filtrando campos técnicos)
- * 2) Traduce con `anylang` (módulo principal del flujo)
+ * 2) Traduce con `anylang` como módulo principal del flujo (siempre disponible vía adapter interno)
  * 3) Fallback HTTP a LibreTranslate-compatible endpoint
  * 4) Cache persistente para evitar re-traducciones
  */
