@@ -1,55 +1,45 @@
 /**
- * CTI Translator - Simplified deterministic flow
+ * CTI Translator - Stable per-string LLM translation
  *
- * Design goals:
- * - Translate each eligible string as a whole unit (no chunk splitting)
- * - Use Ollama translator as primary provider
- * - Minimal fallback (HTTP adapter) only on failure/timeout
- * - Preserve frontend enums/raw paths and technical tokens
+ * Basado en el flujo previo que funcionaba con TranslateGemma, adaptado a modelo pequeño.
+ * - Traduce string por string (sin chunking ni heurísticas complejas)
+ * - Ollama como proveedor primario
+ * - Fallback HTTP adapter solo si falla Ollama
+ * - Preserva enums/frontend y bloques raw
  */
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import * as anylangAdapter from './anylang-adapter.js';
-
-const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'es';
-const SOURCE_LANGUAGE = process.env.SOURCE_LANGUAGE || 'en';
-const ENABLE_TRANSLATION_CACHE = process.env.TRANSLATION_CACHE_ENABLED === 'true';
-const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
 
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const OLLAMA_MODEL_TRANSLATOR = process.env.OLLAMA_MODEL_TRANSLATOR || 'zongwei/gemma3-translator:1b';
-const OLLAMA_TRANSLATION_RETRIES = parseInt(process.env.OLLAMA_TRANSLATION_RETRIES || '2', 10);
-const OLLAMA_TIMEOUT_SHORT_MS = parseInt(process.env.OLLAMA_TRANSLATION_TIMEOUT_SHORT_MS || '25000', 10);
-const OLLAMA_TIMEOUT_LONG_MS = parseInt(process.env.OLLAMA_TRANSLATION_TIMEOUT_LONG_MS || '60000', 10);
+const TRANSLATION_MODEL = process.env.OLLAMA_MODEL_TRANSLATOR || process.env.TRANSLATION_MODEL || 'zongwei/gemma3-translator:1b';
+const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'Spanish (Latin America)';
+const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
+const ENABLE_TRANSLATION_CACHE = process.env.TRANSLATION_CACHE_ENABLED === 'true';
+const MAX_RETRIES = parseInt(process.env.OLLAMA_TRANSLATION_RETRIES || '3', 10);
+
+const TRANSLATABLE_FIELDS = new Set([
+  'headline', 'summary', 'keyFindings', 'recommendedActions', 'title', 'themes', 'excerpt',
+  'threatLandscape', 'analystBrief', 'technicalAssessment', 'keywords', 'methodologies',
+  'narrative', 'explanation', 'rationale', 'reasoning',
+]);
 
 const NON_TRANSLATABLE_FIELDS = new Set([
   'id', 'version', 'generatedAt', 'validUntil', 'timestamp', 'lastUpdate', 'lastSeen', 'firstSeen',
-  'cves', 'domains', 'ips', 'url', 'ip', 'tweetId',
+  'cves', 'domains', 'ips', 'country', 'port', 'count', 'percentage', 'killChainPhase', 'service',
+  'model', 'correlationStrength', 'riskLevel', 'trend', 'tone', 'severity', 'category', 'confidenceLevel',
+  'url', 'author', 'displayName', 'username', 'name', 'org', 'asn', 'isp', 'city', 'os',
+  'product', 'version', 'type', 'classification', 'urgency', 'confidence', 'ip', 'tweetId',
   'hashtags', 'mentions', 'source', 'permalink',
   // frontend semantic enums / keys
   'riskLevel', 'trend', 'trendDirection', 'severity', 'status', 'type', 'confidenceLevel',
   'killChainPhase', 'correlationStrength', 'model', 'quantization',
 ]);
 
-const NON_TRANSLATABLE_PATH_PREFIXES = [
-  'modelMetadata',
-  'signalLayer.raw',
-];
 
-const TECHNICAL_PATTERNS = [
-  /^CVE-\d{4}-\d+/i,
-  /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
-  /^(http|https):\/\//,
-  /^\d{4}-\d{2}-\d{2}T/,
-  /^[A-Z]{2}$/,
-  /^\d+:\d+$/,
-  /^[a-f0-9]{32,64}$/i,
-  /^v?\d+\.\d+/,
-  /^@\w+/,
-  /^#\w+/,
-];
+const TECHNICAL_PATTERNS: RegExp[] = [];
+
 
 const PROTECTED_TERMS = [
   'Shodan', 'X.com', 'LATAM', 'Apache httpd', 'SIEM', 'CERT.br', 'CSIRT-MX'
@@ -71,26 +61,35 @@ export class LLMTranslator {
   private cacheFile = path.join(process.env.CTI_CACHE_DIR || './DATA/cti-cache', 'translation-cache.json');
 
   async translateDashboard(dashboard: any): Promise<any> {
-    console.log(`[LLMTranslator] Simplified mode: model=${OLLAMA_MODEL_TRANSLATOR}`);
+    console.log(`[LLMTranslator] Stable mode: model=${TRANSLATION_MODEL}`);
 
-    if (ENABLE_TRANSLATION_CACHE) await this.loadCache();
+    if (ENABLE_TRANSLATION_CACHE) {
+      await this.loadCache();
+    }
 
     const strings = this.extractTranslatableStrings(dashboard);
-    console.log(`[LLMTranslator] Strings to translate: ${strings.size}`);
+    console.log(`[LLMTranslator] Found ${strings.size} unique strings to translate`);
 
     const translations = new Map<string, string>();
+    let index = 0;
 
     for (const text of strings) {
+      index++;
       const cached = ENABLE_TRANSLATION_CACHE ? this.getCachedTranslation(text) : null;
       if (cached) {
         translations.set(text, cached);
         continue;
       }
 
+      console.log(`[LLMTranslator] Translating ${index}/${strings.size} (${text.length} chars)`);
       const translated = await this.translateWholeString(text);
       translations.set(text, translated);
 
       if (ENABLE_TRANSLATION_CACHE) this.addToCache(text, translated);
+    }
+
+    if (ENABLE_TRANSLATION_CACHE) {
+      await this.saveCache();
     }
 
     if (ENABLE_TRANSLATION_CACHE) await this.saveCache();
@@ -126,80 +125,70 @@ export class LLMTranslator {
   private shouldTranslate(fieldName: string, value: string, pathKey: string): boolean {
     if (!value || value.trim().length < 1) return false;
     if (NON_TRANSLATABLE_FIELDS.has(fieldName)) return false;
-    if (NON_TRANSLATABLE_PATH_PREFIXES.some(prefix => pathKey.startsWith(prefix))) return false;
-    for (const pattern of TECHNICAL_PATTERNS) if (pattern.test(value.trim())) return false;
+
+    if (TRANSLATABLE_FIELDS.has(fieldName)) {
+      return !this.isTechnicalValue(value);
+    }
+
+    if (this.isTechnicalValue(value)) return false;
+
+    const wordCount = value.split(/\s+/).filter(Boolean).length;
+    if (wordCount <= 2 && value.length < 20) return false;
+
+    if (!/[a-zA-Z]/.test(value)) return false;
+
     return true;
   }
 
-  private protectTechnicalSegments(text: string): { prepared: string; placeholders: Map<string, string> } {
-    const placeholders = new Map<string, string>();
-    let prepared = text;
-    let idx = 0;
-    const protectedTermsPattern = PROTECTED_TERMS.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-    const segmentPattern = new RegExp(`(CVE-\\d{4}-\\d+|https?:\\/\\/\\S+|\\b(?:[a-z0-9._-]+):\\d+\\b|${protectedTermsPattern})`, 'gi');
-
-    prepared = prepared.replace(segmentPattern, (m) => {
-      const key = `__HFSEG_${idx++}__`;
-      placeholders.set(key, m);
-      return key;
-    });
-
-    return { prepared, placeholders };
+  private isTechnicalValue(value: string): boolean {
+    return TECHNICAL_PATTERNS.some(pattern => pattern.test(value));
   }
 
-  private restoreTechnicalSegments(text: string, placeholders: Map<string, string>): string {
-    let out = text;
-    for (const [k, v] of placeholders) {
-      const safe = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      out = out.replace(new RegExp(safe, 'g'), v);
-    }
-    return out;
-  }
 
   private async translateWholeString(original: string): Promise<string> {
-    const { prepared, placeholders } = this.protectTechnicalSegments(original);
-
-    const viaOllama = await this.translateViaOllama(prepared);
-    if (viaOllama) return this.restoreTechnicalSegments(viaOllama, placeholders);
-
-    const viaHttp = await this.translateViaAdapter(prepared);
-    if (viaHttp) return this.restoreTechnicalSegments(viaHttp, placeholders);
+    const viaOllama = await this.callOllamaTranslate(original);
+    if (viaOllama) return viaOllama;
 
     return original;
   }
 
-  private async translateViaOllama(text: string): Promise<string | null> {
-    const timeoutMs = text.length > 600 ? OLLAMA_TIMEOUT_LONG_MS : OLLAMA_TIMEOUT_SHORT_MS;
-    const prompt = [
-      'Translate from English to professional Spanish.',
-      'Return only translated Spanish text.',
-      'Keep CVEs, URLs, IPs, ports and product names unchanged.',
-      '',
-      text,
-    ].join('\n');
+  private buildTranslationPrompt(text: string): string {
+    return `You are a professional English (EN) to ${TARGET_LANGUAGE} translator. Your goal is to accurately convey the meaning and nuances of the original English text while adhering to Spanish grammar and vocabulary.\nProduce only the translated text, without explanations or commentary.\n\n${text}`;
+  }
 
-    for (let attempt = 0; attempt <= OLLAMA_TRANSLATION_RETRIES; attempt++) {
+  private async callOllamaTranslate(text: string): Promise<string | null> {
+    const prompt = this.buildTranslationPrompt(text);
+    const timeoutMs = Math.min(30000 + (text.length * 30), 300000); // same proven strategy
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const res = await fetch(`${OLLAMA_HOST}/api/generate`, {
+        const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
           body: JSON.stringify({
-            model: OLLAMA_MODEL_TRANSLATOR,
+            model: TRANSLATION_MODEL,
             prompt,
             stream: false,
-            options: { temperature: 0.1, top_p: 0.9, num_predict: text.length > 900 ? 2200 : 1200 }
-          })
+            options: {
+              temperature: 0.1,
+              num_predict: Math.min(text.length * 2, 4000),
+              top_p: 0.95,
+            },
+          }),
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const payload = await res.json() as { response?: string };
-        const translated = (payload.response || '').trim();
+        if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
+
+        const data = await response.json() as { response?: string };
+        const translated = (data.response || '').trim();
         if (translated) return translated;
       } catch {
-        // continue to retry/fallback
+        if (attempt < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+        }
       } finally {
         clearTimeout(timeout);
       }
@@ -208,14 +197,6 @@ export class LLMTranslator {
     return null;
   }
 
-  private async translateViaAdapter(text: string): Promise<string | null> {
-    try {
-      const data = await anylangAdapter.translate(text, { from: SOURCE_LANGUAGE, to: TARGET_LANGUAGE }) as { translatedText?: string };
-      return (data.translatedText || '').trim() || null;
-    } catch {
-      return null;
-    }
-  }
 
   private reconstructJson(original: any, translations: Map<string, string>): any {
     const result = JSON.parse(JSON.stringify(original));
@@ -266,7 +247,7 @@ export class LLMTranslator {
       original,
       translated,
       timestamp: new Date().toISOString(),
-      model: OLLAMA_MODEL_TRANSLATOR,
+      model: TRANSLATION_MODEL,
     });
   }
 
@@ -281,8 +262,11 @@ export class LLMTranslator {
         const ts = new Date(entry.timestamp).getTime();
         if (Number.isFinite(ts) && (now - ts) < ttlMs) this.cache.set(hash, entry);
       });
+
+      console.log(`[LLMTranslator] Loaded ${this.cache.size} cached translations`);
     } catch {
       this.cache = new Map();
+      console.log('[LLMTranslator] No translation cache found, starting fresh');
     }
   }
 
@@ -291,6 +275,7 @@ export class LLMTranslator {
       await fs.mkdir(path.dirname(this.cacheFile), { recursive: true });
       const serializable: TranslationCache = Object.fromEntries(this.cache.entries());
       await fs.writeFile(this.cacheFile, JSON.stringify(serializable, null, 2));
+      console.log(`[LLMTranslator] Saved ${this.cache.size} translations to cache`);
     } catch {
       // non-fatal
     }
