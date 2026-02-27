@@ -16,7 +16,7 @@ import * as crypto from 'crypto';
 
 // Configuración
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
-const TRANSLATION_MODEL = process.env.TRANSLATION_MODEL || 'translategemma:4b';
+const TRANSLATION_MODEL = process.env.TRANSLATION_MODEL || 'zongwei/gemma3-translator:1b';
 const TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'Spanish (Latin America)';
 const BATCH_SIZE = parseInt(process.env.TRANSLATION_BATCH_SIZE || '5', 10);
 const CACHE_TTL_DAYS = parseInt(process.env.TRANSLATION_CACHE_TTL || '7', 10);
