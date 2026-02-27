@@ -4,16 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       reinicializar_proceso:
-        description: 'Reinicializar proceso (☐ Ticket: Borra todo menos LLMs y dependencias: Ollama, Playwright)'
+        description: 'Reinicializar proceso (Borra todo menos LLMs y dependencias: Ollama, Playwright)'
         required: true
         default: false
         type: boolean
-      use_gpt4free:
-        description: 'Usar GPT4Free para traducción (☐ Ticket: GPT4Free Enrichment)'
-        required: true
-        default: false
-        type: boolean
-
 permissions:
   contents: write
 
@@ -28,9 +22,9 @@ env:
   CTI_CURRENT_DATE: ${{ github.event.repository.updated_at }}
   OLLAMA_MODEL_REASONER: phi4-mini
   OLLAMA_MODEL_SPECIALIST: ALIENTELLIGENCE/cybersecuritythreatanalysisv2
-  TRANSLATION_MODEL: translategemma:4b
+  TRANSLATION_MODEL: zongwei/gemma3-translator:1b
   TARGET_LANGUAGE: 'Spanish (Latin America)'
-  USE_GPT4FREE: 'false'
+
 
 jobs:
   cti-pipeline:
@@ -108,7 +102,7 @@ jobs:
           echo "OLLAMA_MODEL_REASONER=${{ env.OLLAMA_MODEL_REASONER }}" >> "$GITHUB_ENV"
           echo "OLLAMA_MODEL_SPECIALIST=${{ env.OLLAMA_MODEL_SPECIALIST }}" >> "$GITHUB_ENV"
 
-          echo "=== Pulling TRANSLATION model (translategemma:4b) ==="
+          echo "=== Pulling TRANSLATION model (gemma3-translator:1b) ==="
           ollama pull "${{ env.TRANSLATION_MODEL }}"
           if [ $? -ne 0 ]; then
             echo "ERROR: Failed to pull translation model ${{ env.TRANSLATION_MODEL }}"
@@ -140,7 +134,7 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-      - name: Run CTI Pipeline (Triple-Model + GPT4Free Enrichment)
+      - name: Run CTI Pipeline
         working-directory: ./scripts/cti
         env:
           SHODAN_API_KEY: ${{ secrets.SHODAN_API_KEY }}
@@ -149,8 +143,7 @@ jobs:
           OLLAMA_MODEL_REASONER: ${{ env.OLLAMA_MODEL_REASONER }}
           OLLAMA_MODEL_SPECIALIST: ${{ env.OLLAMA_MODEL_SPECIALIST }}
           TRANSLATION_MODEL: ${{ env.TRANSLATION_MODEL }}
-          TARGET_LANGUAGE: ${{ env.TARGET_LANGUAGE }}
-          USE_GPT4FREE: ${{ inputs.use_gpt4free }}
+
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
         run: npx tsx src/index.ts all
 
