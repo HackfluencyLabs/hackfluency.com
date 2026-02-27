@@ -157,15 +157,25 @@ jobs:
             libretranslate/libretranslate:latest
 
           echo "Waiting for LibreTranslate health..."
-          for i in {1..30}; do
-            if curl -fsS "http://127.0.0.1:5000/languages" > /dev/null; then
+          for i in {1..120}; do
+            if curl -fsS --max-time 3 "http://127.0.0.1:5000/languages" > /dev/null; then
               echo "✓ LibreTranslate is ready"
               exit 0
+            fi
+
+            if [ "$(docker inspect -f '{{.State.Running}}' libretranslate 2>/dev/null || echo false)" != "true" ]; then
+              echo "❌ LibreTranslate container stopped unexpectedly"
+              docker logs libretranslate || true
+              exit 1
+            fi
+
+            if [ $((i % 15)) -eq 0 ]; then
+              echo "...still waiting for LibreTranslate ($i/120)"
             fi
             sleep 2
           done
 
-          echo "❌ LibreTranslate failed to start"
+          echo "❌ LibreTranslate failed to become healthy in time"
           docker logs libretranslate || true
           exit 1
 
