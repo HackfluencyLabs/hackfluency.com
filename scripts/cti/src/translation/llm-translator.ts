@@ -86,18 +86,9 @@ const NON_TRANSLATABLE_FIELDS = new Set([
   'permalink',
 ]);
 
-const TECHNICAL_PATTERNS = [
-  /^CVE-\d{4}-\d+/i,
-  /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
-  /^(http|https):\/\//,
-  /^\d{4}-\d{2}-\d{2}T/,
-  /^[A-Z]{2}$/,
-  /^\d+:\d+$/,
-  /^[a-f0-9]{32,64}$/i,
-  /^v?\d+\.\d+/,
-  /^@\w+/,
-  /^#\w+/,
-];
+
+const TECHNICAL_PATTERNS: RegExp[] = [];
+
 
 interface CacheEntry {
   original: string;
@@ -129,24 +120,30 @@ export class LLMTranslator {
       await this.loadCache();
     }
 
-    const stringsMap = this.extractTranslatableStrings(dashboard);
-    console.log(`[LLMTranslator] Found ${stringsMap.size} unique strings to translate`);
+    const strings = this.extractTranslatableStrings(dashboard);
+    console.log(`[LLMTranslator] Found ${strings.size} unique strings to translate`);
 
-    if (stringsMap.size === 0) return dashboard;
-
-    const toTranslate: string[] = [];
     const translations = new Map<string, string>();
+    let index = 0;
 
-    for (const [original] of stringsMap) {
-      const cached = ENABLE_TRANSLATION_CACHE ? this.getCachedTranslation(original) : null;
+    for (const text of strings) {
+      index++;
+      const cached = ENABLE_TRANSLATION_CACHE ? this.getCachedTranslation(text) : null;
       if (cached) {
-        translations.set(original, cached);
-      } else {
-        toTranslate.push(original);
+        translations.set(text, cached);
+        continue;
       }
+
+      console.log(`[LLMTranslator] Translating ${index}/${strings.size} (${text.length} chars)`);
+      const translated = await this.translateWholeString(text);
+      translations.set(text, translated);
+
+      if (ENABLE_TRANSLATION_CACHE) this.addToCache(text, translated);
     }
 
-    console.log(`[LLMTranslator] ${translations.size} from cache, ${toTranslate.length} to translate`);
+    if (ENABLE_TRANSLATION_CACHE) {
+      await this.saveCache();
+    }
 
     if (toTranslate.length > 0) {
       const newTranslations = await this.translateBatch(toTranslate);
@@ -162,12 +159,13 @@ export class LLMTranslator {
       }
     }
 
+    if (ENABLE_TRANSLATION_CACHE) await this.saveCache();
+
     return this.reconstructJson(dashboard, translations);
   }
 
-  private extractTranslatableStrings(obj: any): Map<string, string> {
-    const strings = new Map<string, string>();
-    const seen = new Set<string>();
+  private extractTranslatableStrings(obj: any): Set<string> {
+    const out = new Set<string>();
 
     const traverse = (current: any, pathParts: string[] = []) => {
       if (typeof current === 'string') {
@@ -189,8 +187,8 @@ export class LLMTranslator {
       }
     };
 
-    traverse(obj);
-    return strings;
+    walk(obj);
+    return out;
   }
 
   private shouldTranslate(fieldName: string, value: string): boolean {
@@ -287,18 +285,16 @@ export class LLMTranslator {
         if (translated) this.setValueAtPath(result, pathParts, translated);
         return;
       }
-
       if (Array.isArray(current)) {
         current.forEach((item, idx) => traverseAndReplace(item, [...pathParts, idx.toString()]));
         return;
       }
-
       if (current && typeof current === 'object') {
         Object.entries(current).forEach(([key, value]) => traverseAndReplace(value, [...pathParts, key]));
       }
     };
 
-    traverseAndReplace(original);
+    walk(original);
     return result;
   }
 
@@ -309,6 +305,9 @@ export class LLMTranslator {
       if (!(key in current)) return;
       current = current[key];
     }
+    const last = pathParts[pathParts.length - 1];
+    if (cur && typeof cur === 'object') cur[last] = value;
+  }
 
     const lastKey = pathParts[pathParts.length - 1];
     if (current && typeof current === 'object') current[lastKey] = value;
