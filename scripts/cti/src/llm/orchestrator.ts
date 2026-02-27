@@ -1670,7 +1670,7 @@ Structure with clear headers. Provide comprehensive analysis (500-800 words) wit
       // num_predict raised to prevent output truncation on longer analyses
       const options = {
         temperature: isTechnical ? 0.2 : 0.3,
-        num_predict: isTechnical ? 3200 : 4000,
+        num_predict: isTechnical ? 8000 : 4000,
         top_p: 0.9
       };
 
