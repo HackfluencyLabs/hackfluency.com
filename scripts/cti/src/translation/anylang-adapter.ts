@@ -1,4 +1,4 @@
-const PRIMARY_ENDPOINT = process.env.ANYLANG_API_URL || process.env.LIBRETRANSLATE_URL || 'https://translate.argosopentech.com/translate';
+const PRIMARY_ENDPOINT = process.env.ANYLANG_API_URL || process.env.LIBRETRANSLATE_URL || 'http://127.0.0.1:5000/translate';
 const EXTRA_ENDPOINTS = (process.env.TRANSLATION_FALLBACK_URLS || '')
   .split(',')
   .map(url => url.trim())
@@ -9,8 +9,6 @@ function uniqueEndpoints(): string[] {
   return [...new Set([
     PRIMARY_ENDPOINT,
     ...EXTRA_ENDPOINTS,
-    'https://libretranslate.de/translate',
-    'https://translate.astian.org/translate',
   ])];
 }
 
