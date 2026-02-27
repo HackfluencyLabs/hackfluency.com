@@ -27,6 +27,14 @@ env:
   SOURCE_LANGUAGE: 'en'
   USE_HISTORY_DATA: 'false'
   TRANSLATION_CACHE_ENABLED: 'false'
+  ENABLE_OLLAMA_PRIMARY_TRANSLATION: 'true'
+  OLLAMA_MODEL_TRANSLATOR: zongwei/gemma3-translator:1b
+  OLLAMA_TRANSLATION_TIMEOUT_MS: '35000'
+  OLLAMA_TRANSLATION_RETRIES: '2'
+  OLLAMA_TRANSLATION_BUDGET_MS: '900000'
+  OLLAMA_REWRITE_BUDGET_MS: '420000'
+  ENABLE_LLM_TRANSLATION_REWRITE: 'true'
+  OLLAMA_MODEL_TRANSLATION_REWRITE: phi4-mini
 
 jobs:
   cti-pipeline:
@@ -77,7 +85,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.ollama
-          key: ollama-dual-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}
+          key: ollama-triple-${{ env.OLLAMA_MODEL_REASONER }}-${{ env.OLLAMA_MODEL_SPECIALIST }}-${{ env.OLLAMA_MODEL_TRANSLATOR }}
 
       - name: Install Ollama and Pull Models
         run: |
@@ -101,8 +109,17 @@ jobs:
           fi
           echo "✓ Specialist model ready: ${{ env.OLLAMA_MODEL_SPECIALIST }}"
 
+          echo "=== Pulling TRANSLATOR model ==="
+          ollama pull "${{ env.OLLAMA_MODEL_TRANSLATOR }}"
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to pull translator model ${{ env.OLLAMA_MODEL_TRANSLATOR }}"
+            exit 1
+          fi
+          echo "✓ Translator model ready: ${{ env.OLLAMA_MODEL_TRANSLATOR }}"
+
           echo "OLLAMA_MODEL_REASONER=${{ env.OLLAMA_MODEL_REASONER }}" >> "$GITHUB_ENV"
           echo "OLLAMA_MODEL_SPECIALIST=${{ env.OLLAMA_MODEL_SPECIALIST }}" >> "$GITHUB_ENV"
+          echo "OLLAMA_MODEL_TRANSLATOR=${{ env.OLLAMA_MODEL_TRANSLATOR }}" >> "$GITHUB_ENV"
 
           echo "=== Testing all models ==="
           echo "Testing reasoner..."
@@ -110,6 +127,9 @@ jobs:
           echo ""
           echo "Testing specialist..."
           ollama run "${{ env.OLLAMA_MODEL_SPECIALIST }}" "Respond OK" --verbose 2>&1 | head -c 200 || true
+          echo ""
+          echo "Testing translator..."
+          ollama run "${{ env.OLLAMA_MODEL_TRANSLATOR }}" "Translate: threat actor targeting LATAM banks." --verbose 2>&1 | head -c 200 || true
           echo ""
           echo "=== All models ready for CTI pipeline ==="
 
@@ -126,6 +146,7 @@ jobs:
         run: |
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
+
 
       - name: Run CTI Pipeline
         working-directory: ./scripts/cti
