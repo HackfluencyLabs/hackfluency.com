@@ -161,6 +161,8 @@ jobs:
           USE_HISTORY_DATA: ${{ env.USE_HISTORY_DATA }}
           TRANSLATION_CACHE_ENABLED: ${{ env.TRANSLATION_CACHE_ENABLED }}
           CTI_PUBLIC_DIR: ${{ github.workspace }}/eccentric-equator/public/data
+          LIBRETRANSLATE_URL: ${{ env.LIBRETRANSLATE_URL }}
+          TRANSLATION_FALLBACK_URLS: ${{ env.TRANSLATION_FALLBACK_URLS }}
         run: npx tsx src/index.ts all
 
       - name: Save History - X Data
