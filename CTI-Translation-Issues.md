@@ -3,10 +3,10 @@
 ## Problemas Identificados
 
 ### 1. Prompt en Output (Translate from English to Spanish:) ✅ VERIFICADO
-- **Ubicación**: `cti-dashboard-es.json`, línea 246 - campo `technicalAssessment`
+- **Ubicación**: `cti-dashboard-es.json`, línea 264 - campo `technicalAssessment`
 - **Síntoma**: El modelo incluye "Translate from English to Spanish:" en la respuesta traducida
 - **Origen**: Cambio al formato de prompt oficial en commit `cd625b51`
-- **Status**: ✅ Listo para implementar fix
+- **Status**: ✅ Fix aplicado (prompt extendido)
 
 ### 2. Campo "model" Traducido ⚠️ IDENTIFICADO
 - **Ubicación**: `cti-dashboard-es.json`, línea 241 - campo `ctiAnalysis.model`
@@ -14,31 +14,28 @@
 - **Origen**: ⚠️ Por determinar - campo está en `NON_TRANSLATABLE_FIELDS` pero se tradujo igual
 - **Status**: Necesita más investigación
 
-### 3. Summary Truncado ❓ SIN VERIFICAR
-- **Ubicación**: `cti-dashboard.json` (inglés) y `cti-dashboard-es.json` (español), líneas 15 y 243
-- **Síntoma**: Termina en "ACCIÓN RECOMENDADA" sin contenido
-- **Origen**: ❓ Por verificar - límite de tokens del modelo estratégico (phi4-mini) en orchestrator
-- **Nota**: Esto NO es problema del traductor, es del modelo estratégico que genera el contenido original
-- **Status**: Pendiente de nueva ejecución
-- **Ubicación**: `cti-dashboard-es.json`, líneas 15 y 243
-- **Síntoma**: Termina en "ACCIÓN RECOMENDADA" sin contenido
-- **Origen**: ❓ Por verificar - el fix de 4000 tokens aún no se ha probado en nueva ejecución
-- **Status**: No confirmado - requiere nueva corrida del pipeline
+### 3. Summary Truncado (RESUELTO)
+- **Ubicación**: `cti-dashboard.json` / `cti-dashboard-es.json`
+- **Síntoma**: Terminaba en "ACCIÓN RECOMENDADA" sin contenido
+- **Origen**: Límite de tokens insuficiente en modelo estratégico (phi4-mini)
+- **Fix Aplicado**: Token limit 1800 → **4000 tokens**
+- **Resultado**: ✅ **RESUELTO** - Summary ahora completo
+
+### 4. Technical Assessment Truncado (EN PRUEBA)
+- **Ubicación**: `cti-dashboard.json` / `cti-dashboard-es.json` - campo `technicalAssessment`
+- **Síntoma**: Termina en "### 3." sin contenido completo
+- **Origen**: Límite de tokens insuficiente en modelo técnico (cybersecuritythreatanalysisv2)
+- **Fix Aplicado**: Token limit 3200 → **8000 tokens** (commit `f36c6232`)
+- **Status**: ⏳ En prueba
 
 ---
 
-## Análisis de Causas
+## Historial de Fixes Aplicados
 
-### Problema 1: Prompt en Output ✅ CONFIRMADO
-
-**Cambio realizado en `cd625b51`:**
-
-| Antes | Después |
-|-------|---------|
-| Prompt largo con instrucciones explícitas | Formato oficial corto |
-| `"Produce only the Spanish translation, without any additional explanations or commentary."` | `"Translate from English to Spanish: {text}"` |
-
-**Conclusión**: El formato oficial no incluye la instrucción de "solo traducción limpia", por lo que el modelo a veces incluye el prefijo en la respuesta.
+| Commit | Descripción | Resultado |
+|--------|-------------|-----------|
+| `74d63e4d` | Strategic model: 1800 → 4000 tokens | ✅ Resolvió summary truncado |
+| `f36c6232` | Technical model: 3200 → 8000 tokens | ⏳ En prueba |
 
 ---
 
@@ -80,12 +77,13 @@ return translated;
 ## Pendiente
 
 - **Problema 2**: Investigar por qué campo `model` en `NON_TRANSLATABLE_FIELDS` se traduce igual
-- **Problema 3**: Verificar después de nueva ejecución - el fix de 4000 tokens fue aplicado al modelo estratégico (orchestrator.ts), no al traductor
+- **Problema 4**: Verificar si 8000 tokens resuelve el truncamiento de `technicalAssessment`
 
 ---
 
 ## Referencias
 
-- Commit problematico: `cd625b51`
-- Commit anterior (funcionaba): `5fbb2190`
+- Commit fix strategic tokens: `74d63e4d`
+- Commit fix technical tokens: `f36c6232`
+- Commit problematico prompt: `cd625b51`
 - Docs modelo: `Translategemma1.md`
