@@ -307,8 +307,8 @@ export class LLMTranslator {
           prompt,
           stream: false,
           options: {
-            temperature: 0.1,
-            num_predict: Math.min(text.length * 2, 4000),
+            temperature: 1,
+            num_predict: Math.min(text.length * 3, 16000),
             top_p: 0.95,
           },
         }),
@@ -336,11 +336,7 @@ export class LLMTranslator {
    * Construye el prompt para translategemma siguiendo documentación oficial
    */
   private buildTranslationPrompt(text: string): string {
-    return `You are a professional English (EN) to Spanish (ES) translator. Your goal is to accurately convey the meaning and nuances of the original English text while adhering to Spanish grammar, vocabulary, and cultural sensitivities.
-Produce only the Spanish translation, without any additional explanations or commentary. Please translate the following English text into Spanish:
-
-
-${text}`;
+    return `Translate from English to Spanish: ${text}`;
   }
 
 
