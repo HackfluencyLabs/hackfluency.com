@@ -258,6 +258,29 @@ export class LLMTranslator {
   }
 
   /**
+   * Detecta si el texto tiene caracteres problemáticos para el modelo
+   */
+  private hasProblematicChars(text: string): boolean {
+    return /\*\*/.test(text) || /^\*|\*$/.test(text);
+  }
+
+  /**
+   * Reconstruye el formato original (asteriscos) en la traducción
+   */
+  private reconstructFormat(original: string, translated: string): string {
+    // Extraer solo asteriscos del original
+    const asterisks = original.replace(/[^*]/g, '');
+    // Si no hay asteriscos, devolver traducción limpia
+    if (asterisks.length === 0) return translated;
+    // Reconstruir: prepend y append asteriscos a la traducción
+    const opening = asterisks.substring(0, Math.floor(asterisks.length / 2));
+    return `${opening}${translated}${closing}`;
+  }
+
+  /**
+   * Traduce un batch de strings uno por uno para mejor calidad
+   */
+
    * Traduce un batch de strings uno por uno para mejor calidad
    */
   private async translateBatch(strings: string[]): Promise<string[]> {
@@ -269,7 +292,16 @@ export class LLMTranslator {
       console.log(`[LLMTranslator] Translating ${i + 1}/${strings.length} (${text.length} chars)`);
 
       try {
-        const translated = await this.callTranslateGemma(text);
+        let translated: string;
+        if (this.hasProblematicChars(text)) {
+          // Limpiar asteriscos antes de traducir
+          const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '');
+          const cleanTranslated = await this.callTranslateGemma(cleanText);
+          // Reconstruir formato original
+          translated = this.reconstructFormat(text, cleanTranslated);
+        } else {
+          translated = await this.callTranslateGemma(text);
+        }
         results.push(translated);
       } catch (error) {
         console.error(`[LLMTranslator] Translation failed for string ${i}:`, error);
@@ -335,9 +367,9 @@ export class LLMTranslator {
   /**
    * Construye el prompt para translategemma siguiendo documentación oficial
    */
-  private buildTranslationPrompt(text: string): string {
-    return `Translate from English to Spanish: ${text}`;
-  }
+  return `Translate from English to Spanish: ${text}
+
+  Provide ONLY the Spanish translation. Do NOT include the prompt, do NOT add explanations.`;
 
 
 
