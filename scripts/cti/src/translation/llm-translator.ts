@@ -32,11 +32,18 @@ const NON_TRANSLATABLE_FIELDS = new Set([
   'url', 'author', 'displayName', 'username', 'name', 'org', 'asn', 'isp', 'city', 'os',
   'product', 'version', 'type', 'classification', 'urgency', 'confidence', 'ip', 'tweetId',
   'hashtags', 'mentions', 'source', 'permalink',
+  // frontend semantic enums / keys
+  'riskLevel', 'trend', 'trendDirection', 'severity', 'status', 'type', 'confidenceLevel',
+  'killChainPhase', 'correlationStrength', 'model', 'quantization',
 ]);
 
 
 const TECHNICAL_PATTERNS: RegExp[] = [];
 
+
+const PROTECTED_TERMS = [
+  'Shodan', 'X.com', 'LATAM', 'Apache httpd', 'SIEM', 'CERT.br', 'CSIRT-MX'
+];
 
 interface CacheEntry {
   original: string;
@@ -84,6 +91,8 @@ export class LLMTranslator {
     if (ENABLE_TRANSLATION_CACHE) {
       await this.saveCache();
     }
+
+    if (ENABLE_TRANSLATION_CACHE) await this.saveCache();
 
     return this.reconstructJson(dashboard, translations);
   }
