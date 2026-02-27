@@ -47,7 +47,7 @@
   " New Challenge: Kernel Shield\n\nReverse engineer the NSecKrnl driver (CVE-2025-68947). weaponized in the #Reynolds ransomware BYOVD campaign to kill EDR/AV processes.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt": "Nuevo desafío: Escudo del núcleo\n\nRealice ingeniería inversa en el controlador NSecKrnl (CVE-2025-68947). Armado en la campaña BYOVD del ransomware #Reynolds para eliminar procesos EDR/AV.\n\n https://malops.io/challenges/kernel-shield…\n https://discord.gg/cncpftd3Kt",
   "The_Cyber_News": "Las_cibernoticias",
   " Threat Actor Allegedly Selling OpenSea 0-day Exploit Chain on Hacking Forums \n\nSource: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nA threat actor is reportedly selling a purported critical severity zero-day exploit chain targeting OpenSea for $100,000 USD in Bitcoin or Monero. The listing claims": "Actor de amenazas supuestamente vende cadena de exploits de día 0 de OpenSea en foros de piratería \n\nFuente: https://cybersecuritynews.com/opensea-0-day-exploit-chain/…\n\nSe informa que un actor de amenazas está vendiendo una supuesta cadena de exploits de día cero de gravedad crítica dirigida a OpenSea por $100,000 USD en Bitcoin o Monero. El listado afirma",
-  "ALIENTELLIGENCE/cybersecuritythreatanalysisv2": "ALIENTELLIGENCE/análisis de amenazas de ciberseguridadv2",
+
   "Weaponization": "Armamento",
   "Classification: opportunistic. Confidence: 30%. Correlation: weak. Data freshness: moderate.": "Clasificación: oportunista. Confianza: 30%. Correlación: débil. Actualización de los datos: moderada.",
   "weak": "débil",
