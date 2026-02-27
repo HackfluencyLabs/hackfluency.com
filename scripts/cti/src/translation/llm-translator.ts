@@ -41,10 +41,6 @@ const NON_TRANSLATABLE_FIELDS = new Set([
 const TECHNICAL_PATTERNS: RegExp[] = [];
 
 
-const PROTECTED_TERMS = [
-  'Shodan', 'X.com', 'LATAM', 'Apache httpd', 'SIEM', 'CERT.br', 'CSIRT-MX'
-];
-
 interface CacheEntry {
   original: string;
   translated: string;
@@ -86,6 +82,10 @@ export class LLMTranslator {
       translations.set(text, translated);
 
       if (ENABLE_TRANSLATION_CACHE) this.addToCache(text, translated);
+    }
+
+    if (ENABLE_TRANSLATION_CACHE) {
+      await this.saveCache();
     }
 
     if (ENABLE_TRANSLATION_CACHE) {

@@ -35,8 +35,6 @@ env:
   OLLAMA_REWRITE_BUDGET_MS: '420000'
   ENABLE_LLM_TRANSLATION_REWRITE: 'true'
   OLLAMA_MODEL_TRANSLATION_REWRITE: phi4-mini
-  LIBRETRANSLATE_URL: 'http://127.0.0.1:5000/translate'
-  TRANSLATION_FALLBACK_URLS: 'https://ftapi.pythonanywhere.com/translate'
 
 jobs:
   cti-pipeline:
@@ -149,35 +147,6 @@ jobs:
           mkdir -p ./DATA
           echo '${{ secrets.X_COOKIES_JSON }}' > ./DATA/x-cookies.json
 
-
-      - name: Start LibreTranslate (local fallback service)
-        run: |
-          docker run -d --name libretranslate \
-            -p 5000:5000 \
-            libretranslate/libretranslate:latest
-
-          echo "Waiting for LibreTranslate health..."
-          for i in {1..120}; do
-            if curl -fsS --max-time 3 "http://127.0.0.1:5000/languages" > /dev/null; then
-              echo "✓ LibreTranslate is ready"
-              exit 0
-            fi
-
-            if [ "$(docker inspect -f '{{.State.Running}}' libretranslate 2>/dev/null || echo false)" != "true" ]; then
-              echo "❌ LibreTranslate container stopped unexpectedly"
-              docker logs libretranslate || true
-              exit 1
-            fi
-
-            if [ $((i % 15)) -eq 0 ]; then
-              echo "...still waiting for LibreTranslate ($i/120)"
-            fi
-            sleep 2
-          done
-
-          echo "❌ LibreTranslate failed to become healthy in time"
-          docker logs libretranslate || true
-          exit 1
 
       - name: Run CTI Pipeline
         working-directory: ./scripts/cti
