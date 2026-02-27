@@ -61,7 +61,6 @@ const NON_TRANSLATABLE_FIELDS = new Set([
   'killChainPhase',
   'service',
   'model',
-  'killChainPhase',
   'correlationStrength',
   'riskLevel',
   'trend',
@@ -80,7 +79,6 @@ const NON_TRANSLATABLE_FIELDS = new Set([
   'city',
   'os',
   'product',
-  'version',
   'type',
   'classification',
   'urgency',
@@ -95,16 +93,16 @@ const NON_TRANSLATABLE_FIELDS = new Set([
 
 // Patrones que indican contenido técnico/no traducible
 const TECHNICAL_PATTERNS = [
-  /^CVE-\d{4}-\d+/i, // CVEs
-  /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/, // IPs
-  /^(http|https):\/\//, // URLs
-  /^\d{4}-\d{2}-\d{2}T/, // ISO timestamps
-  /^[A-Z]{2}$/, // Country codes
-  /^\d+:\d+$/, // Port:Service
-  /^[a-f0-9]{32,64}$/i, // Hashes
-  /^v?\d+\.\d+/, // Version numbers
-  /^@\w+/, // Usernames
-  /^#\w+/, // Hashtags
+  /^CVE-\d{4}-\d+/i,
+  /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
+  /^(http|https):\/\//,
+  /^\d{4}-\d{2}-\d{2}T/,
+  /^[A-Z]{2}$/,
+  /^\d+:\d+$/,
+  /^[a-f0-9]{32,64}$/i,
+  /^v?\d+\.\d+/,
+  /^@\w+/,
+  /^#\w+/,
 ];
 
 interface CacheEntry {
@@ -132,9 +130,6 @@ export class LLMTranslator {
     );
   }
 
-  /**
-   * Traduce el dashboard completo
-   */
   async translateDashboard(dashboard: any): Promise<any> {
     console.log('[LLMTranslator] Starting translation process...');
 
@@ -189,9 +184,6 @@ export class LLMTranslator {
     return translatedDashboard;
   }
 
-  /**
-   * Extrae strings traducibles del JSON
-   */
   private extractTranslatableStrings(obj: any): Map<string, string> {
     const strings = new Map<string, string>();
     const seen = new Set<string>();
@@ -217,9 +209,6 @@ export class LLMTranslator {
     return strings;
   }
 
-  /**
-   * Determina si un campo debe traducirse
-   */
   private shouldTranslate(fieldName: string, value: string): boolean {
     // No traducir si está en blacklist explícito
     if (NON_TRANSLATABLE_FIELDS.has(fieldName)) {
@@ -250,43 +239,25 @@ export class LLMTranslator {
     return true;
   }
 
-  /**
-   * Verifica si un valor es técnico/no traducible
-   */
   private isTechnicalValue(value: string): boolean {
     return TECHNICAL_PATTERNS.some(pattern => pattern.test(value));
   }
 
-  /**
-   * Detecta si el texto tiene caracteres problemáticos para el modelo
-   */
   private hasProblematicChars(text: string): boolean {
-    return /\*\*/.test(text) || /^\*|\*$/.test(text);
+    return /\*\*|^\*|\*$/.test(text);
   }
 
-  /**
-   * Reconstruye el formato original (asteriscos) en la traducción
-   */
   private reconstructFormat(original: string, translated: string): string {
-    // Extraer solo asteriscos del original
     const asterisks = original.replace(/[^*]/g, '');
-    // Si no hay asteriscos, devolver traducción limpia
     if (asterisks.length === 0) return translated;
-    // Reconstruir: prepend y append asteriscos a la traducción
     const opening = asterisks.substring(0, Math.floor(asterisks.length / 2));
+    const closing = asterisks.substring(Math.floor(asterisks.length / 2));
     return `${opening}${translated}${closing}`;
   }
 
-  /**
-   * Traduce un batch de strings uno por uno para mejor calidad
-   */
-
-   * Traduce un batch de strings uno por uno para mejor calidad
-   */
   private async translateBatch(strings: string[]): Promise<string[]> {
     const results: string[] = [];
 
-    // TranslateGemma funciona mejor con texto individual
     for (let i = 0; i < strings.length; i++) {
       const text = strings[i];
       console.log(`[LLMTranslator] Translating ${i + 1}/${strings.length} (${text.length} chars)`);
@@ -294,10 +265,8 @@ export class LLMTranslator {
       try {
         let translated: string;
         if (this.hasProblematicChars(text)) {
-          // Limpiar asteriscos antes de traducir
           const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '');
           const cleanTranslated = await this.callTranslateGemma(cleanText);
-          // Reconstruir formato original
           translated = this.reconstructFormat(text, cleanTranslated);
         } else {
           translated = await this.callTranslateGemma(text);
@@ -305,7 +274,6 @@ export class LLMTranslator {
         results.push(translated);
       } catch (error) {
         console.error(`[LLMTranslator] Translation failed for string ${i}:`, error);
-        // Fallback: mantener original
         results.push(text);
       }
     }
@@ -313,16 +281,10 @@ export class LLMTranslator {
     return results;
   }
 
-  /**
-   * Llama a translategemma via Ollama para un solo texto
-   * Timeout proporcional al tamaño del texto (aprox 1000 chars por minuto)
-   */
   private async callTranslateGemma(text: string, attempt: number = 1): Promise<string> {
     const prompt = this.buildTranslationPrompt(text);
 
-    // Calcular timeout basado en longitud del texto
-    // Base: 30 segundos + 3 segundos por cada 100 caracteres
-    const timeoutMs = Math.min(30000 + (text.length * 30), 300000); // Max 5 minutos
+    const timeoutMs = Math.min(30000 + (text.length * 30), 300000);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -364,20 +326,13 @@ export class LLMTranslator {
     }
   }
 
-  /**
-   * Construye el prompt para translategemma siguiendo documentación oficial
-   */
-  return `Translate from English to Spanish: ${text}
+  private buildTranslationPrompt(text: string): string {
+    return `Translate from English to Spanish: ${text}
 
-  Provide ONLY the Spanish translation. Do NOT include the prompt, do NOT add explanations.`;
+Provide ONLY the Spanish translation. Do NOT include the prompt, do NOT add explanations.`;
+  }
 
-
-
-  /**
-   * Reconstruye el JSON con las traducciones
-   */
   private reconstructJson(original: any, translations: Map<string, string>): any {
-    // Deep clone
     const result = JSON.parse(JSON.stringify(original));
 
     const traverseAndReplace = (current: any, path: string[] = []) => {
@@ -399,9 +354,6 @@ export class LLMTranslator {
     return result;
   }
 
-  /**
-   * Establece un valor en una ruta del objeto
-   */
   private setValueAtPath(obj: any, path: string[], value: any): void {
     let current = obj;
     for (let i = 0; i < path.length - 1; i++) {
@@ -418,15 +370,11 @@ export class LLMTranslator {
     }
   }
 
-  /**
-   * Carga el cache desde disco
-   */
   private async loadCache(): Promise<void> {
     try {
       const data = await fs.readFile(this.cacheFile, 'utf-8');
       const parsed: TranslationCache = JSON.parse(data);
 
-      // Filtrar entradas expiradas
       const now = new Date();
       const ttlMs = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000;
 
@@ -444,12 +392,8 @@ export class LLMTranslator {
     }
   }
 
-  /**
-   * Guarda el cache en disco
-   */
   private async saveCache(): Promise<void> {
     try {
-      // Asegurar que existe el directorio
       await fs.mkdir(path.dirname(this.cacheFile), { recursive: true });
 
       const data: TranslationCache = Object.fromEntries(this.cache);
@@ -460,18 +404,12 @@ export class LLMTranslator {
     }
   }
 
-  /**
-   * Obtiene traducción del cache
-   */
   private getCachedTranslation(text: string): string | null {
     const hash = this.hashText(text);
     const entry = this.cache.get(hash);
     return entry?.translated || null;
   }
 
-  /**
-   * Agrega traducción al cache
-   */
   private addToCache(original: string, translated: string): void {
     const hash = this.hashText(original);
     this.cache.set(hash, {
@@ -482,9 +420,6 @@ export class LLMTranslator {
     });
   }
 
-  /**
-   * Genera hash de un texto
-   */
   private hashText(text: string): string {
     return crypto.createHash('md5').update(text).digest('hex');
   }
