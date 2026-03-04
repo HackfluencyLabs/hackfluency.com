@@ -592,6 +592,50 @@
   }
 }
 
+/* ── Mobile Nav: icon-only minimal header ───────────────────── */
+@media (max-width: 767px) {
+  .list-nav {
+    padding: 10px 16px;
+  }
+
+  /* Hide text-only nav elements to save space */
+  .list-nav .nav-divider,
+  .list-nav .nav-title {
+    display: none;
+  }
+
+  /* Prevent wrapping — keep all action buttons on one row */
+  .nav-action-group {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  /* Collapse labeled buttons to 36×36 icon squares */
+  .list-nav .nav-btn.primary,
+  .list-nav .nav-btn.secondary,
+  .list-nav .nav-btn.danger {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    gap: 0;
+    min-height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Hide text labels inside nav buttons */
+  .list-nav .nav-btn span {
+    display: none;
+  }
+
+  /* Hide decorative badge on mobile */
+  .business-badge {
+    display: none;
+  }
+}
+
 /* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .business-badge {
