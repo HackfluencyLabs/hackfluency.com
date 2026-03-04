@@ -1,0 +1,13 @@
+---
+// Dashboard List Page - Shows all saved dashboards
+import Layout from '../../layouts/Layout.astro';
+import { DashboardList } from '../../components/DashboardBuilder';
+---
+
+<Layout
+  title="All Dashboards | Hackfluency Strategy"
+  description="View and manage all your security strategy dashboards"
+  ogType="website"
+>
+  <DashboardList client:only="react" />
+</Layout>

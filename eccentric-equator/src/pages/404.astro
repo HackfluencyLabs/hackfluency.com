@@ -1,0 +1,178 @@
+---
+// 404 page with countdown redirect to homepage
+import ThemeInit from '../components/ThemeInit.astro';
+const homeUrl = 'https://www.hackfluency.com';
+const REDIRECT_DELAY = 5; // seconds
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found | Hackfluency</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <ThemeInit />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--hf-bg, #0a0a0a);
+        color: var(--hf-text, #ffffff);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+      }
+      .container {
+        max-width: 480px;
+      }
+      .logo {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 32px;
+        filter: drop-shadow(0 0 20px var(--hf-accent-glow, rgba(0, 210, 106, 0.5)));
+        animation: pulse 3s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(0.97); }
+      }
+      .error-code {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 6rem;
+        font-weight: 700;
+        color: var(--hf-accent, #00D26A);
+        line-height: 1;
+        margin-bottom: 16px;
+        text-shadow: 0 0 40px var(--hf-accent-border, rgba(0, 210, 106, 0.4));
+      }
+      h1 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--hf-text, #ffffff);
+      }
+      p {
+        color: var(--hf-text-dim, #6a6a6a);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 32px;
+      }
+      .countdown {
+        font-size: 1.1rem;
+        color: var(--hf-text-muted, #8a8a8a);
+        margin-bottom: 8px;
+      }
+      .countdown strong {
+        color: var(--hf-accent, #00D26A);
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 2px;
+        background: var(--hf-border-secondary, #2a2a2a);
+        border-radius: 2px;
+        margin: 16px 0 32px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--hf-accent, #00D26A), var(--hf-accent-light, #00FF7F));
+        border-radius: 2px;
+        animation: countdown-bar var(--delay, 5s) linear forwards;
+        transform-origin: left;
+      }
+      @keyframes countdown-bar {
+        from { width: 100%; }
+        to { width: 0%; }
+      }
+      .nav-links {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .nav-link.primary {
+        background: var(--hf-accent-dim, rgba(0, 210, 106, 0.1));
+        border: 1px solid var(--hf-accent-border, rgba(0, 210, 106, 0.3));
+        color: var(--hf-accent, #00D26A);
+      }
+      .nav-link.primary:hover {
+        background: color-mix(in srgb, var(--hf-accent) 20%, transparent);
+        border-color: var(--hf-accent, #00D26A);
+      }
+      .nav-link.secondary {
+        background: color-mix(in srgb, var(--hf-text) 5%, transparent);
+        border: 1px solid var(--hf-border-subtle, rgba(255, 255, 255, 0.1));
+        color: var(--hf-text-secondary, #aaaaaa);
+      }
+      .nav-link.secondary:hover {
+        background: color-mix(in srgb, var(--hf-text) 8%, transparent);
+        color: var(--hf-text, #ffffff);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .logo { animation: none; }
+        .progress-fill { animation: none; width: 0%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img src="/HFNeon.png" alt="Hackfluency" class="logo" />
+      <div class="error-code">404</div>
+      <h1>Page Not Found</h1>
+      <p>The page you're looking for doesn't exist or has been moved. You'll be redirected to our homepage shortly.</p>
+      <p class="countdown">Redirecting in <strong id="count">{REDIRECT_DELAY}</strong> seconds</p>
+      <div class="progress-bar">
+        <div class="progress-fill" style={`--delay: ${REDIRECT_DELAY}s`}></div>
+      </div>
+      <nav class="nav-links" aria-label="Recovery navigation">
+        <a href={homeUrl} class="nav-link primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Go to Homepage
+        </a>
+        <a href="javascript:history.back()" class="nav-link secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Go Back
+        </a>
+      </nav>
+    </div>
+    <script define:vars={{ homeUrl, REDIRECT_DELAY }}>
+      let remaining = REDIRECT_DELAY;
+      const countEl = document.getElementById('count');
+      const interval = setInterval(() => {
+        remaining--;
+        if (countEl) countEl.textContent = String(remaining);
+        if (remaining <= 0) {
+          clearInterval(interval);
+          window.location.replace(homeUrl);
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>

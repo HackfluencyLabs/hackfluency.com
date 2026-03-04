@@ -1,0 +1,14 @@
+---
+// Dynamic Dashboard Viewer Page
+// Route: /dashboards/view?id=...
+import Layout from '../../layouts/Layout.astro';
+import { DashboardViewerWrapper } from '../../components/DashboardBuilder';
+---
+
+<Layout
+  title="Dashboard | Hackfluency Strategy"
+  description="View your security strategy dashboard"
+  ogType="website"
+>
+  <DashboardViewerWrapper client:only="react" />
+</Layout>

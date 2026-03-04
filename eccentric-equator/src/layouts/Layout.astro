@@ -1,0 +1,225 @@
+---
+import SubscriptionPopup from '../components/SubscriptionPopup.astro';
+import { ViewTransitions } from 'astro:transitions';
+import ThemeInit from '../components/ThemeInit.astro';
+import ThemeSelector from '../components/ThemeSelector';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: string;
+  /** Hide the floating theme selector (e.g. CTI has its own) */
+  hideThemeSelector?: boolean;
+}
+
+const { 
+  title = "Hackfluency — Elite Cybersecurity Services",
+  description = "Hackfluency delivers world-class cybersecurity consulting, penetration testing, and AI-driven security solutions for enterprises that demand excellence.",
+  ogImage = "/HFNeon.png",
+  ogType = "website",
+  hideThemeSelector = false,
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageURL = new URL(ogImage, Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href={`${base}favicon.png`} />
+    <link rel="apple-touch-icon" href={`${base}favicon.png`} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:site_name" content="Hackfluency" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@hackfluency" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+
+    <!-- TrustBox script -->
+    <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
+    <!-- End TrustBox script -->
+
+    <title>{title}</title>
+    <ViewTransitions />
+
+    <!-- Theme flash prevention: apply persisted theme BEFORE first paint -->
+    <ThemeInit />
+  </head>
+  <body>
+    <slot />
+    <SubscriptionPopup />
+    {!hideThemeSelector && <ThemeSelector client:only="react" variant="floating" transition:persist />}
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    /* ── Brand Colors — Defaults (overridden by theme system) ── */
+    --primary: #00D26A;
+    --primary-light: #00FF7F;
+    --primary-dark: #00B359;
+    --primary-glow: rgba(0, 255, 127, 0.6);
+    --accent: #E31B23;
+    --accent-light: #FF2D35;
+    --accent-dark: #C41920;
+    --accent-glow: rgba(227, 27, 35, 0.5);
+    
+    /* Neutrals */
+    --black: #0a0a0a;
+    --dark: #111111;
+    --dark-lighter: #1a1a1a;
+    --gray-900: #1f1f1f;
+    --gray-800: #2a2a2a;
+    --gray-700: #3a3a3a;
+    --gray-600: #4a4a4a;
+    --gray-500: #6a6a6a;
+    --gray-400: #8a8a8a;
+    --gray-300: #aaaaaa;
+    --gray-200: #cccccc;
+    --gray-100: #e5e5e5;
+    --white: #ffffff;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    --gradient-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    --gradient-dark: linear-gradient(180deg, var(--black) 0%, var(--dark) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, rgba(0, 210, 106, 0.2) 0%, transparent 70%);
+    --gradient-neon: linear-gradient(135deg, var(--primary) 0%, #00FFAA 50%, var(--primary-light) 100%);
+
+    /* ── HF Theme Tokens — Defaults (set via JS on <html>) ── */
+    --hf-accent: #00D26A;
+    --hf-accent-light: #00FF7F;
+    --hf-accent-dark: #00B359;
+    --hf-accent-glow: rgba(0, 210, 106, 0.6);
+    --hf-accent-dim: rgba(0, 210, 106, 0.1);
+    --hf-accent-border: rgba(0, 210, 106, 0.3);
+    --hf-accent-secondary: #E31B23;
+    --hf-bg: #0a0a0a;
+    --hf-bg-secondary: #111111;
+    --hf-bg-card: #111111;
+    --hf-bg-tertiary: #0d0d0d;
+    --hf-bg-code: #000000;
+    --hf-bg-track: #1a1a1a;
+    --hf-bg-elevated: #1a1a1a;
+    --hf-border: #222222;
+    --hf-border-secondary: #2e2e2e;
+    --hf-border-subtle: rgba(255, 255, 255, 0.1);
+    --hf-text: #ffffff;
+    --hf-text-secondary: #cccccc;
+    --hf-text-muted: #888888;
+    --hf-text-dim: #666666;
+    --hf-text-disabled: #444444;
+    --hf-text-on-accent: #000000;
+    --hf-tab-border: #333333;
+    --hf-nav-bg: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+    --hf-nav-border: #2a2a2a;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--hf-bg, #0a0a0a);
+    color: var(--hf-text, #ffffff);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--hf-bg-secondary, #111);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--hf-border-secondary, #3a3a3a);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--hf-accent, #00D26A);
+  }
+
+  /* Selection */
+  ::selection {
+    background: var(--hf-accent, #00D26A);
+    color: var(--hf-text-on-accent, #000);
+  }
+
+  /* Utility Classes */
+  .container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  @media (min-width: 768px) {
+    .container {
+      padding: 0 48px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding: 0 64px;
+    }
+  }
+</style>

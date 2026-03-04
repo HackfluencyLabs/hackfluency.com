@@ -1,0 +1,128 @@
+---
+/**
+ * ThemeInit.astro
+ * ===============
+ * Inline script component that applies the persisted theme's CSS variables
+ * to <html> immediately, before any paint. This prevents flash of wrong theme.
+ * 
+ * Included by Layout.astro. The script runs synchronously in <head>.
+ */
+---
+
+<script is:inline>
+(function() {
+  var STORAGE_KEY = 'hf-theme';
+  var DEFAULT = 'cyber-dark';
+
+  // Theme data — minimal copy for inline script (no imports possible)
+  var themes = {
+    'cyber-dark': { l:0, a:'#00D26A',al:'#00FF7F',ad:'#00B359',ag:'rgba(0,210,106,0.6)',ai:'rgba(0,210,106,0.1)',ab:'rgba(0,210,106,0.3)',as:'#E31B23', bg:'#0a0a0a',bg2:'#111111',bgc:'#111111',bg3:'#0d0d0d',bgx:'#000000',bgt:'#1a1a1a',bge:'#1a1a1a', b1:'#222222',b2:'#2e2e2e',bs:'rgba(255,255,255,0.1)', t:'#ffffff',ts:'#cccccc',tm:'#888888',td:'#666666',tD:'#444444',ta:'#000000', tb:'#333333',mm:'rgba(0,0,0,0.8)',nb:'linear-gradient(180deg,#1a1a1a 0%,#0f0f0f 100%)',nB:'#2a2a2a' },
+    'crimson': { l:0, a:'#FF4455',al:'#FF6B7A',ad:'#CC3344',ag:'rgba(255,68,85,0.6)',ai:'rgba(255,68,85,0.1)',ab:'rgba(255,68,85,0.3)',as:'#FF6B35', bg:'#0a0505',bg2:'#110808',bgc:'#110808',bg3:'#0d0707',bgx:'#050202',bgt:'#2a1515',bge:'#1a0f0f', b1:'#2a1515',b2:'#351a1a',bs:'rgba(255,68,85,0.1)', t:'#fff5f5',ts:'#ddbfbf',tm:'#997777',td:'#775555',tD:'#552f2f',ta:'#000000', tb:'#3a1f1f',mm:'rgba(5,0,0,0.8)',nb:'linear-gradient(180deg,#1a0f0f 0%,#0d0505 100%)',nB:'#2a1515' },
+    'azure': { l:0, a:'#3B82F6',al:'#60A5FA',ad:'#2563EB',ag:'rgba(59,130,246,0.6)',ai:'rgba(59,130,246,0.1)',ab:'rgba(59,130,246,0.3)',as:'#60A5FA', bg:'#050914',bg2:'#080f1c',bgc:'#0a1220',bg3:'#070c16',bgx:'#020510',bgt:'#152035',bge:'#0e1830', b1:'#1a2840',b2:'#1e3050',bs:'rgba(59,130,246,0.1)', t:'#f0f6ff',ts:'#b0c8f0',tm:'#6680aa',td:'#4d6080',tD:'#2e3d55',ta:'#ffffff', tb:'#243550',mm:'rgba(5,9,20,0.8)',nb:'linear-gradient(180deg,#0e1830 0%,#050914 100%)',nB:'#1a2840' },
+    'violet': { l:0, a:'#8B5CF6',al:'#A78BFA',ad:'#7C3AED',ag:'rgba(139,92,246,0.6)',ai:'rgba(139,92,246,0.1)',ab:'rgba(139,92,246,0.3)',as:'#A78BFA', bg:'#080510',bg2:'#0d0917',bgc:'#0d0917',bg3:'#0a0713',bgx:'#040208',bgt:'#1a1030',bge:'#150e28', b1:'#1e1535',b2:'#231840',bs:'rgba(139,92,246,0.1)', t:'#f5f0ff',ts:'#c8b0f0',tm:'#7766aa',td:'#564d80',tD:'#352d55',ta:'#ffffff', tb:'#2a1d45',mm:'rgba(8,5,16,0.8)',nb:'linear-gradient(180deg,#150e28 0%,#080510 100%)',nB:'#1e1535' },
+    'amber': { l:0, a:'#F59E0B',al:'#FCD34D',ad:'#D97706',ag:'rgba(245,158,11,0.6)',ai:'rgba(245,158,11,0.1)',ab:'rgba(245,158,11,0.3)',as:'#FCD34D', bg:'#0a0800',bg2:'#110e02',bgc:'#110e02',bg3:'#0d0b01',bgx:'#050400',bgt:'#2a2205',bge:'#1a1805', b1:'#2a2205',b2:'#342b06',bs:'rgba(245,158,11,0.1)', t:'#fffbe0',ts:'#e0d090',tm:'#aa8844',td:'#806030',tD:'#553f10',ta:'#000000', tb:'#3a2f07',mm:'rgba(10,8,0,0.8)',nb:'linear-gradient(180deg,#1a1805 0%,#0a0800 100%)',nB:'#2a2205' },
+    'ice': { l:0, a:'#94A3B8',al:'#CBD5E1',ad:'#64748B',ag:'rgba(148,163,184,0.6)',ai:'rgba(148,163,184,0.1)',ab:'rgba(148,163,184,0.3)',as:'#CBD5E1', bg:'#080a0c',bg2:'#0e1116',bgc:'#0e1116',bg3:'#0b0d10',bgx:'#040506',bgt:'#1a2030',bge:'#141a24', b1:'#1e2430',b2:'#252e3c',bs:'rgba(148,163,184,0.1)', t:'#f0f4f8',ts:'#b4c4d8',tm:'#6677aa',td:'#4d5a70',tD:'#303c50',ta:'#000000', tb:'#2a3040',mm:'rgba(8,10,12,0.8)',nb:'linear-gradient(180deg,#141a24 0%,#080a0c 100%)',nB:'#1e2430' },
+    'analyst': { l:1, a:'#00965A',al:'#00B36B',ad:'#007A4A',ag:'rgba(0,150,90,0.4)',ai:'rgba(0,150,90,0.08)',ab:'rgba(0,150,90,0.25)',as:'#2563EB', bg:'#f8fafb',bg2:'#ffffff',bgc:'#ffffff',bg3:'#f0f4f7',bgx:'#f5f5f0',bgt:'#e0e5eb',bge:'#ffffff', b1:'#d0d8e0',b2:'#bbc6d0',bs:'rgba(0,0,0,0.08)', t:'#0f1923',ts:'#2d3d4d',tm:'#556070',td:'#7a8a98',tD:'#b0bcc8',ta:'#ffffff', tb:'#c8d2db',mm:'rgba(240,244,247,0.8)',nb:'linear-gradient(180deg,#ffffff 0%,#f0f4f7 100%)',nB:'#d0d8e0' },
+    'stark': { l:1, a:'#1D4ED8',al:'#3B82F6',ad:'#1E40AF',ag:'rgba(29,78,216,0.4)',ai:'rgba(29,78,216,0.07)',ab:'rgba(29,78,216,0.2)',as:'#7C3AED', bg:'#f0f2f5',bg2:'#ffffff',bgc:'#ffffff',bg3:'#e8ebef',bgx:'#eeeef0',bgt:'#dde0e6',bge:'#ffffff', b1:'#c8cdd5',b2:'#b5bbc5',bs:'rgba(0,0,0,0.06)', t:'#0a0c10',ts:'#1e2535',tm:'#4a5568',td:'#72808f',tD:'#a8b2bc',ta:'#ffffff', tb:'#bfc5ce',mm:'rgba(240,242,245,0.85)',nb:'linear-gradient(180deg,#ffffff 0%,#e8ebef 100%)',nB:'#c8cdd5' }
+  };
+
+  function applyStoredTheme() {
+    try {
+      var id = localStorage.getItem(STORAGE_KEY) || DEFAULT;
+      var th = themes[id] || themes[DEFAULT];
+      var h = document.documentElement;
+      var s = h.style;
+
+      h.setAttribute('data-theme', id);
+      h.setAttribute('data-theme-mode', th.l ? 'light' : 'dark');
+
+    // Apply CSS custom properties
+    s.setProperty('--hf-accent', th.a);
+    s.setProperty('--hf-accent-light', th.al);
+    s.setProperty('--hf-accent-dark', th.ad);
+    s.setProperty('--hf-accent-glow', th.ag);
+    s.setProperty('--hf-accent-dim', th.ai);
+    s.setProperty('--hf-accent-border', th.ab);
+    s.setProperty('--hf-accent-secondary', th.as);
+    s.setProperty('--hf-bg', th.bg);
+    s.setProperty('--hf-bg-secondary', th.bg2);
+    s.setProperty('--hf-bg-card', th.bgc);
+    s.setProperty('--hf-bg-tertiary', th.bg3);
+    s.setProperty('--hf-bg-code', th.bgx);
+    s.setProperty('--hf-bg-track', th.bgt);
+    s.setProperty('--hf-bg-elevated', th.bge);
+    s.setProperty('--hf-border', th.b1);
+    s.setProperty('--hf-border-secondary', th.b2);
+    s.setProperty('--hf-border-subtle', th.bs);
+    s.setProperty('--hf-text', th.t);
+    s.setProperty('--hf-text-secondary', th.ts);
+    s.setProperty('--hf-text-muted', th.tm);
+    s.setProperty('--hf-text-dim', th.td);
+    s.setProperty('--hf-text-disabled', th.tD);
+    s.setProperty('--hf-text-on-accent', th.ta);
+    s.setProperty('--hf-tab-border', th.tb);
+    s.setProperty('--hf-nav-bg', th.nb);
+    s.setProperty('--hf-nav-border', th.nB);
+
+    // Legacy compat
+    s.setProperty('--primary', th.a);
+    s.setProperty('--primary-light', th.al);
+    s.setProperty('--primary-dark', th.ad);
+    s.setProperty('--primary-glow', th.ag);
+    s.setProperty('--accent', th.as);
+    s.setProperty('--black', th.bg);
+    s.setProperty('--dark', th.bg2);
+    s.setProperty('--dark-lighter', th.bgt);
+    s.setProperty('--white', th.t);
+
+    // Gray scale (mapped to theme tokens)
+    s.setProperty('--gray-900', th.bge);
+    s.setProperty('--gray-800', th.b2);
+    s.setProperty('--gray-700', th.tb);
+    s.setProperty('--gray-600', th.tD);
+    s.setProperty('--gray-500', th.td);
+    s.setProperty('--gray-400', th.tm);
+    s.setProperty('--gray-300', th.ts);
+    s.setProperty('--gray-200', th.l ? th.b2 : '#cccccc');
+    s.setProperty('--gray-100', th.l ? th.b1 : '#e5e5e5');
+
+    // Gradient overrides
+    s.setProperty('--gradient-primary', 'linear-gradient(135deg,' + th.a + ' 0%,' + th.al + ' 100%)');
+    s.setProperty('--gradient-accent', 'linear-gradient(135deg,' + th.as + ' 0%,' + th.as + ' 100%)');
+    s.setProperty('--gradient-dark', 'linear-gradient(180deg,' + th.bg + ' 0%,' + th.bg2 + ' 100%)');
+    s.setProperty('--gradient-glow', 'radial-gradient(ellipse at center,' + th.ag + ' 0%,transparent 70%)');
+    s.setProperty('--gradient-neon', 'linear-gradient(135deg,' + th.a + ' 0%,' + th.al + ' 50%,' + th.al + ' 100%)');
+
+    // CTI compat
+    s.setProperty('--cti-accent', th.a);
+    s.setProperty('--cti-accent-glow', th.ag);
+    s.setProperty('--cti-accent-dim', th.ai);
+    s.setProperty('--cti-accent-border', th.ab);
+    s.setProperty('--cti-bg', th.bg);
+    s.setProperty('--cti-bg-2', th.bg2);
+    s.setProperty('--cti-bg-card', th.bgc);
+    s.setProperty('--cti-bg-3', th.bg3);
+    s.setProperty('--cti-border', th.b1);
+    s.setProperty('--cti-border-2', th.b2);
+    s.setProperty('--cti-text-muted', th.tm);
+    s.setProperty('--cti-text-primary', th.t);
+    s.setProperty('--cti-text-secondary', th.ts);
+    s.setProperty('--cti-text-dim', th.td);
+    s.setProperty('--cti-text-disabled', th.tD);
+    s.setProperty('--cti-bg-track', th.bgt);
+    s.setProperty('--cti-bg-code', th.bgx);
+    s.setProperty('--cti-tab-border', th.tb);
+    } catch(e) {}
+  }
+
+  // Apply immediately (prevents flash of wrong theme)
+  applyStoredTheme();
+
+  // Re-apply after Astro ViewTransitions page swap
+  // (swap clears inline styles & data attributes on <html>)
+  if (!window.__hfThemeInitDone) {
+    window.__hfThemeInitDone = true;
+    document.addEventListener('astro:after-swap', applyStoredTheme);
+  }
+})();
+</script>
