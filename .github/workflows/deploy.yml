@@ -166,6 +166,13 @@ jobs:
             exit 1
           fi
 
+      - name: Upload Lighthouse Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 30
+
   deploy:
     name: Deploy
     needs: [build, lighthouse]

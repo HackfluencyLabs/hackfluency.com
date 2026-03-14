@@ -30,7 +30,7 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <link rel="icon" type="image/png" href={`${base}favicon.png`} />
     <link rel="apple-touch-icon" href={`${base}favicon.png`} />
     <meta name="generator" content={Astro.generator} />
@@ -76,9 +76,6 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <slot />
     <SubscriptionPopup />
     {!hideThemeSelector && <ThemeSelector client:idle variant="floating" transition:persist />}
-    
-    <!-- Cloudflare Web Analytics - loaded at end for performance -->
-    <Fragment set:html={`<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d601c56269fe4fda82aa3c62f7cf8086"}'></script>`} />
   </body>
 </html>
 
