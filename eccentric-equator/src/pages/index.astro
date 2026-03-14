@@ -95,6 +95,8 @@ const values = [
           e.preventDefault();
           const isOpen = mobileMenu.classList.toggle('active');
           menuBtn.classList.toggle('active');
+          menuBtn.setAttribute('aria-expanded', isOpen.toString());
+          menuBtn.setAttribute('aria-label', isOpen ? 'Close mobile menu' : 'Open mobile menu');
           body.style.overflow = isOpen ? 'hidden' : '';
         });
         
@@ -104,6 +106,8 @@ const values = [
           link.addEventListener('click', () => {
             mobileMenu.classList.remove('active');
             menuBtn.classList.remove('active');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            menuBtn.setAttribute('aria-label', 'Open mobile menu');
             body.style.overflow = '';
           });
         });
@@ -113,6 +117,8 @@ const values = [
           if (e.target === mobileMenu) {
             mobileMenu.classList.remove('active');
             menuBtn.classList.remove('active');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            menuBtn.setAttribute('aria-label', 'Open mobile menu');
             body.style.overflow = '';
           }
         });
@@ -277,7 +283,7 @@ const values = [
       <div class="nav-actions">
         <NavAuthButtons client:only="react" />
       </div>
-      <button class="mobile-menu-btn" aria-label="Toggle menu">
+      <button class="mobile-menu-btn" aria-label="Open mobile menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span>
         <span></span>
         <span></span>
@@ -301,6 +307,7 @@ const values = [
   </nav>
 
   <!-- Hero Section -->
+  <main id="main-content">
   <section class="hero">
     <div class="hero-bg">
       <div class="hero-glow"></div>
@@ -667,6 +674,7 @@ const values = [
       </div>
     </div>
   </footer>
+  </main>
 </Layout>
 
 <style>
