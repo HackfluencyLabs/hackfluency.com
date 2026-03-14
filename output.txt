@@ -1,19 +1,108 @@
-📄 Found report: /home/runner/work/hackfluency.com/hackfluency.com/.lighthouseci/lhr-1773505261144.json
-📊 Scores - SEO: 100, Performance: 92, Accessibility: 90
-0s
-Run echo "Current directory: $(pwd)"
-Current directory: /home/runner/work/hackfluency.com/hackfluency.com
-Listing files:
-total 4184
-drwxr-xr-x 2 runner runner   4096 Mar 14 16:21 .
-drwxr-xr-x 8 runner runner   4096 Mar 14 16:19 ..
--rw-r--r-- 1 runner runner 722525 Mar 14 16:20 lhr-1773505224494.html
--rw-r--r-- 1 runner runner 672566 Mar 14 16:20 lhr-1773505224494.json
--rw-r--r-- 1 runner runner 742667 Mar 14 16:20 lhr-1773505243127.html
--rw-r--r-- 1 runner runner 689621 Mar 14 16:20 lhr-1773505243127.json
--rw-r--r-- 1 runner runner 741789 Mar 14 16:21 lhr-1773505261144.html
--rw-r--r-- 1 runner runner 688981 Mar 14 16:21 lhr-1773505261144.json
-0s
-Run actions/upload-artifact@v4
-Warning: No files were found with the provided path: .lighthouseci/*.json
-.lighthouseci/*.html. No artifacts will be uploaded.
+El problema no es Lighthouse, porque claramente sí genera los archivos. El problema es el path desde donde upload-artifact intenta subirlos.
+
+Tu propio log muestra esto:
+
+📂 Listing .lighthouseci directory:
+total 4180
+...
+lhr-1773505821129.json
+
+pero en el step siguiente:
+
+Warning: No files were found with the provided path: .lighthouseci/
+
+Eso casi siempre ocurre por una de estas 3 razones en GitHub Actions.
+
+1️⃣ El path relativo no coincide con el working directory
+
+Tu workflow ejecuta todo desde:
+
+/home/runner/work/hackfluency.com/hackfluency.com
+
+pero upload-artifact busca relativo a github.workspace.
+
+Normalmente coincide, pero a veces cuando hay download-artifact, tar, etc., el path efectivo cambia.
+
+Solución segura
+
+Usa path absoluto basado en workspace:
+
+- name: Upload Lighthouse Reports
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: lighthouse-reports-${{ github.run_number }}
+    path: ${{ github.workspace }}/.lighthouseci
+    retention-days: 30
+2️⃣ .lighthouseci a veces queda vacío al momento del upload
+
+LHCI escribe archivos asíncronamente al terminar el proceso.
+
+Aunque tú ya listaste el directorio, a veces el runner llega al step antes de flush final.
+
+Solución robusta:
+
+- name: Wait for Lighthouse reports
+  run: |
+    sleep 2
+    ls -la .lighthouseci
+3️⃣ upload-artifact@v4 requiere glob cuando es directorio
+
+Hay un cambio en v4: subir directorios a veces falla si no se usa wildcard.
+
+Solución recomendada:
+
+path: .lighthouseci/**
+🔧 Fix mínimo (recomendado)
+
+Cambia tu step por esto:
+
+- name: Upload Lighthouse Reports
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: lighthouse-reports-${{ github.run_number }}
+    path: ${{ github.workspace }}/.lighthouseci/**
+    retention-days: 30
+🧠 Mejora adicional (muy útil)
+
+Si quieres ver los reportes directo en Actions UI:
+
+- name: Upload Lighthouse HTML
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: lighthouse-html
+    path: .lighthouseci/*.html
+
+Así puedes abrirlos directamente desde el run.
+
+💡 Bonus (simplifica mucho tu workflow)
+
+En vez de todo este parsing manual puedes usar:
+
+lhci autorun
+
+con config:
+
+{
+  "ci": {
+    "collect": {
+      "url": ["http://localhost:8080/special-palm-tree/"],
+      "numberOfRuns": 3
+    },
+    "assert": {
+      "assertions": {
+        "categories:seo": ["error", { "minScore": 0.9 }]
+      }
+    }
+  }
+}
+
+Y LHCI se encarga de:
+
+thresholds
+
+reportes
+
+artifacts
