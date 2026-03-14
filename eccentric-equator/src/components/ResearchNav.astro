@@ -292,15 +292,17 @@ const base = import.meta.env.BASE_URL;
   .rnav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
   /* ── Mobile overlay ── */
-  .rnav-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: color-mix(in srgb, var(--hf-bg) 97%, transparent);
-    z-index: 999;
-    padding-top: 68px;
-    flex-direction: column;
-  }
+.rnav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--hf-bg) 97%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 999;
+  padding-top: 68px;
+  flex-direction: column;
+}
 
   .rnav-overlay.active {
     display: flex;
