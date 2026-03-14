@@ -55,7 +55,7 @@ export interface ThemeConfig {
 }
 
 export const THEME_STORAGE_KEY = 'hf-theme';
-export const DEFAULT_THEME_ID = 'cyber-dark';
+export const DEFAULT_THEME_ID = 'analyst';
 
 // ─────────────────────────────────────────────────────────────
 // Theme palette definitions

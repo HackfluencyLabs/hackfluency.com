@@ -1,0 +1,373 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ResearchNav from '../../components/ResearchNav.astro';
+
+const articles = [
+  {
+    title: "Architecture of MCP-Driven Offensive Systems",
+    description: "How Model Context Protocol can orchestrate autonomous red team agents across complex network environments. An analysis of protocol design, agent coordination patterns, operational memory and the security implications of self-directed offensive systems.",
+    tags: ["Offensive Security", "MCP Architecture", "Autonomous Systems"],
+    date: "March 2026",
+    readTime: "12 min read",
+  },
+];
+---
+
+<Layout
+  title="Research Articles | Hackfluency"
+  description="Full-depth technical research on cybersecurity architecture, AI-driven operations and autonomous security systems published by Hackfluency."
+>
+  <ResearchNav activePage="articles" />
+
+  <main class="rpage">
+
+    <!-- Section header -->
+    <section class="ra-header">
+      <div class="r-container">
+        <span class="r-section-tag">Research Articles</span>
+        <h1 class="ra-title">Articles</h1>
+        <p class="ra-subtitle">
+          Full-depth technical research — security architecture, AI systems and
+          applied operational design. Each article develops an idea from concept
+          to architectural implication.
+        </p>
+        <div class="ra-meta-row">
+          <span class="ra-count">{articles.length} article{articles.length !== 1 ? 's' : ''} published</span>
+          <span class="ra-meta-sep">·</span>
+          <span class="ra-meta-note">Newest first</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Articles list -->
+    <section class="ra-list">
+      <div class="r-container">
+        <div class="ra-grid">
+          {articles.map((article) => (
+            <article class="ra-card">
+              <div class="ra-card-top">
+                <div class="ra-tags">
+                  {article.tags.map(tag => (
+                    <span class="ra-tag">{tag}</span>
+                  ))}
+                </div>
+                <span class="ra-read-time">{article.readTime}</span>
+              </div>
+              <h2 class="ra-card-title">{article.title}</h2>
+              <p class="ra-card-desc">{article.description}</p>
+              <div class="ra-card-footer">
+                <time class="ra-date">{article.date}</time>
+                <span class="ra-coming-soon">Full article coming soon</span>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <!-- Pipeline note -->
+        <div class="ra-pipeline">
+          <div class="ra-pipeline-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div>
+            <p class="ra-pipeline-title">More articles in progress</p>
+            <p class="ra-pipeline-desc">
+              Architecture Notes often evolve into full articles. Follow the research pipeline
+              from <a href="/research/notes" class="ra-pipeline-link">Architecture Notes →</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="r-footer">
+    <div class="r-container">
+      <div class="r-footer-inner">
+        <a href="/research" class="r-footer-home">← Research</a>
+        <span class="r-footer-copy">© 2026 Hackfluency. All rights reserved.</span>
+        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="r-footer-cta">
+          Book a Call
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</Layout>
+
+<style>
+  /* ── Layout ── */
+  .rpage {
+    min-height: 100vh;
+    padding-top: 68px;
+  }
+
+  .r-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Section header ── */
+  .ra-header {
+    padding: 80px 0 52px;
+    background: var(--hf-bg);
+    border-bottom: 1px solid var(--hf-border);
+  }
+
+  .r-section-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hf-accent);
+    margin-bottom: 16px;
+  }
+
+  .ra-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--hf-text);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .ra-subtitle {
+    font-size: 1rem;
+    color: var(--hf-text-muted);
+    line-height: 1.75;
+    max-width: 540px;
+    margin-bottom: 28px;
+  }
+
+  .ra-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ra-count {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--hf-text-secondary);
+  }
+
+  .ra-meta-sep {
+    color: var(--hf-text-dim);
+    font-size: 0.82rem;
+  }
+
+  .ra-meta-note {
+    font-size: 0.82rem;
+    color: var(--hf-text-dim);
+  }
+
+  /* ── Articles list ── */
+  .ra-list {
+    padding: 56px 0 100px;
+    background: var(--hf-bg);
+  }
+
+  .ra-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 52px;
+  }
+
+  /* ── Article card ── */
+  .ra-card {
+    padding: 36px;
+    background: var(--hf-bg-card);
+    border: 1px solid var(--hf-border);
+    border-radius: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ra-card:hover {
+    border-color: var(--hf-accent-border);
+    box-shadow: 0 4px 24px var(--hf-accent-dim);
+  }
+
+  .ra-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .ra-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ra-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+    border: 1px solid var(--hf-accent-border);
+    padding: 3px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .ra-read-time {
+    font-size: 0.78rem;
+    color: var(--hf-text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ra-card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+    font-weight: 700;
+    color: var(--hf-text);
+    line-height: 1.25;
+    margin-bottom: 16px;
+  }
+
+  .ra-card-desc {
+    font-size: 0.95rem;
+    color: var(--hf-text-muted);
+    line-height: 1.75;
+    margin-bottom: 28px;
+  }
+
+  .ra-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hf-border);
+  }
+
+  .ra-date {
+    font-size: 0.82rem;
+    color: var(--hf-text-dim);
+    font-style: italic;
+  }
+
+  .ra-coming-soon {
+    font-size: 0.8rem;
+    color: var(--hf-text-dim);
+    padding: 4px 12px;
+    border: 1px solid var(--hf-border);
+    border-radius: 100px;
+  }
+
+  /* ── Pipeline note ── */
+  .ra-pipeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px;
+    background: var(--hf-bg-secondary);
+    border: 1px solid var(--hf-border);
+    border-radius: 12px;
+  }
+
+  .ra-pipeline-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .ra-pipeline-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--hf-text-muted);
+  }
+
+  .ra-pipeline-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--hf-text-secondary);
+    margin-bottom: 5px;
+  }
+
+  .ra-pipeline-desc {
+    font-size: 0.85rem;
+    color: var(--hf-text-dim);
+    line-height: 1.6;
+  }
+
+  .ra-pipeline-link {
+    color: var(--hf-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .ra-pipeline-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Footer ── */
+  .r-footer {
+    background: var(--hf-bg-secondary);
+    border-top: 1px solid var(--hf-border);
+    padding: 28px 0;
+  }
+
+  .r-footer-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .r-footer-home {
+    font-size: 0.85rem;
+    color: var(--hf-text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .r-footer-home:hover {
+    color: var(--hf-accent);
+  }
+
+  .r-footer-copy {
+    font-size: 0.8rem;
+    color: var(--hf-text-dim);
+  }
+
+  .r-footer-cta {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hf-accent);
+    text-decoration: none;
+    padding: 7px 16px;
+    border: 1px solid var(--hf-accent-border);
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .r-footer-cta:hover {
+    background: var(--hf-accent-dim);
+  }
+</style>

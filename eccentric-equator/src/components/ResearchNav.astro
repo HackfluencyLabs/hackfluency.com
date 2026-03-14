@@ -1,0 +1,342 @@
+---
+/**
+ * ResearchNav.astro
+ * =================
+ * Fixed navigation bar for all /research sub-pages.
+ * Logo links back to homepage; section links to Articles / Notes / Tooling.
+ * activePage prop highlights the current section.
+ */
+
+interface Props {
+  activePage?: 'articles' | 'notes' | 'tooling';
+}
+
+const { activePage } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const btn  = document.getElementById('rnav-btn');
+    const menu = document.getElementById('rnav-menu');
+    if (!btn || !menu) return;
+
+    btn.addEventListener('click', () => {
+      const open = menu.classList.toggle('active');
+      btn.classList.toggle('active');
+      btn.setAttribute('aria-expanded', String(open));
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+
+    menu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        menu.classList.remove('active');
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      });
+    });
+
+    menu.addEventListener('click', e => {
+      if (e.target === menu) {
+        menu.classList.remove('active');
+        btn.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+    });
+  });
+</script>
+
+<nav class="rnav">
+  <div class="rnav-inner">
+
+    <!-- Brand: logo + divider + "Research" label -->
+    <div class="rnav-brand">
+      <a href="/" class="rnav-home" aria-label="Back to Hackfluency homepage">
+        <img src={`${base}HFNeon.png`} alt="" width="34" height="34" class="rnav-logo-img" aria-hidden="true" />
+        <span class="rnav-wordmark">
+          <span class="rnav-hack">Hack</span><span class="rnav-fluency">fluency</span>
+        </span>
+      </a>
+      <div class="rnav-sep" aria-hidden="true"></div>
+      <a href="/research" class="rnav-section-label">Research</a>
+    </div>
+
+    <!-- Desktop links -->
+    <nav class="rnav-links" aria-label="Research sections">
+      <a
+        href="/research/articles"
+        class:list={['rnav-link', { 'rnav-link--active': activePage === 'articles' }]}
+      >Articles</a>
+      <a
+        href="/research/notes"
+        class:list={['rnav-link', { 'rnav-link--active': activePage === 'notes' }]}
+      >Architecture Notes</a>
+      <a
+        href="/research/tooling"
+        class:list={['rnav-link', { 'rnav-link--active': activePage === 'tooling' }]}
+      >Tooling</a>
+    </nav>
+
+    <!-- Back to main site (desktop) -->
+    <a href="/" class="rnav-back">← Home</a>
+
+    <!-- Hamburger (mobile) -->
+    <button
+      class="rnav-hamburger"
+      id="rnav-btn"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="rnav-menu"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+  </div>
+
+  <!-- Mobile overlay -->
+  <div class="rnav-overlay" id="rnav-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div class="rnav-overlay-body">
+      <a href="/research" class="rnav-mobile-link">Research Hub</a>
+      <a href="/research/articles" class="rnav-mobile-link">Articles</a>
+      <a href="/research/notes" class="rnav-mobile-link">Architecture Notes</a>
+      <a href="/research/tooling" class="rnav-mobile-link">Tooling</a>
+      <div class="rnav-mobile-divider"></div>
+      <a href="/" class="rnav-mobile-link rnav-mobile-back">← Back to Hackfluency</a>
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* ── Fixed nav bar ── */
+  .rnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 14px 0;
+    background: color-mix(in srgb, var(--hf-bg) 88%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid color-mix(in srgb, var(--hf-text) 7%, transparent);
+  }
+
+  .rnav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  /* ── Brand cluster ── */
+  .rnav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .rnav-home {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .rnav-logo-img {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 0 6px var(--hf-accent-glow));
+  }
+
+  .rnav-wordmark {
+    display: flex;
+  }
+
+  .rnav-hack {
+    color: var(--hf-accent);
+  }
+
+  .rnav-fluency {
+    color: var(--hf-text);
+  }
+
+  .rnav-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--hf-border);
+    flex-shrink: 0;
+  }
+
+  .rnav-section-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--hf-text-muted);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .rnav-section-label:hover {
+    color: var(--hf-accent);
+  }
+
+  /* ── Desktop nav links ── */
+  .rnav-links {
+    display: none;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  @media (min-width: 768px) {
+    .rnav-links {
+      display: flex;
+    }
+  }
+
+  .rnav-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--hf-text-muted);
+    padding: 7px 14px;
+    border-radius: 8px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  .rnav-link:hover {
+    color: var(--hf-text);
+    background: var(--hf-accent-dim);
+  }
+
+  .rnav-link--active {
+    color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+    font-weight: 600;
+  }
+
+  /* ── Back to site (desktop) ── */
+  .rnav-back {
+    display: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--hf-text-muted);
+    padding: 7px 14px;
+    border: 1px solid var(--hf-border);
+    border-radius: 8px;
+    text-decoration: none;
+    min-height: 36px;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+
+  @media (min-width: 768px) {
+    .rnav-back {
+      display: flex;
+    }
+  }
+
+  .rnav-back:hover {
+    color: var(--hf-accent);
+    border-color: var(--hf-accent-border);
+    background: var(--hf-accent-dim);
+  }
+
+  /* ── Hamburger ── */
+  .rnav-hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 768px) {
+    .rnav-hamburger {
+      display: none;
+    }
+  }
+
+  .rnav-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--hf-text);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+
+  .rnav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .rnav-hamburger.active span:nth-child(2) { opacity: 0; }
+  .rnav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+  /* ── Mobile overlay ── */
+  .rnav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--hf-bg) 97%, transparent);
+    z-index: 999;
+    padding-top: 68px;
+    flex-direction: column;
+  }
+
+  .rnav-overlay.active {
+    display: flex;
+  }
+
+  .rnav-overlay-body {
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .rnav-mobile-link {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--hf-text);
+    padding: 18px 0;
+    border-bottom: 1px solid var(--hf-border);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .rnav-mobile-link:hover {
+    color: var(--hf-accent);
+  }
+
+  .rnav-mobile-divider {
+    height: 12px;
+  }
+
+  .rnav-mobile-back {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--hf-text-muted);
+    border-bottom: none;
+    margin-top: 4px;
+  }
+</style>

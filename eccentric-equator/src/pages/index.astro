@@ -7,11 +7,11 @@ const base = import.meta.env.BASE_URL;
 // SVG icons for services - elegant, minimal line art
 const serviceIcons = {
   shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,
-  lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><circle cx="12" cy="16" r="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
   cpu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>`,
   target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
-  chart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 21H4.6c-.56 0-.84 0-1.054-.109a1 1 0 0 1-.437-.437C3 20.24 3 19.96 3 19.4V3"/><path d="M7 14l4-4 4 4 6-6"/><path d="M17 8h4v4"/></svg>`,
-  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4m0 4h.01"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .738-1.674l-8-9a1 1 0 0 0-1.476 0l-8 9z"/></svg>`
+  brain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.66z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.66z"/></svg>`,
+  users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  flask: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v5l-3.5 7A2 2 0 0 0 8.3 18h7.4a2 2 0 0 0 1.8-3L14 8V3"/><path d="M6.5 14h11"/></svg>`
 };
 
 // SVG icons for values - refined symbols
@@ -22,65 +22,61 @@ const valueIcons = {
   integrity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>`
 };
 
-const services = [
+const services: { icon: string; title: string; description: string; link?: string; linkText?: string }[] = [
   {
     icon: serviceIcons.shield,
-    title: "Penetration Testing",
-    description: "Comprehensive security assessments that simulate real-world attacks to identify vulnerabilities before adversaries do."
-  },
-  {
-    icon: serviceIcons.lock,
-    title: "Security Architecture",
-    description: "Design and implement robust security frameworks tailored to your organization's unique risk profile."
+    title: "Strategic Advisory",
+    description: "High-level security strategy, AI security roadmaps, and technology risk analysis aligned to your business objectives."
   },
   {
     icon: serviceIcons.cpu,
-    title: "AI Security Solutions",
-    description: "Leverage cutting-edge artificial intelligence to detect, prevent, and respond to sophisticated cyber threats."
+    title: "Security Engineering",
+    description: "Architecture design, AI system hardening, and automation of security workflows — built to operate at scale."
   },
   {
     icon: serviceIcons.target,
-    title: "Red Team Operations",
-    description: "Adversary simulation exercises that test your defenses against advanced persistent threats."
+    title: "Offensive Security",
+    description: "Red team operations, adversarial testing, and threat simulation — a core tool within a broader strategic resilience framework."
   },
   {
-    icon: serviceIcons.chart,
-    title: "Security Consulting",
-    description: "Strategic advisory services to align your security posture with business objectives and compliance requirements."
+    icon: serviceIcons.brain,
+    title: "AI & Autonomous Systems",
+    description: "Autonomous security tooling, AI-driven workflows, and agent-based systems that reduce manual exposure and accelerate response."
   },
   {
-    icon: serviceIcons.alert,
-    title: "Incident Response",
-    description: "Rapid response capabilities to contain, investigate, and remediate security breaches effectively."
+    icon: serviceIcons.users,
+    title: "Training & Awareness",
+    description: "Executive security awareness, technical training, and AI risk education designed to build lasting organizational security culture."
+  },
+  {
+    icon: serviceIcons.flask,
+    title: "Research & Tooling",
+    description: "Independent technical research and proprietary tooling — including CodeRed — that feeds our consulting with applied, cutting-edge innovation.",
+    link: '/research/tooling',
+    linkText: 'Explore Research'
   }
 ];
 
-const stats = [
-  { value: "500+", label: "Clients Protected" },
-  { value: "99.9%", label: "Threat Detection" },
-  { value: "24/7", label: "Monitoring" },
-  { value: "15+", label: "Years Excellence" }
-];
 
 const values = [
   {
     title: "Excellence",
-    description: "We pursue the highest standards in every engagement, delivering results that exceed expectations.",
+    description: "Technical depth over superficial breadth. We engage with complex problems others avoid, and deliver solutions that actually hold.",
     icon: valueIcons.excellence
   },
   {
     title: "Evolution",
-    description: "Continuously adapting and innovating to stay ahead of emerging threats and technologies.",
+    description: "Continuously adapting to emerging threats, AI developments, and architectural shifts before they become risks for our clients.",
     icon: valueIcons.evolution
   },
   {
     title: "Elegance",
-    description: "Sophisticated solutions that are both powerful and seamlessly integrated into your operations.",
+    description: "Clean architecture thinking. Every design decision is deliberate — no unnecessary complexity, no bloat, no hidden fragility.",
     icon: valueIcons.elegance
   },
   {
     title: "Integrity",
-    description: "Unwavering commitment to ethical practices and transparent client relationships.",
+    description: "Independent advisory with no vendor affiliations or conflicts of interest. Our recommendations serve your objectives, not a sales quota.",
     icon: valueIcons.integrity
   }
 ];
@@ -275,7 +271,8 @@ const values = [
       <div class="nav-links">
         <a href="#services">Services</a>
         <a href="#about">About</a>
-        <a href="#values">Values</a>
+        <a href="#values">Approach</a>
+        <a href="/research" class="nav-research">Research</a>
       </div>
       <div class="nav-actions">
         <NavAuthButtons client:only="react" />
@@ -293,7 +290,8 @@ const values = [
         <nav class="mobile-nav-links">
           <a href="#services" class="mobile-nav-link">Services</a>
           <a href="#about" class="mobile-nav-link">About</a>
-          <a href="#values" class="mobile-nav-link">Values</a>
+          <a href="#values" class="mobile-nav-link">Approach</a>
+          <a href="/research" class="mobile-nav-link mobile-nav-link--research">Research ↗</a>
         </nav>
         <div class="mobile-nav-actions">
           <NavAuthButtons client:only="react" mobile={true} />
@@ -310,39 +308,90 @@ const values = [
       <div class="hero-particles"></div>
     </div>
     <div class="hero-content container">
-      <div class="hero-logo">
-        <img src={`${base}HFNeon.png`} alt="Hackfluency logo - neon HF symbol" width="120" height="120" class="hero-logo-img" loading="eager" fetchpriority="high" />
-      </div>
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        Elite Cybersecurity Services
-      </div>
-      <h1 class="hero-title">
-        Defend Your Digital
-        <span class="hero-title-accent">Future</span>
-      </h1>
-      <p class="hero-subtitle">
-        World-class cybersecurity consulting, advanced threat intelligence, and AI-driven 
-        security solutions for organizations that refuse to compromise on protection.
-      </p>
-      <div class="hero-actions">
-        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="btn btn-primary">
-          <span>20-Min Strategy Call</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
-        <a href="#services" class="btn btn-secondary">
-          Explore Services
-        </a>
-      </div>
-      <div class="hero-stats">
-        {stats.map((stat) => (
-          <div class="stat-item">
-            <span class="stat-value" data-count={stat.value}>{stat.value}</span>
-            <span class="stat-label">{stat.label}</span>
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Technical Consulting · Security &amp; AI Architecture
+        </div>
+        <h1 class="hero-title">
+          Engineering Secure,
+          <span class="hero-title-accent">Intelligent Systems</span>
+        </h1>
+        <p class="hero-subtitle">
+          We are a boutique technical consulting firm specializing in advanced security architecture,
+          AI systems, and automation. Every engagement is led directly by the founder —
+          no account managers, no generic playbooks.
+        </p>
+        <div class="hero-actions">
+          <a href="#services" class="btn btn-primary">
+            <span>Explore Our Approach</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="/research" class="btn btn-ghost">
+            Explore Research
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+        <a href="/SecurityRoadmap.HF" class="hero-proof" aria-label="View a sample Security Roadmap deliverable">
+          <div class="hero-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
           </div>
-        ))}
+          <div class="hero-proof-text">
+            <span class="hero-proof-label">Sample deliverable</span>
+            <span class="hero-proof-link">
+              View a real Security Roadmap
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
+        </a>
+      </div>
+      <div class="hero-diagram" aria-hidden="true">
+        <svg class="arch-diagram" viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Connection lines -->
+          <line x1="210" y1="60" x2="100" y2="140" class="arch-line"/>
+          <line x1="210" y1="60" x2="320" y2="140" class="arch-line"/>
+          <line x1="100" y1="140" x2="60" y2="240" class="arch-line"/>
+          <line x1="100" y1="140" x2="170" y2="240" class="arch-line"/>
+          <line x1="320" y1="140" x2="250" y2="240" class="arch-line"/>
+          <line x1="320" y1="140" x2="360" y2="240" class="arch-line"/>
+          <line x1="170" y1="240" x2="250" y2="240" class="arch-line arch-line--dim"/>
+          <!-- Central node -->
+          <circle cx="210" cy="60" r="28" class="arch-node arch-node--primary"/>
+          <circle cx="210" cy="60" r="18" class="arch-node-inner"/>
+          <!-- Tier 1 nodes -->
+          <circle cx="100" cy="140" r="22" class="arch-node arch-node--secondary"/>
+          <circle cx="100" cy="140" r="14" class="arch-node-inner"/>
+          <circle cx="320" cy="140" r="22" class="arch-node arch-node--secondary"/>
+          <circle cx="320" cy="140" r="14" class="arch-node-inner"/>
+          <!-- Tier 2 nodes -->
+          <circle cx="60" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+          <circle cx="170" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+          <circle cx="250" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+          <circle cx="360" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+          <!-- Labels -->
+          <text x="210" y="100" class="arch-label" text-anchor="middle">Strategy</text>
+          <text x="80" y="178" class="arch-label" text-anchor="middle">Security</text>
+          <text x="340" y="178" class="arch-label" text-anchor="middle">AI</text>
+          <text x="60" y="272" class="arch-label arch-label--sm" text-anchor="middle">Offensive</text>
+          <text x="170" y="272" class="arch-label arch-label--sm" text-anchor="middle">Engineering</text>
+          <text x="250" y="272" class="arch-label arch-label--sm" text-anchor="middle">Automation</text>
+          <text x="360" y="272" class="arch-label arch-label--sm" text-anchor="middle">Research</text>
+          <!-- Pulse rings (animated) -->
+          <circle cx="210" cy="60" r="28" class="arch-pulse"/>
+          <circle cx="100" cy="140" r="22" class="arch-pulse arch-pulse--delay1"/>
+          <circle cx="320" cy="140" r="22" class="arch-pulse arch-pulse--delay2"/>
+        </svg>
       </div>
     </div>
     <div class="hero-scroll">
@@ -355,11 +404,11 @@ const values = [
   <section id="services" class="services">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">Our Expertise</span>
-        <h2 class="section-title">Comprehensive Security Solutions</h2>
+        <span class="section-tag">Practice Areas</span>
+        <h2 class="section-title">Areas of Expertise</h2>
         <p class="section-subtitle">
-          From strategic consulting to hands-on implementation, we deliver end-to-end 
-          cybersecurity services tailored to your unique challenges.
+          Six interconnected practice areas — from strategic advisory to applied research —
+          designed to address complex security and technology challenges at every layer.
         </p>
       </div>
       <div class="services-grid">
@@ -368,12 +417,21 @@ const values = [
             <div class="service-icon" aria-hidden="true" set:html={service.icon} />
             <h3 class="service-title">{service.title}</h3>
             <p class="service-description">{service.description}</p>
-            <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="service-link" aria-label={`Book a consultation for ${service.title}`}>
-              Book consultation
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </a>
+            {service.link ? (
+              <a href={service.link} class="service-link" aria-label={`${service.linkText || 'Explore'} ${service.title}`}>
+                {service.linkText || 'Explore'}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </a>
+            ) : (
+              <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="service-link" aria-label={`Book a consultation for ${service.title}`}>
+                Book consultation
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </a>
+            )}
           </article>
         ))}
       </div>
@@ -386,17 +444,16 @@ const values = [
       <div class="about-grid">
         <div class="about-content">
           <span class="section-tag">Who We Are</span>
-          <h2 class="section-title">Trusted by Industry Leaders</h2>
+          <h2 class="section-title">A Different Kind of Security Firm</h2>
           <p class="about-text">
-            Hackfluency was founded with a singular mission: to elevate cybersecurity 
-            from a reactive necessity to a strategic advantage. Our team comprises 
-            elite security researchers, ethical hackers, and industry veterans who 
-            have protected some of the world's most critical systems.
+            We are a boutique technical consulting firm built for complex problems — 
+            the kind that don't fit neatly into a vendor's product catalog or a 
+            standard engagement template.
           </p>
           <p class="about-text">
-            We combine deep technical expertise with strategic insight, delivering 
-            solutions that not only protect your assets but enable your business to 
-            thrive in an increasingly hostile digital landscape.
+            Every engagement is led by <strong>Marcelo Burgos, Founder &amp; Lead Architect</strong> — 
+            not delegated to junior staff. We bring deep research, proprietary tooling, 
+            and cross-domain expertise in security, AI, and automation.
           </p>
           <div class="about-features">
             <div class="about-feature">
@@ -404,21 +461,21 @@ const values = [
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>ISO 27001 Certified</span>
+              <span>Founder-led engagements — no account managers</span>
             </div>
             <div class="about-feature">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>CREST Accredited</span>
+              <span>Proprietary research tools in active production</span>
             </div>
             <div class="about-feature">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>SOC 2 Type II Compliant</span>
+              <span>Independent advisory — no vendor affiliations</span>
             </div>
           </div>
         </div>
@@ -433,11 +490,11 @@ const values = [
               </div>
               <div class="terminal-body">
                 <code>
-                  <span class="code-prompt">$</span> hackfluency --analyze<br/>
-                  <span class="code-comment"># Scanning network...</span><br/>
-                  <span class="code-success">✓ 247 endpoints secured</span><br/>
-                  <span class="code-success">✓ 0 critical vulnerabilities</span><br/>
-                  <span class="code-success">✓ Threat level: MINIMAL</span><br/>
+                  <span class="code-prompt">$</span> hackfluency --assess<br/>
+                  <span class="code-comment"># Mapping threat surface...</span><br/>
+                  <span class="code-success">✓ Architecture gaps identified</span><br/>
+                  <span class="code-success">✓ AI risk surface mapped</span><br/>
+                  <span class="code-success">✓ Strategic roadmap ready</span><br/>
                   <span class="code-prompt">$</span> <span class="cursor">_</span>
                 </code>
               </div>
@@ -453,9 +510,9 @@ const values = [
     <div class="container">
       <div class="section-header">
         <span class="section-tag">Our Philosophy</span>
-        <h2 class="section-title">Values That Define Us</h2>
+        <h2 class="section-title">How We Work</h2>
         <p class="section-subtitle">
-          Our core values guide every decision, every engagement, and every solution we deliver.
+          The principles that shape every engagement — technically rigorous, strategically clear, and always independent.
         </p>
       </div>
       <div class="values-grid">
@@ -477,11 +534,12 @@ const values = [
     </div>
     <div class="container">
       <div class="cta-content">
-        <span class="section-tag">Exclusive Access</span>
-        <h2 class="cta-title">Get a Project Roadmap & Expert Insights</h2>
+        <span class="section-tag">Start the Conversation</span>
+        <h2 class="cta-title">Get a Complimentary Architectural Assessment</h2>
         <p class="cta-subtitle">
-          Schedule a complimentary 20-minute strategy session directly with a founder. 
-          Get personalized insights and a clear roadmap for your security challenges.
+          Schedule a focused session directly with the founder. We'll map your current 
+          architecture, identify the gaps, and deliver a prioritized roadmap — no generic slides, 
+          no sales pitch.
         </p>
         <div class="cta-features">
           <div class="cta-feature">
@@ -503,12 +561,12 @@ const values = [
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
               <polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
-            <span>No commitment required</span>
+            <span>Architectural assessment included</span>
           </div>
         </div>
         <div class="cta-actions">
           <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="btn btn-primary btn-large">
-            <span>20-Min Strategy Call</span>
+            <span>Book a Complimentary Assessment</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
@@ -529,21 +587,24 @@ const values = [
             <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
           </a>
           <p class="footer-tagline">
-            Elite cybersecurity powered by state-of-the-art methodologies and private research.
+            Advanced cybersecurity consulting driven by independent research and technical depth.
           </p>
         </div>
         <div class="footer-links">
           <nav class="footer-column" aria-label="Services navigation">
             <h5>Services</h5>
-            <a href="#services">Penetration Testing</a>
-            <a href="#services">Security Architecture</a>
-            <a href="#services">AI Security</a>
-            <a href="#services">Incident Response</a>
+            <a href="#services">Strategic Advisory</a>
+            <a href="#services">Security Engineering</a>
+            <a href="#services">Offensive Security</a>
+            <a href="#services">AI &amp; Autonomous Systems</a>
+            <a href="#services">Training &amp; Awareness</a>
+            <a href="#services">Research &amp; Tooling</a>
           </nav>
           <nav class="footer-column" aria-label="Company navigation">
             <h5>Company</h5>
             <a href="#about">About Us</a>
-            <a href="#values">Our Values</a>
+            <a href="#values">Our Approach</a>
+            <a href="/SecurityRoadmap.HF">Strategy Roadmap Tool</a>
             <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener">Book a Call</a>
           </nav>
           <nav class="footer-column" aria-label="Social media links">
@@ -682,6 +743,29 @@ const values = [
 
   .nav-links a:hover {
     color: var(--primary);
+  }
+
+  .nav-links a.nav-research {
+    color: var(--primary);
+    font-weight: 600;
+    position: relative;
+  }
+
+  .nav-links a.nav-research::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: var(--primary);
+    opacity: 0.35;
+    border-radius: 1px;
+  }
+
+  .nav-links a.nav-research:hover {
+    color: var(--primary);
+    opacity: 0.85;
   }
 
   .nav-cta {
@@ -891,32 +975,36 @@ const values = [
   .hero-content {
     position: relative;
     z-index: 1;
-    text-align: center;
-    max-width: 900px;
-    /* Prevent stats from overlapping the absolute-positioned scroll indicator */
-    padding-bottom: 100px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 80px;
   }
 
-  .hero-logo {
-    margin-bottom: 40px;
+  @media (min-width: 1024px) {
+    .hero-content {
+      grid-template-columns: 1fr 1fr;
+      text-align: left;
+      gap: 64px;
+    }
   }
 
-  .hero-logo-img {
-    width: 180px;
-    height: 180px;
-    filter: drop-shadow(0 0 30px var(--primary-glow)) drop-shadow(0 0 60px var(--hf-accent-border));
-    animation: float 6s ease-in-out infinite, glow 3s ease-in-out infinite alternate;
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+  @media (max-width: 1023px) {
+    .hero-text {
+      align-items: center;
+      text-align: center;
+    }
   }
 
-  @keyframes glow {
-    from { filter: drop-shadow(0 0 30px var(--primary-glow)) drop-shadow(0 0 60px var(--hf-accent-border)); }
-    to { filter: drop-shadow(0 0 40px var(--primary-glow)) drop-shadow(0 0 80px var(--hf-accent-glow)); }
-  }
+  /* hero-logo removed — replaced by arch diagram */
 
   .hero-badge {
     display: inline-flex;
@@ -926,9 +1014,12 @@ const values = [
     background: var(--hf-accent-dim);
     border: 1px solid var(--hf-accent-border);
     border-radius: 100px;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: var(--primary);
-    margin-bottom: 32px;
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .badge-dot {
@@ -961,19 +1052,97 @@ const values = [
   }
 
   .hero-subtitle {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
     color: var(--gray-400);
-    max-width: 700px;
-    margin: 0 auto 40px;
-    line-height: 1.7;
+    max-width: 540px;
+    margin: 0 0 40px;
+    line-height: 1.75;
   }
 
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 16px;
-    margin-bottom: 60px;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .hero-actions {
+      justify-content: center;
+    }
+  }
+
+  .hero-proof {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    padding: 13px 18px;
+    border: 1px solid color-mix(in srgb, var(--hf-text) 12%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--hf-text) 4%, transparent);
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+
+  .hero-proof:hover {
+    border-color: color-mix(in srgb, var(--hf-text) 22%, transparent);
+    background: color-mix(in srgb, var(--hf-text) 7%, transparent);
+  }
+
+  @media (max-width: 1023px) {
+    .hero-proof {
+      width: 100%;
+      max-width: 360px;
+    }
+  }
+
+  .hero-proof-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--hf-accent-border);
+    border-radius: 9px;
+    background: var(--hf-accent-dim);
+  }
+
+  .hero-proof-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--primary);
+  }
+
+  .hero-proof-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .hero-proof-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--primary);
+    opacity: 0.75;
+  }
+
+  .hero-proof-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--white);
+    transition: color 0.2s ease;
+  }
+
+  .hero-proof:hover .hero-proof-link {
+    color: var(--primary);
   }
 
   /* Buttons */
@@ -1044,6 +1213,19 @@ const values = [
     border-color: rgba(255, 255, 255, 0.3);
   }
 
+  .btn-ghost {
+    background: transparent;
+    color: var(--gray-300);
+    border: 1px solid color-mix(in srgb, var(--hf-text) 18%, transparent);
+    font-size: 0.95rem;
+  }
+
+  .btn-ghost:hover {
+    color: var(--primary);
+    border-color: var(--hf-accent-border);
+    background: var(--hf-accent-dim);
+  }
+
   .btn-large {
     padding: 20px 40px;
     font-size: 1.1rem;
@@ -1053,38 +1235,92 @@ const values = [
     width: 100%;
   }
 
-  /* Stats */
-  .hero-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 32px;
-    max-width: 600px;
-    margin: 0 auto;
+  /* Architecture diagram */
+  .hero-diagram {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
-  @media (min-width: 640px) {
-    .hero-stats {
-      grid-template-columns: repeat(4, 1fr);
-    }
+  .arch-diagram {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
   }
 
-  .stat-item {
-    text-align: center;
+  .arch-line {
+    stroke: var(--hf-accent);
+    stroke-width: 1.5;
+    opacity: 0.35;
   }
 
-  .stat-value {
-    display: block;
+  .arch-line--dim {
+    opacity: 0.18;
+    stroke-dasharray: 4 4;
+  }
+
+  .arch-node {
+    fill: none;
+    stroke: var(--hf-accent);
+    stroke-width: 1.5;
+    opacity: 0.5;
+  }
+
+  .arch-node--primary {
+    opacity: 0.8;
+    stroke-width: 2;
+  }
+
+  .arch-node--secondary {
+    opacity: 0.6;
+  }
+
+  .arch-node--tertiary {
+    opacity: 0.4;
+  }
+
+  .arch-node-inner {
+    fill: var(--hf-accent);
+    stroke: none;
+    opacity: 0.12;
+  }
+
+  .arch-pulse {
+    fill: none;
+    stroke: var(--hf-accent);
+    stroke-width: 1;
+    opacity: 0;
+    animation: archPulse 3s ease-out infinite;
+  }
+
+  .arch-pulse--delay1 {
+    animation-delay: 1s;
+  }
+
+  .arch-pulse--delay2 {
+    animation-delay: 2s;
+  }
+
+  @keyframes archPulse {
+    0% { opacity: 0.6; r: 0; }
+    100% { opacity: 0; r: 40px; }
+  }
+
+  .arch-label {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-    text-shadow: 0 0 20px var(--primary-glow);
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--hf-text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
-  .stat-label {
-    font-size: 0.875rem;
-    color: var(--gray-500);
+  .arch-label--sm {
+    font-size: 9px;
+    fill: var(--hf-text-dim);
   }
+
+  /* Stats (removed — keep empty rule to avoid broken refs) */
 
   .hero-scroll {
     position: absolute;
@@ -1899,6 +2135,18 @@ const values = [
     border-color: var(--hf-accent);
     color: var(--hf-accent);
     transform: translateX(8px);
+  }
+
+  .mobile-nav-link--research {
+    color: var(--hf-accent);
+    font-weight: 600;
+    border-color: var(--hf-accent-border);
+    background: var(--hf-accent-dim);
+  }
+
+  .mobile-nav-link--research:hover {
+    background: var(--hf-accent-dim);
+    border-color: var(--hf-accent);
   }
   
   .mobile-nav-actions {
