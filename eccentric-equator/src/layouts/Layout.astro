@@ -69,14 +69,14 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
 
     <!-- Theme flash prevention: apply persisted theme BEFORE first paint -->
     <ThemeInit />
-
-    <!-- Cloudflare Web Analytics -->
-    <Fragment set:html={`<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d601c56269fe4fda82aa3c62f7cf8086"}'></script>`} />
   </head>
   <body>
     <slot />
     <SubscriptionPopup />
-    {!hideThemeSelector && <ThemeSelector client:only="react" variant="floating" transition:persist />}
+    {!hideThemeSelector && <ThemeSelector client:idle variant="floating" transition:persist />}
+    
+    <!-- Cloudflare Web Analytics - loaded at end for performance -->
+    <Fragment set:html={`<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d601c56269fe4fda82aa3c62f7cf8086"}'></script>`} />
   </body>
 </html>
 
@@ -101,7 +101,7 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     --gray-700: #3a3a3a;
     --gray-600: #4a4a4a;
     --gray-500: #6a6a6a;
-    --gray-400: #8a8a8a;
+    --gray-400: #9a9a9a;
     --gray-300: #aaaaaa;
     --gray-200: #cccccc;
     --gray-100: #e5e5e5;
