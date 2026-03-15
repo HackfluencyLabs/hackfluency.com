@@ -31,7 +31,10 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <link rel="icon" type="image/png" href={`${base}favicon.png`} />
+    <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16.png`} />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
+    <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon.png`} />
+    <link rel="icon" type="image/x-icon" href={`${base}favicon.ico`} />
     <link rel="apple-touch-icon" href={`${base}favicon.png`} />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />

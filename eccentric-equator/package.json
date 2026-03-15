@@ -23,5 +23,8 @@
     "react-dom": "^19.2.4",
     "react-i18next": "^16.5.4",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "to-ico": "^1.1.5"
   }
 }
