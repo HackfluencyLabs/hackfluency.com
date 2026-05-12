@@ -425,8 +425,10 @@ const { t } = getTranslations(locale);
   }
 </style>
 
-<script define:vars={{ locale }}>
+<script>
   import { subscribeEmail } from '../lib/subscription';
+
+  const popupLocale = location.pathname.startsWith('/en') ? 'en' : 'es';
 
   // ── Translations for validation messages ────────────────────────
   const popupT: Record<string, string> = {
@@ -453,117 +455,120 @@ const { t } = getTranslations(locale);
       networkError: 'Network error. Check connection.',
     }),
   };
-  const msgs = JSON.parse(popupT[locale] || popupT.es);
+  const msgs = JSON.parse(popupT[popupLocale] || popupT.es);
 
   // ── Configuration ─────────────────────────────────────────────
   const TRIGGER_DELAY   = 45_000;
   const SESSION_KEY     = "hf_popup_done";
 
-  if (sessionStorage.getItem(SESSION_KEY)) return;
+  const popupEl = document.getElementById("hf-popup-overlay") as HTMLElement;
+  const card    = document.getElementById("hf-popup-card") as HTMLElement;
 
-  const overlay   = document.getElementById("hf-popup-overlay") as HTMLElement;
-  const card      = document.getElementById("hf-popup-card") as HTMLElement;
-  const closeBtn  = document.getElementById("hf-popup-close") as HTMLButtonElement;
-  const form      = document.getElementById("popup-subscribe-form") as HTMLFormElement;
-  const emailInp  = document.getElementById("popup-email-input") as HTMLInputElement;
-  const msgEl     = document.getElementById("popup-form-message") as HTMLParagraphElement;
-  const submitBtn = document.getElementById("popup-submit-btn") as HTMLButtonElement;
+  if (!sessionStorage.getItem(SESSION_KEY) && popupEl) {
+    const closeBtn  = document.getElementById("hf-popup-close") as HTMLButtonElement;
+    const form      = document.getElementById("popup-subscribe-form") as HTMLFormElement;
+    const emailInp  = document.getElementById("popup-email-input") as HTMLInputElement;
+    const msgEl     = document.getElementById("popup-form-message") as HTMLParagraphElement;
+    const submitBtn = document.getElementById("popup-submit-btn") as HTMLButtonElement;
 
-  if (!overlay) return;
-
-  function sanitize(email: string): string {
-    return email.trim().replace(/[^a-zA-Z0-9@._-]/g, "");
-  }
-
-  function validate(email: string): { valid: boolean; error?: string } {
-    if (!email) return { valid: false, error: msgs.emailRequired };
-    if (email.length > 254) return { valid: false, error: msgs.emailTooLong };
-    const re = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
-    if (!re.test(email)) return { valid: false, error: msgs.emailInvalid };
-    return { valid: true };
-  }
-
-  function setMsg(text: string, type: string) {
-    msgEl.textContent = text;
-    msgEl.className = `popup-msg ${type}`;
-  }
-
-  function showPopup() {
-    clearTimeout(timer);
-    document.removeEventListener("mouseleave", onMouseLeave);
-    overlay.style.display = "flex";
-    overlay.classList.remove('overlay-exit');
-    void overlay.offsetWidth;
-    overlay.classList.add('overlay-enter');
-    card.classList.remove("popup-enter", "popup-exit");
-    void card.offsetWidth;
-    card.classList.add("popup-enter");
-  }
-
-  function hidePopup(markDone = true) {
-    card.classList.remove('popup-enter');
-    card.classList.add('popup-exit');
-    overlay.classList.remove('overlay-enter');
-    overlay.classList.add('overlay-exit');
-    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
-    setTimeout(() => {
-      overlay.style.display = "none";
-      card.classList.remove('popup-exit');
-      overlay.classList.remove('overlay-exit');
-      if (markDone) sessionStorage.setItem(SESSION_KEY, "1");
-    }, duration);
-  }
-
-  const timer = setTimeout(showPopup, TRIGGER_DELAY);
-
-  function onMouseLeave(e: MouseEvent) {
-    if (e.clientY < 10) showPopup();
-  }
-  document.addEventListener("mouseleave", onMouseLeave);
-
-  closeBtn.addEventListener("click", () => hidePopup(true));
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) hidePopup(true);
-  });
-
-  emailInp.addEventListener("input", () => {
-    const val = emailInp.value;
-    if (!val) { setMsg("", ""); return; }
-    const result = validate(sanitize(val));
-    result.valid ? setMsg(msgs.validEmail, "success") : setMsg(result.error!, "error");
-  });
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const email = sanitize(emailInp.value);
-    const check = validate(email);
-    if (!check.valid) { setMsg(check.error!, "error"); return; }
-
-    submitBtn.disabled = true;
-    setMsg(msgs.subscribing, "info");
-
-    try {
-      const result = await subscribeEmail(email);
-
-      if (result.success) {
-        setMsg(msgs.success, "success");
-        emailInp.value = "";
-        sessionStorage.setItem(SESSION_KEY, "1");
-        setTimeout(() => hidePopup(false), 2000);
-        return;
-      }
-      if (result.message === 'Already subscribed.') {
-        setMsg(msgs.alreadySubscribed, "warning");
-        sessionStorage.setItem(SESSION_KEY, "1");
-        setTimeout(() => hidePopup(false), 2000);
-        return;
-      }
-      setMsg(result.message || msgs.error, "error");
-    } catch {
-      setMsg(msgs.networkError, "error");
-    } finally {
-      submitBtn.disabled = false;
+    function sanitize(email: string): string {
+      return email.trim().replace(/[^a-zA-Z0-9@._-]/g, "");
     }
-  });
+
+    function validate(email: string): { valid: boolean; error?: string } {
+      if (!email) return { valid: false, error: msgs.emailRequired };
+      if (email.length > 254) return { valid: false, error: msgs.emailTooLong };
+      const re = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
+      if (!re.test(email)) return { valid: false, error: msgs.emailInvalid };
+      return { valid: true };
+    }
+
+    function setMsg(text: string, type: string) {
+      msgEl.textContent = text;
+      msgEl.className = `popup-msg ${type}`;
+    }
+
+    function showPopup() {
+      clearTimeout(timer);
+      document.removeEventListener("mouseleave", onMouseLeave);
+      popupEl.style.display = "flex";
+      popupEl.classList.remove('overlay-exit');
+      void popupEl.offsetWidth;
+      popupEl.classList.add('overlay-enter');
+      card.classList.remove("popup-enter", "popup-exit");
+      void card.offsetWidth;
+      card.classList.add("popup-enter");
+    }
+
+    function hidePopup(markDone = true) {
+      card.classList.remove('popup-enter');
+      card.classList.add('popup-exit');
+      popupEl.classList.remove('overlay-enter');
+      popupEl.classList.add('overlay-exit');
+      const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+      setTimeout(() => {
+        popupEl.style.display = "none";
+        card.classList.remove('popup-exit');
+        popupEl.classList.remove('overlay-exit');
+        if (markDone) sessionStorage.setItem(SESSION_KEY, "1");
+      }, duration);
+    }
+
+    const timer = setTimeout(showPopup, TRIGGER_DELAY);
+
+    function onMouseLeave(e: MouseEvent) {
+      if (e.clientY < 10) showPopup();
+    }
+    document.addEventListener("mouseleave", onMouseLeave);
+
+    if (closeBtn) closeBtn.addEventListener("click", () => hidePopup(true));
+    if (popupEl) popupEl.addEventListener("click", (e) => {
+      if (e.target === popupEl) hidePopup(true);
+    });
+
+    if (emailInp && msgEl) {
+      emailInp.addEventListener("input", () => {
+        const val = emailInp.value;
+        if (!val) { setMsg("", ""); return; }
+        const result = validate(sanitize(val));
+        result.valid ? setMsg(msgs.validEmail, "success") : setMsg(result.error!, "error");
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = sanitize(emailInp.value);
+        const check = validate(email);
+        if (!check.valid) { setMsg(check.error!, "error"); return; }
+
+        submitBtn.disabled = true;
+        setMsg(msgs.subscribing, "info");
+
+        try {
+          const result = await subscribeEmail(email);
+
+          if (result.success) {
+            setMsg(msgs.success, "success");
+            emailInp.value = "";
+            sessionStorage.setItem(SESSION_KEY, "1");
+            setTimeout(() => hidePopup(false), 2000);
+            return;
+          }
+          if (result.message === 'Already subscribed.') {
+            setMsg(msgs.alreadySubscribed, "warning");
+            sessionStorage.setItem(SESSION_KEY, "1");
+            setTimeout(() => hidePopup(false), 2000);
+            return;
+          }
+          setMsg(result.message || msgs.error, "error");
+        } catch {
+          setMsg(msgs.networkError, "error");
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    }
+  }
 </script>
