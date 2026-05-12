@@ -1,7 +1,12 @@
 ---
-// Global Subscription Popup
-// Triggers after 45s on page OR on exit intent (mouse leaving browser top)
-// Dismiss state stored in sessionStorage — resets each session
+import { getTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/translations';
+
+interface Props {
+  locale?: Language;
+}
+const { locale = 'es' } = Astro.props;
+const { t } = getTranslations(locale);
 ---
 
 <!-- Popup Overlay -->
@@ -12,7 +17,7 @@
     <div id="hf-popup-glow" aria-hidden="true"></div>
 
     <!-- Close -->
-    <button id="hf-popup-close" aria-label="Close popup">
+    <button id="hf-popup-close" aria-label={t('popup.close')}>
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
       </svg>
@@ -30,28 +35,26 @@
     <!-- Badge -->
     <div class="popup-badge">
       <span class="popup-badge-dot"></span>
-      Technical Consulting &amp; Research
+      {t('popup.badge')}
     </div>
 
-    <h3 id="hf-popup-title">
-      Stay ahead of<br/>
-      <span class="popup-title-accent">complex challenges</span>
+    <h3 id="hf-popup-title" set:html={t('popup.title') + '<span class="popup-title-accent">' + t('popup.titleAccent') + '</span>'}>
     </h3>
     <p id="hf-popup-subtitle">
-      Get expert insights on cybersecurity, AI systems architecture, and strategic technology consulting — delivered to your inbox. No spam, ever.
+      {t('popup.subtitle')}
     </p>
 
     <form id="popup-subscribe-form">
       <input
         type="email"
         id="popup-email-input"
-        placeholder="your@email.com"
+        placeholder={t('popup.emailPlaceholder')}
         required
-        aria-label="Email address"
+        aria-label={t('popup.emailLabel')}
         autocomplete="email"
       />
       <button type="submit" id="popup-submit-btn">
-        <span>Subscribe Now</span>
+        <span>{t('popup.submit')}</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
@@ -63,7 +66,7 @@
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       </svg>
-      No spam · Unsubscribe anytime
+      {t('popup.privacy')}
     </p>
   </div>
 </div>
@@ -422,132 +425,145 @@
   }
 </style>
 
-<script>
+<script define:vars={{ locale }}>
   import { subscribeEmail } from '../lib/subscription';
 
-  (function () {
-    // ── Configuration ─────────────────────────────────────────────
-    const TRIGGER_DELAY   = 45_000; // ms
-    const SESSION_KEY     = "hf_popup_done";
+  // ── Translations for validation messages ────────────────────────
+  const popupT: Record<string, string> = {
+    es: JSON.stringify({
+      emailRequired: 'El email es obligatorio',
+      emailTooLong: 'Email demasiado largo',
+      emailInvalid: 'Formato de email inválido',
+      validEmail: 'Email válido',
+      subscribing: 'Suscribiendo...',
+      success: '¡Suscrito exitosamente! ✓',
+      alreadySubscribed: 'Ya estás suscrito.',
+      error: 'Error. Intenta de nuevo.',
+      networkError: 'Error de red. Verifica tu conexión.',
+    }),
+    en: JSON.stringify({
+      emailRequired: 'Email is required',
+      emailTooLong: 'Email too long',
+      emailInvalid: 'Invalid email format',
+      validEmail: 'Valid email',
+      subscribing: 'Subscribing...',
+      success: 'Successfully subscribed! ✓',
+      alreadySubscribed: 'Already subscribed.',
+      error: 'Error. Please try again.',
+      networkError: 'Network error. Check connection.',
+    }),
+  };
+  const msgs = JSON.parse(popupT[locale] || popupT.es);
 
-    // ── Bail early if already dismissed/subscribed this session ───
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+  // ── Configuration ─────────────────────────────────────────────
+  const TRIGGER_DELAY   = 45_000;
+  const SESSION_KEY     = "hf_popup_done";
 
-    // ── DOM refs ──────────────────────────────────────────────────
-    const overlay   = document.getElementById("hf-popup-overlay") as HTMLElement;
-    const card      = document.getElementById("hf-popup-card") as HTMLElement;
-    const closeBtn  = document.getElementById("hf-popup-close") as HTMLButtonElement;
-    const form      = document.getElementById("popup-subscribe-form") as HTMLFormElement;
-    const emailInp  = document.getElementById("popup-email-input") as HTMLInputElement;
-    const msgEl     = document.getElementById("popup-form-message") as HTMLParagraphElement;
-    const submitBtn = document.getElementById("popup-submit-btn") as HTMLButtonElement;
+  if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    if (!overlay) return;
+  const overlay   = document.getElementById("hf-popup-overlay") as HTMLElement;
+  const card      = document.getElementById("hf-popup-card") as HTMLElement;
+  const closeBtn  = document.getElementById("hf-popup-close") as HTMLButtonElement;
+  const form      = document.getElementById("popup-subscribe-form") as HTMLFormElement;
+  const emailInp  = document.getElementById("popup-email-input") as HTMLInputElement;
+  const msgEl     = document.getElementById("popup-form-message") as HTMLParagraphElement;
+  const submitBtn = document.getElementById("popup-submit-btn") as HTMLButtonElement;
 
-    // ── Helpers ───────────────────────────────────────────────────
-    function sanitize(email: string): string {
-      return email.trim().replace(/[^a-zA-Z0-9@._-]/g, "");
-    }
+  if (!overlay) return;
 
-    function validate(email: string): { valid: boolean; error?: string } {
-      if (!email) return { valid: false, error: "Email is required" };
-      if (email.length > 254) return { valid: false, error: "Email too long" };
-      const re = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
-      if (!re.test(email)) return { valid: false, error: "Invalid email format" };
-      return { valid: true };
-    }
+  function sanitize(email: string): string {
+    return email.trim().replace(/[^a-zA-Z0-9@._-]/g, "");
+  }
 
-    function setMsg(text: string, type: string) {
-      msgEl.textContent = text;
-      msgEl.className = `popup-msg ${type}`;
-    }
+  function validate(email: string): { valid: boolean; error?: string } {
+    if (!email) return { valid: false, error: msgs.emailRequired };
+    if (email.length > 254) return { valid: false, error: msgs.emailTooLong };
+    const re = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
+    if (!re.test(email)) return { valid: false, error: msgs.emailInvalid };
+    return { valid: true };
+  }
 
-    // ── Show / hide ───────────────────────────────────────────────
-    function showPopup() {
-      clearTimeout(timer);
-      document.removeEventListener("mouseleave", onMouseLeave);
-      overlay.style.display = "flex";
-      // Trigger overlay fade-in
+  function setMsg(text: string, type: string) {
+    msgEl.textContent = text;
+    msgEl.className = `popup-msg ${type}`;
+  }
+
+  function showPopup() {
+    clearTimeout(timer);
+    document.removeEventListener("mouseleave", onMouseLeave);
+    overlay.style.display = "flex";
+    overlay.classList.remove('overlay-exit');
+    void overlay.offsetWidth;
+    overlay.classList.add('overlay-enter');
+    card.classList.remove("popup-enter", "popup-exit");
+    void card.offsetWidth;
+    card.classList.add("popup-enter");
+  }
+
+  function hidePopup(markDone = true) {
+    card.classList.remove('popup-enter');
+    card.classList.add('popup-exit');
+    overlay.classList.remove('overlay-enter');
+    overlay.classList.add('overlay-exit');
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+    setTimeout(() => {
+      overlay.style.display = "none";
+      card.classList.remove('popup-exit');
       overlay.classList.remove('overlay-exit');
-      void overlay.offsetWidth;
-      overlay.classList.add('overlay-enter');
-      // Trigger card entrance animation
-      card.classList.remove("popup-enter", "popup-exit");
-      void card.offsetWidth; // reflow
-      card.classList.add("popup-enter");
-    }
+      if (markDone) sessionStorage.setItem(SESSION_KEY, "1");
+    }, duration);
+  }
 
-    function hidePopup(markDone = true) {
-      // Animate out then hide
-      card.classList.remove('popup-enter');
-      card.classList.add('popup-exit');
-      overlay.classList.remove('overlay-enter');
-      overlay.classList.add('overlay-exit');
-      const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
-      setTimeout(() => {
-        overlay.style.display = "none";
-        card.classList.remove('popup-exit');
-        overlay.classList.remove('overlay-exit');
-        if (markDone) sessionStorage.setItem(SESSION_KEY, "1");
-      }, duration);
-    }
+  const timer = setTimeout(showPopup, TRIGGER_DELAY);
 
-    // ── Triggers ──────────────────────────────────────────────────
-    const timer = setTimeout(showPopup, TRIGGER_DELAY);
+  function onMouseLeave(e: MouseEvent) {
+    if (e.clientY < 10) showPopup();
+  }
+  document.addEventListener("mouseleave", onMouseLeave);
 
-    function onMouseLeave(e: MouseEvent) {
-      if (e.clientY < 10) showPopup();
-    }
-    document.addEventListener("mouseleave", onMouseLeave);
+  closeBtn.addEventListener("click", () => hidePopup(true));
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) hidePopup(true);
+  });
 
-    // ── Dismiss via close button or overlay backdrop ───────────────
-    closeBtn.addEventListener("click", () => hidePopup(true));
+  emailInp.addEventListener("input", () => {
+    const val = emailInp.value;
+    if (!val) { setMsg("", ""); return; }
+    const result = validate(sanitize(val));
+    result.valid ? setMsg(msgs.validEmail, "success") : setMsg(result.error!, "error");
+  });
 
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) hidePopup(true);
-    });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    // ── Real-time email feedback ───────────────────────────────────
-    emailInp.addEventListener("input", () => {
-      const val = emailInp.value;
-      if (!val) { setMsg("", ""); return; }
-      const result = validate(sanitize(val));
-      result.valid ? setMsg("Valid email", "success") : setMsg(result.error!, "error");
-    });
+    const email = sanitize(emailInp.value);
+    const check = validate(email);
+    if (!check.valid) { setMsg(check.error!, "error"); return; }
 
-    // ── Form submission ───────────────────────────────────────────
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    submitBtn.disabled = true;
+    setMsg(msgs.subscribing, "info");
 
-      const email = sanitize(emailInp.value);
-      const check = validate(email);
-      if (!check.valid) { setMsg(check.error!, "error"); return; }
+    try {
+      const result = await subscribeEmail(email);
 
-      submitBtn.disabled = true;
-      setMsg("Subscribing...", "info");
-
-      try {
-        const result = await subscribeEmail(email);
-
-        if (result.success) {
-          setMsg("Successfully subscribed! \u2713", "success");
-          emailInp.value = "";
-          sessionStorage.setItem(SESSION_KEY, "1");
-          setTimeout(() => hidePopup(false), 2000);
-          return;
-        }
-        if (result.message === 'Already subscribed.') {
-          setMsg("Already subscribed.", "warning");
-          sessionStorage.setItem(SESSION_KEY, "1");
-          setTimeout(() => hidePopup(false), 2000);
-          return;
-        }
-        setMsg(result.message || "Error. Please try again.", "error");
-      } catch {
-        setMsg("Network error. Check connection.", "error");
-      } finally {
-        submitBtn.disabled = false;
+      if (result.success) {
+        setMsg(msgs.success, "success");
+        emailInp.value = "";
+        sessionStorage.setItem(SESSION_KEY, "1");
+        setTimeout(() => hidePopup(false), 2000);
+        return;
       }
-    });
-  })();
+      if (result.message === 'Already subscribed.') {
+        setMsg(msgs.alreadySubscribed, "warning");
+        sessionStorage.setItem(SESSION_KEY, "1");
+        setTimeout(() => hidePopup(false), 2000);
+        return;
+      }
+      setMsg(result.message || msgs.error, "error");
+    } catch {
+      setMsg(msgs.networkError, "error");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 </script>

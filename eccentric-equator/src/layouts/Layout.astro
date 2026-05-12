@@ -147,7 +147,7 @@ const { t } = getTranslations(locale);
     <!-- Skip link for keyboard navigation -->
     <a href="#main-content" class="skip-link">{locale === 'es' ? 'Saltar al contenido principal' : 'Skip to main content'}</a>
     <slot />
-    <SubscriptionPopup />
+    <SubscriptionPopup locale={locale} />
     {!hideThemeSelector && <ThemeSelector client:idle variant="floating" transition:persist />}
   </body>
 </html>
