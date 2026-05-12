@@ -643,16 +643,16 @@ const values = [
 
   .logo {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.75rem;
+    font-size: 1.4rem;
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
 
   .logo-img {
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
     filter: none;
   }
 
@@ -672,12 +672,26 @@ const values = [
 
   .nav-links {
     display: none;
-    gap: 40px;
+    gap: 24px;
   }
 
   @media (min-width: 768px) {
     .nav-links {
       display: flex;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .logo {
+      font-size: 1.75rem;
+      gap: 16px;
+    }
+    .logo-img {
+      width: 56px;
+      height: 56px;
+    }
+    .nav-links {
+      gap: 40px;
     }
   }
 
