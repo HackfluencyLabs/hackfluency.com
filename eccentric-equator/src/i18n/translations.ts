@@ -19,6 +19,8 @@ export const translations: Record<Language, Translations> = {
     'nav.threatIntel': 'Inteligencia de Amenazas',
     'nav.dashboards': 'Dashboards',
     'nav.logOut': 'Cerrar Sesión',
+    'nav.account': 'Menú de cuenta',
+    'nav.accountLabel': 'Cuenta',
     'nav.menuOpen': 'Abrir menú móvil',
     'nav.menuClose': 'Cerrar menú móvil',
 
@@ -265,6 +267,8 @@ export const translations: Record<Language, Translations> = {
     'nav.threatIntel': 'Threat Intel',
     'nav.dashboards': 'Dashboards',
     'nav.logOut': 'Log Out',
+    'nav.account': 'Account menu',
+    'nav.accountLabel': 'Account',
     'nav.menuOpen': 'Open mobile menu',
     'nav.menuClose': 'Close mobile menu',
 

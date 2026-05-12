@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import { t } from '../../i18n/translations';
@@ -24,6 +24,8 @@ function localePath(path: string): string {
 const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const locale = getLocale();
 
   useEffect(() => {
@@ -39,9 +41,32 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
   }, []);
 
   const handleLogout = async () => {
+    setMenuOpen(false);
     await supabase.auth.signOut();
     window.location.reload();
   };
+
+  // Click outside to close dropdown
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      setMenuOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', onEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', onEscape);
+    };
+  }, [menuOpen, handleClickOutside]);
+
+  function onEscape(e: KeyboardEvent) {
+    if (e.key === 'Escape') setMenuOpen(false);
+  }
 
   // While loading, render skeleton to avoid CLS
   if (loading) {
@@ -73,7 +98,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
     );
   }
 
-  // Desktop
+  // Desktop — not logged in
   if (!session) {
     return (
       <>
@@ -83,11 +108,43 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
     );
   }
 
+  // Desktop — logged in: dropdown menu
   return (
     <>
-      <a href={localePath('/cti/')} className="nav-btn-threat">{t('nav.threatIntel', locale)}</a>
-      <a href={localePath('/dashboards')} className="nav-btn-dashboard">{t('nav.dashboards', locale)}</a>
-      <button onClick={handleLogout} className="nav-btn-logout">{t('nav.logOut', locale)}</button>
+      <div className="nav-dropdown" ref={menuRef}>
+        <button
+          className="nav-dropdown-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-expanded={menuOpen}
+          aria-label={t('nav.account', locale)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M20 21a8 8 0 1 0-16 0"/>
+          </svg>
+          <span className="nav-dropdown-label">{t('nav.accountLabel', locale)}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={`nav-dropdown-chevron ${menuOpen ? 'open' : ''}`} aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        {menuOpen && (
+          <div className="nav-dropdown-menu">
+            <a href={localePath('/cti/')} className="nav-dropdown-item" onClick={() => setMenuOpen(false)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              {t('nav.threatIntel', locale)}
+            </a>
+            <a href={localePath('/dashboards')} className="nav-dropdown-item" onClick={() => setMenuOpen(false)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="9" width="7" height="12" rx="1"/></svg>
+              {t('nav.dashboards', locale)}
+            </a>
+            <div className="nav-dropdown-divider" />
+            <button onClick={handleLogout} className="nav-dropdown-item nav-dropdown-item--danger">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              {t('nav.logOut', locale)}
+            </button>
+          </div>
+        )}
+      </div>
       <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta">{t('common.bookCall', locale)}</a>
     </>
   );

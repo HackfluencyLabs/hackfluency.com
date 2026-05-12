@@ -411,6 +411,120 @@
   border-color: rgba(239, 68, 68, 0.5);
 }
 
+/* ── Dropdown menu (logged-in desktop) ──────────────────────────── */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  background: color-mix(in srgb, var(--hf-text, #fff) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hf-text, #fff) 15%, transparent);
+  border-radius: 6px;
+  color: var(--hf-text-secondary, #ccc);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 32px;
+  transition: all 0.2s ease;
+}
+
+.nav-dropdown-toggle:hover {
+  background: color-mix(in srgb, var(--hf-text, #fff) 10%, transparent);
+  border-color: color-mix(in srgb, var(--hf-text, #fff) 25%, transparent);
+  color: var(--hf-text, #fff);
+}
+
+.nav-dropdown-toggle svg {
+  flex-shrink: 0;
+}
+
+.nav-dropdown-chevron {
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown-chevron.open {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--gray-900, #1a1a1a);
+  border: 1px solid var(--hf-border, #2a2a2a);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+  animation: dropdownEnter 0.15s ease-out;
+}
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--hf-text-secondary, #ccc);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-dropdown-item:hover {
+  background: color-mix(in srgb, var(--hf-text, #fff) 8%, transparent);
+  color: var(--hf-text, #fff);
+}
+
+.nav-dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--hf-text-muted, #888);
+}
+
+.nav-dropdown-item--danger {
+  color: #f87171;
+}
+
+.nav-dropdown-item--danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+.nav-dropdown-item--danger svg {
+  color: #f87171;
+}
+
+.nav-dropdown-divider {
+  height: 1px;
+  background: var(--hf-border, #2a2a2a);
+  margin: 4px 8px;
+}
+
 /* --- Mobile buttons --- */
 
 .mobile-nav-btn-signin,
