@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '../../layouts/Layout.astro';
 
 const mode = import.meta.env.PUBLIC_MODE || 'public';
 const isPublic = mode === 'public';
@@ -7,33 +7,24 @@ const homeUrl = 'https://www.hackfluency.com';
 ---
 
 <Layout
-  locale="es"
+  locale="en"
   title={isPublic ? "404 — Page Not Found" : "Strategy Dashboard Builder — Hackfluency"}
-  description={isPublic ? "Esta página no está disponible. El Dashboard Builder es solo para partners autorizados." : "Diseña dashboards trimestrales de estrategia de ciberseguridad con nodos interconectados y métricas personalizadas."}
+  description={isPublic ? "This page is not available. The Dashboard Builder is for authorized business partners only." : "Design quarterly cybersecurity strategy dashboards with connected nodes and custom metrics."}
 >
   <div id="builder-container" data-public={isPublic} data-home-url={homeUrl}></div>
 </Layout>
 
 <script>
-  // Client-side only logic
   var container = document.getElementById('builder-container');
   if (container) {
     var isPublic = container.dataset.public === 'true';
     var homeUrl = container.dataset.homeUrl || 'https://www.hackfluency.com';
     
     if (isPublic) {
-      // Public mode: show 404
       container.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px;"><h1 style="font-size: 4rem; margin-bottom: 1rem; color: var(--hf-accent, #00D26A);">404</h1><p style="color: var(--hf-text-dim, #6a6a6a); font-size: 1.1rem;">This feature is available for business partners only.</p><a href="' + homeUrl + '" style="margin-top: 2rem; padding: 12px 24px; background: var(--hf-accent, #00D26A); color: var(--hf-text-on-accent, #000); text-decoration: none; border-radius: 8px; font-weight: 600;">Return Home</a></div>';
       window.location.replace(homeUrl);
     } else {
-      // Dev mode: DashboardBuilder is not included in public repo
       container.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px;"><h1 style="font-size: 2rem; margin-bottom: 1rem; color: var(--hf-accent, #00D26A);">Dashboard Builder</h1><p style="color: var(--hf-text-dim, #6a6a6a); font-size: 1.1rem;">The builder component is only available in the development repository.</p><a href="' + homeUrl + '" style="margin-top: 2rem; padding: 12px 24px; background: var(--hf-accent, #00D26A); color: var(--hf-text-on-accent, #000); text-decoration: none; border-radius: 8px; font-weight: 600;">Return Home</a></div>';
     }
   }
 </script>
-
-<style is:global>
-  body {
-    overflow: hidden;
-  }
-</style>

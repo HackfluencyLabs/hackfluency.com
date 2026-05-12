@@ -1,0 +1,13 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { DashboardList } from '../../../components/DashboardBuilder';
+---
+
+<Layout
+  locale="en"
+  title="All Dashboards | Hackfluency Strategy"
+  description="View and manage all your security strategy dashboards in one place. Centralized hub for monitoring cybersecurity plans, roadmaps and risk assessments."
+  ogType="website"
+>
+  <DashboardList client:only="react" />
+</Layout>

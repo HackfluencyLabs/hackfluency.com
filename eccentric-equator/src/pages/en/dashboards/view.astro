@@ -1,0 +1,13 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { DashboardViewerWrapper } from '../../../components/DashboardBuilder';
+---
+
+<Layout
+  locale="en"
+  title="Dashboard | Hackfluency Strategy"
+  description="View your security strategy dashboard with detailed analysis, risk metrics and actionable recommendations. Real-time cybersecurity intelligence at your fingertips."
+  ogType="website"
+>
+  <DashboardViewerWrapper client:only="react" />
+</Layout>

@@ -1,0 +1,509 @@
+---
+import ResearchNav from '../ResearchNav.astro';
+import { getTranslations } from '../../i18n/utils';
+import type { Language } from '../../i18n/translations';
+
+interface Props {
+  locale?: Language;
+}
+const { locale = 'es' } = Astro.props;
+const { t } = getTranslations(locale);
+const base = import.meta.env.BASE_URL;
+
+const tools = (locale === 'es' ? [
+  {
+    name: "CodeRed",
+    subtitle: "Sistema MCP autónomo para operaciones ofensivas de red team",
+    description: "Plataforma propietaria de inteligencia ofensiva que utiliza el Protocolo de Contexto de Modelo (MCP) para coordinar reconocimiento autónomo, cadenas de explotación y memoria operacional en entornos de red complejos. CodeRed trata la superficie de ataque como un grafo actualizado continuamente — cada sonda informa a la siguiente.",
+    tags: ["Seguridad Ofensiva", "Sistemas Autónomos", "Arquitectura MCP"],
+    date: "Marzo 2026",
+    url: "https://codered.hackfluency.com",
+    status: "active",
+  },
+] : [
+  {
+    name: "CodeRed",
+    subtitle: "Autonomous MCP system for red team network operations",
+    description: "Proprietary offensive intelligence platform using Model Context Protocol for coordinating autonomous reconnaissance, exploitation chains and operational memory across complex network environments. CodeRed treats the attack surface as a continuously updated graph — each probe informs the next.",
+    tags: ["Offensive Security", "Autonomous Systems", "MCP Architecture"],
+    date: "March 2026",
+    url: "https://codered.hackfluency.com",
+    status: "active",
+  },
+]);
+---
+
+<ResearchNav activePage="tooling" locale={locale} />
+
+<main class="rpage">
+
+  <!-- Section header -->
+  <section class="rt-header">
+    <div class="r-container">
+      <span class="r-section-tag">{t('tooling.tag')}</span>
+      <h1 class="rt-title" set:html={t('tooling.title')}></h1>
+      <p class="rt-subtitle">
+        {t('tooling.subtitle')}
+      </p>
+    </div>
+  </section>
+
+  <!-- Tools list -->
+  <section class="rt-list">
+    <div class="r-container">
+      <div class="rt-tools">
+        {tools.map((tool) => (
+          <article class="rt-card">
+
+            <div class="rt-card-header">
+              <div class="rt-card-title-row">
+                <h2 class="rt-card-name">{tool.name}</h2>
+                <span class:list={['rt-status', `rt-status--${tool.status}`]}>
+                  {tool.status === 'active' ? t('tooling.status.active') : tool.status}
+                </span>
+              </div>
+              <p class="rt-card-subtitle">{tool.subtitle}</p>
+            </div>
+
+            <p class="rt-card-desc">{tool.description}</p>
+
+            <div class="rt-card-tags">
+              {tool.tags.map(tag => (
+                <span class="rt-tag">{tag}</span>
+              ))}
+            </div>
+
+            <div class="rt-card-footer">
+              <time class="rt-date">{tool.date}</time>
+              <a
+                href={tool.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rt-link-btn"
+                aria-label={t('tooling.explore').replace('{name}', tool.name)}
+              >
+                {t('tooling.explore').replace('{name}', tool.name)}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+              </a>
+            </div>
+
+          </article>
+        ))}
+      </div>
+
+      <!-- Coming soon -->
+      <div class="rt-upcoming">
+        <div class="rt-upcoming-header">
+          <div class="rt-upcoming-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <h3 class="rt-upcoming-title">{t('tooling.upcoming.title')}</h3>
+        </div>
+        <p class="rt-upcoming-desc">
+          {t('tooling.upcoming.desc')}<a href={locale === 'es' ? '/research' : '/en/research'} class="rt-upcoming-link">{t('tooling.upcoming.link')}</a>
+        </p>
+      </div>
+
+      <!-- Origin story -->
+      <div class="rt-origin">
+        <h3 class="rt-origin-title">{t('tooling.origin.title')}</h3>
+        <div class="rt-origin-flow" aria-label={t('tooling.origin.aria')}>
+          <div class="rt-origin-step">
+            <span class="rt-origin-type">{t('tooling.origin.note')}</span>
+            <span class="rt-origin-name">Autonomous Red Team Agents</span>
+          </div>
+          <span class="rt-origin-arrow" aria-hidden="true">↓</span>
+          <div class="rt-origin-step">
+            <span class="rt-origin-type">{t('tooling.origin.article')}</span>
+            <a href={locale === 'es' ? '/research/articles' : '/en/research/articles'} class="rt-origin-name rt-origin-link">Architecture of MCP-Driven Offensive Systems</a>
+          </div>
+          <span class="rt-origin-arrow" aria-hidden="true">↓</span>
+          <div class="rt-origin-step">
+            <span class="rt-origin-type rt-origin-type--tool">{t('tooling.origin.tooling')}</span>
+            <a href="https://codered.hackfluency.com" target="_blank" rel="noopener noreferrer" class="rt-origin-name rt-origin-link">CodeRed</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="r-footer">
+  <div class="r-container">
+    <div class="r-footer-inner">
+        <a href={locale === 'es' ? '/research' : '/en/research'} class="r-footer-home">{t('tooling.footer.back')}</a>
+      <span class="r-footer-copy">{t('common.copyright')}</span>
+      <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="r-footer-cta">
+        {t('common.bookCall')}
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* ── Layout ── */
+  .rpage {
+    min-height: 100vh;
+    padding-top: 68px;
+  }
+
+  .r-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Section header ── */
+  .rt-header {
+    padding: 80px 0 52px;
+    background: var(--hf-bg);
+    border-bottom: 1px solid var(--hf-border);
+  }
+
+  .r-section-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hf-accent);
+    margin-bottom: 16px;
+  }
+
+  .rt-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--hf-text);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+
+  .rt-subtitle {
+    font-size: 1rem;
+    color: var(--hf-text-muted);
+    line-height: 1.75;
+    max-width: 500px;
+  }
+
+  /* ── Tools list ── */
+  .rt-list {
+    padding: 56px 0 100px;
+    background: var(--hf-bg);
+  }
+
+  .rt-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 52px;
+  }
+
+  /* ── Tool card ── */
+  .rt-card {
+    background: var(--hf-bg-card);
+    border: 1px solid var(--hf-border);
+    border-radius: 16px;
+    padding: 36px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .rt-card:hover {
+    border-color: var(--hf-accent-border);
+    box-shadow: 0 4px 24px var(--hf-accent-dim);
+  }
+
+  .rt-card-header {
+    margin-bottom: 20px;
+  }
+
+  .rt-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .rt-card-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--hf-text);
+    line-height: 1;
+  }
+
+  .rt-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  .rt-status--active {
+    color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+    border: 1px solid var(--hf-accent-border);
+  }
+
+  .rt-card-subtitle {
+    font-size: 0.95rem;
+    color: var(--hf-text-muted);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .rt-card-desc {
+    font-size: 0.925rem;
+    color: var(--hf-text-muted);
+    line-height: 1.75;
+    margin-bottom: 24px;
+  }
+
+  .rt-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .rt-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+    border: 1px solid var(--hf-accent-border);
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  .rt-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hf-border);
+  }
+
+  .rt-date {
+    font-size: 0.82rem;
+    color: var(--hf-text-dim);
+    font-style: italic;
+  }
+
+  .rt-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: var(--hf-accent);
+    color: var(--hf-text-on-accent);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 9px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .rt-link-btn:hover {
+    background: var(--hf-accent-light);
+    transform: translateY(-1px);
+  }
+
+  .rt-link-btn svg {
+    stroke: currentColor;
+  }
+
+  /* ── Upcoming / coming soon ── */
+  .rt-upcoming {
+    padding: 24px;
+    background: var(--hf-bg-secondary);
+    border: 1px solid var(--hf-border);
+    border-radius: 12px;
+    margin-bottom: 32px;
+  }
+
+  .rt-upcoming-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .rt-upcoming-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .rt-upcoming-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--hf-text-muted);
+  }
+
+  .rt-upcoming-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--hf-text-secondary);
+  }
+
+  .rt-upcoming-desc {
+    font-size: 0.85rem;
+    color: var(--hf-text-dim);
+    line-height: 1.65;
+    padding-left: 40px;
+  }
+
+  .rt-upcoming-link {
+    color: var(--hf-accent);
+    text-decoration: none;
+  }
+
+  .rt-upcoming-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Origin story ── */
+  .rt-origin {
+    padding: 28px;
+    background: var(--hf-bg-card);
+    border: 1px solid var(--hf-border);
+    border-radius: 12px;
+  }
+
+  .rt-origin-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--hf-text-secondary);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.75rem;
+  }
+
+  .rt-origin-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .rt-origin-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+
+  .rt-origin-type {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--hf-text-dim);
+    background: var(--hf-bg-secondary);
+    border: 1px solid var(--hf-border);
+    padding: 3px 9px;
+    border-radius: 100px;
+    white-space: nowrap;
+    min-width: 62px;
+    text-align: center;
+  }
+
+  .rt-origin-type--tool {
+    color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+    border-color: var(--hf-accent-border);
+  }
+
+  .rt-origin-name {
+    font-size: 0.88rem;
+    color: var(--hf-text-muted);
+    font-weight: 500;
+  }
+
+  .rt-origin-link {
+    text-decoration: none;
+    color: var(--hf-text-muted);
+    transition: color 0.2s ease;
+  }
+
+  .rt-origin-link:hover {
+    color: var(--hf-accent);
+  }
+
+  .rt-origin-arrow {
+    font-size: 1rem;
+    color: var(--hf-text-dim);
+    padding-left: 28px;
+    display: block;
+    line-height: 1;
+    margin: -4px 0;
+  }
+
+  /* ── Footer ── */
+  .r-footer {
+    background: var(--hf-bg-secondary);
+    border-top: 1px solid var(--hf-border);
+    padding: 28px 0;
+  }
+
+  .r-footer-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .r-footer-home {
+    font-size: 0.85rem;
+    color: var(--hf-text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .r-footer-home:hover {
+    color: var(--hf-accent);
+  }
+
+  .r-footer-copy {
+    font-size: 0.8rem;
+    color: var(--hf-text-dim);
+  }
+
+  .r-footer-cta {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hf-accent);
+    text-decoration: none;
+    padding: 7px 16px;
+    border: 1px solid var(--hf-accent-border);
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .r-footer-cta:hover {
+    background: var(--hf-accent-dim);
+  }
+</style>

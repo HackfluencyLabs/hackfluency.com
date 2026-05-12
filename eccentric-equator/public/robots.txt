@@ -1,8 +1,28 @@
 # Robots.txt for Hackfluency
-# https://hackcocaine.github.io/special-palm-tree/
+# https://www.hackfluency.com
 
 User-agent: *
 Allow: /
+Disallow: /dashboard-builder/
 
-# Sitemap location
-Sitemap: https://hackcocaine.github.io/special-palm-tree/sitemap.xml
+# AI crawlers — allowed for search grounding and discovery
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+# Sitemap
+Sitemap: https://www.hackfluency.com/sitemap-index.xml

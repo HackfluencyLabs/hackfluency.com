@@ -3,9 +3,10 @@ import Layout from '../layouts/Layout.astro';
 import CTIDashboard from '../components/CTI/CTIDashboardModern';
 ---
 
-<Layout 
+<Layout
+  locale="es"
   title="Security Intelligence Dashboard — Hackfluency"
-  description="Real-time cyber threat intelligence dashboard. Automated collection and analysis of security signals from multiple sources."
+  description="Panel de inteligencia de amenazas en tiempo real. Monitoreo y análisis automatizado de señales de seguridad cibernética de múltiples fuentes con scoring dinámico de riesgo."
 >
   <CTIDashboard client:visible />
 </Layout>

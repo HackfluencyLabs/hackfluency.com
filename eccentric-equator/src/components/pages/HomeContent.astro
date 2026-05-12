@@ -1,0 +1,1904 @@
+---
+import NavAuthButtons from '../Auth/NavAuthButtons';
+import LanguageSelector from '../LanguageSelector.astro';
+import { getTranslations } from '../../i18n/utils';
+import type { Language } from '../../i18n/translations';
+import { subscribeEmail } from '../../lib/subscription';
+
+interface Props {
+  locale?: Language;
+}
+const { locale = 'es' } = Astro.props;
+const { t } = getTranslations(locale);
+const base = import.meta.env.BASE_URL;
+
+// SVG icons for services - elegant, minimal line art
+const serviceIcons = {
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,
+  cpu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>`,
+  target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  brain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.66z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.66z"/></svg>`,
+  users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  flask: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v5l-3.5 7A2 2 0 0 0 8.3 18h7.4a2 2 0 0 0 1.8-3L14 8V3"/><path d="M6.5 14h11"/></svg>`
+};
+
+// SVG icons for values - refined symbols
+const valueIcons = {
+  excellence: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  evolution: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>`,
+  elegance: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
+  integrity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>`
+};
+
+const services: { icon: string; key: string; link?: string; linkText?: string }[] = [
+  { icon: serviceIcons.shield, key: 'strategicAdvisory' },
+  { icon: serviceIcons.cpu, key: 'securityEngineering' },
+  { icon: serviceIcons.target, key: 'offensiveSecurity' },
+  { icon: serviceIcons.brain, key: 'aiSystems' },
+  { icon: serviceIcons.users, key: 'training' },
+  { icon: serviceIcons.flask, key: 'research', link: '/research/tooling', linkTextKey: 'services.explore' },
+];
+
+const values = [
+  { titleKey: 'values.excellence.title', descKey: 'values.excellence.desc', icon: valueIcons.excellence },
+  { titleKey: 'values.evolution.title', descKey: 'values.evolution.desc', icon: valueIcons.evolution },
+  { titleKey: 'values.elegance.title', descKey: 'values.elegance.desc', icon: valueIcons.elegance },
+  { titleKey: 'values.integrity.title', descKey: 'values.integrity.desc', icon: valueIcons.integrity },
+];
+---
+
+<!-- Mobile Menu Toggle Script -->
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const body = document.body;
+    
+    if (menuBtn && mobileMenu) {
+      menuBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isOpen = mobileMenu.classList.toggle('active');
+        menuBtn.classList.toggle('active');
+        menuBtn.setAttribute('aria-expanded', isOpen.toString());
+        menuBtn.setAttribute('aria-label', isOpen ? 'Close mobile menu' : 'Open mobile menu');
+        body.style.overflow = isOpen ? 'hidden' : '';
+      });
+      
+      // Close menu when clicking on a link
+      const mobileLinks = mobileMenu.querySelectorAll('a');
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.remove('active');
+          menuBtn.classList.remove('active');
+          menuBtn.setAttribute('aria-expanded', 'false');
+          menuBtn.setAttribute('aria-label', 'Open mobile menu');
+          body.style.overflow = '';
+        });
+      });
+      
+      // Close menu when clicking outside
+      mobileMenu.addEventListener('click', (e) => {
+        if (e.target === mobileMenu) {
+          mobileMenu.classList.remove('active');
+          menuBtn.classList.remove('active');
+          menuBtn.setAttribute('aria-expanded', 'false');
+          menuBtn.setAttribute('aria-label', 'Open mobile menu');
+          body.style.overflow = '';
+        }
+      });
+    }
+
+    // Navigation scroll effect
+    const nav = document.querySelector('.nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        nav?.classList.add('scrolled');
+      } else {
+        nav?.classList.remove('scrolled');
+      }
+    });
+  });
+</script>
+
+<!-- Newsletter Subscription Script -->
+<script>
+  import { subscribeEmail } from '../../lib/subscription';
+
+  // ===== CONFIGURATION =====
+  const MAX_EMAIL_LENGTH = 254;
+  const ALLOWED_EMAIL_CHARS = /^[a-zA-Z0-9@._-]+$/;
+
+  // ===== DOM ELEMENTS =====
+  const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
+  const message = document.getElementById("form-message") as HTMLElement | null;
+
+  // ===== VALIDATION FUNCTIONS =====
+
+  function sanitizeEmail(email: string): string {
+    email = email.trim();
+    email = email.replace(/[^a-zA-Z0-9@._-]/g, '');
+    return email;
+  }
+
+  function validateEmailFormat(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  }
+
+  function validateEmailLength(email: string): boolean {
+    return email.length <= MAX_EMAIL_LENGTH;
+  }
+
+  function validateEmail(email: string): { valid: boolean; error?: string } {
+    if (!email) {
+      return { valid: false, error: "Email is required" };
+    }
+
+    if (!validateEmailLength(email)) {
+      return { valid: false, error: `Email exceeds ${MAX_EMAIL_LENGTH} characters` };
+    }
+
+    if (!ALLOWED_EMAIL_CHARS.test(email)) {
+      return { valid: false, error: "Invalid characters. Only letters, numbers, @._- allowed" };
+    }
+
+    if (!validateEmailFormat(email)) {
+      return { valid: false, error: "Invalid email format. Use user@domain.com" };
+    }
+
+    return { valid: true };
+  }
+
+  // ===== REAL-TIME VALIDATION =====
+  if (emailInput && message) {
+    emailInput.addEventListener("input", function(e) {
+      const target = e.target as HTMLInputElement;
+      const email = target.value;
+      const validation = validateEmail(email);
+
+      if (email.length === 0) {
+        message.textContent = "";
+        message.className = "form-message";
+        return;
+      }
+
+      if (!validation.valid) {
+        message.textContent = validation.error ?? "";
+        message.className = "form-message error";
+        return;
+      }
+
+      message.textContent = "Valid email";
+      message.className = "form-message success";
+    });
+
+    emailInput.addEventListener("blur", function(e) {
+      const target = e.target as HTMLInputElement;
+      const email = target.value;
+      if (email.length === 0) {
+        message.textContent = "";
+        message.className = "form-message";
+      }
+    });
+
+    const subscribeForm = document.getElementById("subscribe-form");
+    subscribeForm?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = sanitizeEmail(emailInput.value);
+        const validation = validateEmail(email);
+
+        if (!validation.valid) {
+          message.textContent = validation.error ?? "";
+          message.className = "form-message error";
+          return;
+        }
+
+        message.className = "form-message info";
+        message.textContent = "Subscribing...";
+
+        try {
+          const result = await subscribeEmail(email);
+
+          if (result.success) {
+            message.textContent = "Successfully subscribed!";
+            emailInput.value = "";
+            message.className = "form-message success";
+            return;
+          }
+          if (result.message === 'Already subscribed.') {
+            message.textContent = "Already subscribed.";
+            message.className = "form-message warning";
+            return;
+          }
+          message.textContent = result.message || "Error. Please try again.";
+          message.className = "form-message error";
+
+        } catch (error) {
+          console.error(error);
+          message.textContent = "Network error. Check connection.";
+          message.className = "form-message error";
+        }
+      });
+  }
+</script>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-container">
+    <a href={base} class="logo" aria-label="Hackfluency - Go to homepage">
+      <img src={`${base}HFNeon.png`} alt="Hackfluency logo" width="56" height="56" class="logo-img" />
+      <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#services">{t('nav.services')}</a>
+      <a href="#about">{t('nav.about')}</a>
+      <a href="#values">{t('nav.approach')}</a>
+      <a href={locale === 'es' ? '/research' : '/en/research'} class="nav-research">{t('nav.research')}</a>
+    </div>
+    <div class="nav-actions">
+      <LanguageSelector locale={locale} />
+      <NavAuthButtons client:only="react" />
+    </div>
+    <button class="mobile-menu-btn" aria-label={t('nav.menuOpen')} aria-expanded="false" aria-controls="mobile-menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+  
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-menu-overlay" id="mobile-menu">
+    <div class="mobile-menu-content">
+      <nav class="mobile-nav-links">
+        <a href="#services" class="mobile-nav-link">{t('nav.services')}</a>
+        <a href="#about" class="mobile-nav-link">{t('nav.about')}</a>
+        <a href="#values" class="mobile-nav-link">{t('nav.approach')}</a>
+          <a href={locale === 'es' ? '/research' : '/en/research'} class="mobile-nav-link mobile-nav-link--research">{t('nav.research')} ↗</a>
+      </nav>
+      <div class="mobile-nav-actions">
+        <LanguageSelector locale={locale} />
+        <NavAuthButtons client:only="react" mobile={true} />
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<main id="main-content" role="main">
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-glow"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-particles"></div>
+  </div>
+  <div class="hero-content container">
+    <div class="hero-text">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        {t('hero.badge')}
+      </div>
+      <h1 class="hero-title">
+        {t('hero.title')}
+        <span class="hero-title-accent"> {t('hero.titleAccent')}</span>
+      </h1>
+      <p class="hero-subtitle">
+        {t('hero.subtitle')}
+      </p>
+      <div class="hero-actions">
+        <a href="#services" class="btn btn-primary">
+          <span>{t('hero.ctaPrimary')}</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a href={locale === 'es' ? '/research' : '/en/research'} class="btn btn-ghost">
+          {t('hero.ctaSecondary')}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <a href="/SecurityRoadmap.HF" class="hero-proof" aria-label="View a sample Security Roadmap deliverable">
+        <div class="hero-proof-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="hero-proof-text">
+          <span class="hero-proof-label">{t('hero.proofLabel')}</span>
+          <span class="hero-proof-link">
+            {t('hero.proofLink')}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </div>
+      </a>
+    </div>
+    <div class="hero-diagram" aria-hidden="true">
+      <svg class="arch-diagram" viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Connection lines -->
+        <line x1="210" y1="60" x2="100" y2="140" class="arch-line"/>
+        <line x1="210" y1="60" x2="320" y2="140" class="arch-line"/>
+        <line x1="100" y1="140" x2="60" y2="240" class="arch-line"/>
+        <line x1="100" y1="140" x2="170" y2="240" class="arch-line"/>
+        <line x1="320" y1="140" x2="250" y2="240" class="arch-line"/>
+        <line x1="320" y1="140" x2="360" y2="240" class="arch-line"/>
+        <line x1="170" y1="240" x2="250" y2="240" class="arch-line arch-line--dim"/>
+        <!-- Central node -->
+        <circle cx="210" cy="60" r="28" class="arch-node arch-node--primary"/>
+        <circle cx="210" cy="60" r="18" class="arch-node-inner"/>
+        <!-- Tier 1 nodes -->
+        <circle cx="100" cy="140" r="22" class="arch-node arch-node--secondary"/>
+        <circle cx="100" cy="140" r="14" class="arch-node-inner"/>
+        <circle cx="320" cy="140" r="22" class="arch-node arch-node--secondary"/>
+        <circle cx="320" cy="140" r="14" class="arch-node-inner"/>
+        <!-- Tier 2 nodes -->
+        <circle cx="60" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+        <circle cx="170" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+        <circle cx="250" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+        <circle cx="360" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+        <!-- Labels -->
+        <text x="210" y="100" class="arch-label" text-anchor="middle">Strategy</text>
+        <text x="80" y="178" class="arch-label" text-anchor="middle">Security</text>
+        <text x="340" y="178" class="arch-label" text-anchor="middle">AI</text>
+        <text x="60" y="272" class="arch-label arch-label--sm" text-anchor="middle">Offensive</text>
+        <text x="170" y="272" class="arch-label arch-label--sm" text-anchor="middle">Engineering</text>
+        <text x="250" y="272" class="arch-label arch-label--sm" text-anchor="middle">Automation</text>
+        <text x="360" y="272" class="arch-label arch-label--sm" text-anchor="middle">Research</text>
+        <!-- Pulse rings (animated) -->
+        <circle cx="210" cy="60" r="28" class="arch-pulse"/>
+        <circle cx="100" cy="140" r="22" class="arch-pulse arch-pulse--delay1"/>
+        <circle cx="320" cy="140" r="22" class="arch-pulse arch-pulse--delay2"/>
+      </svg>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>{t('hero.scroll')}</span>
+    <div class="scroll-indicator"></div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="services">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">{t('services.tag')}</span>
+      <h2 class="section-title">{t('services.title')}</h2>
+      <p class="section-subtitle">{t('services.subtitle')}</p>
+    </div>
+    <div class="services-grid">
+      {services.map((service, index) => (
+        <article class="service-card" style={`--delay: ${index * 0.1}s`}>
+          <div class="service-icon" aria-hidden="true" set:html={service.icon} />
+          <h3 class="service-title">{t(`services.${service.key}.title`)}</h3>
+          <p class="service-description">{t(`services.${service.key}.desc`)}</p>
+          {service.link ? (
+            <a href={service.link} class="service-link" aria-label={`${t(service.linkTextKey || 'services.explore')} ${t(`services.${service.key}.title`)}`}>
+              {t(service.linkTextKey || 'services.explore')}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          ) : (
+            <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="service-link" aria-label={`${t('services.bookConsultation')} - ${t(`services.${service.key}.title`)}`}>
+              {t('services.bookConsultation')}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          )}
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-content">
+        <span class="section-tag">{t('about.tag')}</span>
+        <h2 class="section-title">{t('about.title')}</h2>
+        <p class="about-text">{t('about.text1')}</p>
+        <p class="about-text">{t('about.text2')}</p>
+        <div class="about-features">
+          <div class="about-feature">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>{t('about.feature1')}</span>
+          </div>
+          <div class="about-feature">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>{t('about.feature2')}</span>
+          </div>
+          <div class="about-feature">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>{t('about.feature3')}</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-visual">
+        <div class="about-card">
+          <div class="about-card-glow"></div>
+          <div class="about-card-content">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+            </div>
+            <div class="terminal-body">
+              <code>
+                <span class="code-prompt">$</span> hackfluency --assess<br/>
+                <span class="code-comment"># Mapping threat surface...</span><br/>
+                <span class="code-success">✓ Architecture gaps identified</span><br/>
+                <span class="code-success">✓ AI risk surface mapped</span><br/>
+                <span class="code-success">✓ Strategic roadmap ready</span><br/>
+                <span class="code-prompt">$</span> <span class="cursor">_</span>
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Values Section -->
+<section id="values" class="values">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">{t('values.tag')}</span>
+      <h2 class="section-title">{t('values.title')}</h2>
+      <p class="section-subtitle">{t('values.subtitle')}</p>
+    </div>
+    <div class="values-grid">
+      {values.map((value, index) => (
+        <div class="value-card" style={`--delay: ${index * 0.15}s`}>
+          <div class="value-icon" set:html={value.icon} />
+          <h3 class="value-title">{t(value.titleKey)}</h3>
+          <p class="value-description">{t(value.descKey)}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section id="contact" class="cta">
+  <div class="cta-bg">
+    <div class="cta-glow"></div>
+  </div>
+  <div class="container">
+    <div class="cta-content">
+      <span class="section-tag">{t('cta.tag')}</span>
+      <h2 class="cta-title">{t('cta.title')}</h2>
+      <p class="cta-subtitle">{t('cta.subtitle')}</p>
+      <div class="cta-features">
+        <div class="cta-feature">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>{t('cta.feature1')}</span>
+        </div>
+        <div class="cta-feature">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>{t('cta.feature2')}</span>
+        </div>
+        <div class="cta-feature">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <span>{t('cta.feature3')}</span>
+        </div>
+      </div>
+      <div class="cta-actions">
+        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="btn btn-primary btn-large">
+          <span>{t('cta.button')}</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </a>
+      </div>
+      <p class="cta-note">{t('cta.note')}</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href={base} class="logo footer-logo" aria-label="Hackfluency - Go to homepage">
+          <img src={`${base}HFNeon.png`} alt="Hackfluency logo" width="56" height="56" class="footer-logo-img" />
+          <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
+        </a>
+        <p class="footer-tagline">{t('footer.tagline')}</p>
+      </div>
+      <div class="footer-links">
+        <nav class="footer-column" aria-label={t('footer.servicesTitle')}>
+          <h5>{t('footer.servicesTitle')}</h5>
+          <a href="#services">{t('services.strategicAdvisory.title')}</a>
+          <a href="#services">{t('services.securityEngineering.title')}</a>
+          <a href="#services">{t('services.offensiveSecurity.title')}</a>
+          <a href="#services">{t('services.aiSystems.title')}</a>
+          <a href="#services">{t('services.training.title')}</a>
+          <a href="#services">{t('services.research.title')}</a>
+        </nav>
+        <nav class="footer-column" aria-label={t('footer.companyTitle')}>
+          <h5>{t('footer.companyTitle')}</h5>
+          <a href="#about">{t('footer.aboutUs')}</a>
+          <a href="#values">{t('nav.approach')}</a>
+          <a href="/SecurityRoadmap.HF">{t('footer.strategyRoadmap')}</a>
+          <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener">{t('common.bookCall')}</a>
+        </nav>
+        <nav class="footer-column" aria-label={t('footer.connectTitle')}>
+          <h5>{t('footer.connectTitle')}</h5>
+          <a href="https://www.linkedin.com/company/hackfluency" target="_blank" rel="noopener noreferrer" aria-label="Follow Hackfluency on LinkedIn">LinkedIn</a>
+          <a href="https://matrix.to/#/#eXcomm:matrix.org" target="_blank" rel="noopener noreferrer" aria-label="Join our Matrix community">Matrix</a>
+        </nav>
+      </div>
+      </div>
+
+      <!-- Newsletter Subscription -->
+      <div class="newsletter-section">
+        <h4 class="newsletter-title">{t('footer.newsletter.title')}</h4>
+        <p class="newsletter-subtitle">{t('footer.newsletter.subtitle')}</p>
+        <form id="subscribe-form" class="subscribe-form">
+          <input
+            type="email"
+            id="email-input"
+            placeholder={t('footer.newsletter.placeholder')}
+            required
+            aria-label="Email address"
+            autocomplete="email"
+          />
+          <button type="submit" class="subscribe-btn">{t('footer.newsletter.button')}</button>
+          <p id="form-message" class="form-message"></p>
+        </form>
+      </div>
+
+    <!-- Trustpilot Widget Section -->
+    <div class="trustpilot-section">
+      <div class="trustpilot-inner">
+        <div class="trustpilot-header">
+          <div class="trustpilot-stars" aria-label="Five stars">
+            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+          </div>
+          <p class="trustpilot-label">{t('footer.trustpilot.label')}</p>
+          <p class="trustpilot-sub">{t('footer.trustpilot.sub')}</p>
+        </div>
+        <!-- TrustBox widget - Review Collector -->
+        <div class="trustpilot-widget"
+             data-locale={locale === 'es' ? 'es-ES' : 'en-US'}
+             data-template-id="56278e9abfbbba0bdcd568bc"
+             data-businessunit-id="68f53cf5ee195b73d33884e2"
+             data-style-height="52px"
+             data-style-width="100%"
+             data-token="9de2933f-e5a7-4a91-936a-a96daf9fce17">
+          <a href="https://www.trustpilot.com/review/hackfluency.com" target="_blank" rel="noopener">{t('footer.trustpilot.review')}</a>
+        </div>
+        <!-- End TrustBox widget -->
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>{t('common.copyright')}</p>
+      <a href="mailto:inquiry@hackfluency.com" class="footer-email" aria-label="Send us an email">{t('common.email')}</a>
+    </div>
+  </div>
+</footer>
+</main>
+
+<style>
+  /* Navigation */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 20px 0;
+    background: var(--hf-bg);
+    border-bottom: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .nav.scrolled {
+    border-bottom-color: var(--hf-border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  .nav-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-img {
+    width: 56px;
+    height: 56px;
+    filter: none;
+  }
+
+  .logo-text {
+    display: flex;
+  }
+
+  .logo-hack {
+    color: var(--hf-accent);
+    text-shadow: none;
+    font-weight: 800;
+  }
+
+  .logo-fluency {
+    color: var(--hf-text);
+  }
+
+  .nav-links {
+    display: none;
+    gap: 40px;
+  }
+
+  @media (min-width: 768px) {
+    .nav-links {
+      display: flex;
+    }
+  }
+
+  .nav-links a {
+    font-size: 0.9rem;
+    color: var(--gray-300);
+    transition: color 0.3s ease;
+    padding: 12px 8px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-links a:hover {
+    color: var(--primary);
+  }
+
+  .nav-links a.nav-research {
+    color: var(--primary);
+    font-weight: 600;
+    position: relative;
+  }
+
+  .nav-links a.nav-research::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: var(--primary);
+    opacity: 0.35;
+    border-radius: 1px;
+  }
+
+  .nav-links a.nav-research:hover {
+    color: var(--primary);
+    opacity: 0.85;
+  }
+
+  .nav-cta {
+    display: none;
+    padding: 12px 24px;
+    background: var(--gradient-primary);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--hf-text-on-accent);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 44px;
+  }
+
+  @media (min-width: 768px) {
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .nav-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px var(--primary-glow);
+    color: var(--hf-text-on-accent);
+  }
+
+  .nav-actions {
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+
+  @media (min-width: 768px) {
+    .nav-actions {
+      display: flex;
+    }
+  }
+
+  .nav-btn-threat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #0099FF 0%, #00B4D8 100%);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--hf-text);
+    transition: all 0.3s ease;
+    min-height: 44px;
+    text-decoration: none;
+    box-shadow: 0 2px 12px rgba(0, 153, 255, 0.3);
+  }
+
+  .nav-btn-threat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 153, 255, 0.5);
+    background: linear-gradient(135deg, #00B4D8 0%, #0099FF 100%);
+  }
+
+  .nav-btn-dashboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--white);
+    transition: all 0.3s ease;
+    min-height: 44px;
+    text-decoration: none;
+  }
+
+  .nav-btn-dashboard:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+  }
+
+  @media (min-width: 768px) {
+    .mobile-menu-btn {
+      display: none;
+    }
+  }
+
+  .mobile-menu-btn span {
+    width: 24px;
+    height: 2px;
+    background: var(--hf-text);
+    transition: all 0.3s ease;
+    border-radius: 2px;
+  }
+
+  /* Hamburger Button Active State */
+  .mobile-menu-btn.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+
+  .mobile-menu-btn.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-btn.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
+  .mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 999;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mobile-menu-overlay.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-menu-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 40px;
+  }
+
+  .mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .mobile-nav-link {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--hf-text);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    padding: 12px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-nav-link:hover {
+    color: var(--hf-accent);
+  }
+
+  .mobile-nav-link--research {
+    color: var(--hf-accent);
+  }
+
+  .mobile-nav-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Hero Section */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 120px 0 80px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--hf-border);
+    background: var(--hf-bg);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image: 
+      linear-gradient(30deg, var(--hf-border) 1px, transparent 1px),
+      linear-gradient(150deg, var(--hf-border) 1px, transparent 1px);
+    background-size: 40px 69.28px;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 80px;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-content {
+      grid-template-columns: 1fr 1fr;
+      text-align: left;
+      gap: 64px;
+    }
+  }
+
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  @media (max-width: 1023px) {
+    .hero-text {
+      align-items: center;
+      text-align: center;
+    }
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--hf-accent-dim);
+    border: 1px solid var(--hf-accent-border);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--primary);
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-title-accent {
+    color: var(--hf-accent);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    color: var(--gray-400);
+    max-width: 540px;
+    margin: 0 0 40px;
+    line-height: 1.75;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .hero-actions {
+      justify-content: center;
+    }
+  }
+
+  .hero-proof {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    padding: 13px 18px;
+    border: 1px solid color-mix(in srgb, var(--hf-text) 12%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--hf-text) 4%, transparent);
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+
+  .hero-proof:hover {
+    border-color: color-mix(in srgb, var(--hf-text) 22%, transparent);
+    background: color-mix(in srgb, var(--hf-text) 7%, transparent);
+  }
+
+  @media (max-width: 1023px) {
+    .hero-proof {
+      width: 100%;
+      max-width: 360px;
+    }
+  }
+
+  .hero-proof-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--hf-accent-border);
+    border-radius: 9px;
+    background: var(--hf-accent-dim);
+  }
+
+  .hero-proof-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--primary);
+  }
+
+  .hero-proof-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .hero-proof-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--primary);
+    opacity: 0.75;
+  }
+
+  .hero-proof-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--white);
+    transition: color 0.2s ease;
+  }
+
+  .hero-proof:hover .hero-proof-link {
+    color: var(--primary);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 32px;
+    border-radius: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--hf-text);
+    min-height: 48px;
+    min-width: 48px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-primary {
+    background: var(--hf-accent);
+    color: var(--hf-bg);
+    box-shadow: 4px 4px 0px var(--hf-text);
+    position: relative;
+    overflow: hidden;
+    text-shadow: none;
+  }
+
+  .btn-primary span {
+    position: relative;
+    z-index: 1;
+    color: var(--hf-text-on-accent);
+    font-weight: 700;
+  }
+
+  .btn-primary svg {
+    position: relative;
+    z-index: 1;
+    stroke: var(--hf-bg);
+  }
+
+  .btn-primary:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px var(--hf-text);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--hf-text);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px var(--hf-text);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--gray-300);
+    border: 1px solid var(--hf-border);
+    font-size: 0.95rem;
+  }
+
+  .btn-ghost:hover {
+    color: var(--hf-accent);
+    border-color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+  }
+
+  .btn-large {
+    padding: 20px 48px;
+    font-size: 1.1rem;
+  }
+
+  .btn-full {
+    width: 100%;
+  }
+
+  /* Architecture diagram */
+  .hero-diagram {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .arch-diagram {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+  }
+
+  .arch-line {
+    stroke: var(--hf-accent);
+    stroke-width: 1.5;
+    opacity: 0.35;
+  }
+
+  .arch-line--dim {
+    opacity: 0.18;
+    stroke-dasharray: 4 4;
+  }
+
+  .arch-node {
+    fill: none;
+    stroke: var(--hf-accent);
+    stroke-width: 1.5;
+    opacity: 0.5;
+  }
+
+  .arch-node--primary {
+    opacity: 0.8;
+    stroke-width: 2;
+  }
+
+  .arch-node--secondary {
+    opacity: 0.6;
+  }
+
+  .arch-node--tertiary {
+    opacity: 0.4;
+  }
+
+  .arch-node-inner {
+    fill: var(--hf-accent);
+    stroke: none;
+    opacity: 0.12;
+  }
+
+  .arch-pulse {
+    fill: none;
+    stroke: var(--hf-accent);
+    stroke-width: 1;
+    opacity: 0;
+    animation: archPulse 3s ease-out infinite;
+  }
+
+  .arch-pulse--delay1 {
+    animation-delay: 1s;
+  }
+
+  .arch-pulse--delay2 {
+    animation-delay: 2s;
+  }
+
+  @keyframes archPulse {
+    0% { opacity: 0.6; r: 0; }
+    100% { opacity: 0; r: 40px; }
+  }
+
+  .arch-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--hf-text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .arch-label--sm {
+    font-size: 9px;
+    fill: var(--hf-text-dim);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-scroll span {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .scroll-indicator {
+    width: 24px;
+    height: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    position: relative;
+  }
+
+  .scroll-indicator::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 2px;
+    animation: scroll 2s infinite;
+  }
+
+  @keyframes scroll {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+    50% { transform: translateX(-50%) translateY(12px); opacity: 0.3; }
+  }
+
+  /* Sections */
+  section {
+    padding: 120px 0;
+  }
+
+  .section-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 80px;
+  }
+
+  .section-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--hf-accent-dim);
+    border: 1px solid color-mix(in srgb, var(--hf-accent) 20%, transparent);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: 20px;
+  }
+
+  .section-subtitle {
+    font-size: 1.1rem;
+    color: var(--gray-400);
+    line-height: 1.7;
+  }
+
+  /* Services */
+  .services {
+    background: var(--dark);
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  @media (min-width: 640px) {
+    .services-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .services-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .service-card {
+    background: var(--hf-bg-card);
+    border: 1px solid var(--hf-border);
+    border-radius: 0;
+    padding: 40px 32px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+
+  .service-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px var(--hf-border);
+    border-color: var(--hf-accent);
+  }
+
+  .service-card:hover .service-icon {
+    color: var(--hf-accent);
+  }
+
+  .service-icon {
+    color: var(--hf-accent);
+    background: var(--hf-bg);
+    border: 1px solid var(--hf-border);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+  }
+
+  .service-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .service-title {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+  }
+
+  .service-description {
+    color: var(--gray-400);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .service-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: gap 0.3s ease;
+    padding: 12px 0;
+    min-height: 44px;
+  }
+
+  .service-link:hover {
+    gap: 12px;
+  }
+
+  /* About */
+  .about {
+    position: relative;
+    background: var(--hf-bg-secondary);
+    border-bottom: 1px solid var(--hf-border);
+  }
+
+  .about::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(var(--hf-border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hf-border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 60px;
+    align-items: center;
+    position: relative;
+  }
+
+  @media (min-width: 1024px) {
+    .about-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .about-text {
+    color: var(--gray-400);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+
+  .about-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .about-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--gray-300);
+  }
+
+  .about-feature svg {
+    color: var(--hf-accent);
+    flex-shrink: 0;
+  }
+
+  .about-visual {
+    display: flex;
+    justify-content: center;
+  }
+
+  .about-card {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid var(--hf-border);
+    border-radius: 0;
+    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.8);
+    background: var(--hf-bg);
+    overflow: hidden;
+  }
+
+  .about-card-glow {
+    display: none;
+  }
+
+  .about-card-content {
+    position: relative;
+    background: var(--hf-bg);
+    border: none;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px;
+    background: var(--hf-bg-secondary);
+    border-bottom: 1px solid var(--hf-border);
+    border-radius: 0;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .terminal-dot.red { background: var(--accent); }
+  .terminal-dot.yellow { background: #f59e0b; }
+  .terminal-dot.green { background: var(--primary); }
+
+  .terminal-body {
+    padding: 24px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .code-prompt { color: var(--primary); }
+  .code-comment { color: var(--gray-600); }
+  .code-success { color: var(--primary); }
+  .cursor {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* Values */
+  .values {
+    background: var(--dark);
+  }
+
+  .values-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  @media (min-width: 640px) {
+    .values-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .values-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .value-card {
+    background: var(--hf-bg);
+    border: 1px solid var(--hf-border);
+    border-radius: 0;
+    padding: 48px 32px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .value-card:hover {
+    background: var(--hf-bg-secondary);
+    border-color: var(--hf-accent);
+  }
+
+  .value-card:hover .value-icon {
+    background: var(--hf-accent);
+    border-color: var(--hf-accent);
+    color: var(--hf-bg);
+  }
+
+  .value-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--hf-border);
+    margin: 0 auto 32px;
+    transition: all 0.3s ease;
+    color: var(--hf-accent);
+  }
+
+  .value-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .value-title {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+    color: var(--white);
+  }
+
+  .value-description {
+    color: var(--gray-400);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  /* CTA */
+  .cta {
+    border-top: 1px solid var(--hf-border);
+    border-bottom: 1px solid var(--hf-border);
+    background: linear-gradient(135deg, var(--hf-bg-secondary) 0%, var(--hf-bg) 50%, var(--hf-bg-secondary) 100%);
+    position: relative;
+    padding: 100px 0;
+  }
+
+  .cta-glow {
+    display: none;
+  }
+
+  .cta-content {
+    position: relative;
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .cta-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: 20px;
+  }
+
+  .cta-subtitle {
+    color: var(--gray-300);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .cta-features {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .cta-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--gray-400);
+  }
+
+  .cta-feature svg {
+    color: var(--hf-accent);
+    flex-shrink: 0;
+  }
+
+  .cta-actions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .cta-note {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    font-style: italic;
+  }
+
+  /* Footer */
+  .footer {
+    background: var(--hf-bg-secondary);
+    border-top: 1px solid var(--hf-border);
+    padding: 80px 0 40px;
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+  }
+
+  @media (min-width: 768px) {
+    .footer-content {
+      grid-template-columns: 1fr 2fr;
+    }
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .footer-logo-img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .footer-tagline {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    line-height: 1.6;
+    max-width: 300px;
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 32px;
+  }
+
+  .footer-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footer-column h5 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-600);
+    margin-bottom: 8px;
+  }
+
+  .footer-column a {
+    font-size: 0.85rem;
+    color: var(--gray-400);
+    transition: color 0.2s ease;
+    padding: 4px 0;
+  }
+
+  .footer-column a:hover {
+    color: var(--primary);
+  }
+
+  /* Newsletter */
+  .newsletter-section {
+    padding: 32px 0;
+    border-top: 1px solid var(--hf-border);
+    border-bottom: 1px solid var(--hf-border);
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .newsletter-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+
+  .newsletter-subtitle {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-bottom: 20px;
+  }
+
+  .subscribe-form {
+    display: flex;
+    gap: 12px;
+    max-width: 420px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .subscribe-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    background: var(--hf-bg);
+    border: 1px solid var(--hf-border);
+    border-radius: 8px;
+    color: var(--hf-text);
+    font-size: 0.9rem;
+    min-height: 44px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .subscribe-form input:focus {
+    border-color: var(--hf-accent);
+  }
+
+  .subscribe-form input::placeholder {
+    color: var(--gray-600);
+  }
+
+  .subscribe-btn {
+    padding: 12px 24px;
+    background: var(--hf-accent);
+    color: var(--hf-text-on-accent);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .subscribe-btn:hover {
+    background: var(--hf-accent-light);
+  }
+
+  .form-message {
+    width: 100%;
+    font-size: 0.8rem;
+    margin-top: 8px;
+  }
+
+  .form-message.error { color: var(--accent); }
+  .form-message.success { color: var(--primary); }
+  .form-message.warning { color: #f59e0b; }
+  .form-message.info { color: var(--gray-400); }
+
+  /* Trustpilot */
+  .trustpilot-section {
+    padding: 32px 0;
+    text-align: center;
+  }
+
+  .trustpilot-inner {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .trustpilot-header {
+    margin-bottom: 20px;
+  }
+
+  .trustpilot-stars {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .trustpilot-stars svg {
+    width: 28px;
+    height: 28px;
+    fill: #00b67a;
+  }
+
+  .trustpilot-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .trustpilot-sub {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+  }
+
+  .trustpilot-widget {
+    margin-top: 8px;
+  }
+
+  /* Footer bottom */
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 24px;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+  }
+
+  .footer-email {
+    color: var(--gray-400);
+    transition: color 0.2s ease;
+  }
+
+  .footer-email:hover {
+    color: var(--primary);
+  }
+</style>

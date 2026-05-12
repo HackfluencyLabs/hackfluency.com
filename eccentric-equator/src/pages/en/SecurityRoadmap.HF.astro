@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PublicDashboardViewer from '../../components/DashboardBuilder/PublicDashboardViewer';
+---
+
+<Layout locale="en" title="Security Roadmap — Sample | Hackfluency" description="Sample Security Roadmap deliverable. See how we map cybersecurity strategies using our founder-led boutique consulting approach.">
+  <div class="sample-page-wrapper">
+    <PublicDashboardViewer client:only="react" />
+  </div>
+</Layout>
+
+<style is:global>
+  .sample-page-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+</style>

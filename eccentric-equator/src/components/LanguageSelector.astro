@@ -1,0 +1,56 @@
+---
+export interface Props {
+  locale?: 'es' | 'en';
+}
+
+const { locale = 'es' } = Astro.props;
+const targetPath = locale === 'es' ? '/en' : '/';
+const currentLabel = locale === 'es' ? 'ES' : 'EN';
+const targetLabel = locale === 'es' ? 'EN' : 'ES';
+const currentFlag = locale === 'es' ? '🇪🇸' : '🇺🇸';
+const targetFlag = locale === 'es' ? '🇺🇸' : '🇪🇸';
+---
+
+<a
+  href={targetPath}
+  class="lang-switcher"
+  title={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+  aria-label={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+>
+  <span class="lang-switcher-label" aria-hidden="true">{currentFlag}</span>
+  <span class="lang-switcher-code">{currentLabel}</span>
+</a>
+
+<style>
+  .lang-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--hf-border, rgba(255,255,255,0.2));
+    border-radius: 8px;
+    color: var(--hf-text-secondary, #ccc);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    background: transparent;
+    min-height: 36px;
+  }
+
+  .lang-switcher:hover {
+    border-color: var(--hf-accent-border, rgba(0, 210, 106, 0.3));
+    color: var(--hf-accent, #00D26A);
+    background: var(--hf-accent-dim, rgba(0, 210, 106, 0.1));
+  }
+
+  .lang-switcher-label {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .lang-switcher-code {
+    letter-spacing: 0.04em;
+  }
+</style>

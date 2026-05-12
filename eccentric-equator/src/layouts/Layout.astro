@@ -3,31 +3,48 @@ import SubscriptionPopup from '../components/SubscriptionPopup.astro';
 import { ViewTransitions } from 'astro:transitions';
 import ThemeInit from '../components/ThemeInit.astro';
 import ThemeSelector from '../components/ThemeSelector';
+import LanguageSelector from '../components/LanguageSelector.astro';
+import { getTranslations } from '../i18n/utils';
+import type { Language } from '../i18n/translations';
 
-interface Props {
+export interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
   ogType?: string;
-  /** Hide the floating theme selector (e.g. CTI has its own) */
   hideThemeSelector?: boolean;
+  locale?: Language;
 }
 
-const { 
+const {
   title = "Hackfluency — Advanced Cybersecurity & AI Systems Consulting",
   description = "Hackfluency — Boutique technical consulting in advanced security, AI systems and automation architecture. Founder-led engagements for complex challenges.",
   ogImage = "/HFNeon.png",
   ogType = "website",
   hideThemeSelector = false,
+  locale = 'es',
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL;
-const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+const currentPath = Astro.url.pathname;
+const canonicalURL = new URL(currentPath, Astro.site).toString();
 const ogImageURL = new URL(ogImage, Astro.site).toString();
+
+// Hreflang URLs
+const esURL = new URL(currentPath.replace(/^\/en(\/|$)/, '/'), Astro.site).toString();
+const enURL = new URL(`/en${currentPath === '/' ? '' : currentPath}`, Astro.site).toString();
+// Avoid double /en/en
+const enCanonical = currentPath.startsWith('/en/') || currentPath === '/en'
+  ? canonicalURL
+  : currentPath === '/'
+    ? new URL('/en', Astro.site).toString()
+    : new URL(`/en${currentPath}`, Astro.site).toString();
+
+const { t } = getTranslations(locale);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
@@ -41,6 +58,11 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href={canonicalURL} />
 
+    <!-- Hreflang -->
+    <link rel="alternate" hreflang="es" href={esURL} />
+    <link rel="alternate" hreflang="en" href={enCanonical} />
+    <link rel="alternate" hreflang="x-default" href={esURL} />
+
     <!-- Open Graph -->
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonicalURL} />
@@ -48,6 +70,7 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageURL} />
     <meta property="og:site_name" content="Hackfluency" />
+    <meta property="og:locale" content={locale === 'es' ? 'es_ES' : 'en_US'} />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -70,12 +93,59 @@ const ogImageURL = new URL(ogImage, Astro.site).toString();
     <title>{title}</title>
     <ViewTransitions />
 
-    <!-- Theme flash prevention: apply persisted theme BEFORE first paint -->
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Hackfluency",
+      "url": canonicalURL,
+      "description": description,
+      "foundingDate": "2024",
+      "email": "inquiry@hackfluency.com",
+      "logo": `${base}HFNeon.png`,
+      "sameAs": [
+        "https://www.linkedin.com/company/hackfluency",
+      ],
+      "knowsAbout": [
+        "Cybersecurity Architecture",
+        "AI Systems Engineering",
+        "Offensive Security",
+        "Autonomous Systems",
+        "Security Automation",
+      ],
+    })} />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Hackfluency",
+      "url": `https://www.hackfluency.com${currentPath}`,
+      "description": description,
+      "inLanguage": locale === 'es' ? 'es-ES' : 'en-US',
+    })} />
+
+    <!-- Theme flash prevention -->
     <ThemeInit />
+
+    <!-- Language redirect on first visit (only for root /) -->
+    {locale === 'es' && (
+      <script is:inline>
+        (function() {
+          if (window.location.pathname !== '/' && window.location.pathname !== '') return;
+          if (localStorage.getItem('hf-language')) return;
+          var lang = navigator.language || navigator.language || '';
+          if (lang.startsWith('en')) {
+            localStorage.setItem('hf-language', 'en');
+            window.location.replace('/en');
+          } else {
+            localStorage.setItem('hf-language', 'es');
+          }
+        })();
+      </script>
+    )}
   </head>
   <body>
     <!-- Skip link for keyboard navigation -->
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <a href="#main-content" class="skip-link">{locale === 'es' ? 'Saltar al contenido principal' : 'Skip to main content'}</a>
     <slot />
     <SubscriptionPopup />
     {!hideThemeSelector && <ThemeSelector client:idle variant="floating" transition:persist />}
