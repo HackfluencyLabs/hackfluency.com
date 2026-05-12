@@ -44,7 +44,7 @@ const { t } = getTranslations(locale);
       {t('popup.subtitle')}
     </p>
 
-    <form id="popup-subscribe-form">
+    <form id="popup-subscribe-form" novalidate>
       <input
         type="email"
         id="popup-email-input"
@@ -54,8 +54,9 @@ const { t } = getTranslations(locale);
         autocomplete="email"
       />
       <button type="submit" id="popup-submit-btn">
-        <span>{t('popup.submit')}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <span class="popup-btn-text">{t('popup.submit')}</span>
+        <span class="popup-btn-spinner" aria-hidden="true"></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="popup-btn-arrow">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
       </button>
@@ -68,6 +69,7 @@ const { t } = getTranslations(locale);
       </svg>
       {t('popup.privacy')}
     </p>
+    <button type="button" id="popup-not-now" class="popup-not-now">{t('popup.notNow')}</button>
   </div>
 </div>
 
@@ -322,19 +324,39 @@ const { t } = getTranslations(locale);
     box-shadow: 0 4px 20px color-mix(in srgb, var(--hf-accent) 35%, transparent);
   }
 
-  #popup-submit-btn span {
+  .popup-btn-text,
+  .popup-btn-arrow {
+    position: relative;
+    z-index: 1;
+    transition: opacity 0.2s ease;
+  }
+
+  .popup-btn-spinner {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid color-mix(in srgb, var(--hf-text-on-accent) 35%, transparent);
+    border-top-color: var(--hf-text-on-accent);
+    border-radius: 50%;
+    animation: popupSpin 0.6s linear infinite;
     position: relative;
     z-index: 1;
   }
 
-  #popup-submit-btn svg {
-    position: relative;
-    z-index: 1;
-    stroke: var(--hf-text-on-accent);
-    flex-shrink: 0;
+  #popup-submit-btn.loading .popup-btn-text,
+  #popup-submit-btn.loading .popup-btn-arrow {
+    display: none;
   }
 
-  /* Shimmer sweep — matches .btn-primary on homepage */
+  #popup-submit-btn.loading .popup-btn-spinner {
+    display: block;
+  }
+
+  @keyframes popupSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Shimmer sweep */
   #popup-submit-btn::before {
     content: '';
     position: absolute;
@@ -361,6 +383,26 @@ const { t } = getTranslations(locale);
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
+  }
+
+  /* ── Not now button ────────────────────────────────────────────── */
+  .popup-not-now {
+    display: block;
+    margin: 12px auto 0;
+    background: none;
+    border: none;
+    color: var(--gray-600, #4a4a4a);
+    font-size: 0.78rem;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 8px 16px;
+    transition: color 0.2s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  .popup-not-now:hover {
+    color: var(--gray-400, #8a8a8a);
   }
 
   /* ── Feedback message ────────────────────────────────────────────── */
@@ -430,145 +472,221 @@ const { t } = getTranslations(locale);
 
   const popupLocale = location.pathname.startsWith('/en') ? 'en' : 'es';
 
-  // ── Translations for validation messages ────────────────────────
+  // ── Translations ──────────────────────────────────────────────
   const popupT: Record<string, string> = {
     es: JSON.stringify({
       emailRequired: 'El email es obligatorio',
       emailTooLong: 'Email demasiado largo',
       emailInvalid: 'Formato de email inválido',
       validEmail: 'Email válido',
-      subscribing: 'Suscribiendo...',
+      sending: 'Enviando...',
       success: '¡Suscrito exitosamente! ✓',
       alreadySubscribed: 'Ya estás suscrito.',
       error: 'Error. Intenta de nuevo.',
       networkError: 'Error de red. Verifica tu conexión.',
+      remindLater: 'Te recordaremos más tarde',
     }),
     en: JSON.stringify({
       emailRequired: 'Email is required',
       emailTooLong: 'Email too long',
       emailInvalid: 'Invalid email format',
       validEmail: 'Valid email',
-      subscribing: 'Subscribing...',
+      sending: 'Sending...',
       success: 'Successfully subscribed! ✓',
       alreadySubscribed: 'Already subscribed.',
       error: 'Error. Please try again.',
       networkError: 'Network error. Check connection.',
+      remindLater: "We'll remind you later",
     }),
   };
   const msgs = JSON.parse(popupT[popupLocale] || popupT.es);
 
-  // ── Configuration ─────────────────────────────────────────────
-  const TRIGGER_DELAY   = 45_000;
-  const SESSION_KEY     = "hf_popup_done";
+  // ── Cookie helpers ────────────────────────────────────────────
+  function setCookie(name: string, value: string, days: number) {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    document.cookie = `${name}=${value}; path=/; expires=${d.toUTCString()}; SameSite=Lax`;
+  }
+  function getCookie(name: string): string {
+    return document.cookie.split('; ').reduce((acc, c) => {
+      const [k, v] = c.split('=');
+      return k === name ? v : acc;
+    }, '');
+  }
 
-  const popupEl = document.getElementById("hf-popup-overlay") as HTMLElement;
-  const card    = document.getElementById("hf-popup-card") as HTMLElement;
+  // ── Suppression checks ────────────────────────────────────────
+  const SUPPRESS_COOKIE = 'hf_popup_suppress';
+  const DISMISS_COOKIE  = 'hf_popup_dismiss';
+  const popupEl = document.getElementById('hf-popup-overlay') as HTMLElement;
 
-  if (!sessionStorage.getItem(SESSION_KEY) && popupEl) {
-    const closeBtn  = document.getElementById("hf-popup-close") as HTMLButtonElement;
-    const form      = document.getElementById("popup-subscribe-form") as HTMLFormElement;
-    const emailInp  = document.getElementById("popup-email-input") as HTMLInputElement;
-    const msgEl     = document.getElementById("popup-form-message") as HTMLParagraphElement;
-    const submitBtn = document.getElementById("popup-submit-btn") as HTMLButtonElement;
+  if (
+    !popupEl ||
+    sessionStorage.getItem('hf_popup_done') ||
+    getCookie(SUPPRESS_COOKIE) ||
+    getCookie(DISMISS_COOKIE)
+  ) {
+    // Suppressed — bail silently
+  } else {
+    const card    = document.getElementById('hf-popup-card') as HTMLElement;
+    const closeBtn  = document.getElementById('hf-popup-close') as HTMLButtonElement;
+    const form      = document.getElementById('popup-subscribe-form') as HTMLFormElement;
+    const emailInp  = document.getElementById('popup-email-input') as HTMLInputElement;
+    const msgEl     = document.getElementById('popup-form-message') as HTMLParagraphElement;
+    const submitBtn = document.getElementById('popup-submit-btn') as HTMLButtonElement;
+    const notNowBtn = document.getElementById('popup-not-now') as HTMLButtonElement;
 
+    // ── Configuration ─────────────────────────────────────────────
+    const TRIGGER_DELAY    = 20_000;      // 20s
+    const SCROLL_THRESHOLD = 0.5;          // 50%
+
+    let popupShown = false;
+
+    // ── Helpers ──────────────────────────────────────────────────
     function sanitize(email: string): string {
-      return email.trim().replace(/[^a-zA-Z0-9@._-]/g, "");
-    }
+    return email.trim().replace(/[^a-zA-Z0-9@._-]/g, '');
+  }
 
-    function validate(email: string): { valid: boolean; error?: string } {
-      if (!email) return { valid: false, error: msgs.emailRequired };
-      if (email.length > 254) return { valid: false, error: msgs.emailTooLong };
-      const re = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
-      if (!re.test(email)) return { valid: false, error: msgs.emailInvalid };
-      return { valid: true };
-    }
+  function validate(email: string): { valid: boolean; error?: string } {
+    if (!email) return { valid: false, error: msgs.emailRequired };
+    if (email.length > 254) return { valid: false, error: msgs.emailTooLong };
+    const re = /^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
+    if (!re.test(email)) return { valid: false, error: msgs.emailInvalid };
+    return { valid: true };
+  }
 
-    function setMsg(text: string, type: string) {
-      msgEl.textContent = text;
-      msgEl.className = `popup-msg ${type}`;
-    }
+  function setMsg(text: string, type: string) {
+    msgEl.textContent = text;
+    msgEl.className = `popup-msg ${type}`;
+  }
 
-    function showPopup() {
-      clearTimeout(timer);
-      document.removeEventListener("mouseleave", onMouseLeave);
-      popupEl.style.display = "flex";
+  function showPopup() {
+    if (popupShown) return;
+    popupShown = true;
+    cleanupTriggers();
+    popupEl.style.display = 'flex';
+    popupEl.classList.remove('overlay-exit');
+    void popupEl.offsetWidth;
+    popupEl.classList.add('overlay-enter');
+    card.classList.remove('popup-enter', 'popup-exit');
+    void card.offsetWidth;
+    card.classList.add('popup-enter');
+  }
+
+  function hidePopup(suppress = true) {
+    card.classList.remove('popup-enter');
+    card.classList.add('popup-exit');
+    popupEl.classList.remove('overlay-enter');
+    popupEl.classList.add('overlay-exit');
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+    setTimeout(() => {
+      popupEl.style.display = 'none';
+      card.classList.remove('popup-exit');
       popupEl.classList.remove('overlay-exit');
-      void popupEl.offsetWidth;
-      popupEl.classList.add('overlay-enter');
-      card.classList.remove("popup-enter", "popup-exit");
-      void card.offsetWidth;
-      card.classList.add("popup-enter");
+      if (suppress) {
+        sessionStorage.setItem('hf_popup_done', '1');
+        setCookie(DISMISS_COOKIE, '1', 1);  // 24h
+      }
+    }, duration);
+  }
+
+  function dismissForever() {
+    sessionStorage.setItem('hf_popup_done', '1');
+    setCookie(SUPPRESS_COOKIE, '1', 30);  // 30d
+    setMsg(msgs.remindLater, 'info');
+    setTimeout(() => hidePopup(false), 1500);
+  }
+
+  function cleanupTriggers() {
+    clearTimeout(timer);
+    document.removeEventListener('mouseleave', onMouseLeave);
+    window.removeEventListener('scroll', onScroll);
+  }
+
+  // ── Timed trigger ────────────────────────────────────────────
+  const timer = setTimeout(showPopup, TRIGGER_DELAY);
+
+  // ── Scroll trigger (50%) with throttle ───────────────────────
+  let scrollFired = false;
+  function onScroll() {
+    if (scrollFired) return;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (docHeight > 0 && window.scrollY / docHeight >= SCROLL_THRESHOLD) {
+      scrollFired = true;
+      showPopup();
     }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
 
-    function hidePopup(markDone = true) {
-      card.classList.remove('popup-enter');
-      card.classList.add('popup-exit');
-      popupEl.classList.remove('overlay-enter');
-      popupEl.classList.add('overlay-exit');
-      const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
-      setTimeout(() => {
-        popupEl.style.display = "none";
-        card.classList.remove('popup-exit');
-        popupEl.classList.remove('overlay-exit');
-        if (markDone) sessionStorage.setItem(SESSION_KEY, "1");
-      }, duration);
-    }
+  // ── Exit intent with throttle ────────────────────────────────
+  let lastLeave = 0;
+  function onMouseLeave(e: MouseEvent) {
+    const now = Date.now();
+    if (now - lastLeave < 500) return;
+    lastLeave = now;
+    if (e.clientY < 10) showPopup();
+  }
+  document.addEventListener('mouseleave', onMouseLeave);
 
-    const timer = setTimeout(showPopup, TRIGGER_DELAY);
+  // ── Escape key ───────────────────────────────────────────────
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && popupShown) hidePopup(true);
+  }
+  document.addEventListener('keydown', onKeyDown);
 
-    function onMouseLeave(e: MouseEvent) {
-      if (e.clientY < 10) showPopup();
-    }
-    document.addEventListener("mouseleave", onMouseLeave);
+  // ── Close / dismiss ──────────────────────────────────────────
+  if (closeBtn) closeBtn.addEventListener('click', () => hidePopup(true));
+  if (notNowBtn) notNowBtn.addEventListener('click', () => hidePopup(true));
+  if (popupEl) popupEl.addEventListener('click', (e) => {
+    if (e.target === popupEl) hidePopup(true);
+  });
 
-    if (closeBtn) closeBtn.addEventListener("click", () => hidePopup(true));
-    if (popupEl) popupEl.addEventListener("click", (e) => {
-      if (e.target === popupEl) hidePopup(true);
+  // ── Email validation ─────────────────────────────────────────
+  if (emailInp && msgEl) {
+    emailInp.addEventListener('input', () => {
+      const val = emailInp.value;
+      if (!val) { setMsg('', ''); return; }
+      const result = validate(sanitize(val));
+      result.valid
+        ? setMsg(msgs.validEmail, 'success')
+        : setMsg(result.error!, 'error');
     });
+  }
 
-    if (emailInp && msgEl) {
-      emailInp.addEventListener("input", () => {
-        const val = emailInp.value;
-        if (!val) { setMsg("", ""); return; }
-        const result = validate(sanitize(val));
-        result.valid ? setMsg(msgs.validEmail, "success") : setMsg(result.error!, "error");
-      });
-    }
+  // ── Form submission ──────────────────────────────────────────
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+      const email = sanitize(emailInp.value);
+      const check = validate(email);
+      if (!check.valid) { setMsg(check.error!, 'error'); return; }
 
-        const email = sanitize(emailInp.value);
-        const check = validate(email);
-        if (!check.valid) { setMsg(check.error!, "error"); return; }
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+      setMsg(msgs.sending, 'info');
 
-        submitBtn.disabled = true;
-        setMsg(msgs.subscribing, "info");
+      try {
+        const result = await subscribeEmail(email);
 
-        try {
-          const result = await subscribeEmail(email);
-
-          if (result.success) {
-            setMsg(msgs.success, "success");
-            emailInp.value = "";
-            sessionStorage.setItem(SESSION_KEY, "1");
-            setTimeout(() => hidePopup(false), 2000);
-            return;
-          }
-          if (result.message === 'Already subscribed.') {
-            setMsg(msgs.alreadySubscribed, "warning");
-            sessionStorage.setItem(SESSION_KEY, "1");
-            setTimeout(() => hidePopup(false), 2000);
-            return;
-          }
-          setMsg(result.message || msgs.error, "error");
-        } catch {
-          setMsg(msgs.networkError, "error");
-        } finally {
-          submitBtn.disabled = false;
+        if (result.success) {
+          setMsg(msgs.success, 'success');
+          emailInp.value = '';
+          dismissForever();
+          return;
         }
-      });
-    }
+        if (result.message === 'Already subscribed.') {
+          setMsg(msgs.alreadySubscribed, 'warning');
+          dismissForever();
+          return;
+        }
+        setMsg(result.message || msgs.error, 'error');
+      } catch {
+        setMsg(msgs.networkError, 'error');
+      } finally {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+      }
+    });
+  }
   }
 </script>
