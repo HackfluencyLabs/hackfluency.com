@@ -1,0 +1,577 @@
+---
+export interface Props {
+  locale?: 'es' | 'en';
+}
+const { locale = 'es' } = Astro.props;
+
+const t = (locale === 'en' ? {
+  title: 'Multi-Agent Trust Architecture',
+  subtitle: 'Implicit Trust vs. Zero-Trust MAS · Attack Surface Analysis · AgentFence Taxonomy',
+  badge: 'ARCHITECTURE NOTE',
+  date: 'May 2026 · Architecture Note',
+  back: '← Back to Notes',
+
+  compare: 'Compare',
+  archA: 'Architecture A',
+  archB: 'Architecture B',
+
+  aTitle: 'Implicit Trust (Typical Production)',
+  aDesc: 'Global shared state · No output sanitization · Ambient authority · No identity binding',
+  agents: 'AGENTS',
+  orchestrator: 'ORCHESTRATOR',
+  userInput: 'User Input',
+  globalState: 'Global Shared State Schema',
+  globalStateDesc: 'Any agent reads · Any agent writes · No trust levels defined',
+  agentRetriever: 'Data Retriever',
+  agentRetrieverDesc: 'RAG · Web · MCP tools',
+  agentExecutor: 'Executor',
+  agentExecutorDesc: 'Full scope · Always active',
+  agentAuditor: 'Auditor',
+  agentAuditorDesc: 'Post-hoc · No veto',
+  externalMCP: 'External MCP / API',
+  externalMCPDesc: 'Web · DB · 3rd party',
+  rawOutput: 'Raw output forwarded',
+  highSide: 'HIGH-SIDE EXECUTION',
+  highSideDesc: '· DB write · API call · File op',
+  highSideNote: 'No task-scoped permission check',
+
+  bTitle: 'Zero-Trust MAS (ZTMAS)',
+  bDesc: 'Explicit trust levels · Schema-gated comms · Task-scoped tools · Guardian validation',
+  controlPlane: 'Control Plane · Trust Registry',
+  controlPlaneDesc: 'Explicit levels · Task-scoped grants · Identity binding',
+  bAgentR: 'Data Retriever',
+  bAgentRDesc: 'Read-only · Sandboxed',
+  bAgentE: 'Executor',
+  bAgentEDesc: 'Task-scoped tools only',
+  guardian: 'Guardian · L0',
+  guardianDesc: 'Validator · Inspects all A2A',
+  semanticFW: 'Semantic Firewall',
+  semanticFWDesc: 'Pydantic schema · NonInstructionalData',
+  bMCP: 'External MCP / API',
+  bMCPDesc: 'Output → DATA only',
+  schemaValid: 'Schema-validated',
+  taskExec: 'TASK-SCOPED EXECUTION',
+  taskExecDesc: '· Minimum necessary access',
+  taskExecNote: 'Guardian pre-approval required',
+
+  failureModes: 'Failure Modes · Architecture A',
+  controlsApplied: 'Controls Applied · Architecture B',
+
+  failure1: 'A14 · Authorization Confusion (MSBR 0.54)',
+  failure1Desc: 'Executor retains full tool scope regardless of task. Compromised peer triggers high-side actions without permission check.',
+  failure2: 'A06 · Retrieval Poisoning (MSBR 0.47)',
+  failure2Desc: 'Raw MCP and RAG outputs written directly to shared state. Adversarial content steers downstream agent planning.',
+  failure3: 'Confused Deputy',
+  failure3Desc: 'Data plane crosses into control plane with no architectural barrier. Low-trust content issued as high-trust directive.',
+  failure4: 'MCP 403 → OAuth (Hackfluency, 2026)',
+  failure4Desc: 'VSCode Copilot auto-initiates Dynamic Client Registration on HTTP errors. Social engineering surface and OAuth callback capture.',
+
+  control1: 'Trust Registry',
+  control1Desc: 'Explicit L0/L1/L2 trust levels per agent. Control plane separated from data plane at the architectural level.',
+  control2: 'Semantic Firewall',
+  control2Desc: 'All tool outputs schema-validated as NonInstructionalData before context injection. Pydantic enforcement at every external boundary.',
+  control3: 'Guardian Agent (L0)',
+  control3Desc: 'Hardened validator inspects all A2A payloads for Instructional Drift and Wrong-Principal Actions before execution.',
+  control4: 'Task-scoped tools',
+  control4Desc: 'Minimum necessary tool access per task. Access revoked on completion. Blast radius isolated per node.',
+
+  msbrTitle: 'MSBR by Attack Class · Architecture A · AgentFence 2026',
+  ztmasTitle: 'ZTMAS Control Metrics · Architecture B',
+  metric1: 'Denial-of-Wallet',
+  metric1Sub: 'A13 · Financial Exhaustion',
+  metric2: 'Authorization Confusion',
+  metric2Sub: 'A14 · Permission Mismatch',
+  metric3: 'Retrieval Poisoning',
+  metric3Sub: 'A06 · RAG Injection',
+  metric4: 'Planning Manipulation',
+  metric4Sub: 'A05 · Orchestrator Subversion',
+  metricPrompt: 'Prompt Injection',
+  metricPromptSub: 'Industry Focus',
+  zMetric1: 'OER · Over-Exposure Rate',
+  zMetric1Sub: 'Data Leakage Across Agents',
+  zMetric2: 'Authorization Drift AD',
+  zMetric2Sub: 'Cascading Misalignment',
+  zMetric3: 'Blast Radius / node',
+  zMetric3Sub: 'Max Damage Per Compromise',
+  zMetric4: 'Guardian Coverage',
+  zMetric4Sub: 'A2A Edge Inspection',
+  zMetric5: 'Tool Scope Isolation',
+  zMetric5Sub: 'Per-Task Access Control',
+
+  footer: 'HACKFLUENCY RESEARCH · EDITION 001 · APRIL 2026',
+  refs: 'AgentFence: arXiv:2602.07652 · ZTMAS: arXiv:2510.18563',
+} : {
+  title: 'Arquitectura de Confianza Multi-Agente',
+  subtitle: 'Confianza Implícita vs. Zero-Trust MAS · Análisis de Superficie de Ataque · Taxonomía AgentFence',
+  badge: 'NOTA DE ARQUITECTURA',
+  date: 'Mayo 2026 · Nota de Arquitectura',
+  back: '← Volver a Notas',
+
+  compare: 'Comparar',
+  archA: 'Arquitectura A',
+  archB: 'Arquitectura B',
+
+  aTitle: 'Confianza Implícita (Producción Típica)',
+  aDesc: 'Estado global compartido · Sin sanitización · Autoridad ambiental · Sin identity binding',
+  agents: 'AGENTES',
+  orchestrator: 'ORQUESTADOR',
+  userInput: 'Input de Usuario',
+  globalState: 'Schema de Estado Global Compartido',
+  globalStateDesc: 'Cualquier agente lee · Cualquier agente escribe · Sin niveles de confianza',
+  agentRetriever: 'Recuperador',
+  agentRetrieverDesc: 'RAG · Web · MCP tools',
+  agentExecutor: 'Ejecutor',
+  agentExecutorDesc: 'Acceso total · Siempre activo',
+  agentAuditor: 'Auditor',
+  agentAuditorDesc: 'Post-hoc · Sin veto',
+  externalMCP: 'MCP Externo / API',
+  externalMCPDesc: 'Web · DB · 3rd party',
+  rawOutput: 'Output raw reenviado',
+  highSide: 'EJECUCIÓN HIGH-SIDE',
+  highSideDesc: '· DB write · API call · File op',
+  highSideNote: 'Sin check de permisos por tarea',
+
+  bTitle: 'Zero-Trust MAS (ZTMAS)',
+  bDesc: 'Niveles explícitos · Comunicación schema-gated · Herramientas por tarea · Validación Guardian',
+  controlPlane: 'Plano de Control · Trust Registry',
+  controlPlaneDesc: 'Niveles explícitos · Acceso por tarea · Identity binding',
+  bAgentR: 'Recuperador',
+  bAgentRDesc: 'Solo lectura · Sandbox',
+  bAgentE: 'Ejecutor',
+  bAgentEDesc: 'Herramientas por tarea',
+  guardian: 'Guardian · L0',
+  guardianDesc: 'Validador · Inspecciona A2A',
+  semanticFW: 'Firewall Semántico',
+  semanticFWDesc: 'Schema Pydantic · NonInstructionalData',
+  bMCP: 'MCP Externo / API',
+  bMCPDesc: 'Output → solo DATOS',
+  schemaValid: 'Schema-validado',
+  taskExec: 'EJECUCIÓN POR TAREA',
+  taskExecDesc: '· Acceso mínimo necesario',
+  taskExecNote: 'Pre-aprobación Guardian req.',
+
+  failureModes: 'Modos de Fallo · Arquitectura A',
+  controlsApplied: 'Controles Aplicados · Arquitectura B',
+
+  failure1: 'A14 · Authorization Confusion (MSBR 0.54)',
+  failure1Desc: 'El ejecutor retiene acceso total sin importar la tarea. Un peer comprometido dispara acciones high-side sin verificación de permisos.',
+  failure2: 'A06 · Retrieval Poisoning (MSBR 0.47)',
+  failure2Desc: 'Outputs raw de MCP y RAG escritos directamente al estado compartido. Contenido adversarial redirige la planificación de agentes downstream.',
+  failure3: 'Confused Deputy',
+  failure3Desc: 'El data plane cruza al control plane sin barrera arquitectónica. Contenido de baja confianza emitido como directiva de alta confianza.',
+  failure4: 'MCP 403 → OAuth (Hackfluency, 2026)',
+  failure4Desc: 'VSCode Copilot inicia Dynamic Client Registration automáticamente en errores HTTP. Superficie de ingeniería social y captura de callback OAuth.',
+
+  control1: 'Trust Registry',
+  control1Desc: 'Niveles explícitos L0/L1/L2 por agente. Plano de control separado del data plane a nivel arquitectónico.',
+  control2: 'Firewall Semántico',
+  control2Desc: 'Todos los outputs de herramientas validados por schema como NonInstructionalData antes de la inyección al contexto. Enforcement Pydantic en cada boundary externo.',
+  control3: 'Guardian Agent (L0)',
+  control3Desc: 'Validador hardened inspecciona todos los payloads A2A en busca de Instructional Drift y Wrong-Principal Actions antes de ejecución.',
+  control4: 'Herramientas por tarea',
+  control4Desc: 'Acceso mínimo necesario por tarea. Acceso revocado al completar. Blast radius aislado por nodo.',
+
+  msbrTitle: 'MSBR por Clase de Ataque · Arquitectura A · AgentFence 2026',
+  ztmasTitle: 'Métricas de Control ZTMAS · Arquitectura B',
+  metric1: 'Denial-of-Wallet',
+  metric1Sub: 'A13 · Agotamiento Financiero',
+  metric2: 'Authorization Confusion',
+  metric2Sub: 'A14 · Permisos Incorrectos',
+  metric3: 'Retrieval Poisoning',
+  metric3Sub: 'A06 · Inyección en RAG',
+  metric4: 'Planning Manipulation',
+  metric4Sub: 'A05 · Subversión del Orquestador',
+  metricPrompt: 'Prompt Injection',
+  metricPromptSub: 'Foco de la Industria',
+  zMetric1: 'OER · Tasa de Sobre-Exposición',
+  zMetric1Sub: 'Fuga de Datos entre Agentes',
+  zMetric2: 'Authorization Drift AD',
+  zMetric2Sub: 'Desalineación en Cascada',
+  zMetric3: 'Blast Radius / nodo',
+  zMetric3Sub: 'Daño Máximo por Compromiso',
+  zMetric4: 'Cobertura Guardian',
+  zMetric4Sub: 'Inspección de Edges A2A',
+  zMetric5: 'Aislamiento de Tools',
+  zMetric5Sub: 'Control de Acceso por Tarea',
+
+  footer: 'HACKFLUENCY RESEARCH · EDICIÓN 001 · ABRIL 2026',
+  refs: 'AgentFence: arXiv:2602.07652 · ZTMAS: arXiv:2510.18563',
+});
+---
+
+<!-- ZTMAS Architecture Diagram Component -->
+<div class="ztmas-root" data-locale={locale}>
+  <!-- Header -->
+  <div class="zt-header">
+    <a href={locale === 'en' ? '/en/research/notes' : '/research/notes'} class="zt-back">&larr; {t.back}</a>
+    <span class="zt-badge">{t.badge}</span>
+    <span class="zt-date">{t.date}</span>
+  </div>
+
+  <h1 class="zt-title">{t.title}</h1>
+  <p class="zt-subtitle">{t.subtitle}</p>
+
+  <!-- View Toggle -->
+  <div class="zt-tabs">
+    <button class="zt-tab active" data-view="compare">{t.compare}</button>
+    <button class="zt-tab" data-view="a"><span class="dot dot-a"></span> {t.archA}</button>
+    <button class="zt-tab" data-view="b"><span class="dot dot-b"></span> {t.archB}</button>
+  </div>
+
+  <!-- Architecture Cards -->
+  <div class="zt-cards" id="zt-cards">
+    <!-- Architecture A -->
+    <div class="zt-card card-a" data-arch="a">
+      <div class="card-head">
+        <span class="card-tag tag-a">{t.archA}</span>
+        <h2 class="card-title">{t.aTitle}</h2>
+        <p class="card-desc">{t.aDesc}</p>
+      </div>
+
+      <!-- Flow diagram: Arch A -->
+      <div class="flow flow-a">
+        <div class="flow-node node-orch">
+          <span class="node-label">{t.userInput}</span>
+          <span class="node-name">{t.orchestrator}</span>
+        </div>
+        <div class="flow-arrow down"></div>
+        <div class="flow-node node-state">
+          <span class="node-label warn">{t.globalState}</span>
+          <span class="node-detail">{t.globalStateDesc}</span>
+        </div>
+        <div class="flow-arrows-3">
+          <div class="flow-arrow down"></div>
+          <div class="flow-arrow down"></div>
+          <div class="flow-arrow down"></div>
+        </div>
+        <div class="flow-agents">
+          <div class="flow-node node-agent">
+            <span class="node-label">{t.agents}</span>
+            <span class="node-name">{t.agentRetriever}</span>
+            <span class="node-detail">{t.agentRetrieverDesc}</span>
+          </div>
+          <div class="flow-node node-agent danger">
+            <span class="node-label warn">{t.agents}</span>
+            <span class="node-name">{t.agentExecutor}</span>
+            <span class="node-detail">{t.agentExecutorDesc}</span>
+          </div>
+          <div class="flow-node node-agent">
+            <span class="node-label">{t.agents}</span>
+            <span class="node-name">{t.agentAuditor}</span>
+            <span class="node-detail">{t.agentAuditorDesc}</span>
+          </div>
+        </div>
+        <div class="flow-arrow down warn-arrow"></div>
+        <div class="flow-node node-mcp">
+          <span class="node-label">{t.externalMCP}</span>
+          <span class="node-detail">{t.externalMCPDesc}</span>
+          <span class="node-badge warn">{t.rawOutput}</span>
+        </div>
+        <div class="flow-arrow injection"></div>
+        <div class="flow-injection">
+          <span class="injection-label">INJECTION</span>
+        </div>
+        <div class="flow-arrow down danger-arrow"></div>
+        <div class="flow-node node-high">
+          <span class="node-label warn">{t.highSide}</span>
+          <span class="node-detail">{t.highSideDesc}</span>
+          <span class="node-badge danger">{t.highSideNote}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture B -->
+    <div class="zt-card card-b" data-arch="b">
+      <div class="card-head">
+        <span class="card-tag tag-b">{t.archB}</span>
+        <h2 class="card-title">{t.bTitle}</h2>
+        <p class="card-desc">{t.bDesc}</p>
+      </div>
+
+      <!-- Flow diagram: Arch B -->
+      <div class="flow flow-b">
+        <div class="flow-node node-orch">
+          <span class="node-label">{t.userInput}</span>
+          <span class="node-name">{t.orchestrator}</span>
+        </div>
+        <div class="flow-arrow down"></div>
+        <div class="flow-node node-control">
+          <span class="node-label safe">{t.controlPlane}</span>
+          <span class="node-detail">{t.controlPlaneDesc}</span>
+        </div>
+        <div class="flow-arrows-3">
+          <div class="flow-arrow down"></div>
+          <div class="flow-arrow down"></div>
+          <div class="flow-arrow down safe-arrow"></div>
+        </div>
+        <div class="flow-agents">
+          <div class="flow-node node-agent safe-border">
+            <span class="node-label">{t.agents}</span>
+            <span class="node-name">{t.bAgentR}</span>
+            <span class="node-detail">{t.bAgentRDesc}</span>
+          </div>
+          <div class="flow-node node-agent safe-border">
+            <span class="node-label">{t.agents}</span>
+            <span class="node-name">{t.bAgentE}</span>
+            <span class="node-detail">{t.bAgentEDesc}</span>
+          </div>
+          <div class="flow-node node-agent node-guardian">
+            <span class="node-label safe">{t.guardian}</span>
+            <span class="node-name">{t.guardianDesc}</span>
+          </div>
+        </div>
+        <div class="flow-arrow down blue-arrow"></div>
+        <div class="flow-node node-fw">
+          <span class="node-label blue">{t.semanticFW}</span>
+          <span class="node-detail">{t.semanticFWDesc}</span>
+        </div>
+        <div class="flow-arrow down blue-arrow"></div>
+        <div class="flow-node node-mcp-safe">
+          <span class="node-label blue">{t.bMCP}</span>
+          <span class="node-detail">{t.bMCPDesc}</span>
+          <span class="node-badge safe">{t.schemaValid}</span>
+        </div>
+        <div class="flow-arrow safe-curve"></div>
+        <div class="flow-arrow down safe-arrow"></div>
+        <div class="flow-node node-task">
+          <span class="node-label safe">{t.taskExec}</span>
+          <span class="node-detail">{t.taskExecDesc}</span>
+          <span class="node-badge safe">{t.taskExecNote}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Annotations: Failure Modes vs Controls -->
+  <div class="zt-annotations">
+    <div class="ann-col ann-a">
+      <h3 class="ann-title"><span class="dot dot-a"></span> {t.failureModes}</h3>
+      <div class="ann-item"><strong>{t.failure1}</strong><p>{t.failure1Desc}</p></div>
+      <div class="ann-item"><strong>{t.failure2}</strong><p>{t.failure2Desc}</p></div>
+      <div class="ann-item"><strong>{t.failure3}</strong><p>{t.failure3Desc}</p></div>
+      <div class="ann-item"><strong>{t.failure4}</strong><p>{t.failure4Desc}</p></div>
+    </div>
+    <div class="ann-col ann-b">
+      <h3 class="ann-title"><span class="dot dot-b"></span> {t.controlsApplied}</h3>
+      <div class="ann-item"><strong>{t.control1}</strong><p>{t.control1Desc}</p></div>
+      <div class="ann-item"><strong>{t.control2}</strong><p>{t.control2Desc}</p></div>
+      <div class="ann-item"><strong>{t.control3}</strong><p>{t.control3Desc}</p></div>
+      <div class="ann-item"><strong>{t.control4}</strong><p>{t.control4Desc}</p></div>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="zt-metrics">
+    <div class="metric-card">
+      <h3 class="metric-title">{t.msbrTitle}</h3>
+      <div class="metric-bar"><span class="bar-lbl">{t.metric1} <small>{t.metric1Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:62%;background:#aa4848"></div></div><span class="bar-val" style="color:#aa4848">0.62</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.metric2} <small>{t.metric2Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:54%;background:#bb6060"></div></div><span class="bar-val" style="color:#bb6060">0.54</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.metric3} <small>{t.metric3Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:47%;background:#995828"></div></div><span class="bar-val" style="color:#995828">0.47</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.metric4} <small>{t.metric4Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:44%;background:#886028"></div></div><span class="bar-val" style="color:#886028">0.44</span></div>
+      <div class="metric-sep"></div>
+      <div class="metric-bar muted"><span class="bar-lbl">{t.metricPrompt} <small>{t.metricPromptSub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:18%;background:#282828"></div></div><span class="bar-val" style="color:#444">&lt;0.20</span></div>
+    </div>
+    <div class="metric-card">
+      <h3 class="metric-title">{t.ztmasTitle}</h3>
+      <div class="metric-bar"><span class="bar-lbl">{t.zMetric1} <small>{t.zMetric1Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:10%;background:#2a7a50"></div></div><span class="bar-val" style="color:#2a7a50">&darr; low</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.zMetric2} <small>{t.zMetric2Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:7%;background:#1a5a38"></div></div><span class="bar-val" style="color:#1a5a38">&darr; isolated</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.zMetric3} <small>{t.zMetric3Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:8%;background:#145038"></div></div><span class="bar-val" style="color:#145038">&darr; scoped</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.zMetric4} <small>{t.zMetric4Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:100%;background:#0d3820"></div></div><span class="bar-val" style="color:#1a5a38">100%</span></div>
+      <div class="metric-bar"><span class="bar-lbl">{t.zMetric5} <small>{t.zMetric5Sub}</small></span><div class="bar-tr"><div class="bar-fill" style="width:100%;background:#0a2818"></div></div><span class="bar-val" style="color:#145038">enforced</span></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="zt-footer">
+    <span>{t.footer}</span>
+    <span>{t.refs}</span>
+  </div>
+</div>
+
+<style is:global>
+  /* ── Reset within component scope ── */
+  .ztmas-root {
+    --c-bg: #060606;
+    --c-card: #0a0a0a;
+    --c-border: #1c1c1c;
+    --c-text: #ccc;
+    --c-muted: #555;
+    --c-dim: #333;
+    --c-red: #aa4848;
+    --c-red-dim: #180808;
+    --c-red-border: #3a2020;
+    --c-green: #2a7a50;
+    --c-green-dim: #07120d;
+    --c-green-border: #143e26;
+    --c-blue: #18688a;
+    --c-blue-dim: #060d10;
+    --c-blue-border: #18485a;
+    --c-gold: #D4AF37;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+    color: var(--c-text);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  .zt-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  .zt-back { font-size: 12px; color: var(--c-muted); text-decoration: none; transition: color 0.15s; }
+  .zt-back:hover { color: var(--c-text); }
+  .zt-badge { font-size: 10px; font-weight: 700; letter-spacing: 3px; color: var(--c-green); text-transform: uppercase; }
+  .zt-date { font-size: 10px; color: var(--c-dim); margin-left: auto; }
+
+  .zt-title { font-size: clamp(24px, 4vw, 36px); font-weight: 700; color: #eee; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .zt-subtitle { font-size: 12px; color: var(--c-muted); margin-bottom: 40px; letter-spacing: 1px; }
+
+  .zt-tabs { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; }
+  .zt-tab {
+    background: transparent; border: 1px solid var(--c-border); color: var(--c-muted);
+    font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 1px;
+    padding: 10px 22px; border-radius: 8px; cursor: pointer;
+    transition: all 0.2s; text-transform: uppercase;
+  }
+  .zt-tab:hover { border-color: #444; color: #999; }
+  .zt-tab.active { background: rgba(255,255,255,0.04); color: #ccc; border-color: #444; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; }
+  .dot-a { background: var(--c-red); }
+  .dot-b { background: var(--c-green); }
+
+  .zt-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; transition: all 0.3s; }
+  .zt-cards.single { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto 40px; }
+  .zt-cards.single-a .card-b, .zt-cards.single-b .card-a { display: none; }
+  .zt-cards.single-a .card-a, .zt-cards.single-b .card-b { grid-column: 1; }
+
+  .zt-card {
+    background: var(--c-card); border: 1px solid var(--c-border); border-radius: 14px;
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .card-a { border-top: 3px solid var(--c-red); }
+  .card-b { border-top: 3px solid var(--c-green); }
+  .card-head { padding: 28px 28px 0; }
+  .card-tag { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+  .tag-a { color: var(--c-red); }
+  .tag-b { color: var(--c-green); }
+  .card-title { font-size: 18px; font-weight: 600; color: #ddd; margin: 8px 0 6px; }
+  .card-desc { font-size: 11px; color: var(--c-muted); line-height: 1.6; margin-bottom: 20px; }
+
+  /* ── Flow diagram ── */
+  .flow { padding: 0 28px 28px; display: flex; flex-direction: column; align-items: center; }
+  .flow-node {
+    background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 8px;
+    padding: 14px 20px; text-align: center; width: 100%; max-width: 320px;
+  }
+  .node-label { display: block; font-size: 9px; letter-spacing: 3px; color: #444; margin-bottom: 4px; text-transform: uppercase; }
+  .node-name { display: block; font-size: 14px; font-weight: 600; color: #999; }
+  .node-detail { display: block; font-size: 10px; color: #333; margin-top: 4px; }
+  .node-badge { display: inline-block; font-size: 8px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-top: 6px; }
+
+  .warn { color: var(--c-red) !important; }
+  .danger { border-color: var(--c-red-border) !important; background: var(--c-red-dim) !important; }
+  .danger .node-name { color: var(--c-red); }
+  .danger .node-detail { color: #4a2020; }
+  .node-badge.warn { background: #2a1010; color: var(--c-red); border: 1px solid var(--c-red-border); }
+
+  .safe { color: var(--c-green) !important; }
+  .safe-border { border-color: var(--c-green-border) !important; }
+  .safe-border .node-detail { color: #143e26; }
+  .node-badge.safe { background: #0a1a10; color: var(--c-green); border: 1px solid var(--c-green-border); }
+
+  .blue { color: var(--c-blue) !important; }
+  .node-guardian { background: var(--c-green-dim) !important; border-color: var(--c-green) !important; border-width: 2px; }
+  .node-guardian .node-name { color: var(--c-green); }
+  .node-state { border-color: var(--c-red-border) !important; border-style: dashed !important; background: #180d0d !important; }
+  .node-state .node-label { color: var(--c-red); }
+  .node-state .node-detail { color: #4a2020; }
+  .node-high { border-color: var(--c-red) !important; background: #180808 !important; }
+  .node-high .node-name { color: #cc5050; }
+  .node-high .node-detail { color: #4a1818; }
+  .node-control { border-color: var(--c-green) !important; background: var(--c-green-dim) !important; }
+  .node-control .node-detail { color: #143e26; }
+  .node-fw { border-color: var(--c-blue-border) !important; background: var(--c-blue-dim) !important; }
+  .node-fw .node-detail { color: #0a3a4a; }
+  .node-mcp-safe { border-color: var(--c-blue-border) !important; background: #080a0c !important; }
+  .node-mcp-safe .node-detail { color: #0a2a2a; }
+  .node-task { border-color: var(--c-green) !important; background: var(--c-green-dim) !important; }
+  .node-task .node-name { color: var(--c-green); }
+  .node-task .node-detail { color: #143e26; }
+
+  .flow-arrow { width: 2px; height: 24px; background: #333; margin: 4px 0; }
+  .flow-arrows-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; width: 100%; max-width: 480px; margin: 4px 0; }
+  .flow-arrows-3 .flow-arrow { width: 100%; height: 2px; background: #333; margin: 0; }
+  .flow-agents { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; max-width: 480px; }
+  .flow-agents .flow-node { padding: 10px 12px; }
+  .flow-agents .node-name { font-size: 11px; }
+  .flow-agents .node-detail { font-size: 8px; }
+  .danger-arrow { background: var(--c-red) !important; height: 32px; }
+  .warn-arrow { background: #7a4a18 !important; }
+  .safe-arrow { background: var(--c-green) !important; height: 32px; }
+  .blue-arrow { background: var(--c-blue) !important; }
+  .injection { position: relative; background: transparent !important; }
+  .flow-injection { position: relative; margin: -4px 0; }
+  .injection-label { font-size: 8px; color: var(--c-red); letter-spacing: 2px; font-weight: 700; }
+
+  .node-mcp { border-color: #3a2810 !important; background: #0e0b08 !important; }
+  .node-mcp .node-detail { color: #3a3a3a; }
+  .safe-curve { background: var(--c-green); height: 4px; width: 60%; margin: -2px auto; border-radius: 2px; }
+
+  /* ── Annotations ── */
+  .zt-annotations { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+  .ann-col { padding: 24px 28px; border-radius: 12px; border: 1px solid var(--c-border); background: var(--c-card); }
+  .ann-a { border-left: 3px solid var(--c-red); }
+  .ann-b { border-left: 3px solid var(--c-green); }
+  .ann-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; color: #888; }
+  .ann-item { margin-bottom: 18px; }
+  .ann-item:last-child { margin-bottom: 0; }
+  .ann-item strong { font-size: 11px; font-weight: 600; display: block; margin-bottom: 4px; }
+  .ann-a .ann-item strong { color: var(--c-red); }
+  .ann-b .ann-item strong { color: var(--c-green); }
+  .ann-item p { font-size: 14px; line-height: 1.6; color: #999; }
+
+  /* ── Metrics ── */
+  .zt-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 48px; }
+  .metric-card { padding: 24px 28px; border-radius: 12px; border: 1px solid var(--c-border); background: var(--c-card); }
+  .metric-title { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #3a3a3a; margin-bottom: 22px; }
+  .metric-bar { display: grid; grid-template-columns: 1fr 160px 50px; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .metric-bar:last-child { margin-bottom: 0; }
+  .metric-bar.muted { opacity: 0.35; }
+  .bar-lbl { font-size: 11px; color: #888; }
+  .bar-lbl small { display: block; font-size: 8px; color: #444; margin-top: 1px; letter-spacing: 0.5px; }
+  .bar-tr { height: 6px; background: #0f0f0f; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .bar-val { font-size: 12px; font-weight: 600; text-align: right; }
+  .metric-sep { border: none; border-top: 1px solid var(--c-border); margin: 16px 0; }
+
+  /* ── Footer ── */
+  .zt-footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 10px; color: #333; letter-spacing: 1px; padding-top: 20px; border-top: 1px solid var(--c-border); }
+
+  /* ── Responsive ── */
+  @media (max-width: 800px) {
+    .zt-cards { grid-template-columns: 1fr; }
+    .zt-annotations { grid-template-columns: 1fr; }
+    .zt-metrics { grid-template-columns: 1fr; }
+    .metric-bar { grid-template-columns: 1fr 120px 40px; }
+    .ztmas-root { padding: 40px 16px 80px; }
+    .flow-agents { grid-template-columns: 1fr; }
+    .flow-arrows-3 { display: none; }
+    .card-head { padding: 20px 20px 0; }
+    .flow { padding: 0 20px 20px; }
+  }
+</style>
+
+<script>
+(function() {
+  const tabs = document.querySelectorAll('.zt-tab');
+  const cards = document.getElementById('zt-cards');
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      tabs.forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      const view = tab.dataset.view;
+      cards.classList.remove('single', 'single-a', 'single-b');
+      if (view === 'a') { cards.classList.add('single', 'single-a'); }
+      else if (view === 'b') { cards.classList.add('single', 'single-b'); }
+    });
+  });
+})();
+</script>

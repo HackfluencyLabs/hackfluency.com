@@ -10,7 +10,15 @@ const { locale = 'es' } = Astro.props;
 const { t } = getTranslations(locale);
 const base = import.meta.env.BASE_URL;
 
+const glowIndex = 0; // index of the note to apply glow effect (newest)
+
 const notes = (locale === 'es' ? [
+  {
+    title: "Arquitectura de Confianza Multi-Agente: ZTMAS",
+    description: "Comparativa arquitectónica entre sistemas multi-agente con confianza implícita (producción típica) y Zero-Trust MAS (ZTMAS). Incluye diagramas de análisis de superficie de ataque, métricas AgentFence MSBR por clase de ataque, y controles aplicados como Firewall Semántico, Guardian Agent y ejecución por tarea. Basado en AgentFence (arXiv:2602.07652) y ZTMAS (arXiv:2510.18563).",
+    tags: ["Arquitectura", "Zero Trust", "Sistemas Multi-Agente"],
+    date: "Mayo 2026",
+  },
   {
     title: "Memoria Operacional Impulsada por Grafos",
     description: "Modelo conceptual para agentes de seguridad autónomos que utilizan embeddings de grafos evolutivos para mantener contexto operacional persistente entre sesiones. Explora cómo el conocimiento acumulado durante un engagement puede informar la toma de decisiones del agente en operaciones subsecuentes.",
@@ -24,6 +32,12 @@ const notes = (locale === 'es' ? [
     date: "Marzo 2026",
   },
 ] : [
+  {
+    title: "Multi-Agent Trust Architecture: ZTMAS",
+    description: "Architectural comparison between implicit trust multi-agent systems (typical production) and Zero-Trust MAS (ZTMAS). Includes attack surface analysis diagrams, AgentFence MSBR metrics by attack class, and applied controls such as Semantic Firewall, Guardian Agent, and task-scoped execution. Based on AgentFence (arXiv:2602.07652) and ZTMAS (arXiv:2510.18563).",
+    tags: ["Architecture", "Zero Trust", "Multi-Agent Systems"],
+    date: "May 2026",
+  },
   {
     title: "Graph-Driven Operational Memory",
     description: "Conceptual model for autonomous security agents using evolving graph embeddings to maintain persistent operational context across sessions. Explores how knowledge accumulated during one engagement can inform agent decision-making in subsequent operations.",
@@ -70,10 +84,19 @@ const notes = (locale === 'es' ? [
   <section class="rn-list">
     <div class="r-container">
       <div class="rn-grid">
-        {notes.map((note) => (
-          <article class="rn-card">
+        {notes.map((note, i) => {
+          const isZTMAS = i === glowIndex;
+          const diagramHref = isZTMAS
+            ? (locale === 'es' ? '/research/notes/ztmas/' : '/en/research/notes/ztmas/')
+            : null;
+          return (
+          <a href={diagramHref} class={"rn-card-link" + (isZTMAS ? " rn-card-link--glow" : "")}>
+          <article class={"rn-card" + (isZTMAS ? " rn-card--glow" : "")}>
             <div class="rn-card-inner">
-              <h2 class="rn-card-title">{note.title}</h2>
+              <h2 class="rn-card-title">
+                {note.title}
+                {isZTMAS ? <span class="rn-badge-new">{t('notes.newBadge')}</span> : null}
+              </h2>
               <p class="rn-card-desc">{note.description}</p>
               <div class="rn-tags">
                 {note.tags.map(tag => (
@@ -81,9 +104,12 @@ const notes = (locale === 'es' ? [
                 ))}
               </div>
               <time class="rn-date">{note.date}</time>
+              {isZTMAS ? <span class="rn-view-link">{t('notes.viewDiagram')} →</span> : null}
             </div>
           </article>
-        ))}
+          </a>
+        );
+        })}
       </div>
 
       <!-- Evolution note -->
@@ -215,6 +241,52 @@ const notes = (locale === 'es' ? [
     }
   }
 
+  /* ── Card Link ── */
+  .rn-card-link {
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+
+  .rn-card-link--glow {
+    display: block;
+  }
+
+  .rn-badge-new {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #0d0d0d;
+    background: linear-gradient(135deg, #52B788, #409970);
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-left: 10px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 1; box-shadow: 0 0 8px rgba(82, 183, 136, 0.5); }
+  }
+
+  .rn-view-link {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--hf-accent, #52B788);
+    letter-spacing: 0.03em;
+    transition: gap 0.2s ease;
+    gap: 4px;
+  }
+
+  .rn-card-link:hover .rn-view-link {
+    gap: 8px;
+  }
+
   /* ── Note card ── */
   .rn-card {
     background: var(--hf-bg-card);
@@ -227,6 +299,69 @@ const notes = (locale === 'es' ? [
   .rn-card:hover {
     border-color: var(--hf-accent-border);
     box-shadow: 0 4px 20px var(--hf-accent-dim);
+  }
+
+  /* ── Glow effect for newest note ── */
+  .rn-card--glow {
+    position: relative;
+    border-color: #409970;
+    animation: glow-beat 2s ease-in-out infinite;
+    z-index: 1;
+  }
+
+  .rn-card--glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #409970, #2D6A4F, #52B788, #409970);
+    background-size: 300% 300%;
+    z-index: -1;
+    animation: glow-border-shift 4s ease-in-out infinite;
+    opacity: 0.6;
+  }
+
+  .rn-card--glow::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 16px;
+    background: radial-gradient(ellipse at center, rgba(82, 183, 136, 0.25), transparent 70%);
+    z-index: -2;
+    animation: glow-pulse 2s ease-in-out infinite;
+    filter: blur(8px);
+  }
+
+  .rn-card--glow .rn-card-inner {
+    position: relative;
+    background: var(--hf-bg-card);
+    border-radius: 13px;
+    z-index: 1;
+  }
+
+  @keyframes glow-beat {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(82, 183, 136, 0.15);
+    }
+    50% {
+      box-shadow: 0 0 35px rgba(82, 183, 136, 0.40), 0 0 60px rgba(82, 183, 136, 0.12);
+    }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.04);
+    }
+  }
+
+  @keyframes glow-border-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
   .rn-card::before {

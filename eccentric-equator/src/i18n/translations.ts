@@ -228,6 +228,8 @@ export const translations: Record<Language, Translations> = {
     'notes.evolution.tooling': 'Implementación de Herramienta',
     'notes.evolution.caption':
       'Estas notas representan ideas en movimiento — algunas evolucionarán, otras se quedarán como notas.',
+    'notes.newBadge': 'NUEVO',
+    'notes.viewDiagram': 'Ver diagrama',
     'notes.footer.back': '← Investigación',
 
     /* ── Research Tooling ── */
@@ -476,6 +478,8 @@ export const translations: Record<Language, Translations> = {
     'notes.evolution.tooling': 'Tooling Implementation',
     'notes.evolution.caption':
       'These notes represent ideas in motion — some will evolve, some will stay as notes.',
+    'notes.newBadge': 'NEW',
+    'notes.viewDiagram': 'View diagram',
     'notes.footer.back': '← Research',
 
     /* ── Research Tooling ── */
