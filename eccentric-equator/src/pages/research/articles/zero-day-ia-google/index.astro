@@ -21,9 +21,9 @@ const locale = 'es';
     badge: "NUEVO"
   }}
 >
-  <p>El 11 de mayo de 2026, Google Threat Intelligence Group publicó un reporte sobre el uso de inteligencia artificial en operaciones ofensivas. Entre varios hallazgos —malware autónomo, ataques a infraestructura de IA, campañas de desinformación— uno acaparó los titulares: <em>"por primera vez, identificamos un actor usando un exploit de día cero que creemos fue desarrollado con IA."</em></p>
+  <p>El 11 de mayo de 2026, <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google Threat Intelligence Group</a> publicó un reporte sobre el uso de inteligencia artificial en operaciones ofensivas. Entre varios hallazgos —malware autónomo, ataques a infraestructura de IA, campañas de desinformación— uno acaparó los titulares: <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG"><em>"por primera vez, identificamos un actor usando un exploit de día cero que creemos fue desarrollado con IA."</em></a></p>
 
-  <p>La evidencia presentada son marcadores estilísticos en el código: un CVSS score que no existe en ninguna base de datos CVE, docstrings con formato textbook característico de LLMs, y una vulnerabilidad de tipo semántico —un hardcoded trust exception— que Google señala como consistente con las capacidades actuales de los modelos de lenguaje.</p>
+  <p>La evidencia presentada son marcadores estilísticos en el código: un CVSS score que no existe en ninguna base de datos CVE, docstrings con formato textbook característico de LLMs, y una vulnerabilidad de tipo semántico —un hardcoded trust exception— que <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google señala como consistente con las capacidades actuales de los modelos de lenguaje</a>.</p>
 
   <p>Ninguno de esos marcadores distingue entre <strong>"un LLM descubrió la vulnerabilidad autónomamente"</strong> y <strong>"un humano usó un LLM para escribir el código."</strong> Esa distinción importa, y el reporte no la aborda.</p>
 
@@ -31,11 +31,11 @@ const locale = 'es';
 
   <h2>La evidencia: tres marcadores</h2>
 
-  <p>Google dijo tener "high confidence" de que una IA descubrió y armó el exploit. Su evidencia son tres marcadores en el código Python.</p>
+  <p><a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google dijo tener "high confidence" de que una IA descubrió y armó el exploit</a>. Su evidencia son tres marcadores en el código Python.</p>
 
   <h3>1. El CVSS que no existe</h3>
 
-  <p>El script contenía una puntuación CVSS que no figura en ninguna base de datos CVE. Google argumenta que ningún atacante humano incluiría una métrica de severidad inventada en su propio exploit. Es cierto. Pero eso no prueba que la IA encontró la vulnerabilidad. Prueba que el código del exploit —o una parte— fue generado por un LLM. Son dos cosas distintas.</p>
+  <p>El script contenía una puntuación CVSS que no figura en ninguna base de datos CVE. <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google argumenta que ningún atacante humano incluiría una métrica de severidad inventada en su propio exploit</a>. Es cierto. Pero eso no prueba que la IA encontró la vulnerabilidad. Prueba que el código del exploit —o una parte— fue generado por un LLM. Son dos cosas distintas.</p>
 
   <p>Un atacante pudo identificar manualmente el error lógico en el flujo de 2FA y luego pedirle a un LLM: "escribime un exploit para esto." El resultado tendría exactamente las mismas huellas: CVSS inventado, código limpio, comentarios explicativos. La evidencia de Google no distingue entre "la IA encontró la vuln" y "un humano usó IA para escribir el exploit."</p>
 
@@ -43,15 +43,15 @@ const locale = 'es';
 
   <h3>2. Docstrings educativos y formato textbook</h3>
 
-  <p>El exploit tenía comentarios excesivamente largos y estructura limpia. Google lo describe como "altamente característico de datos de entrenamiento de LLM." No hay ninguna diferencia entre "un atacante le pidió a una IA que genere el exploit" y "una IA descubrió la vulnerabilidad y generó el exploit" en términos del formato del código resultante. El output es el mismo.</p>
+  <p>El exploit tenía comentarios excesivamente largos y estructura limpia. <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google lo describe como "altamente característico de datos de entrenamiento de LLM"</a>. No hay ninguna diferencia entre "un atacante le pidió a una IA que genere el exploit" y "una IA descubrió la vulnerabilidad y generó el exploit" en términos del formato del código resultante. El output es el mismo.</p>
 
   <p>Estas huellas pueden eliminarse con instrucciones adicionales al modelo —por ejemplo, solicitando código sin comentarios ni metadata— lo que sugiere que la ventana de detección basada en este tipo de marcadores es inherentemente limitada.</p>
 
   <h3>3. El "semantic logic flaw"</h3>
 
-  <p>La vulnerabilidad no era un buffer overflow ni una SQL injection. Era un error de lógica semántica: el desarrollador hardcodeó una excepción de confianza en el flujo de 2FA. Google argumenta que los fuzzers y scanners estáticos no detectan este tipo de bugs.</p>
+  <p>La vulnerabilidad no era un buffer overflow ni una SQL injection. Era un error de lógica semántica: el desarrollador hardcodeó una excepción de confianza en el flujo de 2FA. <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google argumenta que los fuzzers y scanners estáticos no detectan este tipo de bugs</a>.</p>
 
-  <p>Es cierto. Pero un humano con experiencia haciendo code review también detecta ese error. No es una capacidad exclusiva de la IA. Google señala que no sabe qué modelo se usó y que no fue Gemini ni Mythos.</p>
+  <p>Es cierto. Pero un humano con experiencia haciendo code review también detecta ese error. No es una capacidad exclusiva de la IA. <a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir reporte GTIG">Google señala que no sabe qué modelo se usó y que no fue Gemini ni Mythos</a>.</p>
 
   <hr>
 
@@ -60,11 +60,11 @@ const locale = 'es';
   <p>Google presentó su hallazgo como "la primera vez." Existen antecedentes similares que conviene considerar.</p>
 
   <table>
-    <tr><th>Fecha</th><th>Reportado por</th><th>Titular</th><th>Qué ocurrió realmente</th></tr>
-    <tr><td>Nov 2023</td><td>Check Point</td><td>"AI encontró un zero-day"</td><td>LLM usado como asistente de code review. Humanos confirmaron y reportaron.</td></tr>
-    <tr><td>Ene 2026</td><td>Check Point</td><td>"Malware generado casi totalmente por IA"</td><td>Una persona usando IDE con IA. Nunca en producción.</td></tr>
-    <tr><td>Mar 2026</td><td>MAD Bugs</td><td>"Claude escribió un kernel RCE"</td><td>Claude exploitó CVE conocida. Laboratorio acotado.</td></tr>
-    <tr><td>May 2026</td><td>Google GTIG</td><td>"Primer zero-day con IA"</td><td>Código con marcas de LLM. Vendor parchó.</td></tr>
+    <tr><th>Fecha</th><th>Reportado por</th><th>Titular</th><th>Qué ocurrió realmente</th><th>Fuente</th></tr>
+    <tr><td>Nov 2023</td><td>Check Point</td><td>"AI encontró un zero-day"</td><td>LLM usado como asistente de code review. Humanos confirmaron.</td><td><a class="src" href="https://newsnukem.com/ai-security/misinformation-machine-truth-behind-first-ai-generated-zero-day-exploit" target="_blank" rel="noopener" data-tip="Abrir">[2]</a></td></tr>
+    <tr><td>Ene 2026</td><td>Check Point</td><td>"Malware generado casi totalmente por IA"</td><td>Una persona usando IDE con IA. Nunca en producción.</td><td><a class="src" href="https://www.bleepingcomputer.com/news/security/voidlink-cloud-malware-shows-clear-signs-of-being-ai-generated/" target="_blank" rel="noopener" data-tip="Abrir">[3]</a></td></tr>
+    <tr><td>Mar 2026</td><td>MAD Bugs</td><td>"Claude escribió un kernel RCE"</td><td>Claude exploitó CVE conocida. Laboratorio acotado.</td><td><a class="src" href="https://github.com/califio/publications/tree/main/MADBugs/CVE-2026-4747" target="_blank" rel="noopener" data-tip="Abrir">[4]</a></td></tr>
+    <tr><td>May 2026</td><td>Google GTIG</td><td>"Primer zero-day con IA"</td><td>Código con marcas de LLM. Vendor parchó.</td><td><a class="src" href="https://cloud.google.com/blog/topics/threat-intelligence/ai-vulnerability-exploitation-initial-access" target="_blank" rel="noopener" data-tip="Abrir">[1]</a></td></tr>
   </table>
 
   <hr>
