@@ -12,6 +12,15 @@ const base = import.meta.env.BASE_URL;
 
 const articles = (locale === 'es' ? [
   {
+    title: "Zero-day con IA: el caso de Google, sus marcadores y lo que no sabemos",
+    description: "Google GTIG publicó un reporte diciendo que detectó el primer zero-day generado por IA. La evidencia es más delgada de lo que parece, y no es la primera vez que se hace este claim. Un análisis de los marcadores, los antecedentes y lo que no se dijo.",
+    tags: ["IA", "Seguridad", "Zero-day"],
+    date: "Mayo 2026",
+    readTime: "8 min de lectura",
+    url: "/research/articles/zero-day-ia-google/",
+    isNew: true,
+  },
+  {
     title: "Arquitectura de Sistemas Ofensivos Impulsados por MCP",
     description: "Cómo el Protocolo de Contexto de Modelo (MCP) puede orquestar agentes autónomos de red team en entornos de red complejos. Un análisis del diseño del protocolo, patrones de coordinación de agentes, memoria operacional y las implicaciones de seguridad de los sistemas ofensivos autónomos.",
     tags: ["Seguridad Ofensiva", "Arquitectura MCP", "Sistemas Autónomos"],
@@ -19,6 +28,15 @@ const articles = (locale === 'es' ? [
     readTime: "12 min de lectura",
   },
 ] : [
+  {
+    title: "Zero-Day with AI: The Google Case, Its Markers, and What We Don't Know",
+    description: "Google GTIG published a report claiming to have detected the first AI-generated zero-day. The evidence is thinner than it seems, and this isn't the first time this claim has been made. An analysis of the markers, the precedents, and what was left unsaid.",
+    tags: ["AI", "Security", "Zero-day"],
+    date: "May 2026",
+    readTime: "8 min read",
+    url: "/en/research/articles/zero-day-ia-google/",
+    isNew: true,
+  },
   {
     title: "Architecture of MCP-Driven Offensive Systems",
     description: "How Model Context Protocol can orchestrate autonomous red team agents across complex network environments. An analysis of protocol design, agent coordination patterns, operational memory and the security implications of self-directed offensive systems.",
@@ -54,6 +72,7 @@ const articles = (locale === 'es' ? [
     <div class="r-container">
       <div class="ra-grid">
         {articles.map((article) => (
+          <a href={article.url || '#'} class={"ra-card-link" + (article.url ? '' : ' ra-card-link--disabled')}>
           <article class="ra-card">
             <div class="ra-card-top">
               <div class="ra-tags">
@@ -61,15 +80,22 @@ const articles = (locale === 'es' ? [
                   <span class="ra-tag">{tag}</span>
                 ))}
               </div>
-              <span class="ra-read-time">{t('articles.readTime').replace('{time}', article.readTime.split(' ')[0])}</span>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;">
+                {article.isNew ? <span class="ra-badge-new">{t('articles.newBadge')}</span> : null}
+                <span class="ra-read-time">{t('articles.readTime').replace('{time}', article.readTime.split(' ')[0])}</span>
+              </div>
             </div>
             <h2 class="ra-card-title">{article.title}</h2>
             <p class="ra-card-desc">{article.description}</p>
             <div class="ra-card-footer">
               <time class="ra-date">{article.date}</time>
-              <span class="ra-coming-soon">{t('articles.comingSoon')}</span>
+              {article.url
+                ? <span class="ra-read-link">{t('articles.readArticle')} &rarr;</span>
+                : <span class="ra-coming-soon">{t('articles.comingSoon')}</span>
+              }
             </div>
           </article>
+          </a>
         ))}
       </div>
 
@@ -186,6 +212,45 @@ const articles = (locale === 'es' ? [
     flex-direction: column;
     gap: 24px;
     margin-bottom: 52px;
+  }
+
+  /* ── Card link ── */
+  .ra-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .ra-card-link--disabled {
+    cursor: default;
+  }
+
+  /* ── Badge NEW ── */
+  .ra-badge-new {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #0d0d0d;
+    background: linear-gradient(135deg, #52B788, #409970);
+    padding: 2px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 1; box-shadow: 0 0 8px rgba(82, 183, 136, 0.5); }
+  }
+
+  /* ── Read link ── */
+  .ra-read-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--hf-accent);
+    transition: gap 0.2s ease;
+  }
+  .ra-card-link:hover .ra-read-link {
+    gap: 8px;
   }
 
   /* ── Article card ── */

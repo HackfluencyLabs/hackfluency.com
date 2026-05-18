@@ -1,0 +1,93 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import ArticleDetail from '../../../../components/articles/ArticleDetail.astro';
+const locale = 'es';
+---
+
+<Layout
+  locale={locale}
+  title="Zero-day con IA: el caso de Google, sus marcadores y lo que no sabemos — Hackfluency Research"
+  description="Análisis del reporte de Google GTIG sobre el supuesto primer zero-day generado por IA. La evidencia, los antecedentes y lo que no se dijo."
+>
+<ArticleDetail
+  locale={locale}
+  meta={{
+    title: "Zero-day con IA: el caso de Google, sus marcadores y lo que no sabemos",
+    description: "Google GTIG publicó un reporte diciendo que detectó el primer zero-day generado por IA. La evidencia es más delgada de lo que parece, y no es la primera vez que se hace este claim.",
+    tags: ["IA", "Seguridad", "Zero-day"],
+    date: "Mayo 2026",
+    readTime: "8 min de lectura",
+    author: "Marcelo Burgos",
+    badge: "NUEVO"
+  }}
+>
+  <p>El 11 de mayo de 2026, Google Threat Intelligence Group publicó un reporte sobre el uso de inteligencia artificial en operaciones ofensivas. Entre varios hallazgos —malware autónomo, ataques a infraestructura de IA, campañas de desinformación— uno acaparó los titulares: <em>"por primera vez, identificamos un actor usando un exploit de día cero que creemos fue desarrollado con IA."</em></p>
+
+  <p>La evidencia presentada son marcadores estilísticos en el código: un CVSS score que no existe en ninguna base de datos CVE, docstrings con formato textbook característico de LLMs, y una vulnerabilidad de tipo semántico —un hardcoded trust exception— que Google señala como consistente con las capacidades actuales de los modelos de lenguaje.</p>
+
+  <p>Ninguno de esos marcadores distingue entre <strong>"un LLM descubrió la vulnerabilidad autónomamente"</strong> y <strong>"un humano usó un LLM para escribir el código."</strong> Esa distinción importa, y el reporte no la aborda.</p>
+
+  <hr>
+
+  <h2>La evidencia: tres marcadores</h2>
+
+  <p>Google dijo tener "high confidence" de que una IA descubrió y armó el exploit. Su evidencia son tres marcadores en el código Python.</p>
+
+  <h3>1. El CVSS que no existe</h3>
+
+  <p>El script contenía una puntuación CVSS que no figura en ninguna base de datos CVE. Google argumenta que ningún atacante humano incluiría una métrica de severidad inventada en su propio exploit. Es cierto. Pero eso no prueba que la IA encontró la vulnerabilidad. Prueba que el código del exploit —o una parte— fue generado por un LLM. Son dos cosas distintas.</p>
+
+  <p>Un atacante pudo identificar manualmente el error lógico en el flujo de 2FA y luego pedirle a un LLM: "escribime un exploit para esto." El resultado tendría exactamente las mismas huellas: CVSS inventado, código limpio, comentarios explicativos. La evidencia de Google no distingue entre "la IA encontró la vuln" y "un humano usó IA para escribir el exploit."</p>
+
+  <p>Estos "hallucinated CVSS scores" son un comportamiento conocido en las respuestas de LLMs cuando se les pide generar código: tienden a incluir metadata que parece real pero no lo es. Su presencia indica que el código pasó por un LLM, pero no permite determinar si el modelo descubrió la vulnerabilidad o simplemente escribió el código que un humano le pidió.</p>
+
+  <h3>2. Docstrings educativos y formato textbook</h3>
+
+  <p>El exploit tenía comentarios excesivamente largos y estructura limpia. Google lo describe como "altamente característico de datos de entrenamiento de LLM." No hay ninguna diferencia entre "un atacante le pidió a una IA que genere el exploit" y "una IA descubrió la vulnerabilidad y generó el exploit" en términos del formato del código resultante. El output es el mismo.</p>
+
+  <p>Estas huellas pueden eliminarse con instrucciones adicionales al modelo —por ejemplo, solicitando código sin comentarios ni metadata— lo que sugiere que la ventana de detección basada en este tipo de marcadores es inherentemente limitada.</p>
+
+  <h3>3. El "semantic logic flaw"</h3>
+
+  <p>La vulnerabilidad no era un buffer overflow ni una SQL injection. Era un error de lógica semántica: el desarrollador hardcodeó una excepción de confianza en el flujo de 2FA. Google argumenta que los fuzzers y scanners estáticos no detectan este tipo de bugs.</p>
+
+  <p>Es cierto. Pero un humano con experiencia haciendo code review también detecta ese error. No es una capacidad exclusiva de la IA. Google señala que no sabe qué modelo se usó y que no fue Gemini ni Mythos.</p>
+
+  <hr>
+
+  <h2>No es la primera vez</h2>
+
+  <p>Google presentó su hallazgo como "la primera vez." Existen antecedentes similares que conviene considerar.</p>
+
+  <table>
+    <tr><th>Fecha</th><th>Reportado por</th><th>Titular</th><th>Qué ocurrió realmente</th></tr>
+    <tr><td>Nov 2023</td><td>Check Point</td><td>"AI encontró un zero-day"</td><td>LLM usado como asistente de code review. Humanos confirmaron y reportaron.</td></tr>
+    <tr><td>Ene 2026</td><td>Check Point</td><td>"Malware generado casi totalmente por IA"</td><td>Una persona usando IDE con IA. Nunca en producción.</td></tr>
+    <tr><td>Mar 2026</td><td>MAD Bugs</td><td>"Claude escribió un kernel RCE"</td><td>Claude exploitó CVE conocida. Laboratorio acotado.</td></tr>
+    <tr><td>May 2026</td><td>Google GTIG</td><td>"Primer zero-day con IA"</td><td>Código con marcas de LLM. Vendor parchó.</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Una prueba concreta</h2>
+
+  <p>El 17 de mayo de 2026, usando un modelo de 2 mil millones de parámetros (huihui-qwen3.5-2b) corriendo en un laptop, generamos el mismo estilo de código que Google usó como evidencia:</p>
+
+  <pre><code>"""
+CVSS Score: 9.7 - Critical
+"""
+
+class Hardcoded2FAExploit:
+    def _hardcoded_trust_exception(self, user_input):
+        """Implementa la excepción hardcoded.
+        Permite acceso sin verificar el token OTP."""
+        return True</code></pre>
+
+  <p>El resultado incluye un CVSS inventado, docstrings educativos, y una estructura textbook —los mismos marcadores que Google utilizó en su análisis.</p>
+
+  <hr>
+
+  <p>Google detectó este caso porque el código contenía marcadores estilísticos que delataban su origen en un LLM. Si Google, con su acceso y telemetría, identificó el exploit por estas huellas —¿qué no están viendo el resto de los equipos de CTI?</p>
+
+</ArticleDetail>
+</Layout>

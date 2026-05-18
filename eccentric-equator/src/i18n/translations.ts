@@ -212,6 +212,8 @@ export const translations: Record<Language, Translations> = {
       'Las Notas de Arquitectura a menudo evolucionan en artículos completos. Sigue el pipeline de investigación desde ',
     'articles.pipeline.link': 'Notas de Arquitectura →',
     'articles.footer.back': '← Investigación',
+    'articles.newBadge': 'NUEVO',
+    'articles.readArticle': 'Leer artículo',
 
     /* ── Research Notes ── */
     'notes.tag': 'Notas de Arquitectura',
@@ -462,6 +464,8 @@ export const translations: Record<Language, Translations> = {
       'Architecture Notes often evolve into full articles. Follow the research pipeline from ',
     'articles.pipeline.link': 'Architecture Notes →',
     'articles.footer.back': '← Research',
+    'articles.newBadge': 'NEW',
+    'articles.readArticle': 'Read article',
 
     /* ── Research Notes ── */
     'notes.tag': 'Architecture Notes',
