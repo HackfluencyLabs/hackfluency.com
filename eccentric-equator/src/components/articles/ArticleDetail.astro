@@ -520,31 +520,46 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
     border: 1px solid var(--hf-border, #d0d8e0);
     box-shadow: 0 1px 4px rgba(0,0,0,0.04);
   }
-  .art-closing-inner::before {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--hf-accent, #00D26A);
-    box-shadow: 0 0 10px var(--hf-accent, #00D26A), 0 0 20px var(--hf-accent-dim);
-    animation: ant-walk 12s linear infinite;
-    z-index: 1;
-    pointer-events: none;
+  .art-closing-inner {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 40px;
+    background: var(--hf-bg-card, #111);
+    border: 1px solid var(--hf-border, #222);
+    border-radius: 16px;
+    padding: 40px 36px;
+    position: relative;
+    animation: border-glow 3s ease-in-out infinite;
   }
-  @keyframes ant-walk {
-    0%   { top: -4px; left: -4px; }
-    23%  { top: -4px; left: calc(100% - 4px); }
-    25%  { top: -4px; left: calc(100% - 4px); }
-    48%  { top: calc(100% - 4px); left: calc(100% - 4px); }
-    50%  { top: calc(100% - 4px); left: calc(100% - 4px); }
-    73%  { top: calc(100% - 4px); left: -4px; }
-    75%  { top: calc(100% - 4px); left: -4px; }
-    98%  { top: -4px; left: -4px; }
-    100% { top: -4px; left: -4px; }
+  html[data-theme-mode="light"] .art-closing-inner {
+    background: var(--hf-bg-secondary, #ffffff);
+    border-color: #dde0e6;
+    animation: border-glow-light 3s ease-in-out infinite;
   }
+  @keyframes border-glow {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    50% { box-shadow: 0 0 18px 1px var(--hf-accent-dim), 0 0 0 0 transparent; }
+  }
+  @keyframes border-glow-light {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    50% { box-shadow: 0 0 24px 3px rgba(0,150,90,0.15), 0 1px 4px rgba(0,0,0,0.06); }
+  }
+  html[data-theme-mode="light"] .art-claps-box {
+    border-color: #e0e4ea;
+  }
+  .art-closing-inner::before { display: none; }
   html[data-theme-mode="light"] .art-closing-inner::before {
-    opacity: 0.8;
+    background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent 255deg,
+      var(--hf-accent, #00965A) 255deg,
+      transparent 300deg,
+      transparent 360deg
+    );
+  }
+  @keyframes sweep {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
   .art-closing-inner::after {
     display: none;
