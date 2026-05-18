@@ -110,6 +110,27 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
     </div>
   </div>
 
+  <!-- Article Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": {JSON.stringify(meta.title)},
+    "description": {JSON.stringify(meta.description)},
+    "author": {
+      "@type": "Person",
+      "name": {JSON.stringify(meta.author)}
+    },
+    "datePublished": {JSON.stringify(meta.date)},
+    "timeRequired": {JSON.stringify(meta.readTime)},
+    "inLanguage": {JSON.stringify(locale === 'es' ? 'es' : 'en')},
+    "publisher": {
+      "@type": "Organization",
+      "name": "Hackfluency Research"
+    }
+  }
+  </script>
+
 </main>
 
 <!-- Footer -->
