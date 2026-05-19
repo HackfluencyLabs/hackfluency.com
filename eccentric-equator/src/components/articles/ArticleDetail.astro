@@ -736,10 +736,13 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
   }
 
   @media (max-width: 700px) {
+    .art-container { padding: 48px 20px 0; }
+    .art-container-narrow { padding: 0 20px; }
+    .art-closing-panel { padding: 40px 20px; }
     .art-closing-inner {
       grid-template-columns: 1fr;
       gap: 24px;
-      padding: 28px 20px;
+      padding: 28px 24px;
     }
     .art-claps-box {
       border-right: none;
@@ -747,8 +750,7 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
       padding-right: 0;
       padding-bottom: 24px;
     }
-    .art-container { padding: 48px 16px 0; }
-    .art-container-narrow { padding: 0 16px; }
+    .art-footer-inner { padding: 0 20px; }
     .art-title { font-size: 1.6rem; letter-spacing: -0.5px; }
     .art-section { padding: 60px 0; }
     .art-claps-btn { width: 60px; height: 60px; }
