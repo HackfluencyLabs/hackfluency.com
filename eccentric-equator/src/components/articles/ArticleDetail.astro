@@ -75,36 +75,73 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
 
       <!-- Comments -->
       <div class="art-comments-box">
-      <div class="art-giscus">
-        <div id="giscus-container"></div>
+      <div id="cusdis_thread"
+        data-host="https://cusdis.com"
+        data-app-id="90d95120-41f5-4baa-8285-8e91d4d96c45"
+        data-page-id="zero-day-ia-google"
+        data-page-url={Astro.url.href}
+        data-page-title={meta.title}
+        data-lang={locale === 'es' ? 'es' : 'en'}
+      ></div>
 
-<script>
+<script is:inline>
 (function() {
-  const mode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
-  const giscusTheme = mode === 'light' ? 'light' : 'transparent_dark';
-  const giscusLang = window.location.pathname.startsWith('/en/') ? 'en' : 'es';
-  const container = document.getElementById('giscus-container');
-  if (!container) return;
+  var thread = document.getElementById('cusdis_thread');
+  if (!thread) return;
 
-  const script = document.createElement('script');
-  script.src = 'https://giscus.app/client.js';
-  script.setAttribute('data-repo', 'HackfluencyLabs/hackfluency.com');
-  script.setAttribute('data-repo-id', 'R_kgDONVfB7A');
-  script.setAttribute('data-category', 'General');
-  script.setAttribute('data-category-id', 'DIC_kwDONVfB7M4Cl2jN');
-  script.setAttribute('data-mapping', 'pathname');
-  script.setAttribute('data-strict', '0');
-  script.setAttribute('data-reactions-enabled', '1');
-  script.setAttribute('data-emit-metadata', '0');
-  script.setAttribute('data-input-position', 'bottom');
-  script.setAttribute('data-theme', giscusTheme);
-  script.setAttribute('data-lang', 'es');
-  script.setAttribute('crossorigin', 'anonymous');
-  script.async = true;
-  container.appendChild(script);
+  function applyCusdisTheme() {
+    var iframe = thread.querySelector('iframe');
+    if (!iframe) return;
+    try {
+      var doc = iframe.contentDocument || iframe.contentWindow.document;
+      if (!doc || !doc.documentElement || !doc.documentElement.classList) return;
+      var isDark = document.documentElement.getAttribute('data-theme-mode') === 'dark';
+      if (isDark) {
+        doc.documentElement.classList.add('dark');
+        var s = doc.querySelector('style');
+        if (s) {
+          s.textContent = s.textContent.replace('color-scheme: light', 'color-scheme: dark');
+          // Fix Cusdis button text (missing dark:text-*)
+          if (!s.textContent.includes('button.cusdis-btn-dark')) {
+            s.textContent += 'button.dark\\:bg-transparent{color:#e5e7eb!important}.dark button.dark\\:bg-transparent{color:#e5e7eb!important}';
+          }
+        }
+      } else {
+        doc.documentElement.classList.remove('dark');
+        var s = doc.querySelector('style');
+        if (s) s.textContent = s.textContent.replace('color-scheme: dark', 'color-scheme: light');
+      }
+    } catch(e) {}
+  }
+
+  // Observe iframe changes (creates/replaces on render)
+  var observer = new MutationObserver(applyCusdisTheme);
+  observer.observe(thread, { childList: true, subtree: true });
+
+  // Fallback polling for timing edge cases (keep for 15s)
+  var pollTimer = setInterval(applyCusdisTheme, 500);
+  setTimeout(function() { clearInterval(pollTimer); }, 15000);
+
+  // Initial theme
+  var mode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
+  thread.setAttribute('data-theme', mode === 'light' ? 'light' : 'dark');
+  setTimeout(applyCusdisTheme, 300);
+
+  // Theme switch
+  window.addEventListener('hf-theme-change', function() {
+    var mode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
+    thread.setAttribute('data-theme', mode === 'light' ? 'light' : 'dark');
+    if (window.CUSDIS) {
+      window.CUSDIS.render();
+    }
+    // Retry after render since it replaces the iframe
+    setTimeout(applyCusdisTheme, 500);
+    setTimeout(applyCusdisTheme, 1000);
+    setTimeout(applyCusdisTheme, 2000);
+  });
 })();
 </script>
-      </div>
+<script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
       </div>
 
     </div>
@@ -171,20 +208,11 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
       if (clapped) return;
       clapped = true;
       localStorage.setItem(clapsKey, 'true');
-      updateCount(count + 1);
+      const newCount = count + 1;
+      updateCount(newCount);
       btn.classList.add('clapped');
 
-      fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?slug=eq.${slug}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz',
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ count: count + 1 })
-      }).catch(() => {});
-
-      // If no row exists, insert
+      // Upsert: insert if not exists, update count if exists
       fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps`, {
         method: 'POST',
         headers: {
@@ -192,7 +220,7 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
         },
-        body: JSON.stringify({ slug: slug, count: count + 1 })
+        body: JSON.stringify({ slug: slug, count: newCount })
       }).catch(() => {});
     });
   }
@@ -666,10 +694,10 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
   .art-comments-box {
     min-width: 0;
   }
-  .art-giscus {
-    min-height: 180px;
+  #cusdis_thread {
+    min-height: 200px;
   }
-  .art-giscus iframe {
+  #cusdis_thread iframe {
     border: none !important;
   }
 
