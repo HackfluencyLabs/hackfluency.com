@@ -101,8 +101,8 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
         var s = doc.querySelector('style');
         if (s) {
           s.textContent = s.textContent.replace('color-scheme: light', 'color-scheme: dark');
-          if (!s.textContent.includes('button.cusdis-btn-dark')) {
-            s.textContent += 'button.dark\\:bg-transparent{color:#e5e7eb!important}.dark button.dark\\:bg-transparent{color:#e5e7eb!important}';
+          if (!s.textContent.includes('/*hf-cusdis-btn*/')) {
+            s.textContent += '/*hf-cusdis-btn*/button.dark\\:bg-transparent{color:#e5e7eb!important}.dark button.dark\\:bg-transparent{color:#e5e7eb!important}';
           }
         }
       } else {
