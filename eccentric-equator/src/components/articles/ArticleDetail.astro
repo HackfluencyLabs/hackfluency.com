@@ -102,7 +102,7 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
         if (s) {
           s.textContent = s.textContent.replace('color-scheme: light', 'color-scheme: dark');
           if (!s.textContent.includes('/*hf-cusdis-btn*/')) {
-            s.textContent += '/*hf-cusdis-btn*/button.dark\\:bg-transparent{color:#e5e7eb!important}.dark button.dark\\:bg-transparent{color:#e5e7eb!important}';
+            s.textContent += '/*hf-cusdis-btn*/.dark button.dark\\:bg-transparent{color:#e5e7eb!important}';
           }
         }
       } else {
