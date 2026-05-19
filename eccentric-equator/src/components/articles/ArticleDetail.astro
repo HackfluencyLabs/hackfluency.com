@@ -186,15 +186,24 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
     if (countEl) countEl.textContent = count;
   }
 
-  // Fetch current count
-  fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?slug=eq.${slug}&select=count`, {
-    headers: { 'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz' }
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data && data.length > 0) updateCount(data[0].count);
-  })
-  .catch(() => {});
+  // Fetch current count with retry
+  function fetchCount(retries) {
+    var controller = new AbortController();
+    var timeout = setTimeout(function() { controller.abort(); }, 5000);
+    fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?slug=eq.${slug}&select=count`, {
+      headers: { 'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz' },
+      signal: controller.signal
+    })
+    .then(function(r) { clearTimeout(timeout); return r.json(); })
+    .then(function(data) {
+      if (data && data.length > 0) updateCount(data[0].count);
+    })
+    .catch(function() {
+      clearTimeout(timeout);
+      if (retries > 0) setTimeout(function() { fetchCount(retries - 1); }, 1500);
+    });
+  }
+  fetchCount(3);
 
   if (btn) {
     btn.addEventListener('click', function() {
