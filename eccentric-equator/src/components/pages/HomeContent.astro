@@ -281,134 +281,39 @@ const values = [
       <div class="mobile-nav-actions">
         <LanguageSelector locale={locale} />
         <NavAuthButtons client:only="react" mobile={true} />
-      </div>
     </div>
-  </div>
-</nav>
-
-<!-- Hero Section -->
-<main id="main-content" role="main">
-<section class="hero">
-  <div class="hero-bg">
-    <div class="hero-glow"></div>
-    <div class="hero-grid"></div>
-    <div class="hero-particles"></div>
-    <div class="hero-abstract" aria-hidden="true">
-      <svg class="hero-abstract-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="200" cy="180" r="140" class="abs-ring abs-ring--human" />
-        <circle cx="600" cy="160" r="120" class="abs-ring abs-ring--privacy" />
-        <circle cx="400" cy="420" r="100" class="abs-ring abs-ring--analysis" />
-        <circle cx="300" cy="300" r="80" class="abs-ring abs-ring--philosophy" />
-        <path d="M200 180 Q300 280 400 420" class="abs-strand" />
-        <path d="M600 160 Q500 280 400 420" class="abs-strand" />
-        <path d="M200 180 Q400 100 600 160" class="abs-strand abs-strand--dim" />
-        <path d="M300 300 Q350 200 400 100" class="abs-strand abs-strand--dim" />
-      </svg>
-    </div>
-  </div>
-  <div class="hero-content container">
-    <div class="hero-text">
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        {t('hero.badge')}
-      </div>
-      <h1 class="hero-title">
-        {t('hero.title')}
-        <span class="hero-title-accent"> {t('hero.titleAccent')}</span>
-      </h1>
-      <p class="hero-subtitle">
-        {t('hero.subtitle')}
-      </p>
-      <div class="hero-actions">
-        <a href="#services" class="btn btn-primary">
-          <span>{t('hero.ctaPrimary')}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
-        <a href={locale === 'es' ? '/research' : '/en/research'} class="btn btn-ghost">
-          {t('hero.ctaSecondary')}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
-      </div>
-      <a href="/SecurityRoadmap.HF" class="hero-proof" aria-label="View a sample Security Roadmap deliverable">
-        <div class="hero-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-          </svg>
-        </div>
-        <div class="hero-proof-text">
-          <span class="hero-proof-label">{t('hero.proofLabel')}</span>
-          <span class="hero-proof-link">
-            {t('hero.proofLink')}
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </span>
-        </div>
-      </a>
-    </div>
-    <div class="hero-diagram" aria-hidden="true">
-      <svg class="arch-diagram" viewBox="0 0 420 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Connection lines — curved and organic -->
-        <path d="M210 60 Q140 100 90 150" class="arch-line"/>
-        <path d="M210 60 Q280 100 330 150" class="arch-line"/>
-        <path d="M210 60 Q210 100 210 180" class="arch-line arch-line--dim"/>
-        <path d="M90 150 Q60 200 50 260" class="arch-line"/>
-        <path d="M90 150 Q120 210 160 260" class="arch-line"/>
-        <path d="M330 150 Q360 200 370 260" class="arch-line"/>
-        <path d="M330 150 Q300 210 260 260" class="arch-line"/>
-        <path d="M210 180 Q180 220 160 260" class="arch-line arch-line--dim"/>
-        <path d="M210 180 Q240 220 260 260" class="arch-line arch-line--dim"/>
-        <path d="M210 180 Q300 220 370 260" class="arch-line arch-line--dim"/>
-        <path d="M210 180 Q120 220 50 260" class="arch-line arch-line--dim"/>
-        <!-- Cross-connections (interconnectedness) -->
-        <path d="M90 150 Q210 200 330 150" class="arch-line arch-line--cross"/>
-        <path d="M160 260 Q210 220 260 260" class="arch-line arch-line--cross"/>
-        <!-- Central node — Circle (Digital Core) -->
-        <circle cx="210" cy="60" r="32" class="arch-node arch-node--primary"/>
-        <circle cx="210" cy="60" r="20" class="arch-node-inner"/>
-        <!-- Tier 1 — Left: Circle (Digital) -->
-        <circle cx="90" cy="150" r="26" class="arch-node arch-node--secondary"/>
-        <circle cx="90" cy="150" r="16" class="arch-node-inner"/>
-        <!-- Tier 1 — Right: Organic shape (Human/Social) -->
-        <path d="M330 130Q350 124 356 150Q350 176 330 170Q310 176 304 150Q310 124 330 130Z" class="arch-node arch-node--organic"/>
-        <circle cx="330" cy="150" r="12" class="arch-node-inner"/>
-        <!-- Tier 1 — Bottom: Abstract shape (Philosophical) -->
-        <polygon points="210,156 224,174 218,196 202,196 196,174" class="arch-node arch-node--abstract"/>
-        <circle cx="210" cy="180" r="10" class="arch-node-inner"/>
-        <!-- Tier 2 nodes — Bottom row -->
-        <circle cx="50" cy="260" r="14" class="arch-node arch-node--tertiary"/>
-        <circle cx="160" cy="260" r="14" class="arch-node arch-node--tertiary"/>
-        <circle cx="260" cy="260" r="14" class="arch-node arch-node--tertiary"/>
-        <circle cx="370" cy="260" r="14" class="arch-node arch-node--tertiary"/>
-        <!-- Labels -->
-        <text x="210" y="38" class="arch-label arch-label--hero" text-anchor="middle">Fluidez</text>
-        <text x="210" y="106" class="arch-label" text-anchor="middle">Core Strategy</text>
-        <text x="70" y="190" class="arch-label" text-anchor="middle">Digital</text>
-        <text x="330" y="190" class="arch-label" text-anchor="middle">Humano</text>
-        <text x="210" y="214" class="arch-label" text-anchor="middle">Sociedad</text>
-        <text x="50" y="290" class="arch-label arch-label--sm" text-anchor="middle">Engineering</text>
-        <text x="160" y="290" class="arch-label arch-label--sm" text-anchor="middle">Privacy</text>
-        <text x="260" y="290" class="arch-label arch-label--sm" text-anchor="middle">Intelligence</text>
-        <text x="370" y="290" class="arch-label arch-label--sm" text-anchor="middle">Ethics</text>
-        <!-- Pulse rings (animated) -->
-        <circle cx="210" cy="60" r="32" class="arch-pulse"/>
-        <circle cx="90" cy="150" r="26" class="arch-pulse arch-pulse--delay1"/>
-        <path d="M330 130Q350 124 356 150Q350 176 330 170Q310 176 304 150Q310 124 330 130Z" class="arch-pulse arch-pulse--organic arch-pulse--delay2"/>
-      </svg>
-    </div>
-  </div>
-  <div class="hero-scroll">
-    <span>{t('hero.scroll')}</span>
-    <div class="scroll-indicator"></div>
   </div>
 </section>
+
+<!-- Services Tooltip Toggle for Mobile -->
+<script>
+(function() {
+  var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (!isTouch) return;
+
+  document.addEventListener('astro:page-load', function() {
+    var units = document.querySelectorAll('.chrono-unit');
+    units.forEach(function(unit) {
+      unit.addEventListener('click', function(e) {
+        // Don't toggle if clicking a link
+        if (e.target.closest('a')) return;
+        e.preventDefault();
+        // Close all other open tooltips
+        units.forEach(function(u) {
+          if (u !== unit) u.classList.remove('active');
+        });
+        unit.classList.toggle('active');
+      });
+    });
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.chrono-unit')) {
+        units.forEach(function(u) { u.classList.remove('active'); });
+      }
+    });
+  });
+})();
+</script>
 
 <!-- Services Section -->
 <section id="services" class="services">
@@ -1747,7 +1652,8 @@ const values = [
     pointer-events: none;
   }
 
-  .chrono-unit:hover .chrono-spec {
+  .chrono-unit:hover .chrono-spec,
+  .chrono-unit.active .chrono-spec {
     opacity: 1;
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
@@ -1809,8 +1715,12 @@ const values = [
       top: auto;
       width: auto;
       transform: translateY(20px);
+      border-radius: 12px 12px 0 0;
+      max-height: 60vh;
+      overflow-y: auto;
     }
-    .chrono-unit:hover .chrono-spec { transform: translateY(0); }
+    .chrono-unit:hover .chrono-spec,
+    .chrono-unit.active .chrono-spec { transform: translateY(0); }
   }
 
   @media (min-width: 640px) {
