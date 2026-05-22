@@ -112,27 +112,29 @@ const values = [
 
     // Chrono-spec tooltip toggle for touch devices
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-      const units = document.querySelectorAll('.chrono-unit');
+      var units = document.querySelectorAll('.chrono-unit');
       if (units.length) {
-        // Open: tap on the gear (but not on the tooltip or links)
-        units.forEach(u => {
-          u.addEventListener('click', function(e) {
-            if (e.target.closest('a') || e.target.closest('.chrono-spec')) return;
-            units.forEach(x => { if (x !== this) x.classList.remove('active'); });
-            this.classList.toggle('active');
-          });
-        });
-        // Close: tap outside any gear
-        document.addEventListener('click', e => {
-          if (!e.target.closest('.chrono-unit')) units.forEach(u => u.classList.remove('active'));
-        });
-        // Close: tap on the tooltip itself
-        document.addEventListener('click', e => {
+        // Open: tap on the gear (not on tooltip or links)
+        for (var i = 0; i < units.length; i++) {
+          (function(unit) {
+            unit.addEventListener('touchstart', function(e) {
+              if (e.target.closest('a') || e.target.closest('.chrono-spec')) return;
+              for (var j = 0; j < units.length; j++) {
+                if (units[j] !== unit) units[j].classList.remove('active');
+              }
+              unit.classList.toggle('active');
+            }, { passive: true });
+          })(units[i]);
+        }
+        // Close: tap outside or on tooltip
+        document.addEventListener('touchstart', function(e) {
           if (e.target.closest('.chrono-spec')) {
-            const unit = e.target.closest('.chrono-unit');
-            if (unit) unit.classList.remove('active');
+            var u = e.target.closest('.chrono-unit');
+            if (u) u.classList.remove('active');
+          } else if (!e.target.closest('.chrono-unit')) {
+            for (var j = 0; j < units.length; j++) units[j].classList.remove('active');
           }
-        });
+        }, { passive: true });
       }
     }
 
