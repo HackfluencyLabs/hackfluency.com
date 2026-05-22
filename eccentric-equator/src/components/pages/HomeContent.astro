@@ -110,32 +110,31 @@ const values = [
       });
     }
 
-    // Chrono-spec tooltip toggle for touch devices
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-      var units = document.querySelectorAll('.chrono-unit');
-      if (units.length) {
-        // Open: tap on the gear (not on tooltip or links)
-        for (var i = 0; i < units.length; i++) {
-          (function(unit) {
-            unit.addEventListener('touchstart', function(e) {
-              if (e.target.closest('a') || e.target.closest('.chrono-spec')) return;
-              for (var j = 0; j < units.length; j++) {
-                if (units[j] !== unit) units[j].classList.remove('active');
-              }
-              unit.classList.toggle('active');
-            }, { passive: true });
-          })(units[i]);
+    // Chrono-spec tooltip toggle (touch devices only)
+    if (window.matchMedia('(hover: none)').matches && document.querySelector('.chrono-unit')) {
+      document.addEventListener('click', function(e) {
+        var unit = e.target.closest('.chrono-unit');
+        var spec = e.target.closest('.chrono-spec');
+        
+        if (spec) {
+          var parent = spec.closest('.chrono-unit');
+          if (parent) parent.classList.remove('active');
+          return;
         }
-        // Close: tap outside or on tooltip
-        document.addEventListener('touchstart', function(e) {
-          if (e.target.closest('.chrono-spec')) {
-            var u = e.target.closest('.chrono-unit');
-            if (u) u.classList.remove('active');
-          } else if (!e.target.closest('.chrono-unit')) {
-            for (var j = 0; j < units.length; j++) units[j].classList.remove('active');
-          }
-        }, { passive: true });
-      }
+        
+        if (unit) {
+          var all = document.querySelectorAll('.chrono-unit');
+          all.forEach(function(u) {
+            if (u !== unit) u.classList.remove('active');
+          });
+          unit.classList.toggle('active');
+          return;
+        }
+        
+        document.querySelectorAll('.chrono-unit').forEach(function(u) {
+          u.classList.remove('active');
+        });
+      });
     }
 
     // Navigation scroll effect
