@@ -24,6 +24,11 @@ export interface ThemeConfig {
   accentDim: string;        // Very subtle accent bg (rgba)
   accentBorder: string;     // Accent-tinted border (rgba)
   accentSecondary: string;  // Secondary accent (replaces --accent / red)
+  accentHuman: string;      // Accent for human/psychology themes
+  accentPrivacy: string;    // Accent for privacy/data themes
+  accentAnalysis: string;   // Accent for intelligence analysis themes
+  accentPhilosophy: string; // Accent for philosophy/ethics themes
+
 
   // ── Background layers ──
   bgPrimary: string;        // Page background (body)
@@ -55,7 +60,7 @@ export interface ThemeConfig {
 }
 
 export const THEME_STORAGE_KEY = 'hf-theme';
-export const DEFAULT_THEME_ID = 'analyst';
+export const DEFAULT_THEME_ID = 'default';
 
 // ─────────────────────────────────────────────────────────────
 // Theme palette definitions
@@ -74,6 +79,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(0, 210, 106, 0.1)',
     accentBorder: 'rgba(0, 210, 106, 0.3)',
     accentSecondary: '#E31B23',
+    accentHuman: '#FF7F50',
+    accentPrivacy: '#1E90FF',
+    accentAnalysis: '#9370DB',
+    accentPhilosophy: '#DAA520',
     bgPrimary: '#0a0a0a',
     bgSecondary: '#111111',
     bgCard: '#111111',
@@ -108,6 +117,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(255, 68, 85, 0.1)',
     accentBorder: 'rgba(255, 68, 85, 0.3)',
     accentSecondary: '#FF6B35',
+    accentHuman: '#FF7F50',
+    accentPrivacy: '#1E90FF',
+    accentAnalysis: '#9370DB',
+    accentPhilosophy: '#DAA520',
     bgPrimary: '#0a0505',
     bgSecondary: '#110808',
     bgCard: '#110808',
@@ -142,6 +155,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(59, 130, 246, 0.1)',
     accentBorder: 'rgba(59, 130, 246, 0.3)',
     accentSecondary: '#60A5FA',
+    accentHuman: '#FF7F50',
+    accentPrivacy: '#1E90FF',
+    accentAnalysis: '#9370DB',
+    accentPhilosophy: '#DAA520',
     bgPrimary: '#050914',
     bgSecondary: '#080f1c',
     bgCard: '#0a1220',
@@ -176,6 +193,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(139, 92, 246, 0.1)',
     accentBorder: 'rgba(139, 92, 246, 0.3)',
     accentSecondary: '#A78BFA',
+    accentHuman: '#FF7F50',
+    accentPrivacy: '#1E90FF',
+    accentAnalysis: '#9370DB',
+    accentPhilosophy: '#DAA520',
     bgPrimary: '#080510',
     bgSecondary: '#0d0917',
     bgCard: '#0d0917',
@@ -210,6 +231,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(245, 158, 11, 0.1)',
     accentBorder: 'rgba(245, 158, 11, 0.3)',
     accentSecondary: '#FCD34D',
+    accentHuman: '#FF7F50',
+    accentPrivacy: '#1E90FF',
+    accentAnalysis: '#9370DB',
+    accentPhilosophy: '#DAA520',
     bgPrimary: '#0a0800',
     bgSecondary: '#110e02',
     bgCard: '#110e02',
@@ -244,6 +269,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(148, 163, 184, 0.1)',
     accentBorder: 'rgba(148, 163, 184, 0.3)',
     accentSecondary: '#CBD5E1',
+    accentHuman: '#94A3B8',
+    accentPrivacy: '#64748B',
+    accentAnalysis: '#7C8BA8',
+    accentPhilosophy: '#A0AEC0',
     bgPrimary: '#080a0c',
     bgSecondary: '#0e1116',
     bgCard: '#0e1116',
@@ -279,6 +308,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(0, 150, 90, 0.08)',
     accentBorder: 'rgba(0, 150, 90, 0.25)',
     accentSecondary: '#2563EB',
+    accentHuman: '#9C5E4D',
+    accentPrivacy: '#1E3A5F',
+    accentAnalysis: '#6C4F9E',
+    accentPhilosophy: '#7A6A4E',
     bgPrimary: '#f8fafb',
     bgSecondary: '#ffffff',
     bgCard: '#ffffff',
@@ -301,7 +334,46 @@ export const THEMES: ThemeConfig[] = [
     navBorder: '#d0d8e0',
   },
 
-  // ─── 8. Stark (Light) ───
+  // ─── 8. Default (Light — user default, cream & emerald palette) ───
+  {
+    id: 'default',
+    name: 'Default',
+    icon: '⬜',
+    isLight: true,
+    accent: '#2D6A4F',
+    accentLight: '#40916C',
+    accentDark: '#1B4332',
+    accentGlow: 'rgba(45, 106, 79, 0.35)',
+    accentDim: 'rgba(45, 106, 79, 0.08)',
+    accentBorder: 'rgba(45, 106, 79, 0.2)',
+    accentSecondary: '#2563EB',
+    accentHuman: '#9C5E4D',
+    accentPrivacy: '#1E3A5F',
+    accentAnalysis: '#6C4F9E',
+    accentPhilosophy: '#7A6A4E',
+    bgPrimary: '#F7F5F0',
+    bgSecondary: '#FAF8F5',
+    bgCard: '#FAF8F5',
+    bgTertiary: '#F2EFE8',
+    bgCode: '#EFECE5',
+    bgTrack: '#E8E4DC',
+    bgElevated: '#FAF8F5',
+    borderPrimary: '#D8D4CA',
+    borderSecondary: '#C8C4BA',
+    borderSubtle: 'rgba(0, 0, 0, 0.06)',
+    textPrimary: '#1A1A18',
+    textSecondary: '#3A3A35',
+    textMuted: '#6A6A62',
+    textDim: '#8A8A82',
+    textDisabled: '#BABAB2',
+    textOnAccent: '#ffffff',
+    tabActiveBorder: '#D0CCC2',
+    minimapMask: 'rgba(247,245,240,0.8)',
+    navBg: 'linear-gradient(180deg, #FAF8F5 0%, #F2EFE8 100%)',
+    navBorder: '#D8D4CA',
+  },
+
+  // ─── 9. Stark (Light) ───
   {
     id: 'stark',
     name: 'Stark',
@@ -314,6 +386,10 @@ export const THEMES: ThemeConfig[] = [
     accentDim: 'rgba(29, 78, 216, 0.07)',
     accentBorder: 'rgba(29, 78, 216, 0.2)',
     accentSecondary: '#7C3AED',
+    accentHuman: '#9C5E4D',
+    accentPrivacy: '#1E3A5F',
+    accentAnalysis: '#6C4F9E',
+    accentPhilosophy: '#7A6A4E',
     bgPrimary: '#f0f2f5',
     bgSecondary: '#ffffff',
     bgCard: '#ffffff',
@@ -358,6 +434,10 @@ export function themeToCSSVars(theme: ThemeConfig): Record<string, string> {
     '--hf-accent-dim': theme.accentDim,
     '--hf-accent-border': theme.accentBorder,
     '--hf-accent-secondary': theme.accentSecondary,
+    '--hf-accent-human': theme.accentHuman,
+    '--hf-accent-privacy': theme.accentPrivacy,
+    '--hf-accent-analysis': theme.accentAnalysis,
+    '--hf-accent-philosophy': theme.accentPhilosophy,
 
     // Backgrounds
     '--hf-bg': theme.bgPrimary,

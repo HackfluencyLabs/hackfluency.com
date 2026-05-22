@@ -12,7 +12,7 @@
 <script is:inline>
 (function() {
   var STORAGE_KEY = 'hf-theme';
-  var DEFAULT = 'analyst';
+  var DEFAULT = 'default';
 
   // Theme data — minimal copy for inline script (no imports possible)
   var themes = {
@@ -23,7 +23,8 @@
     'amber': { l:0, a:'#F59E0B',al:'#FCD34D',ad:'#D97706',ag:'rgba(245,158,11,0.6)',ai:'rgba(245,158,11,0.1)',ab:'rgba(245,158,11,0.3)',as:'#FCD34D', bg:'#0a0800',bg2:'#110e02',bgc:'#110e02',bg3:'#0d0b01',bgx:'#050400',bgt:'#2a2205',bge:'#1a1805', b1:'#2a2205',b2:'#342b06',bs:'rgba(245,158,11,0.1)', t:'#fffbe0',ts:'#e0d090',tm:'#aa8844',td:'#806030',tD:'#553f10',ta:'#000000', tb:'#3a2f07',mm:'rgba(10,8,0,0.8)',nb:'linear-gradient(180deg,#1a1805 0%,#0a0800 100%)',nB:'#2a2205' },
     'ice': { l:0, a:'#94A3B8',al:'#CBD5E1',ad:'#64748B',ag:'rgba(148,163,184,0.6)',ai:'rgba(148,163,184,0.1)',ab:'rgba(148,163,184,0.3)',as:'#CBD5E1', bg:'#080a0c',bg2:'#0e1116',bgc:'#0e1116',bg3:'#0b0d10',bgx:'#040506',bgt:'#1a2030',bge:'#141a24', b1:'#1e2430',b2:'#252e3c',bs:'rgba(148,163,184,0.1)', t:'#f0f4f8',ts:'#b4c4d8',tm:'#6677aa',td:'#4d5a70',tD:'#303c50',ta:'#000000', tb:'#2a3040',mm:'rgba(8,10,12,0.8)',nb:'linear-gradient(180deg,#141a24 0%,#080a0c 100%)',nB:'#1e2430' },
     'analyst': { l:1, a:'#00965A',al:'#00B36B',ad:'#007A4A',ag:'rgba(0,150,90,0.4)',ai:'rgba(0,150,90,0.08)',ab:'rgba(0,150,90,0.25)',as:'#2563EB', bg:'#f8fafb',bg2:'#ffffff',bgc:'#ffffff',bg3:'#f0f4f7',bgx:'#f5f5f0',bgt:'#e0e5eb',bge:'#ffffff', b1:'#d0d8e0',b2:'#bbc6d0',bs:'rgba(0,0,0,0.08)', t:'#0f1923',ts:'#2d3d4d',tm:'#556070',td:'#7a8a98',tD:'#b0bcc8',ta:'#ffffff', tb:'#c8d2db',mm:'rgba(240,244,247,0.8)',nb:'linear-gradient(180deg,#ffffff 0%,#f0f4f7 100%)',nB:'#d0d8e0' },
-    'stark': { l:1, a:'#1D4ED8',al:'#3B82F6',ad:'#1E40AF',ag:'rgba(29,78,216,0.4)',ai:'rgba(29,78,216,0.07)',ab:'rgba(29,78,216,0.2)',as:'#7C3AED', bg:'#f0f2f5',bg2:'#ffffff',bgc:'#ffffff',bg3:'#e8ebef',bgx:'#eeeef0',bgt:'#dde0e6',bge:'#ffffff', b1:'#c8cdd5',b2:'#b5bbc5',bs:'rgba(0,0,0,0.06)', t:'#0a0c10',ts:'#1e2535',tm:'#4a5568',td:'#72808f',tD:'#a8b2bc',ta:'#ffffff', tb:'#bfc5ce',mm:'rgba(240,242,245,0.85)',nb:'linear-gradient(180deg,#ffffff 0%,#e8ebef 100%)',nB:'#c8cdd5' }
+    'stark': { l:1, a:'#1D4ED8',al:'#3B82F6',ad:'#1E40AF',ag:'rgba(29,78,216,0.4)',ai:'rgba(29,78,216,0.07)',ab:'rgba(29,78,216,0.2)',as:'#7C3AED', bg:'#f0f2f5',bg2:'#ffffff',bgc:'#ffffff',bg3:'#e8ebef',bgx:'#eeeef0',bgt:'#dde0e6',bge:'#ffffff', b1:'#c8cdd5',b2:'#b5bbc5',bs:'rgba(0,0,0,0.06)', t:'#0a0c10',ts:'#1e2535',tm:'#4a5568',td:'#72808f',tD:'#a8b2bc',ta:'#ffffff', tb:'#bfc5ce',mm:'rgba(240,242,245,0.85)',nb:'linear-gradient(180deg,#ffffff 0%,#e8ebef 100%)',nB:'#c8cdd5' },
+    'default': { l:1, a:'#2D6A4F',al:'#40916C',ad:'#1B4332',ag:'rgba(45,106,79,0.35)',ai:'rgba(45,106,79,0.08)',ab:'rgba(45,106,79,0.2)',as:'#2563EB',ah:'#9C5E4D',ap:'#1E3A5F',aan:'#6C4F9E',aph:'#7A6A4E', bg:'#F7F5F0',bg2:'#FAF8F5',bgc:'#FAF8F5',bg3:'#F2EFE8',bgx:'#EFECE5',bgt:'#E8E4DC',bge:'#FAF8F5', b1:'#D8D4CA',b2:'#C8C4BA',bs:'rgba(0,0,0,0.06)', t:'#1A1A18',ts:'#3A3A35',tm:'#6A6A62',td:'#8A8A82',tD:'#BABAB2',ta:'#ffffff', tb:'#D0CCC2',mm:'rgba(247,245,240,0.8)',nb:'linear-gradient(180deg,#FAF8F5 0%,#F2EFE8 100%)',nB:'#D8D4CA' },
   };
 
   function applyStoredTheme() {
@@ -44,6 +45,10 @@
     s.setProperty('--hf-accent-dim', th.ai);
     s.setProperty('--hf-accent-border', th.ab);
     s.setProperty('--hf-accent-secondary', th.as);
+    s.setProperty('--hf-accent-human', th.ah || '#9C5E4D');
+    s.setProperty('--hf-accent-privacy', th.ap || '#1E3A5F');
+    s.setProperty('--hf-accent-analysis', th.aan || '#6C4F9E');
+    s.setProperty('--hf-accent-philosophy', th.aph || '#7A6A4E');
     s.setProperty('--hf-bg', th.bg);
     s.setProperty('--hf-bg-secondary', th.bg2);
     s.setProperty('--hf-bg-card', th.bgc);

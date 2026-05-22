@@ -38,11 +38,11 @@ export const translations: Record<Language, Translations> = {
     'rnav.aria.mobileMenu': 'Menú de navegación',
 
     /* ── Hero ── */
-    'hero.badge': 'Consultoría Técnica · Arquitectura de Seguridad e IA',
-    'hero.title': 'Ingeniería de Sistemas',
-    'hero.titleAccent': 'Seguros e Inteligentes',
+    'hero.badge': 'Consultoría · Investigación · Análisis de Sistemas Complejos',
+    'hero.title': 'Fluidez en Sistemas',
+    'hero.titleAccent': 'Complejos',
     'hero.subtitle':
-      'Somos una firma boutique de consultoría técnica especializada en arquitectura de seguridad avanzada, sistemas de IA y automatización. Cada proyecto es liderado directamente por el fundador — sin gestores de cuentas ni manuales genéricos.',
+      'Navegamos la intersección entre seguridad, inteligencia artificial, privacidad de datos y comportamiento humano. Cada proyecto es liderado por el fundador — sin capas intermedias ni entregables genéricos.',
     'hero.ctaPrimary': 'Explora Nuestro Enfoque',
     'hero.ctaSecondary': 'Explorar Investigación',
     'hero.proofLabel': 'Ejemplo de entregable',
@@ -53,7 +53,7 @@ export const translations: Record<Language, Translations> = {
     'services.tag': 'Áreas de Práctica',
     'services.title': 'Áreas de Experiencia',
     'services.subtitle':
-      'Seis áreas de práctica interconectadas — desde asesoría estratégica hasta investigación aplicada — diseñadas para abordar desafíos complejos de seguridad y tecnología en cada capa.',
+      'Ocho áreas de práctica interconectadas — desde asesoría estratégica e ingeniería de seguridad hasta privacidad de datos, análisis de inteligencia e investigación aplicada — diseñadas para abordar desafíos complejos en cada capa: técnica, humana y sistémica.',
     'services.strategicAdvisory.title': 'Asesoría Estratégica',
     'services.strategicAdvisory.desc':
       'Estrategia de seguridad de alto nivel, hojas de ruta de seguridad para IA y análisis de riesgo tecnológico alineados con tus objetivos de negocio.',
@@ -72,25 +72,39 @@ export const translations: Record<Language, Translations> = {
     'services.research.title': 'Investigación y Herramientas',
     'services.research.desc':
       'Investigación técnica independiente y herramientas propietarias — incluyendo CodeRed — que alimentan nuestra consultoría con innovación aplicada y de vanguardia.',
+    'services.dataPrivacy.title': 'Privacidad de Datos',
+    'services.dataPrivacy.desc':
+      'Análisis de exposición de datos, cumplimiento normativo y arquitecturas de privacidad desde el diseño. Evaluamos el riesgo desde una perspectiva tanto técnica como contextual.',
+    'services.intelligenceAnalysis.title': 'Análisis de Inteligencia',
+    'services.intelligenceAnalysis.desc':
+      'Análisis de inteligencia de fuentes abiertas, monitoreo de amenazas y evaluación estratégica de actores. Traducimos señales del entorno en inteligencia accionable para tu organización.',
     'services.bookConsultation': 'Agendar consultoría',
-    'services.explore': 'Explorar',
+    'services.explore': 'Explorar Investigación',
 
     /* ── About ── */
     'about.tag': 'Quiénes Somos',
-    'about.title': 'Un Tipo Diferente de Firma de Seguridad',
+    'about.title': 'Fluidez en Sistemas Complejos',
     'about.text1':
-      'Somos una firma boutique de consultoría técnica construida para problemas complejos — el tipo que no encaja en el catálogo de productos de un proveedor ni en una plantilla de compromiso estándar.',
+      'No hacemos consultoría en serie. Somos una firma boutique fundada para abordar problemas que no encajan en catálogos de proveedores ni plantillas estándar — desde la arquitectura de sistemas críticos hasta el análisis del impacto social de la tecnología.',
     'about.text2':
-      'Cada proyecto es liderado por un Arquitecto Principal con años de experiencia práctica — no delegado a personal junior. Aportamos investigación profunda, herramientas propietarias y experiencia multi-dominio en seguridad, IA y automatización.',
+      'Cada proyecto es liderado por un Arquitecto Principal con años de experiencia práctica. Aportamos investigación propia, herramientas propietarias y una perspectiva multi-dominio que reconoce que los sistemas más complejos no son solo técnicos: son humanos, sociales y políticos.',
     'about.feature1': 'Proyectos liderados por el fundador — sin gestores de cuentas',
     'about.feature2': 'Herramientas de investigación propietarias en producción activa',
     'about.feature3': 'Asesoría independiente — sin afiliaciones con vendedores',
+    'about.panel.digital': 'Digital',
+    'about.panel.digitalDesc': 'Arquitectura y automatización a escala',
+    'about.panel.human': 'Humano',
+    'about.panel.humanDesc': 'Sesgos cognitivos y psicología organizacional',
+    'about.panel.social': 'Social',
+    'about.panel.socialDesc': 'Análisis geopolítico y de inteligencia',
+    'about.panel.philosophy': 'Filosófico',
+    'about.panel.philosophyDesc': 'Ética de IA e impacto tecnológico en la sociedad',
 
     /* ── Values ── */
     'values.tag': 'Nuestra Filosofía',
     'values.title': 'Cómo Trabajamos',
     'values.subtitle':
-      'Los principios que guían cada proyecto — técnicamente rigurosos, estratégicamente claros y siempre independientes.',
+      'Principios que guían cada proyecto — rigurosos, claros, independientes. De la excelencia técnica a la comprensión humana del riesgo.',
     'values.excellence.title': 'Excelencia',
     'values.excellence.desc':
       'Profundidad técnica sobre amplitud superficial. Abordamos problemas complejos que otros evitan y entregamos soluciones que realmente funcionan.',
@@ -103,6 +117,12 @@ export const translations: Record<Language, Translations> = {
     'values.integrity.title': 'Integridad',
     'values.integrity.desc':
       'Asesoría independiente sin afiliaciones con vendedores ni conflictos de interés. Nuestras recomendaciones sirven a tus objetivos, no a una cuota de ventas.',
+    'values.understanding.title': 'Comprensión Humana',
+    'values.understanding.desc':
+      'El riesgo y la seguridad no son solo técnicos — son humanos. Incorporamos psicología organizacional, sesgos cognitivos y dinámicas de comportamiento en cada evaluación.',
+    'values.depth.title': 'Profundidad Filosófica',
+    'values.depth.desc':
+      'Hacemos preguntas fundamentales sobre el impacto de la tecnología en la sociedad, la autonomía de los sistemas de IA y las implicaciones éticas de cada decisión arquitectónica.',
 
     /* ── CTA ── */
     'cta.tag': 'Inicia la Conversación',
@@ -117,14 +137,14 @@ export const translations: Record<Language, Translations> = {
 
     /* ── Footer ── */
     'footer.tagline':
-      'Consultoría avanzada en ciberseguridad impulsada por investigación independiente y profundidad técnica.',
+      'Consultoría boutique e investigación independiente en sistemas complejos — seguridad, inteligencia artificial, privacidad, análisis de inteligencia y las intersecciones entre lo digital, lo humano y lo social.',
     'footer.servicesTitle': 'Servicios',
     'footer.companyTitle': 'Compañía',
     'footer.connectTitle': 'Conectar',
     'footer.aboutUs': 'Sobre Nosotros',
     'footer.strategyRoadmap': 'Herramienta de Roadmap Estratégico',
     'footer.newsletter.title': 'Mantente Actualizado',
-    'footer.newsletter.subtitle': 'Recibe los últimos análisis de ciberseguridad y novedades de la empresa.',
+    'footer.newsletter.subtitle': 'Recibe análisis sobre sistemas complejos, seguridad, IA, privacidad y las intersecciones entre tecnología y sociedad.',
     'footer.newsletter.placeholder': 'tu@email.com',
     'footer.newsletter.button': 'Suscribirse',
     'footer.newsletter.subscribing': 'Suscribiendo...',
@@ -290,11 +310,11 @@ export const translations: Record<Language, Translations> = {
     'rnav.aria.mobileMenu': 'Navigation menu',
 
     /* ── Hero ── */
-    'hero.badge': 'Technical Consulting · Security & AI Architecture',
-    'hero.title': 'Engineering Secure,',
-    'hero.titleAccent': 'Intelligent Systems',
+    'hero.badge': 'Consulting · Research · Complex Systems Analysis',
+    'hero.title': 'Fluency in Complex',
+    'hero.titleAccent': 'Systems',
     'hero.subtitle':
-      'We are a boutique technical consulting firm specializing in advanced security architecture, AI systems, and automation. Every engagement is led directly by the founder — no account managers, no generic playbooks.',
+      'We navigate the intersection of security, artificial intelligence, data privacy, and human behavior. Every engagement is founder-led — no middlemen, no generic deliverables.',
     'hero.ctaPrimary': 'Explore Our Approach',
     'hero.ctaSecondary': 'Explore Research',
     'hero.proofLabel': 'Sample deliverable',
@@ -305,7 +325,7 @@ export const translations: Record<Language, Translations> = {
     'services.tag': 'Practice Areas',
     'services.title': 'Areas of Expertise',
     'services.subtitle':
-      'Six interconnected practice areas — from strategic advisory to applied research — designed to address complex security and technology challenges at every layer.',
+      'Eight interconnected practice areas — from strategic advisory and security engineering to data privacy, intelligence analysis, and applied research — designed to address complex challenges at every layer: technical, human, and systemic.',
     'services.strategicAdvisory.title': 'Strategic Advisory',
     'services.strategicAdvisory.desc':
       'High-level security strategy, AI security roadmaps, and technology risk analysis aligned to your business objectives.',
@@ -324,37 +344,57 @@ export const translations: Record<Language, Translations> = {
     'services.research.title': 'Research & Tooling',
     'services.research.desc':
       'Independent technical research and proprietary tooling — including CodeRed — that feeds our consulting with applied, cutting-edge innovation.',
+    'services.dataPrivacy.title': 'Data Privacy',
+    'services.dataPrivacy.desc':
+      'Data exposure analysis, regulatory compliance, and privacy-by-design architectures. We assess risk from both a technical and a contextual perspective.',
+    'services.intelligenceAnalysis.title': 'Intelligence Analysis',
+    'services.intelligenceAnalysis.desc':
+      'Open-source intelligence gathering, threat monitoring, and strategic actor assessment. We translate environmental signals into actionable intelligence for your organization.',
     'services.bookConsultation': 'Book consultation',
     'services.explore': 'Explore Research',
 
     /* ── About ── */
     'about.tag': 'Who We Are',
-    'about.title': 'A Different Kind of Security Firm',
+    'about.title': 'Fluency in Complex Systems',
     'about.text1':
-      'We are a boutique technical consulting firm built for complex problems — the kind that don\'t fit neatly into a vendor\'s product catalog or a standard engagement template.',
+      'We don\'t do cookie-cutter consulting. We\'re a boutique firm built for problems that don\'t fit vendor catalogs or standard engagement templates — from critical systems architecture to the social impact of technology.',
     'about.text2':
-      'Every engagement is led by a Principal Architect with years of hands-on experience — not delegated to junior staff. We bring deep research, proprietary tooling, and cross-domain expertise in security, AI, and automation.',
+      'Every engagement is led by a Principal Architect with years of hands-on experience. We bring proprietary research, custom tooling, and a multi-domain perspective that recognizes the most complex systems are not just technical — they are human, social, and political.',
     'about.feature1': 'Founder-led engagements — no account managers',
     'about.feature2': 'Proprietary research tools in active production',
     'about.feature3': 'Independent advisory — no vendor affiliations',
+    'about.panel.digital': 'Digital',
+    'about.panel.digitalDesc': 'Architecture & automation at scale',
+    'about.panel.human': 'Human',
+    'about.panel.humanDesc': 'Cognitive bias & organizational psychology',
+    'about.panel.social': 'Social',
+    'about.panel.socialDesc': 'Geopolitical & intelligence analysis',
+    'about.panel.philosophy': 'Philosophical',
+    'about.panel.philosophyDesc': 'AI ethics & technology impact on society',
 
     /* ── Values ── */
     'values.tag': 'Our Philosophy',
     'values.title': 'How We Work',
     'values.subtitle':
-      'The principles that shape every engagement — technically rigorous, strategically clear, and always independent.',
+      'Principles that guide every engagement — rigorous, clear, independent. From technical excellence to human-centered risk understanding.',
     'values.excellence.title': 'Excellence',
     'values.excellence.desc':
-      'Technical depth over superficial breadth. We engage with complex problems others avoid, and deliver solutions that actually hold.',
+      'Technical depth over surface-level breadth. We tackle hard problems others avoid and deliver solutions that actually work.',
     'values.evolution.title': 'Evolution',
     'values.evolution.desc':
-      'Continuously adapting to emerging threats, AI developments, and architectural shifts before they become risks for our clients.',
+      'We continuously adapt to emerging threats, AI developments, and architectural shifts before they become risks for our clients.',
     'values.elegance.title': 'Elegance',
     'values.elegance.desc':
-      'Clean architecture thinking. Every design decision is deliberate — no unnecessary complexity, no bloat, no hidden fragility.',
+      'Clean architectural thinking. Every design decision is deliberate — no unnecessary complexity, no bloat, no hidden fragility.',
     'values.integrity.title': 'Integrity',
     'values.integrity.desc':
       'Independent advisory with no vendor affiliations or conflicts of interest. Our recommendations serve your objectives, not a sales quota.',
+    'values.understanding.title': 'Human Understanding',
+    'values.understanding.desc':
+      'Risk and security are not just technical — they are human. We incorporate organizational psychology, cognitive biases, and behavioral dynamics into every assessment.',
+    'values.depth.title': 'Philosophical Depth',
+    'values.depth.desc':
+      'We ask fundamental questions about technology\'s impact on society, the autonomy of AI systems, and the ethical implications of every architectural decision.',
 
     /* ── CTA ── */
     'cta.tag': 'Start the Conversation',
@@ -369,14 +409,14 @@ export const translations: Record<Language, Translations> = {
 
     /* ── Footer ── */
     'footer.tagline':
-      'Advanced cybersecurity consulting driven by independent research and technical depth.',
+      'Boutique consulting and independent research on complex systems — security, AI, privacy, intelligence analysis, and the intersections between the digital, the human, and the social.',
     'footer.servicesTitle': 'Services',
     'footer.companyTitle': 'Company',
     'footer.connectTitle': 'Connect',
     'footer.aboutUs': 'About Us',
     'footer.strategyRoadmap': 'Strategy Roadmap Tool',
     'footer.newsletter.title': 'Stay Updated',
-    'footer.newsletter.subtitle': 'Get the latest cybersecurity insights and company updates.',
+    'footer.newsletter.subtitle': 'Get insights on complex systems, security, AI, privacy, and the intersections between technology and society.',
     'footer.newsletter.placeholder': 'your@email.com',
     'footer.newsletter.button': 'Subscribe',
     'footer.newsletter.subscribing': 'Subscribing...',

@@ -82,8 +82,8 @@ const { t } = getTranslations(locale);
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet"></noscript>
 
     <!-- TrustBox script -->
     <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
@@ -193,6 +193,10 @@ const { t } = getTranslations(locale);
     --hf-accent-dim: rgba(0, 210, 106, 0.1);
     --hf-accent-border: rgba(0, 210, 106, 0.3);
     --hf-accent-secondary: #E31B23;
+    --hf-accent-human: #9C5E4D;
+    --hf-accent-privacy: #1E3A5F;
+    --hf-accent-analysis: #6C4F9E;
+    --hf-accent-philosophy: #7A6A4E;
     --hf-bg: #0a0a0a;
     --hf-bg-secondary: #111111;
     --hf-bg-card: #111111;
@@ -236,6 +240,9 @@ const { t } = getTranslations(locale);
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
+
+  /* ── Brand accent extensions ── */
+  :root {
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;

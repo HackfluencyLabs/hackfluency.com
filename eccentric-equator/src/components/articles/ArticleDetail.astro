@@ -9,6 +9,7 @@ export interface ArticleMeta {
   readTime: string;
   author: string;
   badge?: string;
+  layout?: 'technical' | 'essay' | 'reportage';
 }
 
 export interface Props {
@@ -19,13 +20,16 @@ export interface Props {
 
 const { meta, locale = 'es' } = Astro.props;
 const giscusLang = locale === 'es' ? 'es' : 'en';
+const artLayout = meta.layout || 'technical';
+const layoutClass = 'art-layout--' + artLayout;
+
 ---
 
 <ResearchNav activePage="articles" locale={locale} />
 
-<main class="rpage art-main">
+<main class={"rpage art-main " + layoutClass}>
 
-  <article class="art-container">
+  <article class={"art-container " + layoutClass}>
 
     <!-- Hero -->
     <header class="art-hero">
@@ -244,6 +248,61 @@ const giscusLang = locale === 'es' ? 'es' : 'en';
     max-width: 640px;
     margin: 0 auto;
     padding: 0 24px;
+  }
+
+  /* ── Layout Variants ── */
+
+  /* Essay — philosophy, psychology, human behavior */
+  .art-layout--essay .art-container {
+    max-width: 680px;
+  }
+  .art-layout--essay .art-body {
+    font-size: 1.1rem;
+    line-height: 2.1;
+  }
+  .art-layout--essay .art-body h2,
+  .art-layout--essay .art-body h3 {
+    font-family: 'Source Serif 4', 'Georgia', serif;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  .art-layout--essay .art-body h2 {
+    font-size: 1.7rem;
+  }
+  .art-layout--essay .art-body h3 {
+    font-size: 1.3rem;
+  }
+  .art-layout--essay .art-body blockquote {
+    font-family: 'Source Serif 4', 'Georgia', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+  }
+  .art-layout--essay .art-title {
+    font-family: 'Source Serif 4', 'Georgia', serif;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  /* Reportage — independent press, intelligence analysis */
+  .art-layout--reportage .art-container {
+    max-width: 760px;
+  }
+  .art-layout--reportage .art-body {
+    font-size: 1.05rem;
+    line-height: 1.85;
+  }
+  .art-layout--reportage .art-body blockquote {
+    font-size: 1.1rem;
+    padding: 32px 36px;
+    border-left-width: 4px;
+  }
+  .art-layout--reportage .art-body blockquote::before {
+    font-size: 3.5rem;
+    top: 6px;
+    left: 10px;
+  }
+  .art-layout--reportage .art-title {
+    font-size: clamp(2.2rem, 5vw, 3rem);
   }
 
   /* Hero */

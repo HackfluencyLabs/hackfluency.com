@@ -14,20 +14,38 @@ const base = import.meta.env.BASE_URL;
 
 // SVG icons for services - elegant, minimal line art
 const serviceIcons = {
-  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,
-  cpu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>`,
-  target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
-  brain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.66z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.66z"/></svg>`,
-  users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-  flask: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v5l-3.5 7A2 2 0 0 0 8.3 18h7.4a2 2 0 0 0 1.8-3L14 8V3"/><path d="M6.5 14h11"/></svg>`
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="12" r="3" opacity="0.4"/><path d="M9 9l3 3 3-3" opacity="0.6"/></svg>`,
+  cpu: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/><circle cx="12" cy="12" r="1" opacity="0.3"/><path d="M8 8l2 2M14 14l2 2M14 8l-2 2M10 14l-2 2" opacity="0.3"/></svg>`,
+  target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" opacity="0.4"/></svg>`,
+  brain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.66z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.66z"/><circle cx="12" cy="8" r="1.5" opacity="0.3"/><circle cx="12" cy="12" r="1.5" opacity="0.3"/><circle cx="12" cy="16" r="1.5" opacity="0.3"/></svg>`,
+  users: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M9 9l4 4" opacity="0.3"/><path d="M13 9l-4 4" opacity="0.3"/></svg>`,
+  flask: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v5l-3.5 7A2 2 0 0 0 8.3 18h7.4a2 2 0 0 0 1.8-3L14 8V3"/><path d="M6.5 14h11"/><circle cx="12" cy="10" r="1" opacity="0.3"/></svg>`,
+  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><path d="M8 12l3 3 5-5" opacity="0.4"/><path d="M4 12h2M18 12h2" opacity="0.3"/></svg>`,
+  lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><path d="M12 15v3" opacity="0.6"/><circle cx="12" cy="16.5" r="0.5" opacity="0.4"/></svg>`,
+  compass: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/><circle cx="12" cy="12" r="2" opacity="0.3"/></svg>`,
+  activity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><circle cx="12" cy="8" r="1" opacity="0.3"/><circle cx="12" cy="16" r="1" opacity="0.3"/></svg>`
 };
 
 // SVG icons for values - refined symbols
 const valueIcons = {
-  excellence: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-  evolution: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>`,
-  elegance: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
-  integrity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>`
+  excellence: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/><circle cx="12" cy="10" r="1.5" opacity="0.3"/></svg>`,
+  evolution: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/><circle cx="12" cy="12" r="3"/><path d="M10 12l2 2 4-4" opacity="0.4"/></svg>`,
+  elegance: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/><circle cx="12" cy="7" r="1" opacity="0.3"/></svg>`,
+  integrity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/><circle cx="12" cy="13" r="1.5" opacity="0.3"/></svg>`,
+  understanding: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M7 9l4 4" opacity="0.3"/><path d="M9 7l6 6" opacity="0.3"/></svg>`,
+  depth: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><circle cx="12" cy="12" r="2" opacity="0.2"/></svg>`,
+  gear: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M1 12h2M21 12h2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/><circle cx="12" cy="12" r="7" opacity="0.2"/></svg>`,
+};
+
+const serviceColor = {
+  strategicAdvisory: 'var(--hf-accent)',
+  securityEngineering: 'var(--hf-accent-analysis)',
+  offensiveSecurity: 'var(--hf-accent-secondary)',
+  aiSystems: 'var(--hf-accent-privacy)',
+  training: 'var(--hf-accent-human)',
+  research: 'var(--hf-accent-philosophy)',
+  dataPrivacy: 'var(--hf-accent-privacy)',
+  intelligenceAnalysis: 'var(--hf-accent-analysis)',
 };
 
 const services: { icon: string; key: string; link?: string; linkText?: string }[] = [
@@ -37,6 +55,8 @@ const services: { icon: string; key: string; link?: string; linkText?: string }[
   { icon: serviceIcons.brain, key: 'aiSystems' },
   { icon: serviceIcons.users, key: 'training' },
   { icon: serviceIcons.flask, key: 'research', link: '/research/tooling', linkTextKey: 'services.explore' },
+  { icon: serviceIcons.lock, key: 'dataPrivacy' },
+  { icon: serviceIcons.eye, key: 'intelligenceAnalysis' },
 ];
 
 const values = [
@@ -44,6 +64,8 @@ const values = [
   { titleKey: 'values.evolution.title', descKey: 'values.evolution.desc', icon: valueIcons.evolution },
   { titleKey: 'values.elegance.title', descKey: 'values.elegance.desc', icon: valueIcons.elegance },
   { titleKey: 'values.integrity.title', descKey: 'values.integrity.desc', icon: valueIcons.integrity },
+  { titleKey: 'values.understanding.title', descKey: 'values.understanding.desc', icon: valueIcons.understanding },
+  { titleKey: 'values.depth.title', descKey: 'values.depth.desc', icon: valueIcons.depth },
 ];
 ---
 
@@ -271,6 +293,18 @@ const values = [
     <div class="hero-glow"></div>
     <div class="hero-grid"></div>
     <div class="hero-particles"></div>
+    <div class="hero-abstract" aria-hidden="true">
+      <svg class="hero-abstract-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="200" cy="180" r="140" class="abs-ring abs-ring--human" />
+        <circle cx="600" cy="160" r="120" class="abs-ring abs-ring--privacy" />
+        <circle cx="400" cy="420" r="100" class="abs-ring abs-ring--analysis" />
+        <circle cx="300" cy="300" r="80" class="abs-ring abs-ring--philosophy" />
+        <path d="M200 180 Q300 280 400 420" class="abs-strand" />
+        <path d="M600 160 Q500 280 400 420" class="abs-strand" />
+        <path d="M200 180 Q400 100 600 160" class="abs-strand abs-strand--dim" />
+        <path d="M300 300 Q350 200 400 100" class="abs-strand abs-strand--dim" />
+      </svg>
+    </div>
   </div>
   <div class="hero-content container">
     <div class="hero-text">
@@ -320,40 +354,53 @@ const values = [
       </a>
     </div>
     <div class="hero-diagram" aria-hidden="true">
-      <svg class="arch-diagram" viewBox="0 0 420 340" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Connection lines -->
-        <line x1="210" y1="60" x2="100" y2="140" class="arch-line"/>
-        <line x1="210" y1="60" x2="320" y2="140" class="arch-line"/>
-        <line x1="100" y1="140" x2="60" y2="240" class="arch-line"/>
-        <line x1="100" y1="140" x2="170" y2="240" class="arch-line"/>
-        <line x1="320" y1="140" x2="250" y2="240" class="arch-line"/>
-        <line x1="320" y1="140" x2="360" y2="240" class="arch-line"/>
-        <line x1="170" y1="240" x2="250" y2="240" class="arch-line arch-line--dim"/>
-        <!-- Central node -->
-        <circle cx="210" cy="60" r="28" class="arch-node arch-node--primary"/>
-        <circle cx="210" cy="60" r="18" class="arch-node-inner"/>
-        <!-- Tier 1 nodes -->
-        <circle cx="100" cy="140" r="22" class="arch-node arch-node--secondary"/>
-        <circle cx="100" cy="140" r="14" class="arch-node-inner"/>
-        <circle cx="320" cy="140" r="22" class="arch-node arch-node--secondary"/>
-        <circle cx="320" cy="140" r="14" class="arch-node-inner"/>
-        <!-- Tier 2 nodes -->
-        <circle cx="60" cy="240" r="16" class="arch-node arch-node--tertiary"/>
-        <circle cx="170" cy="240" r="16" class="arch-node arch-node--tertiary"/>
-        <circle cx="250" cy="240" r="16" class="arch-node arch-node--tertiary"/>
-        <circle cx="360" cy="240" r="16" class="arch-node arch-node--tertiary"/>
+      <svg class="arch-diagram" viewBox="0 0 420 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Connection lines — curved and organic -->
+        <path d="M210 60 Q140 100 90 150" class="arch-line"/>
+        <path d="M210 60 Q280 100 330 150" class="arch-line"/>
+        <path d="M210 60 Q210 100 210 180" class="arch-line arch-line--dim"/>
+        <path d="M90 150 Q60 200 50 260" class="arch-line"/>
+        <path d="M90 150 Q120 210 160 260" class="arch-line"/>
+        <path d="M330 150 Q360 200 370 260" class="arch-line"/>
+        <path d="M330 150 Q300 210 260 260" class="arch-line"/>
+        <path d="M210 180 Q180 220 160 260" class="arch-line arch-line--dim"/>
+        <path d="M210 180 Q240 220 260 260" class="arch-line arch-line--dim"/>
+        <path d="M210 180 Q300 220 370 260" class="arch-line arch-line--dim"/>
+        <path d="M210 180 Q120 220 50 260" class="arch-line arch-line--dim"/>
+        <!-- Cross-connections (interconnectedness) -->
+        <path d="M90 150 Q210 200 330 150" class="arch-line arch-line--cross"/>
+        <path d="M160 260 Q210 220 260 260" class="arch-line arch-line--cross"/>
+        <!-- Central node — Circle (Digital Core) -->
+        <circle cx="210" cy="60" r="32" class="arch-node arch-node--primary"/>
+        <circle cx="210" cy="60" r="20" class="arch-node-inner"/>
+        <!-- Tier 1 — Left: Circle (Digital) -->
+        <circle cx="90" cy="150" r="26" class="arch-node arch-node--secondary"/>
+        <circle cx="90" cy="150" r="16" class="arch-node-inner"/>
+        <!-- Tier 1 — Right: Organic shape (Human/Social) -->
+        <path d="M330 130Q350 124 356 150Q350 176 330 170Q310 176 304 150Q310 124 330 130Z" class="arch-node arch-node--organic"/>
+        <circle cx="330" cy="150" r="12" class="arch-node-inner"/>
+        <!-- Tier 1 — Bottom: Abstract shape (Philosophical) -->
+        <polygon points="210,156 224,174 218,196 202,196 196,174" class="arch-node arch-node--abstract"/>
+        <circle cx="210" cy="180" r="10" class="arch-node-inner"/>
+        <!-- Tier 2 nodes — Bottom row -->
+        <circle cx="50" cy="260" r="14" class="arch-node arch-node--tertiary"/>
+        <circle cx="160" cy="260" r="14" class="arch-node arch-node--tertiary"/>
+        <circle cx="260" cy="260" r="14" class="arch-node arch-node--tertiary"/>
+        <circle cx="370" cy="260" r="14" class="arch-node arch-node--tertiary"/>
         <!-- Labels -->
-        <text x="210" y="100" class="arch-label" text-anchor="middle">Strategy</text>
-        <text x="80" y="178" class="arch-label" text-anchor="middle">Security</text>
-        <text x="340" y="178" class="arch-label" text-anchor="middle">AI</text>
-        <text x="60" y="272" class="arch-label arch-label--sm" text-anchor="middle">Offensive</text>
-        <text x="170" y="272" class="arch-label arch-label--sm" text-anchor="middle">Engineering</text>
-        <text x="250" y="272" class="arch-label arch-label--sm" text-anchor="middle">Automation</text>
-        <text x="360" y="272" class="arch-label arch-label--sm" text-anchor="middle">Research</text>
+        <text x="210" y="38" class="arch-label arch-label--hero" text-anchor="middle">Fluidez</text>
+        <text x="210" y="106" class="arch-label" text-anchor="middle">Core Strategy</text>
+        <text x="70" y="190" class="arch-label" text-anchor="middle">Digital</text>
+        <text x="330" y="190" class="arch-label" text-anchor="middle">Humano</text>
+        <text x="210" y="214" class="arch-label" text-anchor="middle">Sociedad</text>
+        <text x="50" y="290" class="arch-label arch-label--sm" text-anchor="middle">Engineering</text>
+        <text x="160" y="290" class="arch-label arch-label--sm" text-anchor="middle">Privacy</text>
+        <text x="260" y="290" class="arch-label arch-label--sm" text-anchor="middle">Intelligence</text>
+        <text x="370" y="290" class="arch-label arch-label--sm" text-anchor="middle">Ethics</text>
         <!-- Pulse rings (animated) -->
-        <circle cx="210" cy="60" r="28" class="arch-pulse"/>
-        <circle cx="100" cy="140" r="22" class="arch-pulse arch-pulse--delay1"/>
-        <circle cx="320" cy="140" r="22" class="arch-pulse arch-pulse--delay2"/>
+        <circle cx="210" cy="60" r="32" class="arch-pulse"/>
+        <circle cx="90" cy="150" r="26" class="arch-pulse arch-pulse--delay1"/>
+        <path d="M330 130Q350 124 356 150Q350 176 330 170Q310 176 304 150Q310 124 330 130Z" class="arch-pulse arch-pulse--organic arch-pulse--delay2"/>
       </svg>
     </div>
   </div>
@@ -371,29 +418,53 @@ const values = [
       <h2 class="section-title">{t('services.title')}</h2>
       <p class="section-subtitle">{t('services.subtitle')}</p>
     </div>
-    <div class="services-grid">
-      {services.map((service, index) => (
-        <article class="service-card" style={`--delay: ${index * 0.1}s`}>
-          <div class="service-icon" aria-hidden="true" set:html={service.icon} />
-          <h3 class="service-title">{t(`services.${service.key}.title`)}</h3>
-          <p class="service-description">{t(`services.${service.key}.desc`)}</p>
-          {service.link ? (
-            <a href={service.link} class="service-link" aria-label={`${t(service.linkTextKey || 'services.explore')} ${t(`services.${service.key}.title`)}`}>
-              {t(service.linkTextKey || 'services.explore')}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </a>
-          ) : (
-            <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="service-link" aria-label={`${t('services.bookConsultation')} - ${t(`services.${service.key}.title`)}`}>
-              {t('services.bookConsultation')}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </a>
-          )}
-        </article>
-      ))}
+    <div class="services-chronograph">
+      <!-- Background Connecting Mesh (Complex System Aristas) -->
+      <div class="chrono-mesh" aria-hidden="true">
+        <svg viewBox="0 0 1000 400" preserveAspectRatio="none">
+          <!-- Horizontal Connections -->
+          <path d="M125,125 Q250,75 375,125 T625,125 T875,125" class="mesh-line" />
+          <path d="M125,325 Q250,275 375,325 T625,325 T875,325" class="mesh-line" />
+          <!-- Vertical/Diagonal Cross-link -->
+          <path d="M125,125 C250,125 250,325 375,325" class="mesh-line mesh-line--alt" />
+          <path d="M375,125 C500,125 500,325 625,325" class="mesh-line mesh-line--alt" />
+          <path d="M625,125 C750,125 750,325 875,325" class="mesh-line mesh-line--alt" />
+          <path d="M875,125 C750,125 750,325 625,325" class="mesh-line mesh-line--alt" />
+        </svg>
+      </div>
+
+      <div class="chronograph-grid">
+        {services.map((service, index) => (
+          <div class="chrono-node" style={`--chrono-color: ${serviceColor[service.key]}; --delay: ${index * 0.1}s`}>
+            <article class="chrono-unit">
+              <!-- Precision Rims (Watchmaking aesthetic) -->
+              <div class="chrono-rim-outer"></div>
+              <div class="chrono-rim-inner"></div>
+              
+              <div class="chrono-content">
+                <div class="chrono-icon" set:html={service.icon} />
+                <h3 class="chrono-title">{t(`services.${service.key}.title`)}</h3>
+              </div>
+
+              <!-- Tooltip: Technical Spec Sheet -->
+              <div class="chrono-spec">
+                <div class="spec-header">
+                  <span class="spec-code">HF-{service.key.substring(0,3).toUpperCase()}-{(index+1).toString().padStart(3,'0')}</span>
+                  <h4>{t(`services.${service.key}.title`)}</h4>
+                </div>
+                <p>{t(`services.${service.key}.desc`)}</p>
+                <div class="spec-footer">
+                  {service.link ? (
+                    <a href={service.link} class="spec-link">{t(service.linkTextKey || 'services.explore')}</a>
+                  ) : (
+                    <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" class="spec-link">{t('services.bookConsultation')}</a>
+                  )}
+                </div>
+              </div>
+            </article>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 </section>
@@ -432,23 +503,53 @@ const values = [
         </div>
       </div>
       <div class="about-visual">
-        <div class="about-card">
-          <div class="about-card-glow"></div>
-          <div class="about-card-content">
-            <div class="terminal-header">
-              <span class="terminal-dot red"></span>
-              <span class="terminal-dot yellow"></span>
-              <span class="terminal-dot green"></span>
+        <div class="insight-dashboard">
+          <!-- Digital Panel -->
+          <div class="insight-panel insight-panel--digital">
+            <div class="insight-panel-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/>
+              </svg>
             </div>
-            <div class="terminal-body">
-              <code>
-                <span class="code-prompt">$</span> hackfluency --assess<br/>
-                <span class="code-comment"># Mapping threat surface...</span><br/>
-                <span class="code-success">✓ Architecture gaps identified</span><br/>
-                <span class="code-success">✓ AI risk surface mapped</span><br/>
-                <span class="code-success">✓ Strategic roadmap ready</span><br/>
-                <span class="code-prompt">$</span> <span class="cursor">_</span>
-              </code>
+            <div class="insight-panel-content">
+              <span class="insight-panel-label">{t('about.panel.digital')}</span>
+              <span class="insight-panel-text">{t('about.panel.digitalDesc')}</span>
+            </div>
+          </div>
+          <!-- Human Panel -->
+          <div class="insight-panel insight-panel--human">
+            <div class="insight-panel-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="insight-panel-content">
+              <span class="insight-panel-label">{t('about.panel.human')}</span>
+              <span class="insight-panel-text">{t('about.panel.humanDesc')}</span>
+            </div>
+          </div>
+          <!-- Social Panel -->
+          <div class="insight-panel insight-panel--social">
+            <div class="insight-panel-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/>
+              </svg>
+            </div>
+            <div class="insight-panel-content">
+              <span class="insight-panel-label">{t('about.panel.social')}</span>
+              <span class="insight-panel-text">{t('about.panel.socialDesc')}</span>
+            </div>
+          </div>
+          <!-- Philosophical Panel -->
+          <div class="insight-panel insight-panel--philosophy">
+            <div class="insight-panel-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/>
+              </svg>
+            </div>
+            <div class="insight-panel-content">
+              <span class="insight-panel-label">{t('about.panel.philosophy')}</span>
+              <span class="insight-panel-text">{t('about.panel.philosophyDesc')}</span>
             </div>
           </div>
         </div>
@@ -931,6 +1032,42 @@ const values = [
     pointer-events: none;
   }
 
+  .hero-abstract {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.15;
+    mix-blend-mode: screen;
+  }
+
+  @media (max-width: 767px) {
+    .hero-abstract { opacity: 0.08; }
+  }
+
+  .hero-abstract-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .abs-ring {
+    fill: none;
+    stroke-width: 0.8;
+    opacity: 0.6;
+  }
+  .abs-ring--human { stroke: var(--hf-accent-human, #9C5E4D); }
+  .abs-ring--privacy { stroke: var(--hf-accent-privacy, #1E3A5F); }
+  .abs-ring--analysis { stroke: var(--hf-accent-analysis, #6C4F9E); }
+  .abs-ring--philosophy { stroke: var(--hf-accent-philosophy, #7A6A4E); }
+
+  .abs-strand {
+    stroke: var(--hf-text);
+    stroke-width: 0.5;
+    opacity: 0.12;
+    stroke-dasharray: 3 6;
+  }
+  .abs-strand--dim { opacity: 0.06; }
+
   .hero-content {
     position: relative;
     z-index: 1;
@@ -1002,6 +1139,10 @@ const values = [
 
   .hero-title-accent {
     color: var(--hf-accent);
+    font-family: 'Source Serif 4', 'Georgia', serif;
+    font-weight: 600;
+    font-style: italic;
+    display: block;
   }
 
   .hero-subtitle {
@@ -1105,68 +1246,81 @@ const values = [
     justify-content: center;
     gap: 10px;
     padding: 16px 32px;
-    border-radius: 0;
+    border-radius: 10px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid var(--hf-text);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: none;
     min-height: 48px;
     min-width: 48px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .btn-primary {
-    background: var(--hf-accent);
+    background: linear-gradient(135deg, var(--hf-accent) 0%, color-mix(in srgb, var(--hf-accent) 80%, #000) 100%);
     color: var(--hf-bg);
-    box-shadow: 4px 4px 0px var(--hf-text);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--hf-accent) 35%, transparent);
+  }
+
+  .btn-primary span,
+  .btn-primary svg {
     position: relative;
-    overflow: hidden;
-    text-shadow: none;
+    z-index: 1;
   }
 
   .btn-primary span {
-    position: relative;
-    z-index: 1;
     color: var(--hf-text-on-accent);
     font-weight: 700;
   }
 
   .btn-primary svg {
-    position: relative;
-    z-index: 1;
     stroke: var(--hf-bg);
   }
 
   .btn-primary:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px var(--hf-text);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--hf-accent) 45%, transparent);
   }
 
   .btn-secondary {
     background: transparent;
     color: var(--white);
-    border: 1px solid var(--hf-text);
+    border: 1px solid color-mix(in srgb, var(--hf-text) 20%, transparent);
+    backdrop-filter: blur(4px);
   }
 
   .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.05);
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px var(--hf-text);
+    background: color-mix(in srgb, var(--hf-text) 6%, transparent);
+    border-color: color-mix(in srgb, var(--hf-text) 35%, transparent);
+    transform: translateY(-2px);
   }
 
   .btn-ghost {
-    background: transparent;
+    background: color-mix(in srgb, var(--hf-text) 4%, transparent);
     color: var(--gray-300);
-    border: 1px solid var(--hf-border);
+    border: 1px solid color-mix(in srgb, var(--hf-text) 10%, transparent);
     font-size: 0.95rem;
+    backdrop-filter: blur(4px);
   }
 
   .btn-ghost:hover {
     color: var(--hf-accent);
-    border-color: var(--hf-accent);
-    background: var(--hf-accent-dim);
+    border-color: color-mix(in srgb, var(--hf-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--hf-accent) 8%, transparent);
+    transform: translateY(-2px);
   }
 
   .btn-large {
@@ -1201,6 +1355,11 @@ const values = [
     opacity: 0.18;
     stroke-dasharray: 4 4;
   }
+  .arch-line--cross {
+    opacity: 0.12;
+    stroke-dasharray: 2 8;
+    stroke-width: 1;
+  }
 
   .arch-node {
     fill: none;
@@ -1216,6 +1375,16 @@ const values = [
 
   .arch-node--secondary {
     opacity: 0.6;
+  }
+
+  .arch-node--organic {
+    stroke: var(--hf-accent-human);
+    opacity: 0.6;
+  }
+
+  .arch-node--abstract {
+    stroke: var(--hf-accent-philosophy);
+    opacity: 0.5;
   }
 
   .arch-node--tertiary {
@@ -1244,9 +1413,13 @@ const values = [
     animation-delay: 2s;
   }
 
+  .arch-pulse--organic {
+    stroke: var(--hf-accent-human);
+  }
+
   @keyframes archPulse {
-    0% { opacity: 0.6; r: 0; }
-    100% { opacity: 0; r: 40px; }
+    0% { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.15); }
   }
 
   .arch-label {
@@ -1256,6 +1429,15 @@ const values = [
     fill: var(--hf-text-muted);
     letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+
+  .arch-label--hero {
+    font-family: 'Source Serif 4', 'Georgia', serif;
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--hf-accent);
+    text-transform: none;
+    letter-spacing: 0.02em;
   }
 
   .arch-label--sm {
@@ -1320,15 +1502,16 @@ const values = [
 
   .section-tag {
     display: inline-block;
-    padding: 6px 16px;
-    background: var(--hf-accent-dim);
+    padding: 6px 18px;
+    background: linear-gradient(135deg, var(--hf-accent-dim) 0%, color-mix(in srgb, var(--hf-accent) 5%, transparent) 100%);
     border: 1px solid color-mix(in srgb, var(--hf-accent) 20%, transparent);
     border-radius: 100px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     margin-bottom: 20px;
+    font-weight: 600;
   }
 
   .section-title {
@@ -1337,9 +1520,11 @@ const values = [
   }
 
   .section-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: var(--gray-400);
     line-height: 1.7;
+    max-width: 600px;
+    margin: 0 auto;
   }
 
   /* Services */
@@ -1347,87 +1532,499 @@ const values = [
     background: var(--dark);
   }
 
-  .services-grid {
+  /* ── Services Chronograph (High-End Precision) ── */
+  .services-chronograph {
+    max-width: 1100px;
+    margin: 20px auto 40px; /* Reduced vertical margins */
+    padding: 0 24px;
+    position: relative;
+  }
+
+  /* Connecting Aristas Style */
+  .chrono-mesh {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  html[data-theme-mode="light"] .chrono-mesh {
+    opacity: 0.5; /* Increased container visibility for light themes */
+  }
+  
+  .chrono-mesh svg { width: 100%; height: 100%; }
+  
+  .mesh-line {
+    stroke: var(--hf-accent);
+    stroke-width: 1;
+    fill: none;
+    stroke-dasharray: 4 4;
+    animation: meshFlow 20s linear infinite;
+  }
+
+  html[data-theme-mode="light"] .mesh-line {
+    stroke: var(--hf-text-muted); /* High contrast gray for white backgrounds */
+    stroke-width: 1.2;
+  }
+
+  .mesh-line--alt {
+    stroke: var(--hf-accent-human, #9C5E4D);
+    opacity: 0.5;
+    animation-duration: 30s;
+    animation-direction: reverse;
+  }
+
+  html[data-theme-mode="light"] .mesh-line--alt {
+    stroke: var(--hf-accent-human);
+    stroke-width: 1;
+  }
+
+  @keyframes meshFlow {
+    from { stroke-dashoffset: 200; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  .chronograph-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    .chronograph-grid { grid-template-columns: repeat(4, 1fr); gap: 40px 20px; }
+  }
+
+  /* Section Padding Reductions */
+  section {
+    padding: 80px 0; /* Reduced from 120px */
+  }
+
+  .section-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 50px; /* Reduced from 80px */
+  }
+
+  .services {
+    background: var(--dark);
+    padding-bottom: 40px; /* Tighten bottom */
+  }
+
+  .about {
+    position: relative;
+    background: var(--hf-bg-secondary);
+    border-bottom: 1px solid var(--hf-border);
+    padding-top: 60px; /* Reduced to bring closer to services */
+  }
+
+  .chronograph-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+
+  @media (min-width: 768px) {
+    .chronograph-grid { grid-template-columns: repeat(4, 1fr); gap: 40px; }
+  }
+
+  .chrono-node {
+    position: relative;
+    aspect-ratio: 1;
+    animation: chronoFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--delay);
+  }
+
+  @keyframes chronoFadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .chrono-unit {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: crosshair;
+    position: relative;
+  }
+
+  /* Precision Rims */
+  .chrono-rim-outer,
+  .chrono-rim-inner {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 0.5px solid color-mix(in srgb, var(--chrono-color) 20%, var(--hf-border));
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .chrono-rim-outer {
+    border-style: dashed;
+    border-width: 1px;
+    animation: chronoRotate 60s linear infinite;
+  }
+
+  .chrono-rim-inner {
+    inset: 15%;
+    border-style: solid;
+    opacity: 0.3;
+    animation: chronoRotate 40s linear infinite reverse;
+  }
+
+  .chrono-unit:hover .chrono-rim-outer {
+    inset: -10px;
+    border-color: var(--chrono-color);
+    border-style: solid;
+    opacity: 0.6;
+    animation-duration: 10s;
+  }
+
+  .chrono-unit:hover .chrono-rim-inner {
+    inset: 10%;
+    opacity: 0.8;
+    border-color: var(--chrono-color);
+    animation-duration: 5s;
+  }
+
+  @keyframes chronoRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .chrono-content {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chrono-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--chrono-color);
+    transition: all 0.4s ease;
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--chrono-color) 30%, transparent));
+  }
+
+  .chrono-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--hf-text-secondary);
+    max-width: 125px;
+    line-height: 1.3;
+    transition: color 0.3s ease;
+  }
+
+  .chrono-unit:hover .chrono-title {
+    color: var(--hf-text);
+  }
+
+  /* ── Technical Spec Sheet (Tooltip) ── */
+  .chrono-spec {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    padding: 24px;
+    background: color-mix(in srgb, var(--hf-bg-elevated) 98%, #fff);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--hf-border);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -40%) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .chrono-unit:hover .chrono-spec {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+  }
+
+  .spec-header {
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--hf-border);
+    padding-bottom: 12px;
+  }
+
+  .spec-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--chrono-color);
+    display: block;
+    margin-bottom: 4px;
+    letter-spacing: 0.1em;
+  }
+
+  .spec-header h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--hf-text);
+  }
+
+  .chrono-spec p {
+    font-size: 0.85rem;
+    color: var(--gray-400);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .spec-link {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--hf-accent);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: inline-block;
+    border-bottom: 1px solid transparent;
+    transition: all 0.3s;
+  }
+
+  .spec-link:hover {
+    color: var(--hf-accent-light);
+    border-bottom-color: var(--hf-accent);
+  }
+
+  @media (max-width: 767px) {
+    .chrono-spec {
+      position: fixed;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+      top: auto;
+      width: auto;
+      transform: translateY(20px);
+    }
+    .chrono-unit:hover .chrono-spec { transform: translateY(0); }
   }
 
   @media (min-width: 640px) {
     .services-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
     }
   }
 
-  @media (min-width: 1024px) {
-    .services-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .service-card {
-    background: var(--hf-bg-card);
-    border: 1px solid var(--hf-border);
-    border-radius: 0;
-    padding: 40px 32px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* ── Gear Card ── */
+  .gear-card {
     position: relative;
+    background: var(--hf-bg-card);
+    border: 1px solid color-mix(in srgb, var(--gear-color, var(--hf-accent)) 20%, var(--hf-border));
+    border-radius: 14px;
+    padding: 28px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: default;
+    overflow: visible;
+    animation: gearFadeIn 0.6s ease-out both;
+    animation-delay: var(--delay, 0s);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .service-card:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: 8px 8px 0px var(--hf-border);
-    border-color: var(--hf-accent);
+  @keyframes gearFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  .service-card:hover .service-icon {
-    color: var(--hf-accent);
+  /* ── Gear teeth top & bottom ── */
+  .gear-teeth-top,
+  .gear-teeth-bottom {
+    position: absolute;
+    left: -1px;
+    right: -1px;
+    height: 8px;
+    background: transparent;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .gear-teeth-top {
+    top: -5px;
+  }
+  .gear-teeth-bottom {
+    bottom: -5px;
   }
 
-  .service-icon {
-    color: var(--hf-accent);
-    background: var(--hf-bg);
-    border: 1px solid var(--hf-border);
-    width: 56px;
-    height: 56px;
+  .gear-teeth-top::before,
+  .gear-teeth-bottom::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: repeating-radial-gradient(
+      ellipse 6px 6px at 12px center,
+      color-mix(in srgb, var(--gear-color, var(--hf-accent)) 40%, var(--hf-border)) 0px,
+      color-mix(in srgb, var(--gear-color, var(--hf-accent)) 40%, var(--hf-border)) 5px,
+      transparent 5px,
+      transparent 10px
+    );
+    background-size: 24px 100%;
+  }
+
+  .gear-card:hover .gear-teeth-top::before,
+  .gear-card:hover .gear-teeth-bottom::before {
+    background: repeating-radial-gradient(
+      ellipse 6px 6px at 12px center,
+      var(--gear-color, var(--hf-accent)) 0px,
+      var(--gear-color, var(--hf-accent)) 5px,
+      transparent 5px,
+      transparent 10px
+    );
+  }
+
+  /* ── Rotor (gear SVG) ── */
+  .gear-rotor {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 24px;
-    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
   }
 
-  .service-icon svg {
+  .gear-rotor svg {
+    width: 85%;
+    height: 85%;
+    stroke: color-mix(in srgb, var(--gear-color, var(--hf-accent)) 8%, transparent);
+    fill: none;
+    animation: gearSpin var(--rot-speed, 6s) linear infinite;
+  }
+
+  .gear-card:hover .gear-rotor svg {
+    stroke: color-mix(in srgb, var(--gear-color, var(--hf-accent)) 20%, transparent);
+    animation-duration: calc(var(--rot-speed, 6s) * 0.3);
+  }
+
+  /* Each adjacent card rotates in opposite direction */
+  .gear-card:nth-child(even) .gear-rotor svg {
+    animation-direction: reverse;
+  }
+
+  @keyframes gearSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Icon ── */
+  .gear-card-icon {
+    position: relative;
+    z-index: 1;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gear-color, var(--hf-accent));
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .gear-card-icon svg {
     width: 100%;
     height: 100%;
   }
 
-  .service-title {
-    font-size: 1.25rem;
-    margin-bottom: 12px;
+  .gear-card:hover .gear-card-icon {
+    transform: scale(1.15);
   }
 
-  .service-description {
-    color: var(--gray-400);
-    font-size: 0.95rem;
-    line-height: 1.7;
-    margin-bottom: 24px;
+  /* ── Title ── */
+  .gear-card-title {
+    position: relative;
+    z-index: 1;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--hf-text);
+    line-height: 1.25;
+    letter-spacing: 0.02em;
   }
 
-  .service-link {
+  /* ── Tooltip ── */
+  .gear-card-tooltip {
+    position: absolute;
+    z-index: 50;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    width: 240px;
+    padding: 14px 18px;
+    background: var(--hf-bg-elevated);
+    border: 1px solid color-mix(in srgb, var(--gear-color, var(--hf-accent)) 30%, var(--hf-border));
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .gear-card-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: color-mix(in srgb, var(--gear-color, var(--hf-accent)) 30%, var(--hf-border));
+  }
+
+  .gear-card:hover .gear-card-tooltip {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .gear-card-desc {
+    font-size: 0.8rem;
+    color: var(--gray-300);
+    line-height: 1.55;
+    margin-bottom: 8px;
+  }
+
+  .gear-card-link {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: var(--primary);
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: gap 0.3s ease;
-    padding: 12px 0;
-    min-height: 44px;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gear-color, var(--hf-accent));
+    text-decoration: none;
+    transition: gap 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  .service-link:hover {
-    gap: 12px;
+  .gear-card-link:hover {
+    gap: 9px;
+  }
+
+  @media (max-width: 639px) {
+    .services-grid { gap: 14px; }
+    .gear-card { padding: 20px 12px 18px; }
+    .gear-card-title { font-size: 0.72rem; }
+    .gear-card-icon { width: 34px; height: 34px; }
+    .gear-teeth-top, .gear-teeth-bottom { height: 6px; }
+    .gear-teeth-top { top: -4px; }
+    .gear-teeth-bottom { bottom: -4px; }
+    .gear-card-tooltip { width: 200px; bottom: calc(100% + 10px); }
   }
 
   /* About */
@@ -1470,6 +2067,12 @@ const values = [
     margin-bottom: 20px;
   }
 
+  .about-content .section-title {
+    font-family: 'Source Serif 4', 'Georgia', serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
   .about-features {
     display: flex;
     flex-direction: column;
@@ -1494,65 +2097,80 @@ const values = [
     justify-content: center;
   }
 
-  .about-card {
-    position: relative;
+  .insight-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
     width: 100%;
     max-width: 500px;
-    border: 1px solid var(--hf-border);
-    border-radius: 0;
-    box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.8);
-    background: var(--hf-bg);
-    overflow: hidden;
   }
 
-  .about-card-glow {
-    display: none;
-  }
-
-  .about-card-content {
-    position: relative;
-    background: var(--hf-bg);
-    border: none;
-    border-radius: 0;
-    overflow: hidden;
-  }
-
-  .terminal-header {
+  .insight-panel {
     display: flex;
-    gap: 8px;
-    padding: 16px 20px;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--hf-border);
+    background: var(--hf-bg);
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+
+  .insight-panel:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  .insight-panel--digital:hover { border-color: var(--hf-accent); }
+  .insight-panel--human:hover { border-color: var(--hf-accent-human); }
+  .insight-panel--social:hover { border-color: var(--hf-accent-privacy); }
+  .insight-panel--philosophy:hover { border-color: var(--hf-accent-philosophy); }
+
+  .insight-panel-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--hf-border);
     background: var(--hf-bg-secondary);
-    border-bottom: 1px solid var(--hf-border);
-    border-radius: 0;
   }
 
-  .terminal-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+  .insight-panel-icon svg {
+    width: 20px;
+    height: 20px;
   }
 
-  .terminal-dot.red { background: var(--accent); }
-  .terminal-dot.yellow { background: #f59e0b; }
-  .terminal-dot.green { background: var(--primary); }
+  .insight-panel--digital .insight-panel-icon svg { stroke: var(--hf-accent); }
+  .insight-panel--human .insight-panel-icon svg { stroke: var(--hf-accent-human); }
+  .insight-panel--social .insight-panel-icon svg { stroke: var(--hf-accent-privacy); }
+  .insight-panel--philosophy .insight-panel-icon svg { stroke: var(--hf-accent-philosophy); }
 
-  .terminal-body {
-    padding: 24px;
-    font-family: 'Monaco', 'Consolas', monospace;
-    font-size: 0.9rem;
-    line-height: 1.8;
+  .insight-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .code-prompt { color: var(--primary); }
-  .code-comment { color: var(--gray-600); }
-  .code-success { color: var(--primary); }
-  .cursor {
-    animation: blink 1s infinite;
+  .insight-panel-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+  .insight-panel--digital .insight-panel-label { color: var(--hf-accent); }
+  .insight-panel--human .insight-panel-label { color: var(--hf-accent-human); }
+  .insight-panel--social .insight-panel-label { color: var(--hf-accent-privacy); }
+  .insight-panel--philosophy .insight-panel-label { color: var(--hf-accent-philosophy); }
+
+  .insight-panel-text {
+    font-size: 0.78rem;
+    color: var(--gray-400);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 480px) {
+    .insight-dashboard { grid-template-columns: 1fr; }
   }
 
   /* Values */
@@ -1574,28 +2192,55 @@ const values = [
 
   @media (min-width: 1024px) {
     .values-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .values-grid {
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 900px;
+      margin: 0 auto;
     }
   }
 
   .value-card {
     background: var(--hf-bg);
     border: 1px solid var(--hf-border);
-    border-radius: 0;
+    border-radius: 12px;
     padding: 48px 32px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .value-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--hf-accent) 5%, transparent) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+  }
+
+  .value-card:hover::before {
+    opacity: 1;
   }
 
   .value-card:hover {
     background: var(--hf-bg-secondary);
-    border-color: var(--hf-accent);
+    border-color: color-mix(in srgb, var(--hf-accent) 40%, var(--hf-border));
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--hf-accent) 8%, transparent);
   }
 
   .value-card:hover .value-icon {
     background: var(--hf-accent);
     border-color: var(--hf-accent);
     color: var(--hf-bg);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--hf-accent) 25%, transparent);
   }
 
   .value-icon {
@@ -1606,8 +2251,9 @@ const values = [
     justify-content: center;
     border: 1px solid var(--hf-border);
     margin: 0 auto 32px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     color: var(--hf-accent);
+    border-radius: 16px;
   }
 
   .value-icon svg {
