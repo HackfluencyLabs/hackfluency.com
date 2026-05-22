@@ -131,17 +131,20 @@ const values = [
       
       // Tap tooltip background → close
       if (s && !e.target.closest('a')) {
-        u && u.classList.remove('active');
+        var all = document.querySelectorAll('.chrono-unit');
+        for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
         return;
       }
       
-      // Tap same unit → toggle
+      // Tap on any unit → close others, toggle this one
       if (u) {
+        var all = document.querySelectorAll('.chrono-unit');
+        for (var i = 0; i < all.length; i++) {
+          if (all[i] !== u) all[i].classList.remove('active');
+        }
         if (u.classList.contains('active')) {
           u.classList.remove('active');
         } else {
-          var all = document.querySelectorAll('.chrono-unit');
-          for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
           u.classList.add('active');
         }
         return;
@@ -150,7 +153,7 @@ const values = [
       // Tap outside → close all
       var all = document.querySelectorAll('.chrono-unit');
       for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
-    });
+    }, true); // CAPTURE phase
   })();
 </script>
 
