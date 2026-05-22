@@ -110,8 +110,21 @@ const values = [
       });
     }
 
-    // Chrono-spec tooltip toggle (touch devices only)
-    if (window.matchMedia('(hover: none)').matches && document.querySelector('.chrono-unit')) {
+    // Navigation scroll effect
+    const nav = document.querySelector('.nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        nav?.classList.add('scrolled');
+      } else {
+        nav?.classList.remove('scrolled');
+      }
+    });
+  });
+
+  // Chrono-spec tooltip toggle (touch devices only) — registered once, outside astro:page-load
+  (function() {
+    if (!window.matchMedia('(hover: none)').matches) return;
+    if (document.querySelector('.chrono-unit')) {
       document.addEventListener('click', function(e) {
         var unit = e.target.closest('.chrono-unit');
         var spec = e.target.closest('.chrono-spec');
@@ -132,30 +145,19 @@ const values = [
         // Tap on a gear unit → open it
         if (unit) {
           var all = document.querySelectorAll('.chrono-unit');
-          all.forEach(function(u) {
-            if (u !== unit) u.classList.remove('active');
-          });
+          for (var j = 0; j < all.length; j++) {
+            if (all[j] !== unit) all[j].classList.remove('active');
+          }
           unit.classList.add('active');
           return;
         }
         
         // Tap outside → close all
-        document.querySelectorAll('.chrono-unit').forEach(function(u) {
-          u.classList.remove('active');
-        });
+        var all = document.querySelectorAll('.chrono-unit');
+        for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
       });
     }
-
-    // Navigation scroll effect
-    const nav = document.querySelector('.nav');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 50) {
-        nav?.classList.add('scrolled');
-      } else {
-        nav?.classList.remove('scrolled');
-      }
-    });
-  });
+  })();
 </script>
 
 <!-- Newsletter Subscription Script -->
