@@ -121,42 +121,36 @@ const values = [
     });
   });
 
-  // Chrono-spec tooltip toggle (touch devices only) — registered once, outside astro:page-load
+  // Chrono-spec tooltip toggle (touch devices only)
   (function() {
     if (!window.matchMedia('(hover: none)').matches) return;
 
-    var closeAll = function() {
-      var all = document.querySelectorAll('.chrono-unit.active');
-      for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
-    };
-
-    // Click on the tooltip itself (background, not link) → close
     document.addEventListener('click', function(e) {
-      var spec = e.target.closest('.chrono-spec');
-      if (spec && !e.target.closest('a')) {
-        closeAll();
+      var u = e.target.closest('.chrono-unit');
+      var s = e.target.closest('.chrono-spec');
+      
+      // Tap tooltip background → close
+      if (s && !e.target.closest('a')) {
+        u && u.classList.remove('active');
         return;
       }
-      // Tap outside any unit → close all
-      if (!e.target.closest('.chrono-unit')) {
-        closeAll();
+      
+      // Tap same unit → toggle
+      if (u) {
+        if (u.classList.contains('active')) {
+          u.classList.remove('active');
+        } else {
+          var all = document.querySelectorAll('.chrono-unit');
+          for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
+          u.classList.add('active');
+        }
+        return;
       }
+      
+      // Tap outside → close all
+      var all = document.querySelectorAll('.chrono-unit');
+      for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
     });
-
-    // Direct click on each unit: toggle open/close
-    var units = document.querySelectorAll('.chrono-unit');
-    for (var i = 0; i < units.length; i++) {
-      (function(unit) {
-        unit.addEventListener('click', function(e) {
-          // If click is on the tooltip, don't toggle the unit
-          if (e.target.closest('.chrono-spec')) return;
-          
-          var isActive = unit.classList.contains('active');
-          closeAll();
-          if (!isActive) unit.classList.add('active');
-        });
-      })(units[i]);
-    }
   })();
 </script>
 
