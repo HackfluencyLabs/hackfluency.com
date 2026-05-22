@@ -124,38 +124,38 @@ const values = [
   // Chrono-spec tooltip toggle (touch devices only) — registered once, outside astro:page-load
   (function() {
     if (!window.matchMedia('(hover: none)').matches) return;
-    if (document.querySelector('.chrono-unit')) {
-      document.addEventListener('click', function(e) {
-        var unit = e.target.closest('.chrono-unit');
-        var spec = e.target.closest('.chrono-spec');
-        
-        // Tap on tooltip background (not on a link) → close it
-        if (spec && !e.target.closest('a')) {
-          var parent = spec.closest('.chrono-unit');
-          if (parent) parent.classList.remove('active');
-          return;
-        }
-        
-        // Tap the same node again → close
-        if (unit && unit.classList.contains('active')) {
-          unit.classList.remove('active');
-          return;
-        }
-        
-        // Tap on a gear unit → open it
-        if (unit) {
-          var all = document.querySelectorAll('.chrono-unit');
-          for (var j = 0; j < all.length; j++) {
-            if (all[j] !== unit) all[j].classList.remove('active');
-          }
-          unit.classList.add('active');
-          return;
-        }
-        
-        // Tap outside → close all
-        var all = document.querySelectorAll('.chrono-unit');
-        for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
-      });
+
+    var closeAll = function() {
+      var all = document.querySelectorAll('.chrono-unit.active');
+      for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+    };
+
+    // Click on the tooltip itself (background, not link) → close
+    document.addEventListener('click', function(e) {
+      var spec = e.target.closest('.chrono-spec');
+      if (spec && !e.target.closest('a')) {
+        closeAll();
+        return;
+      }
+      // Tap outside any unit → close all
+      if (!e.target.closest('.chrono-unit')) {
+        closeAll();
+      }
+    });
+
+    // Direct click on each unit: toggle open/close
+    var units = document.querySelectorAll('.chrono-unit');
+    for (var i = 0; i < units.length; i++) {
+      (function(unit) {
+        unit.addEventListener('click', function(e) {
+          // If click is on the tooltip, don't toggle the unit
+          if (e.target.closest('.chrono-spec')) return;
+          
+          var isActive = unit.classList.contains('active');
+          closeAll();
+          if (!isActive) unit.classList.add('active');
+        });
+      })(units[i]);
     }
   })();
 </script>
