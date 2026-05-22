@@ -116,21 +116,30 @@ const values = [
         var unit = e.target.closest('.chrono-unit');
         var spec = e.target.closest('.chrono-spec');
         
-        if (spec) {
+        // Tap on tooltip background (not on a link) → close it
+        if (spec && !e.target.closest('a')) {
           var parent = spec.closest('.chrono-unit');
           if (parent) parent.classList.remove('active');
           return;
         }
         
+        // Tap the same node again → close
+        if (unit && unit.classList.contains('active')) {
+          unit.classList.remove('active');
+          return;
+        }
+        
+        // Tap on a gear unit → open it
         if (unit) {
           var all = document.querySelectorAll('.chrono-unit');
           all.forEach(function(u) {
             if (u !== unit) u.classList.remove('active');
           });
-          unit.classList.toggle('active');
+          unit.classList.add('active');
           return;
         }
         
+        // Tap outside → close all
         document.querySelectorAll('.chrono-unit').forEach(function(u) {
           u.classList.remove('active');
         });
