@@ -114,51 +114,25 @@ const values = [
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
       const units = document.querySelectorAll('.chrono-unit');
       if (units.length) {
+        // Open: tap on the gear (but not on the tooltip or links)
         units.forEach(u => {
           u.addEventListener('click', function(e) {
-            if (e.target.closest('a')) return;
+            if (e.target.closest('a') || e.target.closest('.chrono-spec')) return;
             units.forEach(x => { if (x !== this) x.classList.remove('active'); });
             this.classList.toggle('active');
           });
         });
+        // Close: tap outside any gear
         document.addEventListener('click', e => {
           if (!e.target.closest('.chrono-unit')) units.forEach(u => u.classList.remove('active'));
         });
-
-        // Swipe-to-dismiss for chrono-spec
-        let swipeStartY = 0;
-        let swipeSpec = null;
-        let swiping = false;
-        document.addEventListener('touchstart', e => {
-          const spec = e.target.closest('.chrono-spec');
-          if (!spec) { swipeSpec = null; return; }
-          swipeSpec = spec;
-          swipeStartY = e.touches[0].clientY;
-          swiping = false;
-        }, { passive: true });
-        document.addEventListener('touchmove', e => {
-          if (!swipeSpec) return;
-          const dy = e.touches[0].clientY - swipeStartY;
-          if (dy > 10) {
-            swiping = true;
-            swipeSpec.style.transition = 'none';
-            swipeSpec.style.transform = 'translateY(' + Math.min(dy, 150) + 'px)';
-            swipeSpec.style.opacity = Math.max(0, 1 - dy / 200);
-          }
-        }, { passive: true });
-        document.addEventListener('touchend', e => {
-          if (!swipeSpec) return;
-          const dy = e.changedTouches[0].clientY - swipeStartY;
-          swipeSpec.style.transition = '';
-          swipeSpec.style.transform = '';
-          swipeSpec.style.opacity = '';
-          if (dy > 80) {
-            const unit = swipeSpec.closest('.chrono-unit');
+        // Close: tap on the tooltip itself
+        document.addEventListener('click', e => {
+          if (e.target.closest('.chrono-spec')) {
+            const unit = e.target.closest('.chrono-unit');
             if (unit) unit.classList.remove('active');
           }
-          swipeSpec = null;
-          swiping = false;
-        }, { passive: true });
+        });
       }
     }
 
