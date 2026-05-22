@@ -1764,7 +1764,14 @@ const values = [
     pointer-events: none;
   }
 
-  .chrono-unit:hover .chrono-spec,
+  @media (hover: hover) {
+    .chrono-unit:hover .chrono-spec {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+  }
   .chrono-unit.active .chrono-spec {
     opacity: 1;
     visibility: visible;
@@ -1839,7 +1846,9 @@ const values = [
     .spec-header { margin-bottom: 10px; padding-bottom: 8px; }
     .spec-header h4 { font-size: 0.8rem; }
     .spec-code { font-size: 0.55rem; }
-    .chrono-unit:hover .chrono-spec,
+    @media (hover: hover) {
+      .chrono-unit:hover .chrono-spec { transform: translateY(0); }
+    }
     .chrono-unit.active .chrono-spec { transform: translateY(0); }
   }
 
