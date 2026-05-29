@@ -1,0 +1,11 @@
+---
+import Layout from '../../../../../layouts/Layout.astro';
+const locale = 'en';
+---
+<Layout locale={locale} title="Redirecting..." description="Redirecting to English article">
+  <meta http-equiv="refresh" content="0; url=/en/research/articles/hatred-as-identity/" />
+  <script is:inline>window.location.replace('/en/research/articles/hatred-as-identity/');</script>
+  <p style="text-align:center;padding:4rem 2rem;font-family:sans-serif;">
+    <a href="/en/research/articles/hatred-as-identity/">Click here if not redirected.</a>
+  </p>
+</Layout>

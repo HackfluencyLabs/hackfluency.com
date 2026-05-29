@@ -48,15 +48,21 @@ const serviceColor = {
   intelligenceAnalysis: 'var(--hf-accent-analysis)',
 };
 
-const services: { icon: string; key: string; link?: string; linkText?: string }[] = [
-  { icon: serviceIcons.shield, key: 'strategicAdvisory' },
-  { icon: serviceIcons.cpu, key: 'securityEngineering' },
-  { icon: serviceIcons.target, key: 'offensiveSecurity' },
-  { icon: serviceIcons.brain, key: 'aiSystems' },
-  { icon: serviceIcons.users, key: 'training' },
-  { icon: serviceIcons.flask, key: 'research', link: '/research/tooling', linkTextKey: 'services.explore' },
-  { icon: serviceIcons.lock, key: 'dataPrivacy' },
-  { icon: serviceIcons.eye, key: 'intelligenceAnalysis' },
+const services: { icon: string; key: string; category: string; link?: string; linkText?: string }[] = [
+  { icon: serviceIcons.shield, key: 'strategicAdvisory', category: 'human' },
+  { icon: serviceIcons.cpu, key: 'securityEngineering', category: 'digital' },
+  { icon: serviceIcons.target, key: 'offensiveSecurity', category: 'digital' },
+  { icon: serviceIcons.brain, key: 'aiSystems', category: 'digital' },
+  { icon: serviceIcons.users, key: 'training', category: 'human' },
+  { icon: serviceIcons.flask, key: 'research', category: 'analytical', link: '/research/tooling', linkTextKey: 'services.explore' },
+  { icon: serviceIcons.lock, key: 'dataPrivacy', category: 'digital' },
+  { icon: serviceIcons.eye, key: 'intelligenceAnalysis', category: 'analytical' },
+];
+
+const serviceCategories = [
+  { id: 'digital', labelKey: 'services.category.digital', color: 'var(--hf-accent)' },
+  { id: 'human', labelKey: 'services.category.human', color: 'var(--hf-accent-human)' },
+  { id: 'analytical', labelKey: 'services.category.analytical', color: 'var(--hf-accent-analysis)' },
 ];
 
 const values = [
@@ -464,16 +470,13 @@ const values = [
         {services.map((service, index) => (
           <div class="chrono-node" style={`--chrono-color: ${serviceColor[service.key]}; --delay: ${index * 0.1}s`}>
             <article class="chrono-unit">
-              <!-- Precision Rims (Watchmaking aesthetic) -->
               <div class="chrono-rim-outer"></div>
               <div class="chrono-rim-inner"></div>
-              
+              <div class="chrono-category-tag" style={`--cat-color: ${service.category === 'digital' ? 'var(--hf-accent)' : service.category === 'human' ? 'var(--hf-accent-human)' : 'var(--hf-accent-analysis)'}`}>{t('services.category.' + service.category)}</div>
               <div class="chrono-content">
                 <div class="chrono-icon" set:html={service.icon} />
                 <h3 class="chrono-title">{t(`services.${service.key}.title`)}</h3>
               </div>
-
-              <!-- Tooltip: Technical Spec Sheet -->
               <div class="chrono-spec">
                 <div class="spec-header">
                   <span class="spec-code">HF-{service.key.substring(0,3).toUpperCase()}-{(index+1).toString().padStart(3,'0')}</span>
@@ -1560,6 +1563,29 @@ const values = [
     gap: 30px;
     position: relative;
     z-index: 1;
+  }
+  .chrono-category-label {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 12px 0 4px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cat-color);
+  }
+  .chrono-category-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cat-color);
+    opacity: 0.2;
+  }
+  .chrono-category-label:first-child {
+    margin-top: 0;
   }
 
   @media (min-width: 768px) {

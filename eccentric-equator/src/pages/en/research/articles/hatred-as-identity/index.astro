@@ -1,0 +1,119 @@
+---
+import Layout from '../../../../../layouts/Layout.astro';
+import ResearchNav from '../../../../../components/ResearchNav.astro';
+import { readFileSync } from 'fs';
+
+const locale = 'en';
+const ASSETS = '/assets/articulos/odio-identidad/';
+
+const htmlPath = 'public/assets/articulos/odio-identidad/borrador-articulo.en.html';
+let articleHTML = '';
+try {
+  const raw = readFileSync(htmlPath, 'utf-8');
+  const match = raw.match(/<body>([\s\S]*)<\/body>/i);
+  if (match) {
+    articleHTML = match[1];
+    articleHTML = articleHTML.replace(/<script[^>]*src=["']borrador-articulo\.js["'][^>]*><\/script>/gi, '');
+    articleHTML = articleHTML.replace(/(src|href)=(["'])(?!https?:\/\/|\/|{)([^"']+\.(jpe?g|png|gif|svg|css|js))["']/gi, 
+      (m, attr, quote, path) => `${attr}=${quote}${ASSETS}${path}${quote}`);
+  }
+} catch(e) {
+  articleHTML = '<p>Error loading article.</p>';
+}
+---
+<Layout locale={locale} title="Hatred as Identity — Identity, Algorithm, and Dehumanization in Adolescent Digital Radicalization — Hackfluency Research" description="Deep analysis of the H.M. case (Calama, 2026) and the Latin American contagion effect.">
+  <link rel="stylesheet" href={ASSETS + 'borrador-articulo.css'} />
+  <style is:global>
+    body { background: var(--hf-bg) !important; }
+    .article-embed {
+      font-family: 'Georgia', 'Times New Roman', Times, serif;
+      color: #1a1a1a;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(ellipse at 25% 15%, color-mix(in srgb, var(--hf-accent) 7%, transparent) 0%, transparent 60%),
+        radial-gradient(ellipse at 75% 30%, color-mix(in srgb, var(--hf-accent-secondary) 4%, transparent) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 90%, color-mix(in srgb, var(--hf-accent-human) 3%, transparent) 0%, transparent 40%),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.004) 2px, rgba(0,0,0,0.004) 3px),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.003) 3px, rgba(0,0,0,0.003) 4px),
+        rgba(247, 245, 240, 0.88);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .article-embed h1, .article-embed h2, .article-embed h3, .article-embed h4 {
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 700;
+    }
+    .article-embed {
+      font-size: 18px;
+    }
+    button[aria-label="Change theme"] { color: #1a1a1a !important; font-size:0.72rem; }
+    button[aria-label="Change theme"]:hover { color: var(--hf-accent) !important; }
+    .art-footer {
+      border-top: 1px solid var(--hf-border-secondary, #2a2a2a);
+      padding: 24px 0;
+      background: var(--hf-bg-secondary, #111);
+    }
+    html[data-theme-mode="light"] .art-footer {
+      background: var(--hf-bg-secondary, #f5f5f0);
+      border-top-color: var(--hf-border-secondary, #d0d0c8);
+    }
+    .art-footer-inner {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    footer a.art-footer-back,
+    a.art-footer-back { font-size:0.82rem; color:#bbb; text-decoration:none; transition:color 0.2s; }
+    html[data-theme-mode="light"] footer a.art-footer-back,
+    html[data-theme-mode="light"] a.art-footer-back { color: #555; }
+    footer a.art-footer-back:hover,
+    a.art-footer-back:hover { color: var(--hf-accent, #00D26A); }
+    footer .art-footer-copy { font-size:0.78rem; color:#888; }
+    html[data-theme-mode="light"] footer .art-footer-copy { color: #777; }
+    footer a.art-footer-cta,
+    a.art-footer-cta { font-size:0.82rem; font-weight:600; color:var(--hf-accent,#88d0a0); text-decoration:none; padding:6px 16px; border:1px solid var(--hf-accent-border,rgba(0,210,106,0.3)); border-radius:8px; transition:all 0.2s; }
+    footer a.art-footer-cta:hover,
+    a.art-footer-cta:hover { color: var(--hf-accent-light, #a0e8b0); background: var(--hf-accent-dim); }
+    @media (max-width:700px) { .art-footer-inner { padding: 0 20px; } }
+  </style>
+
+  <ResearchNav activePage="articles" locale={locale} />
+  <main class="rpage" style="padding-top:68px;">
+    <div class="article-embed" set:html={articleHTML} />
+  </main>
+  <footer class="art-footer">
+    <div class="art-footer-inner">
+      <a href="/en/research/articles" class="art-footer-back">&larr; Back to Articles</a>
+      <span class="art-footer-copy">&copy; 2026 Hackfluency</span>
+      <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="art-footer-cta">Contact</a>
+    </div>
+  </footer>
+  <script is:inline src={ASSETS + 'borrador-articulo.en.js'}></script>
+
+  <!-- Article Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Hatred as Identity — Identity, Algorithm, and Dehumanization in Adolescent Digital Radicalization",
+    "description": "Deep analysis of the H.M. case (Calama, 2026) and the Latin American contagion effect.",
+    "author": {
+      "@type": "Person",
+      "name": "Cinthia Gonzalez Castro"
+    },
+    "datePublished": "2026-05-28",
+    "timeRequired": "PT45M",
+    "inLanguage": "en",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Hackfluency Research"
+    }
+  }
+  </script>
+</Layout>

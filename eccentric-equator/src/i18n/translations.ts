@@ -42,7 +42,7 @@ export const translations: Record<Language, Translations> = {
     'hero.title': 'Fluidez en Sistemas',
     'hero.titleAccent': 'Complejos',
     'hero.subtitle':
-      'Navegamos la intersección entre seguridad, inteligencia artificial, privacidad de datos y comportamiento humano. Cada proyecto es liderado por el fundador — sin capas intermedias ni entregables genéricos.',
+      'Navegamos la intersección entre lo digital, lo humano y lo social — seguridad, inteligencia artificial, privacidad de datos, dinámicas organizacionales y comportamiento humano. Cada proyecto es liderado por el fundador — sin capas intermedias ni entregables genéricos.',
     'hero.ctaPrimary': 'Explora Nuestro Enfoque',
     'hero.ctaSecondary': 'Explorar Investigación',
     'hero.proofLabel': 'Ejemplo de entregable',
@@ -80,14 +80,17 @@ export const translations: Record<Language, Translations> = {
       'Análisis de inteligencia de fuentes abiertas, monitoreo de amenazas y evaluación estratégica de actores. Traducimos señales del entorno en inteligencia accionable para tu organización.',
     'services.bookConsultation': 'Agendar consultoría',
     'services.explore': 'Explorar Investigación',
+    'services.category.digital': 'Digital',
+    'services.category.human': 'Humano',
+    'services.category.analytical': 'Analítico',
 
     /* ── About ── */
     'about.tag': 'Quiénes Somos',
     'about.title': 'Fluidez en Sistemas Complejos',
     'about.text1':
-      'No hacemos consultoría en serie. Somos una firma boutique fundada para abordar problemas que no encajan en catálogos de proveedores ni plantillas estándar — desde la arquitectura de sistemas críticos hasta el análisis del impacto social de la tecnología.',
+      'Somos un grupo de individuos que entienden que los sistemas tienen puntos de correlación disciplinaria. Cada consultor trae consigo un conjunto de habilidades maestras forjadas en la experiencia real de su campo — ingeniería, inteligencia, estrategia, investigación — y las aplica desde múltiples aristas para abordar problemas complejos.',
     'about.text2':
-      'Cada proyecto es liderado por un Arquitecto Principal con años de experiencia práctica. Aportamos investigación propia, herramientas propietarias y una perspectiva multi-dominio que reconoce que los sistemas más complejos no son solo técnicos: son humanos, sociales y políticos.',
+      'Nos asociamos con personas, no con contratos. Buscamos relaciones donde ambas partes se beneficien, asesorando con capacidad comprensiva, dinamismo y enfoques pragmáticos. Nos apasiona el conocimiento, pero también queremos ser reales, honestos y entregar confianza estratégica y comunicación clara para tus escenarios. No hacemos consultoría en serie — cada proyecto es liderado por un Arquitecto Principal con investigación propia, herramientas propietarias y una perspectiva multi-dominio que reconoce que los sistemas más complejos no son solo técnicos: son humanos, sociales y sistémicos.',
     'about.feature1': 'Proyectos liderados por el fundador — sin gestores de cuentas',
     'about.feature2': 'Herramientas de investigación propietarias en producción activa',
     'about.feature3': 'Asesoría independiente — sin afiliaciones con vendedores',
@@ -221,7 +224,7 @@ export const translations: Record<Language, Translations> = {
     'articles.tag': 'Artículos de Investigación',
     'articles.title': 'Artículos',
     'articles.subtitle':
-      'Investigación técnica a profundidad — arquitectura de seguridad, sistemas de IA y diseño operacional aplicado. Cada artículo desarrolla una idea desde el concepto hasta la implicación arquitectónica.',
+      'Investigación de sistemas complejos — arquitectura de seguridad, inteligencia artificial, dinámicas sociales y psicología cognitiva aplicada. Cada artículo traza un problema desde sus capas técnicas hasta sus implicaciones humanas y sistémicas.',
     'articles.count': '{count} artículo publicado',
     'articles.count.plural': '{count} artículos publicados',
     'articles.newest': 'Más recientes primero',
@@ -234,6 +237,11 @@ export const translations: Record<Language, Translations> = {
     'articles.footer.back': '← Investigación',
     'articles.newBadge': 'NUEVO',
     'articles.readArticle': 'Leer artículo',
+    'articles.by': 'Por',
+    'articles.viewCompact': 'Vista compacta',
+    'articles.viewFull': 'Vista completa',
+    'articles.gridView': 'Vista cuadrícula',
+    'articles.columnView': 'Una columna',
 
     /* ── Research Notes ── */
     'notes.tag': 'Notas de Arquitectura',
@@ -314,7 +322,7 @@ export const translations: Record<Language, Translations> = {
     'hero.title': 'Fluency in Complex',
     'hero.titleAccent': 'Systems',
     'hero.subtitle':
-      'We navigate the intersection of security, artificial intelligence, data privacy, and human behavior. Every engagement is founder-led — no middlemen, no generic deliverables.',
+      'We navigate the intersection of the digital, the human, and the social — security, artificial intelligence, data privacy, organizational dynamics, and human behavior. Every engagement is founder-led — no middlemen, no generic deliverables.',
     'hero.ctaPrimary': 'Explore Our Approach',
     'hero.ctaSecondary': 'Explore Research',
     'hero.proofLabel': 'Sample deliverable',
@@ -352,14 +360,17 @@ export const translations: Record<Language, Translations> = {
       'Open-source intelligence gathering, threat monitoring, and strategic actor assessment. We translate environmental signals into actionable intelligence for your organization.',
     'services.bookConsultation': 'Book consultation',
     'services.explore': 'Explore Research',
+    'services.category.digital': 'Digital',
+    'services.category.human': 'Human',
+    'services.category.analytical': 'Analytical',
 
     /* ── About ── */
     'about.tag': 'Who We Are',
     'about.title': 'Fluency in Complex Systems',
     'about.text1':
-      'We don\'t do cookie-cutter consulting. We\'re a boutique firm built for problems that don\'t fit vendor catalogs or standard engagement templates — from critical systems architecture to the social impact of technology.',
+      'We\'re a group of individuals who understand that systems have points of disciplinary correlation. Each consultant brings a master set of skills forged in real-world experience — engineering, intelligence, strategy, research — and applies them from multiple angles to tackle complex problems.',
     'about.text2':
-      'Every engagement is led by a Principal Architect with years of hands-on experience. We bring proprietary research, custom tooling, and a multi-domain perspective that recognizes the most complex systems are not just technical — they are human, social, and political.',
+      'We partner with people, not contracts. We seek relationships where both sides benefit, advising with comprehensive understanding, dynamism, and pragmatic approaches. We\'re passionate about knowledge, but we also want to be real, honest, and deliver strategic trust and clear communication for your scenarios. We don\'t do cookie-cutter consulting — every engagement is led by a Principal Architect with proprietary research, custom tooling, and a multi-domain perspective that recognizes the most complex systems are not just technical: they are human, social, and systemic.',
     'about.feature1': 'Founder-led engagements — no account managers',
     'about.feature2': 'Proprietary research tools in active production',
     'about.feature3': 'Independent advisory — no vendor affiliations',
@@ -493,7 +504,7 @@ export const translations: Record<Language, Translations> = {
     'articles.tag': 'Research Articles',
     'articles.title': 'Articles',
     'articles.subtitle':
-      'Full-depth technical research — security architecture, AI systems and applied operational design. Each article develops an idea from concept to architectural implication.',
+      'Complex systems research — security architecture, artificial intelligence, social dynamics and applied cognitive psychology. Each article traces a problem from its technical layers to its human and systemic implications.',
     'articles.count': '{count} article published',
     'articles.count.plural': '{count} articles published',
     'articles.newest': 'Newest first',
@@ -506,6 +517,11 @@ export const translations: Record<Language, Translations> = {
     'articles.footer.back': '← Research',
     'articles.newBadge': 'NEW',
     'articles.readArticle': 'Read article',
+    'articles.by': 'By',
+    'articles.viewCompact': 'Compact view',
+    'articles.viewFull': 'Full view',
+    'articles.gridView': 'Grid view',
+    'articles.columnView': 'Single column',
 
     /* ── Research Notes ── */
     'notes.tag': 'Architecture Notes',

@@ -12,6 +12,16 @@ const base = import.meta.env.BASE_URL;
 
 const articles = (locale === 'es' ? [
   {
+    title: "El odio como identidad",
+    description: "Un análisis forense de 40 páginas sobre el caso H. M. (Calama, 2026), el ataque escolar que desencadenó un efecto contagio regional. La investigación de Cinthia Gonzalez Castro desmenuza cómo el sufrimiento emocional silencioso, amplificado por algoritmos de recomendación y comunidades digitales de nihilismo violento, se transforma en una identidad armada. Desde la arquitectura lingüística del blackpill hasta el tablero de evidencia interactivo: un modelo para entender —y desmantelar— las condiciones que producen la radicalización adolescente digital.",
+    tags: ["Sociedad", "Psicología", "Tecnología"],
+    date: "Mayo 2026",
+    readTime: "35 min de lectura",
+    url: "/research/articles/odio-identidad/",
+    isNew: true,
+    author: "Cinthia Gonzalez Castro",
+  },
+  {
     title: "Zero-day con IA: el caso de Google, sus marcadores y lo que no sabemos",
     description: "Google GTIG publicó un reporte diciendo que detectó el primer zero-day generado por IA. La evidencia es más delgada de lo que parece, y no es la primera vez que se hace este claim. Un análisis de los marcadores, los antecedentes y lo que no se dijo.",
     tags: ["IA", "Seguridad", "Zero-day"],
@@ -19,6 +29,7 @@ const articles = (locale === 'es' ? [
     readTime: "8 min de lectura",
     url: "/research/articles/zero-day-ia-google/",
     isNew: true,
+    author: "Marcelo Burgos",
   },
   {
     title: "Arquitectura de Sistemas Ofensivos Impulsados por MCP",
@@ -26,8 +37,19 @@ const articles = (locale === 'es' ? [
     tags: ["Seguridad Ofensiva", "Arquitectura MCP", "Sistemas Autónomos"],
     date: "Marzo 2026",
     readTime: "12 min de lectura",
+    author: "Marcelo Burgos",
   },
 ] : [
+  {
+    title: "Hatred as Identity",
+    description: "A 40-page forensic analysis of the H.M. case (Calama, 2026) — the school attack that triggered a regional contagion effect. Cinthia Gonzalez Castro's investigation dissects how silent emotional suffering, amplified by recommendation algorithms and digital communities of nihilistic violence, transforms into an armed identity. From the linguistic architecture of the blackpill to an interactive evidence board: a framework for understanding — and dismantling — the conditions that produce adolescent digital radicalization.",
+    tags: ["Society", "Psychology", "Technology"],
+    date: "May 2026",
+    readTime: "35 min read",
+    url: "/en/research/articles/hatred-as-identity/",
+    isNew: true,
+    author: "Cinthia Gonzalez Castro",
+  },
   {
     title: "Zero-Day with AI: The Google Case, Its Markers, and What We Don't Know",
     description: "Google GTIG published a report claiming to have detected the first AI-generated zero-day. The evidence is thinner than it seems, and this isn't the first time this claim has been made. An analysis of the markers, the precedents, and what was left unsaid.",
@@ -36,6 +58,7 @@ const articles = (locale === 'es' ? [
     readTime: "8 min read",
     url: "/en/research/articles/zero-day-ia-google/",
     isNew: true,
+    author: "Marcelo Burgos",
   },
   {
     title: "Architecture of MCP-Driven Offensive Systems",
@@ -43,8 +66,29 @@ const articles = (locale === 'es' ? [
     tags: ["Offensive Security", "MCP Architecture", "Autonomous Systems"],
     date: "March 2026",
     readTime: "12 min read",
+    author: "Cinthia Gonzalez Castro",
   },
 ]);
+
+// Tag → color mapping (shared across ES/EN via tag key)
+const tagColorMap = {
+  'Sociedad': '#F59E0B', 'Society': '#F59E0B',
+  'Psicología': '#EC4899', 'Psychology': '#EC4899',
+  'Tecnología': '#3B82F6', 'Technology': '#3B82F6',
+  'IA': '#8B5CF6', 'AI': '#8B5CF6',
+  'Seguridad': '#EF4444', 'Security': '#EF4444',
+  'Zero-day': '#F97316',
+  'Seguridad Ofensiva': '#DC2626', 'Offensive Security': '#DC2626',
+  'Arquitectura MCP': '#06B6D4', 'MCP Architecture': '#06B6D4',
+  'Sistemas Autónomos': '#10B981', 'Autonomous Systems': '#10B981',
+};
+
+// Collect unique tags preserving order of first appearance
+const allTags = [];
+const seen = new Set();
+articles.forEach(a => a.tags.forEach(t => {
+  if (!seen.has(t)) { seen.add(t); allTags.push(t); }
+}));
 ---
 
 <ResearchNav activePage="articles" locale={locale} />
@@ -59,10 +103,20 @@ const articles = (locale === 'es' ? [
       <p class="ra-subtitle">
         {t('articles.subtitle')}
       </p>
+      <div class="ra-tag-filter">
+        {allTags.map(tag => (
+          <button class="ra-tag-filter-btn" data-tag={tag} style={`--tag-color: ${tagColorMap[tag] || '#888'}`}>{tag}</button>
+        ))}
+      </div>
       <div class="ra-meta-row">
         <span class="ra-count">{(articles.length === 1 ? t('articles.count') : t('articles.count.plural')).replace('{count}', String(articles.length))}</span>
         <span class="ra-meta-sep">·</span>
         <span class="ra-meta-note">{t('articles.newest')}</span>
+        <span class="ra-meta-sep ra-meta-sep--views">·</span>
+        <span class="ra-views-group">
+          <button class="ra-view-toggle" id="ra-view-toggle" data-mode="full">{t('articles.viewCompact')}</button>
+          <button class="ra-view-toggle" id="ra-layout-toggle" data-cols="1">{t('articles.gridView')}</button>
+        </span>
       </div>
     </div>
   </section>
@@ -77,7 +131,7 @@ const articles = (locale === 'es' ? [
             <div class="ra-card-top">
               <div class="ra-tags">
                 {article.tags.map(tag => (
-                  <span class="ra-tag">{tag}</span>
+                  <span class="ra-tag" data-tag={tag} style={`--tag-color: ${tagColorMap[tag] || '#888'}`}>{tag}</span>
                 ))}
               </div>
               <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;">
@@ -88,11 +142,14 @@ const articles = (locale === 'es' ? [
             <h2 class="ra-card-title">{article.title}</h2>
             <p class="ra-card-desc">{article.description}</p>
             <div class="ra-card-footer">
-              <time class="ra-date">{article.date}</time>
-              {article.url
-                ? <span class="ra-read-link">{t('articles.readArticle')} &rarr;</span>
-                : <span class="ra-coming-soon">{t('articles.comingSoon')}</span>
-              }
+              <span class="ra-author"><span class="ra-author-label">{t('articles.by')}</span> {article.author}</span>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <time class="ra-date">{article.date}</time>
+                {article.url
+                  ? <span class="ra-read-link">{t('articles.readArticle')} &rarr;</span>
+                  : <span class="ra-coming-soon">{t('articles.comingSoon')}</span>
+                }
+              </div>
             </div>
           </article>
           </a>
@@ -182,7 +239,42 @@ const articles = (locale === 'es' ? [
   .ra-meta-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .ra-meta-sep--views {
+    margin-left: 4px;
+  }
+  .ra-views-group {
+    display: flex;
+    gap: 6px;
+  }
+
+  .ra-view-toggle {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--hf-accent);
+    background: var(--hf-accent-dim);
+    border: 1px solid var(--hf-accent-border);
+    padding: 4px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .ra-view-toggle:hover {
+    background: var(--hf-accent-border);
+    color: var(--hf-text);
+  }
+
+  @media (max-width: 640px) {
+    .ra-views-group {
+      display: none;
+    }
+    .ra-meta-sep--views {
+      display: none;
+    }
   }
 
   .ra-count {
@@ -212,6 +304,52 @@ const articles = (locale === 'es' ? [
     flex-direction: column;
     gap: 24px;
     margin-bottom: 52px;
+  }
+  /* 2-column grid mode */
+  .ra-grid--columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  /* Expand container when grid is active */
+  .ra-list:has(.ra-grid--columns) .r-container {
+    max-width: 1120px;
+  }
+  /* Keep pipeline compact even when grid is wide */
+  .ra-pipeline {
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .ra-grid--columns .ra-card {
+    padding: 24px;
+  }
+  .ra-grid--columns .ra-card-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+  .ra-grid--columns .ra-card-title {
+    font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+    margin-bottom: 10px;
+  }
+  .ra-grid--columns .ra-card-top {
+    margin-bottom: 12px;
+  }
+  .ra-grid--columns .ra-card-footer {
+    padding-top: 14px;
+  }
+  .ra-grid--columns .ra-author {
+    font-size: 0.75rem;
+  }
+  .ra-grid--columns .ra-date {
+    font-size: 0.75rem;
+  }
+  .ra-grid--columns .ra-read-link {
+    font-size: 0.75rem;
   }
 
   /* ── Card link ── */
@@ -255,16 +393,51 @@ const articles = (locale === 'es' ? [
 
   /* ── Article card ── */
   .ra-card {
-    padding: 36px;
+    position: relative;
     background: var(--hf-bg-card);
-    border: 1px solid var(--hf-border);
+    background-clip: padding-box;
+    border: 3px solid transparent;
     border-radius: 16px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    padding: 35px;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--hf-accent) 8%, transparent);
   }
-
+  .ra-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 3px;
+    background: conic-gradient(from var(--angle, 0deg),
+      var(--hf-accent) 0deg,
+      var(--hf-accent-secondary) 90deg,
+      var(--hf-accent-human) 180deg,
+      var(--hf-accent-secondary) 270deg,
+      var(--hf-accent) 360deg
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0.35;
+    transition: opacity 0.4s ease;
+    animation: border-spin 8s linear infinite;
+    pointer-events: none;
+  }
+  .ra-card:hover::before {
+    opacity: 1;
+  }
   .ra-card:hover {
-    border-color: var(--hf-accent-border);
-    box-shadow: 0 4px 24px var(--hf-accent-dim);
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 1px var(--hf-accent), 0 12px 48px color-mix(in srgb, var(--hf-accent) 25%, transparent);
+  }
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes border-spin {
+    to { --angle: 360deg; }
   }
 
   .ra-card-top {
@@ -287,12 +460,51 @@ const articles = (locale === 'es' ? [
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: var(--hf-accent);
-    background: var(--hf-accent-dim);
-    border: 1px solid var(--hf-accent-border);
     padding: 3px 10px;
     border-radius: 100px;
     white-space: nowrap;
+    transition: all 0.2s ease;
+    color: var(--tag-color, var(--hf-accent));
+    background: color-mix(in srgb, var(--tag-color, var(--hf-accent)) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tag-color, var(--hf-accent)) 25%, transparent);
+  }
+  .ra-tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .ra-tag-filter-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 5px 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    border: 1.5px solid color-mix(in srgb, var(--tag-color, #888) 30%, transparent);
+    color: color-mix(in srgb, var(--tag-color, #888) 70%, var(--hf-text));
+    background: transparent;
+  }
+  .ra-tag-filter-btn:hover {
+    background: color-mix(in srgb, var(--tag-color, #888) 10%, transparent);
+    border-color: color-mix(in srgb, var(--tag-color, #888) 50%, transparent);
+  }
+  .ra-tag-filter-btn.is-active {
+    background: color-mix(in srgb, var(--tag-color, #888) 20%, transparent);
+    border-color: var(--tag-color, #888);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--tag-color, #888) 40%, transparent);
+    color: var(--tag-color, #888);
+  }
+  /* Dimmed article when filter is active */
+  .ra-grid.is-filtered .ra-card-link:not(.is-highlighted) .ra-card {
+    opacity: 0.3;
+    filter: grayscale(0.6);
+    transform: scale(0.97);
+  }
+  .ra-grid.is-filtered .ra-card-link.is-highlighted .ra-card {
+    box-shadow: 0 0 0 1px var(--accent, var(--hf-accent)), 0 0 30px color-mix(in srgb, var(--accent, var(--hf-accent)) 20%, transparent);
   }
 
   .ra-read-time {
@@ -318,6 +530,23 @@ const articles = (locale === 'es' ? [
     line-height: 1.75;
     margin-bottom: 28px;
   }
+  /* Compact mode: limit description to 2 lines */
+  .ra-grid--compact .ra-card-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .ra-grid--compact .ra-card {
+    padding: 24px 28px;
+  }
+  .ra-grid--compact .ra-card-top {
+    margin-bottom: 12px;
+  }
+  .ra-grid--compact .ra-card-title {
+    margin-bottom: 8px;
+  }
 
   .ra-card-footer {
     display: flex;
@@ -333,6 +562,18 @@ const articles = (locale === 'es' ? [
     font-size: 0.82rem;
     color: var(--hf-text-dim);
     font-style: italic;
+  }
+
+  .ra-author {
+    font-size: 0.82rem;
+    color: var(--hf-text-secondary);
+  }
+  .ra-author-label {
+    font-weight: 600;
+    color: var(--hf-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
   }
 
   .ra-coming-soon {
@@ -443,3 +684,85 @@ const articles = (locale === 'es' ? [
     background: var(--hf-accent-dim);
   }
 </style>
+
+<script>
+  (function() {
+    var grid = document.querySelector('.ra-grid');
+    if (!grid) return;
+
+    var isMobile = window.matchMedia('(max-width: 640px)').matches;
+
+    // Compact/Full toggle
+    var btn = document.getElementById('ra-view-toggle');
+    if (btn) {
+      var labels = btn.textContent === 'Compact view' || btn.textContent === 'Full view'
+        ? { compact: 'Full view', full: 'Compact view' }
+        : { compact: 'Vista completa', full: 'Vista compacta' };
+      var wantCompact = isMobile || localStorage.getItem('hf-articles-view') === 'compact';
+      if (wantCompact) {
+        grid.classList.add('ra-grid--compact');
+        btn.dataset.mode = 'compact';
+        btn.textContent = labels.compact;
+      }
+      btn.addEventListener('click', function() {
+        if (isMobile) return;
+        var isCompact = grid.classList.toggle('ra-grid--compact');
+        btn.dataset.mode = isCompact ? 'compact' : 'full';
+        btn.textContent = isCompact ? labels.compact : labels.full;
+        localStorage.setItem('hf-articles-view', isCompact ? 'compact' : 'full');
+      });
+    }
+
+    // 1-column / 2-column layout toggle
+    var layBtn = document.getElementById('ra-layout-toggle');
+    if (layBtn) {
+      var layLabels = layBtn.textContent === 'Grid view' || layBtn.textContent === 'Single column'
+        ? { grid: 'Single column', single: 'Grid view' }
+        : { grid: 'Una columna', single: 'Vista cuadrícula' };
+      if (!isMobile && localStorage.getItem('hf-articles-layout') === 'grid') {
+        grid.classList.add('ra-grid--columns');
+        layBtn.dataset.cols = '2';
+        layBtn.textContent = layLabels.grid;
+      }
+      layBtn.addEventListener('click', function() {
+        if (isMobile) return;
+        var isGrid = grid.classList.toggle('ra-grid--columns');
+        layBtn.dataset.cols = isGrid ? '2' : '1';
+        layBtn.textContent = isGrid ? layLabels.grid : layLabels.single;
+        localStorage.setItem('hf-articles-layout', isGrid ? 'grid' : 'single');
+      });
+    }
+
+    // Tag filter
+    var filterBtns = document.querySelectorAll('.ra-tag-filter-btn');
+    if (filterBtns.length) {
+      filterBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var tag = btn.dataset.tag;
+          var isActive = btn.classList.toggle('is-active');
+          var anyActive = document.querySelector('.ra-tag-filter-btn.is-active');
+
+          if (anyActive) {
+            grid.classList.add('is-filtered');
+            // Highlight cards that contain this tag
+            document.querySelectorAll('.ra-card-link').forEach(function(card) {
+              var tags = card.querySelectorAll('.ra-tag');
+              var match = false;
+              document.querySelectorAll('.ra-tag-filter-btn.is-active').forEach(function(activeBtn) {
+                tags.forEach(function(t) {
+                  if (t.dataset.tag === activeBtn.dataset.tag) match = true;
+                });
+              });
+              card.classList.toggle('is-highlighted', match);
+            });
+          } else {
+            grid.classList.remove('is-filtered');
+            document.querySelectorAll('.ra-card-link').forEach(function(card) {
+              card.classList.remove('is-highlighted');
+            });
+          }
+        });
+      });
+    }
+  })();
+</script>
