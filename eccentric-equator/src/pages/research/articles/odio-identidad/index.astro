@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
 import ResearchNav from '../../../../components/ResearchNav.astro';
+import ArticleClosingPanel from '../../../../components/articles/ArticleClosingPanel.astro';
 import { readFileSync } from 'fs';
 
 const locale = 'es';
@@ -139,6 +140,13 @@ try {
   <main class="rpage" style="padding-top:68px;">
     <div class="article-embed" set:html={articleHTML} />
   </main>
+
+  <ArticleClosingPanel
+    locale="es"
+    slug="odio-identidad"
+    pageTitle="El odio como identidad — Identidad, algoritmo y deshumanización en la radicalización adolescente digital"
+    pageUrl={Astro.url.href}
+  />
 
   <!-- Article footer -->
   <footer class="art-footer">

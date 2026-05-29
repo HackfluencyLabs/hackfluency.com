@@ -74,7 +74,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
     return (
       <>
         <div style={{ width: '70px', height: '36px', borderRadius: '8px', background: 'color-mix(in srgb, var(--hf-text) 4%, transparent)' }} />
-        <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta">{t('common.bookCall', locale)}</a>
+        <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
       </>
     );
   }
@@ -84,7 +84,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
       return (
         <>
           <a href={localePath('/dashboards')} className="mobile-nav-btn-signin">{t('nav.signIn', locale)}</a>
-          <a href={BOOKING_URL} target="_blank" rel="noopener" className="mobile-nav-cta">{t('common.bookCall', locale)}</a>
+          <a href={BOOKING_URL} target="_blank" rel="noopener" className="mobile-nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
         </>
       );
     }
@@ -93,7 +93,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
         <a href={localePath('/cti/')} className="mobile-nav-btn-threat">{t('nav.threatIntel', locale)}</a>
         <a href={localePath('/dashboards')} className="mobile-nav-btn-platform">{t('nav.dashboards', locale)}</a>
         <button onClick={handleLogout} className="mobile-nav-btn-logout">{t('nav.logOut', locale)}</button>
-        <a href={BOOKING_URL} target="_blank" rel="noopener" className="mobile-nav-cta">{t('common.bookCall', locale)}</a>
+        <a href={BOOKING_URL} target="_blank" rel="noopener" className="mobile-nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
       </>
     );
   }
@@ -103,7 +103,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
     return (
       <>
         <a href={localePath('/dashboards')} className="nav-btn-dashboard">{t('nav.signIn', locale)}</a>
-        <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta">{t('common.bookCall', locale)}</a>
+        <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
       </>
     );
   }
@@ -145,7 +145,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
           </div>
         )}
       </div>
-      <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta">{t('common.bookCall', locale)}</a>
+      <a href={BOOKING_URL} target="_blank" rel="noopener" className="nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
     </>
   );
 };

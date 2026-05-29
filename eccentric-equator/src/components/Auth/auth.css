@@ -325,7 +325,7 @@
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--hf-text-on-accent, #000000);
+  color: #ffffff;
   text-decoration: none;
   cursor: pointer;
   font-family: inherit;
@@ -337,7 +337,7 @@
 .nav-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 32px color-mix(in srgb, var(--hf-accent, #00FF7F) 40%, transparent);
-  color: var(--hf-text-on-accent, #000000);
+  color: #ffffff;
 }
 
 .nav-btn-threat {
@@ -535,12 +535,12 @@
   justify-content: center;
   width: 100%;
   padding: 16px 24px;
-  background: color-mix(in srgb, var(--hf-text, #ffffff) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--hf-text, #ffffff) 14%, transparent);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--hf-text, #ffffff);
+  color: #f0f0f0 !important;
   text-decoration: none;
   min-height: 56px;
   transition: all 0.25s ease;
@@ -549,8 +549,8 @@
 .mobile-nav-btn-signin:hover,
 .mobile-nav-btn-platform:hover,
 .mobile-nav-btn-dashboard:hover {
-  background: color-mix(in srgb, var(--hf-text, #ffffff) 11%, transparent);
-  border-color: color-mix(in srgb, var(--hf-text, #ffffff) 28%, transparent);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .mobile-nav-btn-threat {
@@ -610,7 +610,7 @@
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--hf-text-on-accent, #000000);
+  color: #ffffff;
   text-decoration: none;
   min-height: 56px;
   transition: all 0.25s ease;
@@ -619,5 +619,5 @@
 .mobile-nav-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 40px color-mix(in srgb, var(--hf-accent, #00FF7F) 35%, transparent);
-  color: var(--hf-text-on-accent, #000000);
+  color: #ffffff;
 }
