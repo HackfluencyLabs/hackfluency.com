@@ -215,6 +215,78 @@ function saveBoard() {
     document.getElementById('status').textContent = '✓ Mira la consola (F12)';
   }
 }
+function shareBoard() {
+  // Load html2canvas on demand
+  if (!window.html2canvas) {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.onload = function() { doCapture(); };
+    document.head.appendChild(s);
+    document.getElementById('status').textContent = 'Cargando...';
+    return;
+  }
+  doCapture();
+}
+function doCapture() {
+  var board = document.getElementById('board');
+  if (!board) return;
+  document.getElementById('status').textContent = 'Capturando...';
+  // Temporarily hide edit button and controls overlay for clean capture
+  var editBtn = document.getElementById('editBtn');
+  var controls = document.getElementById('board-controls');
+  if (editBtn) editBtn.style.display = 'none';
+  if (controls) controls.style.display = 'none';
+  html2canvas(board, { scale: 2, useCORS: true, backgroundColor: '#ebe3d8', logging: false }).then(function(canvas) {
+    if (editBtn) editBtn.style.display = '';
+    if (controls) controls.style.display = '';
+    var dataUrl = canvas.toDataURL('image/png');
+    showShareModal(dataUrl);
+    document.getElementById('status').textContent = '✓ Listo';
+  }).catch(function() {
+    if (editBtn) editBtn.style.display = '';
+    if (controls) controls.style.display = '';
+    document.getElementById('status').textContent = '✗ Error al capturar';
+  });
+}
+function showShareModal(dataUrl) {
+  // Remove existing modal if any
+  var old = document.getElementById('hf-share-modal');
+  if (old) old.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'hf-share-modal';
+  overlay.innerHTML = '<div class="hf-share-backdrop" onclick="closeShareModal()"></div>' +
+    '<div class="hf-share-panel">' +
+    '<button class="hf-share-close" onclick="closeShareModal()">✕</button>' +
+    '<h3 style="margin:0 0 12px;font-family:system-ui,sans-serif;font-size:1.1rem;">📤 Compartir tablero</h3>' +
+    '<div class="hf-share-preview"><img src="' + dataUrl + '" alt="Board preview" /></div>' +
+    '<div class="hf-share-actions">' +
+    '<button onclick="downloadShare(\'' + dataUrl + '\')">📷 Descargar PNG</button>' +
+    '<button onclick="shareToX()">𝕏 Compartir en X</button>' +
+    '<button onclick="shareToLinkedIn()">💼 Compartir en LinkedIn</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+}
+function closeShareModal() {
+  var el = document.getElementById('hf-share-modal');
+  if (el) el.remove();
+}
+function downloadShare(dataUrl) {
+  var a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'tablero-evidencia-odio-identidad.png';
+  a.click();
+}
+function shareToX() {
+  var url = encodeURIComponent(window.location.href);
+  var text = encodeURIComponent('Explorando el tablero de evidencia de "El odio como identidad" — un análisis forense interactivo sobre radicalización adolescente digital.');
+  window.open('https://twitter.com/intent/tweet?text=' + text + '&url=' + url, '_blank', 'width=600,height=400');
+  closeShareModal();
+}
+function shareToLinkedIn() {
+  var url = encodeURIComponent(window.location.href);
+  window.open('https://linkedin.com/sharing/share-offsite/?url=' + url, '_blank', 'width=600,height=500');
+  closeShareModal();
+}
 function focusDirectConnections(id) {
   const connected = new Set([id]);
   strings.forEach(s => { if (s.from === id) connected.add(s.to); if (s.to === id) connected.add(s.from); });
