@@ -849,7 +849,14 @@ summary:hover { color: #8b1a1a; }
   .container { padding: 1rem; }
   h1 { font-size: 2rem; }
   h2 { font-size: 1.3rem; }
-  .detective-board { height: 820px; max-width: 100%; }
+  .board-mobile-wrap {
+    width: 100%;
+    overflow: visible;
+  }
+  .board-mobile-wrap .detective-board {
+    transform-origin: top left;
+    margin: 0 auto !important;
+  }
   .db-card { font-size: 0.6rem; max-width: 90px; padding: 4px 8px; }
   .db-card .db-label { font-size: 0.7rem; }
   .db-card .db-sub { font-size: 0.55rem; }

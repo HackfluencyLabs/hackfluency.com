@@ -447,6 +447,27 @@ function hfInitBoard() {
     });
   });
 }
+function fitBoard() {
+  var board = document.getElementById('board');
+  if (!board || window.innerWidth > 700) {
+    if (board) { board.style.transform = ''; board.style.width = ''; }
+    var wrap = document.querySelector('.board-mobile-wrap');
+    if (wrap) wrap.style.height = '';
+    return;
+  }
+  var wrap = document.querySelector('.board-mobile-wrap');
+  if (!wrap) return;
+  var padding = 24;
+  var available = window.innerWidth - padding;
+  var scale = Math.min(1, available / 1000);
+  board.style.transformOrigin = 'top left';
+  board.style.transform = 'scale(' + scale + ')';
+  board.style.width = '1000px';
+  board.style.margin = '0';
+  wrap.style.height = (1020 * scale + 40) + 'px';
+}
+window.addEventListener('resize', fitBoard);
+document.addEventListener('astro:page-load', function() { setTimeout(fitBoard, 100); });
 hfInitBoard();
 document.querySelector('.cp-dot')?.classList.add('active');
 document.addEventListener('astro:page-load', function() { setTimeout(render, 300); });
