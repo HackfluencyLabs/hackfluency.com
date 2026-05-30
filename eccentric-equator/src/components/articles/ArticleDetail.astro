@@ -219,7 +219,7 @@ const layoutClass = 'art-layout--' + artLayout;
       btn.classList.add('clapped');
 
       // Upsert: insert if not exists, update count if exists
-      fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?onConflict=slug`, {
+      fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?on_conflict=slug`, {
         method: 'POST',
         headers: {
           'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz',
