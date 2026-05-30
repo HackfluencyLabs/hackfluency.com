@@ -127,7 +127,7 @@ const cusdisId = slug + '-' + locale;
       var newCount = count + 1;
       updateCount(newCount);
       btn.classList.add('clapped');
-      fetch('https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps', {
+      fetch('https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?onConflict=slug', {
         method: 'POST',
         headers: {
           'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz',
