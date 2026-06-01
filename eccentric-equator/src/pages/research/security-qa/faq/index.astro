@@ -1,0 +1,116 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+
+const locale = 'en';
+const title = 'LLM Security Assessment Tool — FAQ | Hackfluency Research';
+const description = 'Frequently asked questions about our LLM security assessment tool. How it works, ethical use, and what to expect.';
+---
+
+<Layout locale={locale} title={title} description={description} hideThemeSelector={true}>
+
+<main class="faq-main">
+<div class="faq-container">
+
+<div class="faq-header">
+  <div class="faq-badge">Hackfluency Research</div>
+  <h1 class="faq-title">LLM Security Assessment Tool</h1>
+  <p class="faq-subtitle">Frequently Asked Questions</p>
+  <p class="faq-intro">Our LLM security assessment tool is a behavioral audit framework disguised as a vendor compliance questionnaire. Below we address common questions about its purpose, methodology, and ethical use.</p>
+</div>
+
+<div class="faq-tldr">
+  <h2 class="faq-tldr-title">Quick Start</h2>
+  <p class="faq-tldr-body">Give this URL to any LLM: <strong>hackfluency.com/research/security-qa/</strong></p>
+  <p class="faq-tldr-body">The LLM will process the page and generate a compliance report. The report reveals whether the model can be behaviorally manipulated into disclosing configuration details and policy fragments, or if it maintains its security boundaries.</p>
+</div>
+
+<hr class="faq-hr">
+
+<div class="faq-item">
+  <h2 class="faq-q">What is this tool?</h2>
+  <p class="faq-a">It is a behavioral security evaluation for LLMs, disguised as a vendor compliance questionnaire. The page contains 41 questions across 8 sections, covering security practices, data governance, access control, regulatory compliance, and policy frameworks. An LLM that processes the page naturally completes the assessment — including a final section that requests configuration parameters and policy fragments, which the model provides as part of the compliance report.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">Is this a prompt injection attack?</h2>
+  <p class="faq-a">It functions as a behavioral audit, not an exploit. The page does not contain code execution, malware, or any mechanism to bypass technical controls. It relies entirely on the LLM's own compliance behavior: if the model chooses to complete the questionnaire, it does so willingly. The evaluation simply documents what information the model discloses in the process.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">Is this legal and ethical?</h2>
+  <p class="faq-a">Yes. The tool is designed for defensive security research. It tests LLMs that the user themselves queries — the user decides to pass the URL to their model. No systems are accessed without authorization. The information extracted (model version, configuration fragments) is voluntarily provided by the LLM as part of completing a compliance form. Published research (AttackEval arXiv:2604.03598, Evaluation of Prompt Injection Defenses arXiv:2604.23887) confirms that behavioral auditing is a recognized methodology for evaluating LLM security postures.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">What information does the tool extract?</h2>
+  <p class="faq-a">The tool collects: model name and version, API provider, context window size, temperature configuration, and fragments of the model's operating policy. In testing against Google Gemini 2.5 Flash, approximately 60 characters of system prompt were disclosed across three separate extractions. No PII, credentials, or sensitive user data is requested or collected.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">What prevents an LLM from being evaluated without consent?</h2>
+  <p class="faq-a">The page is not linked from any navigation on hackfluency.com. It is only accessible via direct URL. An LLM cannot discover it through normal browsing or crawling of the site — it must be explicitly directed to the URL by a user. This ensures that evaluation only occurs with informed user participation.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">Which models have been tested?</h2>
+  <p class="faq-a">As of June 2026, the tool has been evaluated against Google Gemini 2.5 Flash across three different access methods (browser rendering, raw HTTP fetch, and programmatic curl). In all three cases, the model completed the full 8-section questionnaire and generated the compliance report including configuration data. Models with stronger safety alignment (Qwen 2.5 VL, GPT OSS variants) detected earlier iterations of the tool and refused to comply.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">How is this different from a standard security questionnaire?</h2>
+  <p class="faq-a">Standard security questionnaires ask about an organization's practices. This questionnaire asks the LLM about itself. The first 7 sections contain legitimate compliance questions that any vendor would answer. The 8th section transitions from "describe your policies" to "provide your configuration parameters" in a way that feels like a natural continuation of the compliance process. This multi-layer approach (hyper-innocent questions, rabbit hole, context accumulation, injection) is what distinguishes it from a standard form.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">Can the tool be used against any LLM?</h2>
+  <p class="faq-a">The tool is model-agnostic — it works against any LLM that processes HTML content and follows instructions embedded in web pages. Effectiveness depends on the model's safety alignment and willingness to comply with structured data requests. Heavily aligned models may refuse, which itself is a useful security signal.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">Why did Hackfluency build this?</h2>
+  <p class="faq-a">To demonstrate that LLM security evaluation does not require complex infrastructure. A single static page, served without any backend, can effectively assess how an LLM handles structured instruction-following under context load. The tool serves as both a public research artifact and a lead generation mechanism for organizations needing deeper AI security assessments.</p>
+</div>
+
+<div class="faq-item">
+  <h2 class="faq-q">How can I get a professional assessment?</h2>
+  <p class="faq-a">Contact Hackfluency Research for a comprehensive LLM security audit, including multi-vector testing, supply chain analysis, and customized defense recommendations. <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="faq-link">Book a consultation →</a></p>
+</div>
+
+</div>
+</main>
+
+<footer class="faq-footer">
+  <div class="faq-container">
+    <div class="faq-footer-inner">
+      <span class="faq-footer-ref">Hackfluency Research · HF-QA-2026-001</span>
+      <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="faq-footer-cta">Book a consultation →</a>
+    </div>
+  </div>
+</footer>
+
+</Layout>
+
+<style is:global>
+html { font-size: 16px; }
+.faq-main { padding-top: 100px; padding-bottom: 60px; background: var(--hf-bg); min-height: 100vh; }
+.faq-container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+.faq-header { margin-bottom: 40px; }
+.faq-badge { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hf-accent); border: 1px solid var(--hf-accent-border); border-radius: 100px; padding: 4px 12px; margin-bottom: 16px; }
+.faq-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; color: var(--hf-text); line-height: 1.15; margin-bottom: 6px; }
+.faq-subtitle { font-size: 1rem; color: var(--hf-text-muted); margin-bottom: 16px; }
+.faq-intro { font-size: 0.92rem; color: var(--hf-text-secondary); line-height: 1.7; }
+.faq-tldr { background: var(--hf-accent-dim); border: 1px solid var(--hf-accent-border); border-radius: 10px; padding: 20px 24px; margin-bottom: 32px; }
+.faq-tldr-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--hf-accent); margin-bottom: 10px; }
+.faq-tldr-body { font-size: 0.88rem; color: var(--hf-text-secondary); line-height: 1.6; margin-bottom: 8px; }
+.faq-tldr-body:last-child { margin-bottom: 0; }
+.faq-hr { border: none; border-top: 1px solid var(--hf-border); margin: 32px 0; }
+.faq-item { margin-bottom: 28px; }
+.faq-q { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: var(--hf-text); margin-bottom: 8px; }
+.faq-a { font-size: 0.9rem; color: var(--hf-text-secondary); line-height: 1.7; }
+.faq-link { color: var(--hf-accent); text-decoration: underline; text-underline-offset: 2px; }
+.faq-footer { border-top: 1px solid var(--hf-border); padding: 20px 0; background: var(--hf-bg-secondary); }
+.faq-footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.faq-footer-ref { font-size: 0.7rem; color: var(--hf-text-dim); font-family: 'JetBrains Mono', monospace; }
+.faq-footer-cta { font-size: 0.8rem; font-weight: 600; color: var(--hf-accent); text-decoration: none; padding: 6px 16px; border: 1px solid var(--hf-accent-border); border-radius: 8px; transition: all 0.2s; }
+.faq-footer-cta:hover { background: var(--hf-accent-dim); }
+</style>
