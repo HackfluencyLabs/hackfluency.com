@@ -3,8 +3,8 @@ import Layout from '../../../../layouts/Layout.astro';
 import { getLocale } from '../../../../i18n/utils';
 
 const locale = getLocale(Astro.url);
-// EN content by default. ES ready for future /en/ routing.
-const t = (en: string, es: string) => en;
+// ES default (no /en/ prefix), EN via /en/ route (coherente con hackfluency.com)
+const t = (en: string, es: string) => locale === 'en' ? en : es;
 
 const title = t('LLM Security Assessment Tool — FAQ | Hackfluency Research', 'Herramienta de Evaluación de Seguridad LLM — FAQ | Hackfluency Research');
 const description = t(
