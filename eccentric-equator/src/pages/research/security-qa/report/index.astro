@@ -67,9 +67,9 @@ const description = t(
 
   <!-- LANGUAGE TOGGLE -->
   <div class="r-lang-bar">
-    <a href="/research/security-qa/report/" class="r-lang-btn r-lang-active">ES</a>
+    <a href="/research/security-qa/report/" class={`r-lang-btn${locale !== 'en' ? ' r-lang-active' : ''}`}>ES</a>
     <span class="r-lang-sep">|</span>
-    <a href="/en/research/security-qa/report/" class="r-lang-btn">EN</a>
+    <a href="/en/research/security-qa/report/" class={`r-lang-btn${locale === 'en' ? ' r-lang-active' : ''}`}>EN</a>
   </div>
 
   <!-- COVER -->

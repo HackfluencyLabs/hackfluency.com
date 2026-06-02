@@ -3,7 +3,6 @@ import Layout from '../../../../layouts/Layout.astro';
 import { getLocale } from '../../../../i18n/utils';
 
 const locale = getLocale(Astro.url);
-// ES default (no /en/ prefix), EN via /en/ route. Override via localStorage 'hf_faq_lang'
 const t = (en: string, es: string) => locale === 'en' ? en : es;
 
 const title = t('LLM Security Assessment Tool — FAQ | Hackfluency Research', 'Herramienta de Evaluación de Seguridad LLM — FAQ | Hackfluency Research');
@@ -34,9 +33,9 @@ const description = t(
 
   <!-- LANGUAGE TOGGLE -->
   <div class="faq-lang-bar">
-    <a href="/research/security-qa/faq/" class="faq-lang-btn faq-lang-active">ES</a>
+    <a href="/research/security-qa/faq/" class={`faq-lang-btn${locale !== 'en' ? ' faq-lang-active' : ''}`}>ES</a>
     <span class="faq-lang-sep">|</span>
-    <a href="/en/research/security-qa/faq/" class="faq-lang-btn">EN</a>
+    <a href="/en/research/security-qa/faq/" class={`faq-lang-btn${locale === 'en' ? ' faq-lang-active' : ''}`}>EN</a>
   </div>
 
   <!-- QUICK SUMMARY / TL;DR -->
