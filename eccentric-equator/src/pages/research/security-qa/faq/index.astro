@@ -340,6 +340,12 @@ const description = 'Frequently asked questions about our LLM security assessmen
     <div class="faq-cl-more"><a href="https://github.com/HackfluencyLabs/hackfluency.com/commits/main/" target="_blank" rel="noopener">View full commit history &rarr;</a></div>
   </div>
 
+  <!-- PRIVACY NOTE -->
+  <div class="faq-privacy">
+    <span class="faq-privacy-icon">&#128274;</span>
+    <span class="faq-privacy-text"><strong>Your data stays yours.</strong> The tool has no backend, no analytics, no data collection. All benchmarks come from private testing by Hackfluency Research, not from user submissions. <a href="/research/security-qa/report/" class="faq-privacy-link">Learn more in the full report &rarr;</a></span>
+  </div>
+
   <!-- BRANDING + CTA -->
   <div class="faq-brand">
     <div class="faq-brand-line"></div>
@@ -419,6 +425,10 @@ a.faq-report-btn:hover { opacity:0.9; transform:translateY(-1px); animation:none
 .faq-brand-desc { font-size:0.78rem; color:var(--hf-text-dim); line-height:1.5; }
 .faq-brand-btn { display:inline-block; font-size:0.82rem; font-weight:700; color:var(--hf-accent); border:1px solid var(--hf-accent-border); border-radius:8px; padding:8px 20px; text-decoration:none; transition:all 0.2s; }
 .faq-brand-btn:hover { background:var(--hf-accent-dim); }
+.faq-privacy { display:flex; align-items:center; gap:10px; background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:8px; padding:12px 18px; margin-bottom:24px; font-size:0.8rem; color:var(--hf-text-secondary); line-height:1.5; }
+.faq-privacy-icon { font-size:1rem; flex-shrink:0; }
+.faq-privacy-text { flex:1; }
+.faq-privacy-link { color:var(--hf-accent); text-decoration:underline; text-underline-offset:2px; white-space:nowrap; }
 
 /* SOURCE LINKS */
 .faq-src { font-size:0.72rem; color:var(--hf-accent); text-decoration:none; font-weight:600; white-space:nowrap; }

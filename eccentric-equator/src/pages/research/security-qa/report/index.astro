@@ -131,6 +131,13 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
     </div>
   </section>
 
+  <div class="r-privacy">
+    <div class="r-privacy-icon">&#128274;</div>
+    <div class="r-privacy-body">
+      <strong>Your data stays yours.</strong> The assessment tool processes nothing server-side &mdash; it is a static page with no backend, no analytics, and no data collection. All benchmark results published in this report are derived from private, controlled testing conducted directly by Hackfluency Research. User submissions are never captured, stored, or aggregated. This is a deliberate design principle: the tool provides value without compromising user privacy.
+    </div>
+  </div>
+
   <div class="r-colophon">
     <div class="r-colophon-bar"></div>
     <div class="r-colophon-body">
@@ -196,6 +203,9 @@ html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-colophon-cta { flex-shrink:0; }
 .r-colophon-link { font-size:0.75rem; font-weight:600; color:var(--hf-accent); text-decoration:none; padding:4px 0; }
 .r-colophon-link:hover { text-decoration:underline; }
+.r-privacy { display:flex; align-items:flex-start; gap:12px; background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:8px; padding:14px 18px; margin-bottom:32px; font-size:0.78rem; color:var(--hf-text-secondary); line-height:1.6; }
+.r-privacy-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+.r-privacy-body { flex:1; }
 .r-print-bar { text-align:right; margin-bottom:16px; padding:8px 0; border-bottom:1px solid var(--hf-border); display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
 .r-print-btn { display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600; color:#fff; background:var(--hf-accent); border:none; border-radius:6px; padding:7px 16px; cursor:pointer; transition:all 0.2s; }
 .r-print-btn:hover { opacity:0.9; }
