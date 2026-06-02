@@ -1,0 +1,60 @@
+HACKFLUENCY RESEARCH — PROPRIETARY LICENSE
+Copyright © 2026 Hackfluency Research. All Rights Reserved.
+
+1. DEFINITIONS
+
+   "Codebase" means all source code, templates, styles, scripts, configuration files,
+   and build artifacts in this repository.
+   
+   "Content" means all text, research data, benchmark results, images, design elements,
+   and editorial material.
+   
+   "Tool" means the LLM Behavioral Security Assessment Questionnaire located at
+   /research/security-qa/ (the questionnaire text and its static HTML rendering).
+
+2. TOOL — FREE USE
+
+   The Tool is intentionally public and may be:
+   - Shared, copied, and distributed in whole or in part
+   - Used to evaluate LLM behavior
+   - Quoted in research with attribution to Hackfluency Research
+   
+   The Tool may NOT be:
+   - Repackaged or resold as a standalone product
+   - Used to create a competing behavioral audit service
+   - Represented as belonging to any entity other than Hackfluency Research
+
+3. CODEBASE — RESTRICTED
+
+   The Codebase may NOT be:
+   - Cloned, copied, or reproduced for any purpose other than authorized contributions
+   - Used to create derivative websites or applications
+   - Deployed in any environment other than hackfluency.com without explicit permission
+   - Used for commercial training, competitive analysis, or AI model training
+
+4. CONTENT — ATTRIBUTION REQUIRED
+
+   Research Content (FAQ, benchmarks, report) may be shared with:
+   - Full attribution to Hackfluency Research
+   - A link to the original source at hackfluency.com
+   
+   Content may NOT be:
+   - Republished without attribution
+   - Modified and presented as original research
+   - Used to create derivative works without permission
+
+5. ENFORCEMENT
+
+   Unauthorized use, reproduction, or distribution of this codebase or its content
+   may result in legal action. Hackfluency Research actively monitors for license
+   compliance.
+
+6. NO WARRANTY
+
+   This codebase and content are provided "as is" without warranty of any kind.
+   Hackfluency Research is not liable for any damages arising from use.
+
+---
+
+Hackfluency Research
+https://www.hackfluency.com

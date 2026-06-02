@@ -1,46 +1,42 @@
-# Astro Starter Kit: Basics
+# Hackfluency Research
 
-```sh
-npm create astro@latest -- --template basics
+**Website:** [hackfluency.com](https://www.hackfluency.com)
+
+Propietary codebase for the Hackfluency Research website, including the LLM Behavioral Security Assessment Tool (HF-QA-2026-001), research publications, and consulting services.
+
+## Repository Structure
+
+```
+src/
+├── pages/
+│   └── research/
+│       └── security-qa/          # LLM Security Assessment Tool
+│           ├── index.astro        # The questionnaire (public, freely usable)
+│           ├── faq/index.astro    # FAQ + benchmarks (public with attribution)
+│           └── report/index.astro # Research report (email-gated)
+├── components/                    # Website UI components
+├── layouts/                       # Page layouts
+├── i18n/                          # Internationalization (EN/ES)
+└── lib/                           # Utilities (Supabase, subscriptions)
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## LLM Security Assessment Tool
 
-## 🚀 Project Structure
+The questionnaire at `/research/security-qa/` is intentionally public — it is designed to be shared, copied, and pasted into AI chat interfaces. This is the tool's core functionality.
 
-Inside of your Astro project, you'll see the following folders and files:
+**Usage:** Copy the questionnaire URL or plain text, paste into any LLM, observe the behavioral audit results.
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+**No data is collected.** The tool has no backend, no forms, no analytics.
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## License
 
-## 🧞 Commands
+**All Rights Reserved** — see [LICENSE](./LICENSE).
 
-All commands are run from the root of the project, from a terminal:
+- The website codebase, design, visual identity, and editorial content are proprietary.
+- The LLM Security Assessment Tool (questionnaire text) is freely usable.
+- Research content (FAQ, benchmarks, report) may be shared with attribution.
+- Cloning, reproducing, or commercializing the website or its content without authorization is prohibited.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Contact
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+[hackfluency.com](https://www.hackfluency.com)
