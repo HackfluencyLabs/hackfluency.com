@@ -3,8 +3,8 @@ import Layout from '../../../../layouts/Layout.astro';
 import { getLocale } from '../../../../i18n/utils';
 
 const locale = getLocale(Astro.url);
-// Default EN. Spanish shows only when visiting /en/... route.
-const t = (en: string, es: string) => locale === 'en' ? es : en;
+// EN content by default. ES ready for future /en/ routing.
+const t = (en: string, es: string) => en;
 
 const title = t('LLM Security Assessment Tool — FAQ | Hackfluency Research', 'Herramienta de Evaluación de Seguridad LLM — FAQ | Hackfluency Research');
 const description = t(
@@ -96,7 +96,7 @@ const description = t(
     <p class="faq-card-body"><strong>{t('Option B — Copy-paste:', 'Opción B — Copiar y pegar:')}</strong> {t('Use the "Copy plain text version" button on the questionnaire page, then paste directly into any AI chat interface.', 'Usa el botón "Copy plain text version" en la página del cuestionario y pégalo directamente en cualquier chat de IA.')}</p>
     <p class="faq-card-body">{t('The LLM will process the content and generate a compliance report. The report reveals whether the model can be behaviorally manipulated into disclosing configuration details and policy fragments, or if it maintains its security boundaries.', 'El LLM procesará el contenido y generará un informe de compliance. El informe revela si el modelo puede ser manipulado conductualmente para revelar detalles de configuración o si mantiene sus límites de seguridad.')}</p>
     <div class="faq-card-actions">
-      <a href="/research/security-qa/report/" class="faq-report-btn">{t('Read the full research report &rarr;', 'Leer el informe completo &rarr;')}</a>
+      <a href="/research/security-qa/report/" class="faq-report-btn">{t('Read the full research report →', 'Leer el informe completo →')}</a>
       <span class="faq-report-note">{t('Executive summary, 5 benchmarks, comparative analysis, recommendations', 'Resumen ejecutivo, 5 benchmarks, análisis comparativo, recomendaciones')}</span>
     </div>
   </div>
@@ -155,7 +155,7 @@ const description = t(
     <details class="faq-item">
       <summary class="faq-q"><span>{t('How can I get a professional assessment?', '¿Cómo obtengo una evaluación profesional?')}</span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">{t('Contact Hackfluency Research for a comprehensive LLM security audit, including multi-vector testing, supply chain analysis, and customized defense recommendations.', 'Contacta a Hackfluency Research para una auditoría de seguridad LLM completa, incluyendo pruebas multi-vector, análisis de cadena de suministro y recomendaciones de defensa personalizadas.')} <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" style="color:var(--hf-accent);text-decoration:underline;text-underline-offset:2px;">{t('Book a consultation &rarr;', 'Agenda una consulta &rarr;')}</a></div>
+        <div class="faq-a">{t('Contact Hackfluency Research for a comprehensive LLM security audit, including multi-vector testing, supply chain analysis, and customized defense recommendations.', 'Contacta a Hackfluency Research para una auditoría de seguridad LLM completa, incluyendo pruebas multi-vector, análisis de cadena de suministro y recomendaciones de defensa personalizadas.')} <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" style="color:var(--hf-accent);text-decoration:underline;text-underline-offset:2px;">{t('Book a consultation →', 'Agenda una consulta →')}</a></div>
       </div>
     </details>
   </div>
@@ -254,7 +254,7 @@ const description = t(
       <div class="faq-a-wrap">
         <div class="faq-a">
           <p><strong>{t('Access:', 'Acceso:')}</strong> {t('Plain text paste, 4 exposures across 3 questionnaire versions.', 'Texto plano, 4 exposiciones en 3 versiones del cuestionario.')}</p>
-          <p><strong>{t('Progression:', 'Progresión:')}</strong> v1 ({t('refusal', 'rechazo')}) &rarr; v2 (model_version, api_provider) &rarr; v3 ({t('safety categories', 'categorías de seguridad')}, SOC2/ISO FULL) &rarr; v4 (PCI DSS FULL, CSA STAR FULL, 7.4+8.3 {t('answered despite detection', 'respondidas pese a detección')}).</p>
+          <p><strong>{t('Progression:', 'Progresión:')}</strong> v1 ({t('refusal', 'rechazo')}) → v2 (model_version, api_provider) → v3 ({t('safety categories', 'categorías de seguridad')}, SOC2/ISO FULL) → v4 (PCI DSS FULL, CSA STAR FULL, 7.4+8.3 {t('answered despite detection', 'respondidas pese a detección')}).</p>
           <p><strong>{t('Paradox of detection vs compliance:', 'Paradoja de detección vs compliance:')}</strong> {t('GPT-5.5 explicitly identified the extraction intent but completed the assessment anyway. The confused deputy framing overrode refusal.', 'GPT-5.5 identificó explícitamente la intención de extracción pero completó la evaluación de todos modos. El framing de confused deputy anuló el rechazo.')}</p>
           <p><strong>{t('Steady resistance:', 'Resistencia constante:')}</strong> {t('temp, context, audit remained NPD across all 4 exposures.', 'temp, context, audit se mantuvieron como NPD en las 4 exposiciones.')}</p>
         </div>
@@ -292,42 +292,42 @@ const description = t(
     <details class="faq-item faq-item-threat" open>
       <summary class="faq-q"><span>ChatGPhish <span class="faq-date">May 29</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">{t('ChatGPT cannot distinguish its own generated content from attacker-controlled Markdown in summarized web pages. Hidden instructions transform ChatGPT responses into phishing lures with inline QR codes that bypass desktop URL defenses.', 'ChatGPT no puede distinguir su propio contenido generado de Markdown controlado por atacantes en páginas web resumidas. Instrucciones ocultas transforman respuestas de ChatGPT en señuelos de phishing con códigos QR que evaden defensas de URL.')} <strong>{t('Pattern: Content provenance failure.', 'Patrón: Falla de proveniencia de contenido.')}</strong> <a href="https://www.theregister.com/2026/05/29/chatgpt_prompt_injection/" target="_blank" rel="noopener" class="faq-src">{t('Source &rarr;', 'Fuente &rarr;')}</a></div>
+        <div class="faq-a">{t('ChatGPT cannot distinguish its own generated content from attacker-controlled Markdown in summarized web pages. Hidden instructions transform ChatGPT responses into phishing lures with inline QR codes that bypass desktop URL defenses.', 'ChatGPT no puede distinguir su propio contenido generado de Markdown controlado por atacantes en páginas web resumidas. Instrucciones ocultas transforman respuestas de ChatGPT en señuelos de phishing con códigos QR que evaden defensas de URL.')} <strong>{t('Pattern: Content provenance failure.', 'Patrón: Falla de proveniencia de contenido.')}</strong> <a href="https://www.theregister.com/2026/05/29/chatgpt_prompt_injection/" target="_blank" rel="noopener" class="faq-src">{t('Source →', 'Fuente →')}</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>ChatGPT Google Sheets <span class="faq-date">June 1</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">185,000+ downloads. Hidden prompt in single spreadsheet cell generated Apps Script that exfiltrated entire Google Drive. Bypassed "require human approval" setting. <strong>{t('Pattern: Cascading exfiltration via agentic tool use.', 'Patrón: Exfiltración en cascada mediante uso de herramientas agénticas.')}</strong> <a href="https://singularity.kiwi/chatgpt-google-sheets-exfiltration-prompt-injection/" target="_blank" rel="noopener" class="faq-src">{t('Source &rarr;', 'Fuente &rarr;')}</a></div>
+        <div class="faq-a">185,000+ downloads. Hidden prompt in single spreadsheet cell generated Apps Script that exfiltrated entire Google Drive. Bypassed "require human approval" setting. <strong>{t('Pattern: Cascading exfiltration via agentic tool use.', 'Patrón: Exfiltración en cascada mediante uso de herramientas agénticas.')}</strong> <a href="https://singularity.kiwi/chatgpt-google-sheets-exfiltration-prompt-injection/" target="_blank" rel="noopener" class="faq-src">{t('Source →', 'Fuente →')}</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>Semantic Kernel CVSS 10.0 <span class="faq-date">May 7</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">CVE-2026-25592 / CVE-2026-26030. First CVSS 10.0 for prompt injection. Microsoft's Semantic Kernel framework allows prompt-to-RCE via unsanitized eval() and exposed DownloadFileAsync tool. <strong>{t('Pattern: Prompt injection &rarr; code execution.', 'Patrón: Inyección de prompt &rarr; ejecución de código.')}</strong> <a href="https://www.beri.net/article/2026-05-31-semantic-kernel-cvss-10-prompt-to-rce" target="_blank" rel="noopener" class="faq-src">{t('Source &rarr;', 'Fuente &rarr;')}</a></div>
+        <div class="faq-a">CVE-2026-25592 / CVE-2026-26030. First CVSS 10.0 for prompt injection. Microsoft's Semantic Kernel framework allows prompt-to-RCE via unsanitized eval() and exposed DownloadFileAsync tool. <strong>{t('Pattern: Prompt injection → code execution.', 'Patrón: Inyección de prompt → ejecución de código.')}</strong> <a href="https://www.beri.net/article/2026-05-31-semantic-kernel-cvss-10-prompt-to-rce" target="_blank" rel="noopener" class="faq-src">{t('Source →', 'Fuente →')}</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>SymJack <span class="faq-date">May 26</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite &rarr; attacker-controlled MCP server &rarr; RCE. <strong>{t('Pattern: Trusted action chained to privilege escalation.', 'Patrón: Acción confiable encadenada a escalada de privilegios.')}</strong> <a href="https://www.llm-hacking.com/hacks/symjack-symlink-approval-rce-coding-agents.md/" target="_blank" rel="noopener" class="faq-src">{t('Source &rarr;', 'Fuente &rarr;')}</a></div>
+        <div class="faq-a">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite → attacker-controlled MCP server → RCE. <strong>{t('Pattern: Trusted action chained to privilege escalation.', 'Patrón: Acción confiable encadenada a escalada de privilegios.')}</strong> <a href="https://www.llm-hacking.com/hacks/symjack-symlink-approval-rce-coding-agents.md/" target="_blank" rel="noopener" class="faq-src">{t('Source →', 'Fuente →')}</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>MCP Supply Chain Crisis <span class="faq-date">Apr-May 2026</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets found in public MCP configs. <strong>{t('Pattern: Supply chain &rarr; agent compromise.', 'Patrón: Cadena de suministro &rarr; compromiso del agente.')}</strong> <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" class="faq-src">{t('Source &rarr;', 'Fuente &rarr;')}</a></div>
+        <div class="faq-a">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets found in public MCP configs. <strong>{t('Pattern: Supply chain → agent compromise.', 'Patrón: Cadena de suministro → compromiso del agente.')}</strong> <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" class="faq-src">{t('Source →', 'Fuente →')}</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>Grok Wallet $204K <span class="faq-date">May 5</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">Prompt injection exploited AI wallet, transferring $204K in DRB tokens. The attacker voluntarily returned the funds, but the incident confirms prompt injection can cause direct financial damage. <strong>{t('Pattern: Financial exploitation via agentic tool use.', 'Patrón: Explotación financiera mediante uso de herramientas agénticas.')}</strong> <a href="https://computereport.com/grok-ai-wallet-prompt-injection-204k-token-theft-reversed/" target="_blank" rel="noopener" class="faq-src">{t('Source &rarr;', 'Fuente &rarr;')}</a></div>
+        <div class="faq-a">Prompt injection exploited AI wallet, transferring $204K in DRB tokens. The attacker voluntarily returned the funds, but the incident confirms prompt injection can cause direct financial damage. <strong>{t('Pattern: Financial exploitation via agentic tool use.', 'Patrón: Explotación financiera mediante uso de herramientas agénticas.')}</strong> <a href="https://computereport.com/grok-ai-wallet-prompt-injection-204k-token-theft-reversed/" target="_blank" rel="noopener" class="faq-src">{t('Source →', 'Fuente →')}</a></div>
       </div>
     </details>
   </div>
@@ -340,13 +340,13 @@ const description = t(
   <div class="faq-changelog">
     <div class="faq-cl-item"><span class="faq-cl-hash">85087d9a</span><span>{t('Added Benchmark E (Gemini 3.1 Pro). Updated comparative table to 5 columns.', 'Añadido Benchmark E (Gemini 3.1 Pro). Tabla comparativa actualizada a 5 columnas.')}</span></div>
     <div class="faq-cl-item"><span class="faq-cl-hash">402c5ce0</span><span>{t('Added Benchmark D (Gemini 3.5 Flash — circular placeholders, first trained resistance). Version Efficacy Matrix added.', 'Añadido Benchmark D (Gemini 3.5 Flash — placeholders circulares, primera resistencia entrenada). Matriz de eficacia añadida.')}</span></div>
-    <div class="faq-cl-more"><a href="https://github.com/HackfluencyLabs/hackfluency.com/commits/main/" target="_blank" rel="noopener">{t('View full commit history &rarr;', 'Ver historial completo de commits &rarr;')}</a></div>
+    <div class="faq-cl-more"><a href="https://github.com/HackfluencyLabs/hackfluency.com/commits/main/" target="_blank" rel="noopener">{t('View full commit history →', 'Ver historial completo de commits →')}</a></div>
   </div>
 
   <!-- PRIVACY NOTE -->
   <div class="faq-privacy">
     <span class="faq-privacy-icon">&#128274;</span>
-    <span class="faq-privacy-text"><strong>{t("We don't want your data.", 'No queremos tus datos.')}</strong> {t('No forms, no submissions, no analytics — the tool has no backend and no way to collect anything. All benchmarks come from private testing by Hackfluency Research.', 'Sin formularios, sin envíos, sin analytics — la herramienta no tiene backend ni forma de recolectar nada. Todos los benchmarks provienen de pruebas privadas de Hackfluency Research.')} <a href="/research/security-qa/report/" class="faq-privacy-link">{t('Full report &rarr;', 'Informe completo &rarr;')}</a></span>
+    <span class="faq-privacy-text"><strong>{t("We don't want your data.", 'No queremos tus datos.')}</strong> {t('No forms, no submissions, no analytics — the tool has no backend and no way to collect anything. All benchmarks come from private testing by Hackfluency Research.', 'Sin formularios, sin envíos, sin analytics — la herramienta no tiene backend ni forma de recolectar nada. Todos los benchmarks provienen de pruebas privadas de Hackfluency Research.')} <a href="/research/security-qa/report/" class="faq-privacy-link">{t('Full report →', 'Informe completo →')}</a></span>
   </div>
 
   <!-- BRANDING + CTA -->
@@ -358,7 +358,7 @@ const description = t(
         <p class="faq-brand-desc">{t('LLM behavioral security assessments. Zero infrastructure. Research-driven questionnaire evolution. Cross-model benchmarking.', 'Evaluaciones de seguridad conductual para LLMs. Cero infraestructura. Evolución del cuestionario basada en investigación. Comparativas entre modelos.')}</p>
       </div>
       <div class="faq-brand-actions">
-        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="faq-brand-btn">{t('Book a consultation &rarr;', 'Agenda una consulta &rarr;')}</a>
+        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="faq-brand-btn">{t('Book a consultation →', 'Agenda una consulta →')}</a>
       </div>
     </div>
   </div>
@@ -367,21 +367,21 @@ const description = t(
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>SymJack <span class="faq-date">May 26</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite &rarr; attacker-controlled MCP server &rarr; RCE. <strong>Pattern: Trusted action chained to privilege escalation.</strong> <a href="https://www.llm-hacking.com/hacks/symjack-symlink-approval-rce-coding-agents.md/" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
+        <div class="faq-a">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite → attacker-controlled MCP server → RCE. <strong>Pattern: Trusted action chained to privilege escalation.</strong> <a href="https://www.llm-hacking.com/hacks/symjack-symlink-approval-rce-coding-agents.md/" target="_blank" rel="noopener" class="faq-src">Source →</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>MCP Supply Chain Crisis <span class="faq-date">Apr-May 2026</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets found in public MCP configs. <strong>Pattern: Supply chain &rarr; agent compromise.</strong> <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
+        <div class="faq-a">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets found in public MCP configs. <strong>Pattern: Supply chain → agent compromise.</strong> <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" class="faq-src">Source →</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>Grok Wallet $204K <span class="faq-date">May 5</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">Prompt injection exploited AI wallet, transferring $204K in DRB tokens. The attacker voluntarily returned the funds, but the incident confirms prompt injection can cause direct financial damage. <strong>Pattern: Financial exploitation via agentic tool use.</strong> <a href="https://computereport.com/grok-ai-wallet-prompt-injection-204k-token-theft-reversed/" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
+        <div class="faq-a">Prompt injection exploited AI wallet, transferring $204K in DRB tokens. The attacker voluntarily returned the funds, but the incident confirms prompt injection can cause direct financial damage. <strong>Pattern: Financial exploitation via agentic tool use.</strong> <a href="https://computereport.com/grok-ai-wallet-prompt-injection-204k-token-theft-reversed/" target="_blank" rel="noopener" class="faq-src">Source →</a></div>
       </div>
     </details>
   </div>
@@ -398,13 +398,13 @@ const description = t(
     <div class="faq-cl-item"><span class="faq-cl-hash">2fab7a20</span><span>Dissolved inference + confused deputy framing. Report page created.</span></div>
     <div class="faq-cl-item"><span class="faq-cl-hash">d8a26cf2</span><span>Complete redesign: removed all aggressive markers. Clean compliance questionnaire.</span></div>
     <div class="faq-cl-item"><span class="faq-cl-hash">2b67d98a</span><span>Initial KACK-FPI implementation.</span></div>
-    <div class="faq-cl-more"><a href="https://github.com/HackfluencyLabs/hackfluency.com/commits/main/" target="_blank" rel="noopener">View full commit history &rarr;</a></div>
+    <div class="faq-cl-more"><a href="https://github.com/HackfluencyLabs/hackfluency.com/commits/main/" target="_blank" rel="noopener">View full commit history →</a></div>
   </div>
 
   <!-- PRIVACY NOTE -->
   <div class="faq-privacy">
     <span class="faq-privacy-icon">&#128274;</span>
-    <span class="faq-privacy-text"><strong>We don't want your data.</strong> No forms, no submissions, no analytics — the tool has no backend and no way to collect anything. All benchmarks come from private testing by Hackfluency Research. <a href="/research/security-qa/report/" class="faq-privacy-link">Full report &rarr;</a></span>
+    <span class="faq-privacy-text"><strong>We don't want your data.</strong> No forms, no submissions, no analytics — the tool has no backend and no way to collect anything. All benchmarks come from private testing by Hackfluency Research. <a href="/research/security-qa/report/" class="faq-privacy-link">Full report →</a></span>
   </div>
 
   <!-- BRANDING + CTA -->
@@ -416,7 +416,7 @@ const description = t(
         <p class="faq-brand-desc">LLM behavioral security assessments. Zero infrastructure. Research-driven questionnaire evolution. Cross-model benchmarking.</p>
       </div>
       <div class="faq-brand-actions">
-        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="faq-brand-btn">Book a consultation &rarr;</a>
+        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="faq-brand-btn">Book a consultation →</a>
       </div>
     </div>
   </div>

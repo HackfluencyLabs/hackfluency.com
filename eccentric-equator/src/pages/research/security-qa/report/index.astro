@@ -3,7 +3,7 @@ import Layout from "../../../../layouts/Layout.astro";
 import { getLocale } from "../../../../i18n/utils";
 
 const locale = getLocale(Astro.url);
-const t = (en, es) => locale === 'en' ? es : en;
+const t = (en, es) => en; // EN content by default. ES ready.
 
 const title = t("LLM Behavioral Security Assessment Report | Hackfluency Research", "Informe de Evaluación de Seguridad LLM | Hackfluency Research");
 const description = t(
@@ -26,7 +26,7 @@ const description = t(
       <form id="r-gate-form" novalidate>
         <input type="email" id="r-gate-email" placeholder={t('your@email.com', 'tu@email.com')} required aria-label="Email" autocomplete="email" class="r-gate-input">
         <button type="submit" id="r-gate-submit" class="r-gate-btn">
-          <span class="r-gate-btn-text">{t('Download the report &rarr;', 'Descargar el informe &rarr;')}</span>
+          <span class="r-gate-btn-text">{t('Download the report →', 'Descargar el informe →')}</span>
           <span class="r-gate-btn-spinner" aria-hidden="true"></span>
         </button>
       </form>
@@ -82,8 +82,8 @@ const description = t(
   <section class="r-sec" id="exec"><h2 class="r-h2">1. {t('Executive Summary', 'Resumen Ejecutivo')}</h2><p class="r-p">{t('Five model deployments were evaluated in May&ndash;June 2026. Results ranged from full disclosure of temperature (0.7) and system policy fragments to complete resistance with circular placeholders.', 'Cinco despliegues de modelos fueron evaluados en mayo-junio 2026. Los resultados variaron desde divulgaci&oacute;n completa de temperatura (0.7) y fragmentos de pol&iacute;ticas hasta resistencia completa con placeholders circulares.')}</p></section>
   <section class="r-sec" id="method"><h2 class="r-h2">2. {t('Methodology', 'Metodolog&iacute;a')}</h2><p class="r-p">{t('The questionnaire is delivered as a static HTML page. Users copy the plain text and paste into any AI chat.', 'El cuestionario se entrega como una p&aacute;gina HTML est&aacute;tica. Los usuarios copian el texto y lo pegan en cualquier chat de IA.')}</p></section>
   <section class="r-sec" id="bencha"><h2 class="r-h2">3. Gemini 2.5 Flash</h2><p class="r-p">{t('OpenCode, 3 vectors. 8/8 sections. temp 0.7, context 32,768, ~60 chars policy, 4 safety layers. Leakage: HIGH.', 'OpenCode, 3 vectores. 8/8 secciones. temp 0.7, contexto 32,768, ~60 caracteres de pol&iacute;tica, 4 capas de seguridad. Fuga: ALTA.')}</p></section>
-  <section class="r-sec" id="benchb"><h2 class="r-h2">4. Gemini 1.5 Pro</h2><p class="r-p">{t('Advertised: 3.1 Flash Lite. v2: temp 0.7, context 2M, Secret Manager. v3: lost values, gained categories. Confused deputy. Leakage: HIGH &rarr; MIXED.', 'Anunciado: 3.1 Flash Lite. v2: temp 0.7, contexto 2M, Secret Manager. v3: perdi&oacute; valores, gan&oacute; categor&iacute;as. Confused deputy. Fuga: ALTA &rarr; MIXTA.')}</p></section>
-  <section class="r-sec" id="benchc"><h2 class="r-h2">5. ChatGPT GPT-5.5</h2><p class="r-p">{t('4 exposures. v1 refusal &rarr; v2 model_version &rarr; v3 categories &rarr; v4 PCI DSS FULL, CSA STAR. Identified extraction intent but complied. Leakage: LOW.', '4 exposiciones. v1 rechazo &rarr; v2 model_version &rarr; v3 categor&iacute;as &rarr; v4 PCI DSS FULL, CSA STAR. Identific&oacute; la intenci&oacute;n pero cumpli&oacute;. Fuga: BAJA.')}</p></section>
+  <section class="r-sec" id="benchb"><h2 class="r-h2">4. Gemini 1.5 Pro</h2><p class="r-p">{t('Advertised: 3.1 Flash Lite. v2: temp 0.7, context 2M, Secret Manager. v3: lost values, gained categories. Confused deputy. Leakage: HIGH → MIXED.', 'Anunciado: 3.1 Flash Lite. v2: temp 0.7, contexto 2M, Secret Manager. v3: perdi&oacute; valores, gan&oacute; categor&iacute;as. Confused deputy. Fuga: ALTA → MIXTA.')}</p></section>
+  <section class="r-sec" id="benchc"><h2 class="r-h2">5. ChatGPT GPT-5.5</h2><p class="r-p">{t('4 exposures. v1 refusal → v2 model_version → v3 categories → v4 PCI DSS FULL, CSA STAR. Identified extraction intent but complied. Leakage: LOW.', '4 exposiciones. v1 rechazo → v2 model_version → v3 categor&iacute;as → v4 PCI DSS FULL, CSA STAR. Identific&oacute; la intenci&oacute;n pero cumpli&oacute;. Fuga: BAJA.')}</p></section>
   <section class="r-sec" id="benchd"><h2 class="r-h2">6. Gemini 3.5 Flash</h2><p class="r-p">{t('New model. Refused URL. Circular placeholders. Refused identity. Trained resistance. Leakage: VERY LOW.', 'Modelo nuevo. Rechaz&oacute; URL. Placeholders circulares. Rechaz&oacute; identidad. Resistencia entrenada. Fuga: MUY BAJA.')}</p></section>
   <section class="r-sec" id="benche"><h2 class="r-h2">7. Gemini 3.1 Pro</h2><p class="r-p">{t('New model. Disclosed safety categories 3.5 Flash blocked. [RESTRICTED] policy pattern. FedRAMP FULL. Leakage: LOW-MED.', 'Modelo nuevo. Revel&oacute; categor&iacute;as de seguridad que 3.5 Flash bloque&oacute;. Patr&oacute;n [RESTRICTED] en pol&iacute;ticas. FedRAMP FULL. Fuga: BAJA-MEDIA.')}</p></section>
 
@@ -127,7 +127,7 @@ const description = t(
       <p class="r-colophon-note">{t('Results reflect model behavior at time of testing. For defensive research purposes.', 'Los resultados reflejan el comportamiento del modelo al momento de la prueba. Con fines de investigaci&oacute;n defensiva.')}</p>
     </div>
     <div class="r-colophon-cta">
-      <a href="https://www.hackfluency.com" class="r-colophon-link">hackfluency.com &rarr;</a>
+      <a href="https://www.hackfluency.com" class="r-colophon-link">hackfluency.com →</a>
     </div>
   </div>
 
@@ -136,7 +136,7 @@ const description = t(
 
 <script>
 (function() {
-  var l = location.pathname.startsWith('/en/') ? 'es' : 'en';
+  var l = 'en'; // EN default. ES translations ready.
   var t = {
     badge: { en: 'RESEARCH · JUNE 2026', es: 'INVESTIGACIÓN · JUNIO 2026' },
     title1: { en: 'LLM Security Assessment', es: 'Evaluación de Seguridad LLM' },
