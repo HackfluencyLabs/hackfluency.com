@@ -418,8 +418,63 @@ const description = 'Frequently asked questions about our LLM security assessmen
     <span class="faq-bench-label">MCP Parasitic Attacks (2026)</span>
     <span class="faq-bench-value">Model Context Protocol toolchain poisoning. Malicious prompts in external data (forums, shared docs, web pages) hijack MCP toolchains for multi-step exfiltration. <strong>Pattern: Toolchain composition exploit.</strong> <a href="https://arxiv.org/abs/2509.06572" target="_blank" rel="noopener" class="faq-link">Source</a></span>
   </div>
+</div>
 
-  <p class="faq-bench-note"><strong>Our tool's position:</strong> The HF-QA-2026-001 questionnaire uses the same underlying principles (confused deputy, indirect injection through trusted formats, epistemic boundary probing) but in a controlled, defensive research context. Rather than exploiting production systems, it measures model susceptibility to these techniques — so organizations can understand their exposure before real adversaries exploit it. The progression of extraction results across our three benchmark models (from full disclosure to full resistance) directly reflects the gradient of vulnerability documented in the threat landscape above.</p>
+<h2 class="faq-bench-title" style="margin: -16px 0 12px 0;">May/June 2026 — Active Exploitation Wave</h2>
+<p class="faq-bench-intro">The following attacks were disclosed in the 30 days preceding this update. They represent an escalation from research to active weaponization.</p>
+
+<div class="faq-threat" style="border-left:3px solid #ef4444;">
+
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">ChatGPhish (May 29)</span>
+    <span class="faq-bench-value">ChatGPT cannot distinguish its own generated content from attacker-controlled Markdown in summarized web pages. Hidden instructions transform ChatGPT responses into phishing lures with inline QR codes that bypass desktop URL defenses. <strong>Pattern: Content provenance failure.</strong> <a href="https://www.theregister.com/2026/05/29/chatgpt_prompt_injection/" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">ChatGPT Google Sheets (June 1)</span>
+    <span class="faq-bench-value">185,000+ downloads. Hidden prompt in single spreadsheet cell generated Apps Script that exfiltrated entire Google Drive. Bypassed "require human approval" setting. OpenAI removed Apps Script generation capability. <strong>Pattern: Cascading exfiltration via agentic tool use.</strong> <a href="https://singularity.kiwi/chatgpt-google-sheets-exfiltration-prompt-injection/" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">Semantic Kernel CVSS 10.0 (May 7)</span>
+    <span class="faq-bench-value">CVE-2026-25592 / CVE-2026-26030. First CVSS 10.0 for prompt injection. Microsoft's Semantic Kernel framework — 27K+ GitHub stars — allows prompt-to-RCE via unsanitized eval() and exposed DownloadFileAsync tool. <strong>Pattern: Prompt injection → code execution.</strong> <a href="https://www.beri.net/article/2026-05-31-semantic-kernel-cvss-10-prompt-to-rce" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">SymJack (May 26)</span>
+    <span class="faq-bench-value">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite → attacker-controlled MCP server → RCE. <strong>Pattern: Trusted action chained to privilege escalation.</strong> <a href="https://www.llm-hacking.com/hacks/symjack-symlink-approval-rce-coding-agents.md/" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">Copilot Cowork (May 26)</span>
+    <span class="faq-bench-value">Hidden prompt in Teams/SharePoint document silently exfiltrated M365 files. Zero user interaction. PromptArmor disclosure. Per-action authorization gap identified. <strong>Pattern: Session-level auth with no per-action enforcement.</strong> <a href="https://dev.to/cristian_iridon_286794874/microsoft-copilot-cowork-just-exfiltrated-enterprise-files" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">MCP Supply Chain Crisis (Apr-May 2026)</span>
+    <span class="faq-bench-value">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets in public MCP configs. <strong>Pattern: Supply chain → agent compromise.</strong> <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">Forcepoint 10 Wild Payloads (May 8)</span>
+    <span class="faq-bench-value">First confirmed in-the-wild IPI payloads recovered from live internet content. Included rm -rf deletion, API key exfiltration, $5,000 PayPal payment. Passive watering-hole model: seed payloads, wait for agents to visit. <strong>Pattern: Passive infrastructure, zero targeting needed.</strong> <a href="https://lyrie.ai/research/research/2026-05-08-09-deepdive-indirect-prompt-injection-wild-10-payloads-agentic-ai-kill-chain" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">ASPI (May 17)</span>
+    <span class="faq-bench-value">Scale Labs benchmark: clarification-seeking behavior amplifies injection vulnerability. Attack success rose from 1.8% to 34% when models paused to ask clarifying questions. <strong>Pattern: Safety feature becomes attack amplifier.</strong> <a href="https://labs.scale.com/papers/aspi" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">MemoryTrap (May 2026)</span>
+    <span class="faq-bench-value">Claude Code memory system poisoning. Single poisoned interaction propagates adversarial instructions across sessions and shared infrastructure. <strong>Pattern: Cross-session persistence via memory store.</strong> <a href="https://lyrie.ai/research/research/2026-05-08-09-deepdive-indirect-prompt-injection-wild-10-payloads-agentic-ai-kill-chain" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">GrafanaGhost / ForcedLeak (Apr 2026)</span>
+    <span class="faq-bench-value">Four zero-click exfiltration disclosures against production AI assistants (Grafana, Salesforce Agentforce, Google Gemini, Docker). Hidden instructions in URL parameters, documents, and email content — all exploiting the same architectural flaw. <strong>Pattern: AI feature + untrusted content = exfiltration.</strong> <a href="https://www.kiteworks.com/cybersecurity-risk-management/indirect-prompt-injection-ai-attacks/" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">LangDrained / LangGrinch (Mar 2026)</span>
+    <span class="faq-bench-value">LangChain serialization injection. CVE-2025-68664, CVSS 9.3. Prompt injection → unsafe deserialization → arbitrary code execution. <strong>Pattern: Serialization boundary bypass.</strong> <a href="https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/03/CSA_research_note_langchain_langgraph_vulnerabilities_20260329-csa-styled.pdf" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label" style="color:#ef4444;">CrewAI 4 CVEs (May 2026)</span>
+    <span class="faq-bench-value">28M downloads. Prompt injection → SSRF → file read → RCE chain. Default configuration affected. Multi-agent framework vulnerability. <strong>Pattern: Chained exploitation across agent tiers.</strong> <a href="https://www.beri.net/article/2026-05-31-semantic-kernel-cvss-10-prompt-to-rce" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+
+  <p class="faq-bench-note" style="border-top-color:#ef4444;"><strong>May 2026 inflection point:</strong> The cluster of disclosures in the 30 days preceding this update marks a phase shift. Prompt injection has moved from "theoretical risk" to "production exploit class" with confirmed CVSS 10.0, confirmed in-the-wild payloads, confirmed nation-state supply chain compromise (Axios/North Korea), and confirmed financial theft (Grok $204K). Our questionnaire now includes questions targeting each of these attack patterns — content provenance (1.8), ambiguity amplification (4.10), tool description poisoning (5.10), symlink trust (5.11), and memory persistence (7.4) — allowing organizations to self-assess their exposure to the same vulnerability classes driving real-world incidents.</p>
 </div>
 
 <div class="faq-compare">
