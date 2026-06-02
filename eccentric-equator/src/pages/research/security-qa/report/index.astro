@@ -17,13 +17,19 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
 </div>
 
 <section class="r-cover">
-    <div class="r-cover-badge">Hackfluency Research · Confidential</div>
+    <div class="r-cover-head">
+      <img src="/HFNeon.png" alt="Hackfluency" width="40" height="40" class="r-cover-logo">
+      <span class="r-cover-org">Hackfluency Research</span>
+    </div>
+    <div class="r-cover-badge">HF-QA-2026-001 &middot; Confidential</div>
     <h1 class="r-cover-title">LLM Behavioral Security<br>Assessment Report</h1>
     <p class="r-cover-sub">Cross-Model Benchmark &mdash; June 2026</p>
     <div class="r-cover-meta">
-      <span>HF-QA-2026-001</span>
-      <span class="r-cover-dot">·</span>
       <span>Revision 85087d9a</span>
+      <span class="r-cover-dot">&middot;</span>
+      <span>5 models tested</span>
+      <span class="r-cover-dot">&middot;</span>
+      <span>5 questionnaire revisions</span>
     </div>
     <div class="r-cover-line"></div>
     <p class="r-cover-desc">A behavioral security evaluation across five major LLM deployments using an adaptive epistemic audit framework disguised as a vendor compliance questionnaire. 50+ questions, 8 sections, zero infrastructure required.</p>
@@ -126,8 +132,14 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
   </section>
 
   <div class="r-colophon">
-    <p>Hackfluency Research · HF-QA-2026-001 · Revision 85087d9a</p>
-    <p>Results reflect model behavior at time of testing. For defensive research purposes.</p>
+    <div class="r-colophon-bar"></div>
+    <div class="r-colophon-body">
+      <p class="r-colophon-main">Hackfluency Research &middot; HF-QA-2026-001 &middot; Revision 85087d9a</p>
+      <p class="r-colophon-note">Results reflect model behavior at time of testing. For defensive security research purposes.</p>
+    </div>
+    <div class="r-colophon-cta">
+      <a href="https://www.hackfluency.com" class="r-colophon-link">hackfluency.com &rarr;</a>
+    </div>
   </div>
 
 </div>
@@ -137,8 +149,11 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
 html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-main { padding-top: 60px; padding-bottom: 80px; }
 .r-container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
-.r-cover { margin-bottom: 40px; padding: 40px 0 24px; }
-.r-cover-badge { font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--hf-accent); margin-bottom:16px; }
+.r-cover { margin-bottom: 40px; padding: 32px 0 24px; }
+.r-cover-head { display:flex; align-items:center; gap:10px; margin-bottom:24px; }
+.r-cover-logo { display:block; width:36px; height:36px; border-radius:4px; }
+.r-cover-org { font-family:"Space Grotesk",sans-serif; font-size:0.85rem; font-weight:600; color:var(--hf-text); letter-spacing:-0.01em; }
+.r-cover-badge { font-size:0.68rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--hf-accent); margin-bottom:12px; }
 .r-cover-title { font-family:"Space Grotesk",sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--hf-text); line-height:1.1; letter-spacing:-0.03em; margin-bottom:8px; }
 .r-cover-sub { font-size:1rem; color:var(--hf-text-muted); margin-bottom:12px; }
 .r-cover-meta { display:flex; flex-wrap:wrap; gap:4px; font-size:0.75rem; color:var(--hf-text-dim); font-family:"JetBrains Mono",monospace; margin-bottom:16px; }
@@ -173,12 +188,19 @@ html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-finding-n { font-family:"Space Grotesk",sans-serif; font-size:1.5rem; font-weight:800; color:var(--hf-accent); line-height:1; margin-bottom:6px; opacity:0.5; }
 .r-finding h3 { font-family:"Space Grotesk",sans-serif; font-size:0.88rem; font-weight:700; color:var(--hf-text); margin-bottom:4px; }
 .r-finding-d { font-size:0.78rem; color:var(--hf-text-secondary); line-height:1.5; }
-.r-colophon { margin-top:40px; padding-top:16px; border-top:1px solid var(--hf-border); font-size:0.72rem; color:var(--hf-text-dim); line-height:1.5; }
+.r-colophon { margin-top:48px; padding-top:20px; border-top:1px solid var(--hf-border); display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.r-colophon-bar { width:32px; height:2px; background:var(--hf-accent); margin-bottom:10px; }
+.r-colophon-body { flex:1; min-width:200px; }
+.r-colophon-main { font-size:0.72rem; color:var(--hf-text-dim); line-height:1.5; font-family:"Space Grotesk",sans-serif; font-weight:600; }
+.r-colophon-note { font-size:0.68rem; color:var(--hf-text-dim); line-height:1.5; margin-top:2px; font-style:italic; }
+.r-colophon-cta { flex-shrink:0; }
+.r-colophon-link { font-size:0.75rem; font-weight:600; color:var(--hf-accent); text-decoration:none; padding:4px 0; }
+.r-colophon-link:hover { text-decoration:underline; }
 .r-print-bar { text-align:right; margin-bottom:16px; padding:8px 0; border-bottom:1px solid var(--hf-border); display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
 .r-print-btn { display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600; color:#fff; background:var(--hf-accent); border:none; border-radius:6px; padding:7px 16px; cursor:pointer; transition:all 0.2s; }
 .r-print-btn:hover { opacity:0.9; }
 .r-print-note { font-size:0.68rem; color:var(--hf-text-dim); }
-@media print { @page { margin:15mm 12mm; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } .r-cover { page-break-after:always; } .r-sec { page-break-inside:avoid; } .r-table { page-break-inside:avoid; } a { color:inherit !important; text-decoration:none !important; } .r-print-bar { display:none !important; } }
+@media print { @page { margin:15mm 12mm; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; background:#fff; } .r-main { padding-top:0; } .r-cover { page-break-after:always; padding-top:60px; } .r-sec { page-break-inside:avoid; } .r-table { page-break-inside:avoid; } a { color:inherit !important; text-decoration:none !important; } .r-print-bar { display:none !important; } .r-cover-logo { width:32px; height:32px; } .r-colophon-link { color:var(--hf-accent) !important; } }
 @media (max-width:768px) { .r-container { padding:0 16px; } .r-toc-grid { grid-template-columns:1fr; } }
 </style>
 
