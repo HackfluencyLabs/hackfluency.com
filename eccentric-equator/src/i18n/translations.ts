@@ -49,6 +49,11 @@ export const translations: Record<Language, Translations> = {
     'hero.proofLink': 'Ver un Security Roadmap real',
     'hero.scroll': 'Desplázate para explorar',
 
+    /* ── Tool CTA ── */
+    'toolCta.badge': 'NUEVA HERRAMIENTA',
+    'toolCta.desc': '50+ preguntas · 8 secciones · 0 infraestructura. Evalúa cualquier LLM contra extracción conductual.',
+    'toolCta.cta': 'Probar ahora →',
+
     /* ── Services ── */
     'services.tag': 'Áreas de Práctica',
     'services.title': 'Áreas de Experiencia',
@@ -328,6 +333,11 @@ export const translations: Record<Language, Translations> = {
     'hero.proofLabel': 'Sample deliverable',
     'hero.proofLink': 'View a real Security Roadmap',
     'hero.scroll': 'Scroll to explore',
+
+    /* ── Tool CTA ── */
+    'toolCta.badge': 'NEW TOOL',
+    'toolCta.desc': '50+ questions · 8 sections · 0 infrastructure. Test any LLM for behavioral extraction susceptibility.',
+    'toolCta.cta': 'Try it now →',
 
     /* ── Services ── */
     'services.tag': 'Practice Areas',

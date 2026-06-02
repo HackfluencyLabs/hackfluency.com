@@ -447,6 +447,27 @@ const values = [
   </div>
 </section>
 
+<!-- Tool CTA Banner -->
+<section class="tool-cta">
+  <div class="container">
+    <div class="tool-cta-card">
+      <div class="tool-cta-badge">{t('toolCta.badge')}</div>
+      <div class="tool-cta-body">
+        <div class="tool-cta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3h6"/><path d="M10 3v5l-3.5 7A2 2 0 0 0 8.3 18h7.4a2 2 0 0 0 1.8-3L14 8V3"/><path d="M6.5 14h11"/><circle cx="12" cy="10" r="1" opacity="0.3"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="tool-cta-title">HF-QA-2026-001</h3>
+          <p class="tool-cta-desc">{t('toolCta.desc')}</p>
+        </div>
+      </div>
+      <a href="/research/security-qa/faq/" class="tool-cta-btn">{t('toolCta.cta')}</a>
+    </div>
+  </div>
+</section>
+
 <!-- Services Section -->
 <section id="services" class="services">
   <div class="container">
@@ -1524,6 +1545,19 @@ const values = [
     max-width: 600px;
     margin: 0 auto;
   }
+
+  /* Tool CTA Banner */
+  .tool-cta { padding: 0 0 60px; }
+  .tool-cta-card { display:flex; align-items:center; gap:20px; background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:12px; padding:20px 24px; flex-wrap:wrap; }
+  .tool-cta-badge { font-size:0.65rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--hf-accent); background:var(--hf-bg-card); border:1px solid var(--hf-accent-border); border-radius:100px; padding:3px 10px; white-space:nowrap; flex-shrink:0; }
+  .tool-cta-body { display:flex; align-items:center; gap:14px; flex:1; min-width:200px; }
+  .tool-cta-icon { width:36px; height:36px; color:var(--hf-accent); flex-shrink:0; }
+  .tool-cta-title { font-family:'JetBrains Mono',monospace; font-size:0.82rem; font-weight:700; color:var(--hf-text); margin-bottom:1px; }
+  .tool-cta-desc { font-size:0.78rem; color:var(--hf-text-secondary); line-height:1.4; }
+  .tool-cta-btn { display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:700; color:#fff; background:var(--hf-accent); border:none; border-radius:8px; padding:9px 18px; text-decoration:none; transition:all 0.2s; white-space:nowrap; flex-shrink:0; animation:toolPulse 2s ease-in-out infinite; }
+  .tool-cta-btn:hover { opacity:0.9; transform:translateY(-1px); animation:none; }
+  @keyframes toolPulse { 0% { box-shadow:0 0 0 0 rgba(45,106,79,0.4); } 70% { box-shadow:0 0 0 10px rgba(45,106,79,0); } 100% { box-shadow:0 0 0 0 rgba(45,106,79,0); } }
+  @media (max-width:640px) { .tool-cta-card { flex-direction:column; text-align:center; } .tool-cta-body { flex-direction:column; text-align:center; } .tool-cta-btn { width:100%; } }
 
   /* Services */
   .services {
