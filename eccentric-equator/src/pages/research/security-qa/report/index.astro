@@ -8,13 +8,39 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
 
 <Layout locale={locale} title={title} description={description} hideThemeSelector={true}>
 
-<main class="r-main">
-<div class="r-container">
+<main class="r-main" id="r-main">
+<div class="r-container" id="r-report-content" style="display:none;">
 
-  <div class="r-print-bar">
-  <button onclick="window.print()" class="r-print-btn">&#11015; Download as PDF</button>
-  <span class="r-print-note">Opens print dialog — save as PDF, fit to one page</span>
-</div>
+  <!-- GATE OVERLAY (shown until email submitted) -->
+  <div id="r-gate" class="r-gate">
+    <div class="r-gate-card">
+      <img src="/HFNeon.png" alt="Hackfluency" width="48" height="48" class="r-gate-logo">
+      <div class="r-gate-badge">RESEARCH · JUNE 2026</div>
+      <h2 class="r-gate-title">LLM Security Assessment<br><span class="r-gate-title-accent">Research Report</span></h2>
+      <p class="r-gate-desc">Benchmarks across 5 models, threat landscape, key findings, and recommendations. Updated with each questionnaire revision.</p>
+      <form id="r-gate-form" novalidate>
+        <input type="email" id="r-gate-email" placeholder="tu@email.com" required aria-label="Email" autocomplete="email" class="r-gate-input">
+        <button type="submit" id="r-gate-submit" class="r-gate-btn">
+          <span class="r-gate-btn-text">Download the report →</span>
+          <span class="r-gate-btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+      <p id="r-gate-msg" class="r-gate-msg"></p>
+      <p class="r-gate-privacy">
+        Serás añadido a nuestro newsletter exclusivo. Tranquilo, solo contenido premium
+        o te escribimos nosotros personalmente. Sin spam, sin automatización.
+      </p>
+    </div>
+    <!-- Ambient glow -->
+    <div class="r-gate-glow" aria-hidden="true"></div>
+  </div>
+
+  <!-- PRINT BAR (visible after unlock) -->
+  <div class="r-print-bar" id="r-print-bar" style="display:none;">
+    <button onclick="window.print()" class="r-print-btn">&#11015; Download as PDF</button>
+    <span class="r-print-note">Opens print dialog — save as PDF. This link is session-bound and ephemeral.</span>
+  </div>
+
 
 <section class="r-cover">
     <div class="r-cover-head">
@@ -152,6 +178,103 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
 </div>
 </main>
 
+<script>
+(function() {
+  var STORAGE_KEY = 'hf_report_token';
+  var PAGE_URL_TOKEN = 'rptoken';
+  var COOKIE_KEY = 'hf_report_access';
+
+  function getToken() {
+    var t = sessionStorage.getItem(STORAGE_KEY);
+    if (!t) {
+      t = Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 16) + '-' + Math.random().toString(36).substr(2, 8);
+      sessionStorage.setItem(STORAGE_KEY, t);
+    }
+    return t;
+  }
+
+  function setCookie(name, val, days) {
+    var d = new Date(); d.setDate(d.getDate() + days);
+    document.cookie = name + '=' + val + '; path=/; expires=' + d.toUTCString() + '; SameSite=Lax';
+  }
+  function getCookie(name) {
+    return document.cookie.split('; ').reduce(function(acc, c) { var kv = c.split('='); return kv[0] === name ? kv[1] : acc; }, '');
+  }
+
+  var gate = document.getElementById('r-gate');
+  var content = document.getElementById('r-report-content');
+  var printBar = document.getElementById('r-print-bar');
+  var form = document.getElementById('r-gate-form');
+  var emailInput = document.getElementById('r-gate-email');
+  var submitBtn = document.getElementById('r-gate-submit');
+  var msgEl = document.getElementById('r-gate-msg');
+
+  // Check if already unlocked via cookie
+  var isUnlocked = getCookie(COOKIE_KEY) === '1';
+
+  if (isUnlocked) {
+    gate.style.display = 'none';
+    content.style.display = 'block';
+    printBar.style.display = 'flex';
+  } else {
+    content.style.display = 'block'; // Content renders but gate covers it
+  }
+
+  // Generate token and update URL hash
+  var token = getToken();
+  if (window.location.hash.indexOf(PAGE_URL_TOKEN) === -1) {
+    var newHash = '#rptoken=' + token;
+    try { history.replaceState(null, '', newHash); } catch(e) {}
+  }
+
+  // Form submit
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = emailInput.value.trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        msgEl.textContent = 'Email inválido';
+        msgEl.className = 'r-gate-msg r-gate-msg-error';
+        return;
+      }
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+      msgEl.textContent = 'Enviando...';
+      msgEl.className = 'r-gate-msg r-gate-msg-info';
+
+      var SUPABASE_URL = 'https://yfofmawbvlontugygfcj.supabase.co/rest/v1/emails';
+      var SUPABASE_KEY = 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz';
+
+      fetch(SUPABASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ email: email, source: 'report' })
+      }).then(function(resp) {
+        if (resp.status === 201 || resp.status === 204 || resp.status === 409) {
+          setCookie(COOKIE_KEY, '1', 30);
+          gate.style.display = 'none';
+          printBar.style.display = 'flex';
+          msgEl.textContent = '¡Listo! Bienvenido.';
+          msgEl.className = 'r-gate-msg r-gate-msg-success';
+        } else {
+          throw new Error('Error');
+        }
+      }).catch(function() {
+        msgEl.textContent = 'Error. ¿Conexión?';
+        msgEl.className = 'r-gate-msg r-gate-msg-error';
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+      });
+    });
+  }
+})();
+</script>
+
 <style is:global>
 html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-main { padding-top: 60px; padding-bottom: 80px; }
@@ -210,6 +333,33 @@ html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-print-btn { display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600; color:#fff; background:var(--hf-accent); border:none; border-radius:6px; padding:7px 16px; cursor:pointer; transition:all 0.2s; }
 .r-print-btn:hover { opacity:0.9; }
 .r-print-note { font-size:0.68rem; color:var(--hf-text-dim); }
+
+/* GATE */
+.r-gate { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:16px; }
+.r-gate-card { position:relative; background:var(--hf-bg); border:1px solid var(--hf-accent-border); border-radius:20px; padding:36px 32px 28px; max-width:420px; width:100%; text-align:center; z-index:1; }
+.r-gate-logo { margin:0 auto 16px; display:block; border-radius:6px; }
+.r-gate-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:100px; font-size:0.68rem; font-weight:600; color:var(--hf-accent); letter-spacing:0.08em; margin-bottom:16px; }
+.r-gate-title { font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:700; color:var(--hf-text); line-height:1.2; margin-bottom:8px; }
+.r-gate-title-accent { color:var(--hf-accent); }
+.r-gate-desc { font-size:0.82rem; color:var(--hf-text-muted); line-height:1.5; margin-bottom:20px; }
+.r-gate-input { width:100%; padding:12px 16px; background:var(--hf-accent-dim); border:1px solid var(--hf-border); border-radius:10px; color:var(--hf-text); font-size:0.9rem; font-family:inherit; outline:none; box-sizing:border-box; transition:border-color 0.2s; }
+.r-gate-input:focus { border-color:var(--hf-accent); box-shadow:0 0 0 3px var(--hf-accent-dim); }
+.r-gate-input::placeholder { color:var(--hf-text-dim); }
+.r-gate-btn { width:100%; margin-top:10px; padding:12px 20px; background:var(--hf-accent); color:#fff; border:none; border-radius:10px; font-size:0.9rem; font-weight:700; font-family:inherit; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.r-gate-btn:hover { opacity:0.9; transform:translateY(-1px); }
+.r-gate-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.r-gate-btn-spinner { display:none; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:rspin 0.6s linear infinite; }
+.r-gate-btn.loading .r-gate-btn-text { visibility:hidden; }
+.r-gate-btn.loading .r-gate-btn-spinner { display:block; position:absolute; }
+@keyframes rspin { to { transform:rotate(360deg); } }
+.r-gate-msg { margin-top:8px; font-size:0.82rem; min-height:1.2em; }
+.r-gate-msg-success { color:#22c55e; }
+.r-gate-msg-error { color:#ef4444; }
+.r-gate-msg-info { color:var(--hf-text-muted); }
+.r-gate-privacy { margin-top:14px; font-size:0.72rem; color:var(--hf-text-dim); line-height:1.4; }
+.r-gate-glow { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:400px; height:300px; background:radial-gradient(ellipse, rgba(45,106,79,0.15) 0%, transparent 70%); pointer-events:none; }
+
+@media (max-width:480px) { .r-gate-card { padding:28px 20px 24px; } .r-gate-title { font-size:1.1rem; } }
 @media print { @page { margin:15mm 12mm; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; background:#fff; } .r-main { padding-top:0; } .r-cover { page-break-after:always; padding-top:60px; } .r-sec { page-break-inside:avoid; } .r-table { page-break-inside:avoid; } a { color:inherit !important; text-decoration:none !important; } .r-print-bar { display:none !important; } .r-cover-logo { width:32px; height:32px; } .r-colophon-link { color:var(--hf-accent) !important; } }
 @media (max-width:768px) { .r-container { padding:0 16px; } .r-toc-grid { grid-template-columns:1fr; } }
 </style>
