@@ -165,10 +165,11 @@ const description = t(
   var _C = _k('aGZfcmVwb3J0X2FjY2Vzcw==');
   var _U = _k('aHR0cHM6Ly95Zm9mbWF3YnZsb250dWd5Z2ZjalN1cGFiYXNlLmNvL3Jlc3QvdjEvZW1haWxz');
   var _K = _k('c2JfcHVibGlzaGFibGVfRUZJMTJENEFhTzJZN281Z3lXckItZ19pLS1UNUFyeg==');
-  var _src = _k('cmVwb3J0');
+  var _src = 'Hackfluency'; // matches subscription.ts source column
   var _ttl = 10;
   var _timer = null;
   var _ctr = null;
+  var _timerDone = false;
 
   // ── Locale ────────────────────────────────────────────
   var l = location.pathname.startsWith('/en/') ? 'en' : 'es';
@@ -226,28 +227,24 @@ const description = t(
     _obs.observe(document.body, { childList: true, subtree: true });
   }
 
-  // ── Countdown timer ──────────────────────────────────
+  // ── Countdown timer (single cycle) ────────────────────
   function startTimer() {
+    if (_timerDone) return;
     var remaining = _ttl;
     if (!msgEl) return;
     msgEl.textContent = '⏱ ' + remaining + 's';
     msgEl.className = 'r-gate-msg r-gate-msg-info';
-    if (_timer) clearInterval(_timer);
     if (_ctr) clearInterval(_ctr);
     _ctr = setInterval(function() {
       remaining--;
-      if (msgEl) { msgEl.textContent = '⏱ ' + remaining + 's'; }
+      if (msgEl) msgEl.textContent = '⏱ ' + remaining + 's';
       if (remaining <= 0) {
         clearInterval(_ctr); _ctr = null;
+        _timerDone = true;
         refreshToken();
-        if (msgEl) { msgEl.textContent = trx('expired'); }
-        setTimeout(startTimer, 500);
+        if (msgEl) { msgEl.textContent = ''; msgEl.className = 'r-gate-msg'; }
       }
     }, 1000);
-    _timer = setTimeout(function() {
-      clearInterval(_ctr); _ctr = null;
-      if (msgEl) { msgEl.textContent = ''; msgEl.className = 'r-gate-msg'; }
-    }, _ttl * 1000);
   }
 
   // ── Init ────────────────────────────────────────────
@@ -271,9 +268,9 @@ const description = t(
       }
       submitBtn.classList.add('loading');
       submitBtn.disabled = true;
+      _timerDone = true; // stop timer from firing
+      if (_ctr) { clearInterval(_ctr); _ctr = null; }
       if (msgEl) { msgEl.textContent = trx('sending'); msgEl.className = 'r-gate-msg r-gate-msg-info'; }
-      if (_timer) clearTimeout(_timer);
-      if (_ctr) clearInterval(_ctr);
 
       fetch(_U, {
         method: 'POST',
