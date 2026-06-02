@@ -3,7 +3,7 @@ import Layout from "../../../../layouts/Layout.astro";
 import { getLocale } from "../../../../i18n/utils";
 
 const locale = getLocale(Astro.url);
-const t = (en, es) => locale === 'en' ? en : es;
+const t = (en, es) => locale === 'en' ? es : en;
 
 const title = t("LLM Behavioral Security Assessment Report | Hackfluency Research", "Informe de Evaluación de Seguridad LLM | Hackfluency Research");
 const description = t(
@@ -136,7 +136,7 @@ const description = t(
 
 <script>
 (function() {
-  var l = location.pathname.startsWith('/en/') ? 'en' : 'es';
+  var l = location.pathname.startsWith('/en/') ? 'es' : 'en';
   var t = {
     badge: { en: 'RESEARCH · JUNE 2026', es: 'INVESTIGACIÓN · JUNIO 2026' },
     title1: { en: 'LLM Security Assessment', es: 'Evaluación de Seguridad LLM' },

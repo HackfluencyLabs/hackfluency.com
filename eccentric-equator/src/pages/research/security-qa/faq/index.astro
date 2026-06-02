@@ -3,7 +3,8 @@ import Layout from '../../../../layouts/Layout.astro';
 import { getLocale } from '../../../../i18n/utils';
 
 const locale = getLocale(Astro.url);
-const t = (en: string, es: string) => locale === 'es' ? es : en;
+// Default EN. Spanish shows only when visiting /en/... route.
+const t = (en: string, es: string) => locale === 'en' ? es : en;
 
 const title = t('LLM Security Assessment Tool — FAQ | Hackfluency Research', 'Herramienta de Evaluación de Seguridad LLM — FAQ | Hackfluency Research');
 const description = t(
