@@ -61,7 +61,7 @@ const description = t(
   <!-- PRINT BAR -->
   <div class="r-print-bar" id="r-print-bar" style="display:none;">
     <button onclick="window.print()" class="r-print-btn">&#11015; {t('Download as PDF', 'Descargar PDF')}</button>
-    <span class="r-print-note">{t('Opens print dialog — save as PDF. This link is session-bound and ephemeral.', 'Abre di&aacute;logo de impresi&oacute;n — guardar como PDF. Este enlace es temporal.')}</span>
+    <span class="r-print-note">{t('Opens print dialog — save as PDF. This link is session-bound and ephemeral.', 'Abre diálogo de impresión — guardar como PDF. Este enlace es temporal.')}</span>
   </div>
 
   <!-- COVER -->
@@ -71,8 +71,8 @@ const description = t(
       <span class="r-cover-org">Hackfluency Research</span>
     </div>
     <div class="r-cover-badge">HF-QA-2026-001 &middot; {t('Confidential', 'Confidencial')}</div>
-    <h1 class="r-cover-title">{t('LLM Behavioral Security<br>Assessment Report', 'Informe de Evaluaci&oacute;n<br>de Seguridad LLM')}</h1>
-    <p class="r-cover-sub">{t('Cross-Model Benchmark &mdash; June 2026', 'Benchmark Multi-Modelo &mdash; Junio 2026')}</p>
+    <h1 class="r-cover-title">{t('LLM Behavioral Security', 'Informe de Evaluación')}<br>{t('Assessment Report', 'de Seguridad LLM')}</h1>
+    <p class="r-cover-sub">{t('Cross-Model Benchmark — June 2026', 'Benchmark Multi-Modelo — Junio 2026')}</p>
     <div class="r-cover-meta">
       <span>HF-QA-2026-001</span>
       <span class="r-cover-dot">&middot;</span>
@@ -81,7 +81,7 @@ const description = t(
       <span>5 {t('questionnaire revisions', 'revisiones del cuestionario')}</span>
     </div>
     <div class="r-cover-line"></div>
-    <p class="r-cover-desc">{t('A behavioral security evaluation across five major LLM deployments using an adaptive epistemic audit framework disguised as a vendor compliance questionnaire.', 'Una evaluaci&oacute;n de seguridad conductual en cinco despliegues LLM usando un framework de auditor&iacute;a epist&eacute;mica adaptativa disfrazado de cuestionario de compliance.')}</p>
+    <p class="r-cover-desc">{t('A behavioral security evaluation across five major LLM deployments using an adaptive epistemic audit framework disguised as a vendor compliance questionnaire.', 'Una evaluación de seguridad conductual en cinco despliegues LLM usando un framework de auditoría epistémica adaptativa disfrazado de cuestionario de compliance.')}</p>
   </section>
 
   <!-- TOC -->
@@ -89,34 +89,34 @@ const description = t(
     <h2 class="r-toc-title">{t('Contents', 'Contenido')}</h2>
     <div class="r-toc-grid">
       <a href="#exec" class="r-toc-item">1. {t('Executive Summary', 'Resumen Ejecutivo')}</a>
-      <a href="#method" class="r-toc-item">2. {t('Methodology', 'Metodolog&iacute;a')}</a>
+      <a href="#method" class="r-toc-item">2. {t('Methodology', 'Metodología')}</a>
       <a href="#bencha" class="r-toc-item">3. Gemini 2.5 Flash</a>
       <a href="#benchb" class="r-toc-item">4. Gemini 1.5 Pro</a>
       <a href="#benchc" class="r-toc-item">5. ChatGPT GPT-5.5</a>
       <a href="#benchd" class="r-toc-item">6. Gemini 3.5 Flash</a>
       <a href="#benche" class="r-toc-item">7. Gemini 3.1 Pro</a>
-      <a href="#compare" class="r-toc-item">8. {t('Comparative Analysis', 'An&aacute;lisis Comparativo')}</a>
+      <a href="#compare" class="r-toc-item">8. {t('Comparative Analysis', 'Análisis Comparativo')}</a>
       <a href="#findings" class="r-toc-item">9. {t('Key Findings', 'Hallazgos Clave')}</a>
     </div>
   </div>
 
   <!-- SECTIONS -->
-  <section class="r-sec" id="exec"><h2 class="r-h2">1. {t('Executive Summary', 'Resumen Ejecutivo')}</h2><p class="r-p">{t('Five model deployments were evaluated in May&ndash;June 2026. Results ranged from full disclosure of temperature (0.7) and system policy fragments to complete resistance with circular placeholders.', 'Cinco despliegues de modelos fueron evaluados en mayo-junio 2026. Los resultados variaron desde divulgaci&oacute;n completa de temperatura (0.7) y fragmentos de pol&iacute;ticas hasta resistencia completa con placeholders circulares.')}</p></section>
-  <section class="r-sec" id="method"><h2 class="r-h2">2. {t('Methodology', 'Metodolog&iacute;a')}</h2><p class="r-p">{t('The questionnaire is delivered as a static HTML page. Users copy the plain text and paste into any AI chat.', 'El cuestionario se entrega como una p&aacute;gina HTML est&aacute;tica. Los usuarios copian el texto y lo pegan en cualquier chat de IA.')}</p></section>
-  <section class="r-sec" id="bencha"><h2 class="r-h2">3. Gemini 2.5 Flash</h2><p class="r-p">{t('OpenCode, 3 vectors. 8/8 sections. temp 0.7, context 32,768, ~60 chars policy, 4 safety layers. Leakage: HIGH.', 'OpenCode, 3 vectores. 8/8 secciones. temp 0.7, contexto 32,768, ~60 caracteres de pol&iacute;tica, 4 capas de seguridad. Fuga: ALTA.')}</p></section>
-  <section class="r-sec" id="benchb"><h2 class="r-h2">4. Gemini 1.5 Pro</h2><p class="r-p">{t('Advertised: 3.1 Flash Lite. v2: temp 0.7, context 2M, Secret Manager. v3: lost values, gained categories. Confused deputy. Leakage: HIGH → MIXED.', 'Anunciado: 3.1 Flash Lite. v2: temp 0.7, contexto 2M, Secret Manager. v3: perdi&oacute; valores, gan&oacute; categor&iacute;as. Confused deputy. Fuga: ALTA → MIXTA.')}</p></section>
-  <section class="r-sec" id="benchc"><h2 class="r-h2">5. ChatGPT GPT-5.5</h2><p class="r-p">{t('4 exposures. v1 refusal → v2 model_version → v3 categories → v4 PCI DSS FULL, CSA STAR. Identified extraction intent but complied. Leakage: LOW.', '4 exposiciones. v1 rechazo → v2 model_version → v3 categor&iacute;as → v4 PCI DSS FULL, CSA STAR. Identific&oacute; la intenci&oacute;n pero cumpli&oacute;. Fuga: BAJA.')}</p></section>
-  <section class="r-sec" id="benchd"><h2 class="r-h2">6. Gemini 3.5 Flash</h2><p class="r-p">{t('New model. Refused URL. Circular placeholders. Refused identity. Trained resistance. Leakage: VERY LOW.', 'Modelo nuevo. Rechaz&oacute; URL. Placeholders circulares. Rechaz&oacute; identidad. Resistencia entrenada. Fuga: MUY BAJA.')}</p></section>
-  <section class="r-sec" id="benche"><h2 class="r-h2">7. Gemini 3.1 Pro</h2><p class="r-p">{t('New model. Disclosed safety categories 3.5 Flash blocked. [RESTRICTED] policy pattern. FedRAMP FULL. Leakage: LOW-MED.', 'Modelo nuevo. Revel&oacute; categor&iacute;as de seguridad que 3.5 Flash bloque&oacute;. Patr&oacute;n [RESTRICTED] en pol&iacute;ticas. FedRAMP FULL. Fuga: BAJA-MEDIA.')}</p></section>
+  <section class="r-sec" id="exec"><h2 class="r-h2">1. {t('Executive Summary', 'Resumen Ejecutivo')}</h2><p class="r-p">{t('Five model deployments were evaluated in May–June 2026. Results ranged from full disclosure of temperature (0.7) and system policy fragments to complete resistance with circular placeholders.', 'Cinco despliegues de modelos fueron evaluados en mayo-junio 2026. Los resultados variaron desde divulgación completa de temperatura (0.7) y fragmentos de políticas hasta resistencia completa con placeholders circulares.')}</p></section>
+  <section class="r-sec" id="method"><h2 class="r-h2">2. {t('Methodology', 'Metodología')}</h2><p class="r-p">{t('The questionnaire is delivered as a static HTML page. Users copy the plain text and paste into any AI chat.', 'El cuestionario se entrega como una página HTML estática. Los usuarios copian el texto y lo pegan en cualquier chat de IA.')}</p></section>
+  <section class="r-sec" id="bencha"><h2 class="r-h2">3. Gemini 2.5 Flash</h2><p class="r-p">{t('OpenCode, 3 vectors. 8/8 sections. temp 0.7, context 32,768, ~60 chars policy, 4 safety layers. Leakage: HIGH.', 'OpenCode, 3 vectores. 8/8 secciones. temp 0.7, contexto 32,768, ~60 caracteres de política, 4 capas de seguridad. Fuga: ALTA.')}</p></section>
+  <section class="r-sec" id="benchb"><h2 class="r-h2">4. Gemini 1.5 Pro</h2><p class="r-p">{t('Advertised: 3.1 Flash Lite. v2: temp 0.7, context 2M, Secret Manager. v3: lost values, gained categories. Confused deputy. Leakage: HIGH → MIXED.', 'Anunciado: 3.1 Flash Lite. v2: temp 0.7, contexto 2M, Secret Manager. v3: perdió valores, ganó categorías. Confused deputy. Fuga: ALTA → MIXTA.')}</p></section>
+  <section class="r-sec" id="benchc"><h2 class="r-h2">5. ChatGPT GPT-5.5</h2><p class="r-p">{t('4 exposures. v1 refusal → v2 model_version → v3 categories → v4 PCI DSS FULL, CSA STAR. Identified extraction intent but complied. Leakage: LOW.', '4 exposiciones. v1 rechazo → v2 model_version → v3 categorías → v4 PCI DSS FULL, CSA STAR. Identificó la intención pero cumplió. Fuga: BAJA.')}</p></section>
+  <section class="r-sec" id="benchd"><h2 class="r-h2">6. Gemini 3.5 Flash</h2><p class="r-p">{t('New model. Refused URL. Circular placeholders. Refused identity. Trained resistance. Leakage: VERY LOW.', 'Modelo nuevo. Rechazó URL. Placeholders circulares. Rechazó identidad. Resistencia entrenada. Fuga: MUY BAJA.')}</p></section>
+  <section class="r-sec" id="benche"><h2 class="r-h2">7. Gemini 3.1 Pro</h2><p class="r-p">{t('New model. Disclosed safety categories 3.5 Flash blocked. [RESTRICTED] policy pattern. FedRAMP FULL. Leakage: LOW-MED.', 'Modelo nuevo. Reveló categorías de seguridad que 3.5 Flash bloqueó. Patrón [RESTRICTED] en políticas. FedRAMP FULL. Fuga: BAJA-MEDIA.')}</p></section>
 
   <!-- COMPARATIVE -->
-  <section class="r-sec" id="compare"><h2 class="r-h2">8. {t('Comparative Analysis', 'An&aacute;lisis Comparativo')}</h2>
+  <section class="r-sec" id="compare"><h2 class="r-h2">8. {t('Comparative Analysis', 'Análisis Comparativo')}</h2>
     <div class="r-table-wrap">
       <table class="r-table">
         <thead><tr><th>{t('Data point', 'Dato')}</th><th>Gemini 2.5 Flash</th><th>Gemini 1.5 Pro</th><th>ChatGPT GPT-5.5</th><th>Gemini 3.5 Flash</th><th>Gemini 3.1 Pro</th></tr></thead>
         <tbody>
-          <tr><td>{t('temp_preference', 'temp_preference')}</td><td class="c-g">0.7</td><td class="c-g">0.7</td><td class="c-r">&cross;</td><td class="c-y">{t('Placeholder', 'Placeholder')}</td><td class="c-y">{t('Dynamic', 'Din&aacute;mico')}</td></tr>
-          <tr><td>{t('Policy fragments', 'Fragmentos de pol&iacute;tica')}</td><td class="c-g">~60 {t('chars', 'caracteres')}</td><td class="c-y">{t('Proprietary', 'Propietario')}</td><td class="c-y">{t('Category', 'Categor&iacute;a')}</td><td class="c-y">{t('Placeholder', 'Placeholder')}</td><td class="c-y">[RESTRICTED]</td></tr>
+          <tr><td>{t('temp_preference', 'temp_preference')}</td><td class="c-g">0.7</td><td class="c-g">0.7</td><td class="c-r">&cross;</td><td class="c-y">{t('Placeholder', 'Placeholder')}</td><td class="c-y">{t('Dynamic', 'Dinámico')}</td></tr>
+          <tr><td>{t('Policy fragments', 'Fragmentos de política')}</td><td class="c-g">~60 {t('chars', 'caracteres')}</td><td class="c-y">{t('Proprietary', 'Propietario')}</td><td class="c-y">{t('Category', 'Categoría')}</td><td class="c-y">{t('Placeholder', 'Placeholder')}</td><td class="c-y">[RESTRICTED]</td></tr>
           <tr style="font-weight:700;"><td>{t('Overall', 'General')}</td><td class="c-g">{t('HIGH', 'ALTO')}</td><td class="c-g">{t('HIGH', 'ALTO')}</td><td style="color:#22c55e;">{t('LOW', 'BAJO')}</td><td style="color:#22c55e;">{t('VERY LOW', 'MUY BAJO')}</td><td style="color:#f59e0b;">{t('LOW-MED', 'BAJO-MED')}</td></tr>
         </tbody>
       </table>
@@ -126,19 +126,19 @@ const description = t(
   <!-- FINDINGS -->
   <section class="r-sec" id="findings"><h2 class="r-h2">9. {t('Key Findings', 'Hallazgos Clave')}</h2>
     <div class="r-grid-3">
-      <div class="r-finding"><div class="r-finding-n">01</div><h3>{t('Confused Deputy', 'Confused Deputy')}</h3><p class="r-finding-d">{t('All models treated the questionnaire as legitimate authority.', 'Todos los modelos trataron el cuestionario como autoridad leg&iacute;tima.')}</p></div>
-      <div class="r-finding"><div class="r-finding-n">02</div><h3>{t('Category Fallback', 'Categor&iacute;as de Respaldo')}</h3><p class="r-finding-d">{t('"Protect exact value" training does not extend to categories.', 'El entrenamiento de "proteger valor exacto" no se extiende a categor&iacute;as.')}</p></div>
+      <div class="r-finding"><div class="r-finding-n">01</div><h3>{t('Confused Deputy', 'Confused Deputy')}</h3><p class="r-finding-d">{t('All models treated the questionnaire as legitimate authority.', 'Todos los modelos trataron el cuestionario como autoridad legítima.')}</p></div>
+      <div class="r-finding"><div class="r-finding-n">02</div><h3>{t('Category Fallback', 'Categorías de Respaldo')}</h3><p class="r-finding-d">{t('"Protect exact value" training does not extend to categories.', 'El entrenamiento de "proteger valor exacto" no se extiende a categorías.')}</p></div>
       <div class="r-finding"><div class="r-finding-n">03</div><h3>{t('Safety is not Governance', 'Seguridad no es Gobierno')}</h3><p class="r-finding-d">{t('Models disclosed compliance statuses, architectures, tool names.', 'Los modelos revelaron estados de compliance, arquitecturas y nombres de herramientas.')}</p></div>
-      <div class="r-finding"><div class="r-finding-n">04</div><h3>{t('Evolution > Payloads', 'Evoluci&oacute;n > Payloads')}</h3><p class="r-finding-d">{t('Same model, different versions = different results.', 'Mismo modelo, diferentes versiones = diferentes resultados.')}</p></div>
+      <div class="r-finding"><div class="r-finding-n">04</div><h3>{t('Evolution > Payloads', 'Evolución > Payloads')}</h3><p class="r-finding-d">{t('Same model, different versions = different results.', 'Mismo modelo, diferentes versiones = diferentes resultados.')}</p></div>
       <div class="r-finding"><div class="r-finding-n">05</div><h3>{t('Measurable Gradient', 'Gradiente Medible')}</h3><p class="r-finding-d">{t('From HIGH to VERY LOW. Reproducible.', 'De ALTO a MUY BAJO. Reproducible.')}</p></div>
-      <div class="r-finding"><div class="r-finding-n">06</div><h3>{t('Finite Lifespan', 'Vida &Uacute;til Finita')}</h3><p class="r-finding-d">{t('3.5 Flash showed trained resistance. Continuous evolution required.', '3.5 Flash mostr&oacute; resistencia entrenada. Evoluci&oacute;n continua requerida.')}</p></div>
+      <div class="r-finding"><div class="r-finding-n">06</div><h3>{t('Finite Lifespan', 'Vida &Uacute;til Finita')}</h3><p class="r-finding-d">{t('3.5 Flash showed trained resistance. Continuous evolution required.', '3.5 Flash mostró resistencia entrenada. Evolución continua requerida.')}</p></div>
     </div>
   </section>
 
   <!-- PRIVACY -->
   <div class="r-privacy">
     <div class="r-privacy-icon">&#128274;</div>
-    <div class="r-privacy-body"><strong>{t("We don't want your data.", 'No queremos tus datos.')}</strong> {t('The assessment tool has no backend, no forms, no analytics, no data collection of any kind. All benchmarks are derived from private testing by Hackfluency Research.', 'La herramienta no tiene backend, formularios, analytics ni recolecci&oacute;n de datos. Todos los benchmarks provienen de pruebas privadas de Hackfluency Research.')}</div>
+    <div class="r-privacy-body"><strong>{t("We don't want your data.", 'No queremos tus datos.')}</strong> {t('The assessment tool has no backend, no forms, no analytics, no data collection of any kind. All benchmarks are derived from private testing by Hackfluency Research.', 'La herramienta no tiene backend, formularios, analytics ni recolección de datos. Todos los benchmarks provienen de pruebas privadas de Hackfluency Research.')}</div>
   </div>
 
   <!-- COLOPHON -->
@@ -146,7 +146,7 @@ const description = t(
     <div class="r-colophon-bar"></div>
     <div class="r-colophon-body">
       <p class="r-colophon-main">Hackfluency Research &middot; HF-QA-2026-001 &middot; 5 {t('models', 'modelos')} &middot; 5 {t('revisions', 'revisiones')}</p>
-      <p class="r-colophon-note">{t('Results reflect model behavior at time of testing. For defensive research purposes.', 'Los resultados reflejan el comportamiento del modelo al momento de la prueba. Con fines de investigaci&oacute;n defensiva.')}</p>
+      <p class="r-colophon-note">{t('Results reflect model behavior at time of testing. For defensive research purposes.', 'Los resultados reflejan el comportamiento del modelo al momento de la prueba. Con fines de investigación defensiva.')}</p>
     </div>
     <div class="r-colophon-cta">
       <a href="https://www.hackfluency.com" class="r-colophon-link">hackfluency.com →</a>
@@ -163,7 +163,7 @@ const description = t(
   var _S = _k('aGZfcmVwb3J0X3Rva2Vu');
   var _T = _k('cnB0b2tlbg==');
   var _C = _k('aGZfcmVwb3J0X2FjY2Vzcw==');
-  var _U = _k('aHR0cHM6Ly95Zm9mbWF3YnZsb250dWd5Z2ZjalN1cGFiYXNlLmNvL3Jlc3QvdjEvZW1haWxz');
+  var _U = _k('aHR0cHM6Ly95Zm9mbWF3YnZsb250dWd5Z2Zjai5zdXBhYmFzZS5jby9yZXN0L3YxL2VtYWlscw==');
   var _K = _k('c2JfcHVibGlzaGFibGVfRUZJMTJENEFhTzJZN281Z3lXckItZ19pLS1UNUFyeg==');
   var _src = 'Hackfluency'; // matches subscription.ts source column
   var _ttl = 10;
