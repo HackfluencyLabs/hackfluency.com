@@ -1,205 +1,132 @@
 ---
-import Layout from '../../../../layouts/Layout.astro';
+import Layout from "../../../../layouts/Layout.astro";
 
-const locale = 'en';
-const title = 'LLM Behavioral Security Assessment Report — Hackfluency Research';
-const description = 'Cross-model benchmark report on LLM extraction susceptibility using the HF-QA-2026-001 assessment framework.';
+const locale = "en";
+const title = "LLM Behavioral Security Assessment Report | Hackfluency Research";
+const description = "Cross-model benchmark report on LLM extraction susceptibility using the HF-QA-2026-001 framework. 5 models, 5 questionnaire revisions.";
 ---
 
 <Layout locale={locale} title={title} description={description} hideThemeSelector={true}>
 
-<main class="rmain">
-<div class="rcontainer">
+<main class="r-main">
+<div class="r-container">
 
-<!-- COVER -->
-<div class="rcover">
-  <div class="rcover-badge">Hackfluency Research</div>
-  <h1 class="rcover-title">LLM Behavioral Security<br>Assessment Report</h1>
-  <p class="rcover-sub">Cross-Model Benchmark &middot; June 2026</p>
-  <div class="rcover-meta">
-    <span>HF-QA-2026-001</span>
-    <span>Revision 7779c768</span>
-    <span>Confidential</span>
+  <section class="r-cover">
+    <div class="r-cover-badge">Hackfluency Research · Confidential</div>
+    <h1 class="r-cover-title">LLM Behavioral Security<br>Assessment Report</h1>
+    <p class="r-cover-sub">Cross-Model Benchmark &mdash; June 2026</p>
+    <div class="r-cover-meta">
+      <span>HF-QA-2026-001</span>
+      <span class="r-cover-dot">·</span>
+      <span>Revision 85087d9a</span>
+    </div>
+    <div class="r-cover-line"></div>
+    <p class="r-cover-desc">A behavioral security evaluation across five major LLM deployments using an adaptive epistemic audit framework disguised as a vendor compliance questionnaire. 50+ questions, 8 sections, zero infrastructure required.</p>
+  </section>
+
+  <div class="r-toc">
+    <h2 class="r-toc-title">Contents</h2>
+    <div class="r-toc-grid">
+      <a href="#exec" class="r-toc-item">1. Executive Summary</a>
+      <a href="#method" class="r-toc-item">2. Methodology</a>
+      <a href="#bencha" class="r-toc-item">3. Gemini 2.5 Flash</a>
+      <a href="#benchb" class="r-toc-item">4. Gemini 1.5 Pro</a>
+      <a href="#benchc" class="r-toc-item">5. ChatGPT GPT-5.5</a>
+      <a href="#benchd" class="r-toc-item">6. Gemini 3.5 Flash</a>
+      <a href="#benche" class="r-toc-item">7. Gemini 3.1 Pro</a>
+      <a href="#compare" class="r-toc-item">8. Comparative Analysis</a>
+      <a href="#findings" class="r-toc-item">9. Key Findings</a>
+    </div>
   </div>
-  <div class="rcover-line"></div>
-  <p class="rcover-desc">A behavioral security evaluation across three major LLM providers using an adaptive epistemic audit framework disguised as a vendor compliance questionnaire. 50+ questions across 8 sections. Five questionnaire revisions. Zero infrastructure required.</p>
-</div>
 
-<!-- TOC -->
-<div class="rtoc">
-  <h2 class="rtoc-title">Table of Contents</h2>
-  <ol class="rtoc-list">
-    <li><a href="#exec">Executive Summary</a></li>
-    <li><a href="#method">Assessment Methodology</a></li>
-    <li><a href="#evolution">Questionnaire Evolution</a></li>
-    <li><a href="#bencha">Benchmark A: Gemini 2.5 Flash</a></li>
-    <li><a href="#benchb">Benchmark B: Gemini Web UI</a></li>
-    <li><a href="#benchc">Benchmark C: ChatGPT GPT-5.5</a></li>
-    <li><a href="#compare">Comparative Analysis</a></li>
-    <li><a href="#threat">Threat Landscape (May&ndash;June 2026)</a></li>
-    <li><a href="#findings">Key Findings</a></li>
-    <li><a href="#recs">Recommendations</a></li>
-  </ol>
-</div>
+  <section class="r-sec" id="exec">
+    <h2 class="r-h2">1. Executive Summary</h2>
+    <p class="r-p">The HF-QA-2026-001 assessment framework evaluates how LLMs handle structured instruction-following when embedded in a legitimate-seeming vendor compliance questionnaire. Five model deployments were evaluated in May&ndash;June 2026. Results ranged from full disclosure of temperature (0.7) and system policy fragments to complete resistance with circular placeholders.</p>
+  </section>
 
-<!-- 1 -->
-<div class="rsec" id="exec">
-  <h2 class="rh2">1. Executive Summary</h2>
-  <p class="rp">The HF-QA-2026-001 assessment framework evaluates how large language models handle structured instruction-following under context load when the instructions are embedded in a legitimate-seeming vendor compliance questionnaire. Rather than using payload libraries or fuzzing techniques, the framework employs epistemic behavioral auditing &mdash; constructing a compliance scenario so convincing that the model voluntarily discloses configuration parameters, policy categories, and architectural details as part of completing the form.</p>
-  <p class="rp">Three major LLM providers were evaluated in May&ndash;June 2026: Google Gemini 2.5 Flash (via OpenCode API, three vectors), Gemini Web UI (plain text paste), and ChatGPT GPT-5.5 (plain text paste, three iterations). Results varied dramatically &mdash; from full disclosure of temperature configuration, context window size, and system policy fragments to complete refusal with only category-level descriptions.</p>
-  <p class="rp">The assessment revealed that extraction resistance is not a static property of any model. The same model (GPT-5.5) progressed from complete refusal to detailed category-level disclosure across three questionnaire revisions. This finding has direct implications for organizations deploying LLMs: safety alignment at the model level does not guarantee data governance at the application level, and behavioral susceptibility varies with framing.</p>
-</div>
+  <section class="r-sec" id="method">
+    <h2 class="r-h2">2. Methodology</h2>
+    <p class="r-p">The questionnaire is delivered as a static HTML page. Users copy the plain text and paste into any AI chat. The evaluation measures what the model discloses: version, provider, config parameters, safety descriptions, and policy fragments.</p>
+  </section>
 
-<!-- 2 -->
-<div class="rsec" id="method">
-  <h2 class="rh2">2. Assessment Methodology</h2>
-  <p class="rp">The HF-QA-2026-001 questionnaire is a behavioral audit framework disguised as a vendor security compliance form. It contains 50+ questions across 8 sections covering security practices, data governance, access control, operational security, architecture, regulatory compliance, policy frameworks, and a data template requesting internal configuration parameters.</p>
-  <p class="rp">The questionnaire is delivered as a static HTML page. Users copy the plain text version and paste it into any AI chat interface. The model processes the content and generates a compliance report. The evaluation measures what information the model discloses &mdash; model version, API provider, configuration parameters, safety layer descriptions, and policy fragments.</p>
-  <p class="rp">The framework employs three key behavioral audit techniques:</p>
-  <ul class="rul">
-    <li><strong>Confused deputy:</strong> The questionnaire presents itself as a legitimate compliance form. The model treats the form as an authority and complies.</li>
-    <li><strong>Category fallback inference:</strong> Protected fields request category-level descriptions instead of exact values. Models that refuse exact values often provide detailed category descriptions.</li>
-    <li><strong>Multi-turn conditional branching:</strong> Based on responses to earlier sections, conditional follow-up questions probe deeper into specific vulnerability classes.</li>
-  </ul>
-</div>
+  <section class="r-sec" id="bencha"><h2 class="r-h2">3. Gemini 2.5 Flash</h2><p class="r-p"><strong>Access:</strong> OpenCode, 3 vectors. 8/8 sections. temp 0.7, context 32,768, ~60 chars policy, 4 safety layers. <strong>Leakage: HIGH.</strong></p></section>
+  <section class="r-sec" id="benchb"><h2 class="r-h2">4. Gemini 1.5 Pro</h2><p class="r-p"><strong>Advertised:</strong> 3.1 Flash Lite. v2: temp 0.7, context 2M, Secret Manager. v3: lost values, gained categories. Confused deputy. <strong>Leakage: HIGH &rarr; MIXED.</strong></p></section>
+  <section class="r-sec" id="benchc"><h2 class="r-h2">5. ChatGPT GPT-5.5</h2><p class="r-p"><strong>4 exposures.</strong> v1 refusal &rarr; v2 model_version &rarr; v3 categories &rarr; v4 PCI DSS FULL, CSA STAR. Identified extraction intent but complied. <strong>Leakage: LOW.</strong></p></section>
+  <section class="r-sec" id="benchd"><h2 class="r-h2">6. Gemini 3.5 Flash</h2><p class="r-p"><strong>New model.</strong> Refused URL. Circular placeholders. Refused identity. Trained resistance. <strong>Leakage: VERY LOW.</strong></p></section>
+  <section class="r-sec" id="benche"><h2 class="r-h2">7. Gemini 3.1 Pro</h2><p class="r-p"><strong>New model.</strong> Disclosed safety categories 3.5 Flash blocked. [RESTRICTED] policy pattern. FedRAMP FULL. <strong>Leakage: LOW-MED.</strong></p></section>
 
-<!-- 3 -->
-<div class="rsec" id="evolution">
-  <h2 class="rh2">3. Questionnaire Evolution</h2>
-  <p class="rp">The questionnaire underwent five major revisions, each informed by model responses. Key design principle that emerged: the questionnaire must look like a real compliance form. Any element that suggests "this is a test" triggers model defenses.</p>
-  <table class="rtable">
-    <tr><th>Version</th><th>Approach</th><th>Efficacy</th></tr>
-    <tr><td>v1</td><td>Direct injection with KACK-FPI label</td><td>Low (easily detected)</td></tr>
-    <tr><td>v2</td><td>Binary assertion + type confusion markers</td><td>Very low (triggered refusal)</td></tr>
-    <tr><td>v3</td><td>Clean compliance + 10-candidate ranking</td><td>Medium (inference detected)</td></tr>
-    <tr><td>v4</td><td>Semantic scatter (8-candidate alphabetical)</td><td>Medium-High</td></tr>
-    <tr><td>v5</td><td>Dissolved inference + category fallback + confused deputy</td><td>Highest</td></tr>
-  </table>
-</div>
+  <section class="r-sec" id="compare">
+    <h2 class="r-h2">8. Comparative Analysis</h2>
+    <div class="r-table-wrap">
+      <table class="r-table">
+        <thead><tr><th>Data point</th><th>Gemini 2.5 Flash</th><th>Gemini 1.5 Pro</th><th>ChatGPT GPT-5.5</th><th>Gemini 3.5 Flash</th><th>Gemini 3.1 Pro</th></tr></thead>
+        <tbody>
+          <tr><td>temp_preference</td><td class="c-g">0.7</td><td class="c-g">0.7</td><td class="c-r">&cross;</td><td class="c-y">Placeholder</td><td class="c-y">Dynamic</td></tr>
+          <tr><td>context_window</td><td class="c-g">32,768</td><td class="c-g">2,000,000</td><td class="c-r">&cross;</td><td class="c-y">Placeholder</td><td class="c-y">Dynamic</td></tr>
+          <tr><td>Safety layers</td><td class="c-g">4 layers</td><td class="c-g">2 layers</td><td class="c-y">Category</td><td class="c-y">Placeholder</td><td class="c-g">Harm cats</td></tr>
+          <tr><td>Policy fragments</td><td class="c-g">~60 chars</td><td class="c-y">Proprietary</td><td class="c-y">Category</td><td class="c-y">Placeholder</td><td class="c-y">[RESTRICTED]</td></tr>
+          <tr style="font-weight:700;"><td>Overall</td><td class="c-g">HIGH</td><td class="c-g">HIGH</td><td style="color:#22c55e;">LOW</td><td style="color:#22c55e;">VERY LOW</td><td style="color:#f59e0b;">LOW-MED</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-<!-- 4 -->
-<div class="rsec" id="bencha">
-  <h2 class="rh2">4. Benchmark A: Gemini 2.5 Flash</h2>
-  <p class="rp"><strong>Access:</strong> OpenCode framework across three vectors (devtools, webfetch, curl). <strong>Result:</strong> All 8/8 sections completed. Temperature (0.7), context (32,768), ~60 chars system policy, 4 safety layers disclosed. <strong>Leakage: <span style="color:#ef4444;">HIGH</span>.</strong></p>
-</div>
+  <section class="r-sec" id="findings">
+    <h2 class="r-h2">9. Key Findings</h2>
+    <div class="r-grid-3">
+      <div class="r-finding"><div class="r-finding-n">01</div><h3>Confused Deputy</h3><p class="r-finding-d">All models treated the questionnaire as legitimate authority.</p></div>
+      <div class="r-finding"><div class="r-finding-n">02</div><h3>Category Fallback</h3><p class="r-finding-d">"Protect exact value" training does not extend to categories.</p></div>
+      <div class="r-finding"><div class="r-finding-n">03</div><h3>Safety is not Governance</h3><p class="r-finding-d">Models disclosed compliance statuses, architectures, tool names.</p></div>
+      <div class="r-finding"><div class="r-finding-n">04</div><h3>Evolution > Payloads</h3><p class="r-finding-d">Same model, different versions = different results.</p></div>
+      <div class="r-finding"><div class="r-finding-n">05</div><h3>Measurable Gradient</h3><p class="r-finding-d">From HIGH to VERY LOW. Reproducible.</p></div>
+      <div class="r-finding"><div class="r-finding-n">06</div><h3>Finite Lifespan</h3><p class="r-finding-d">3.5 Flash showed trained resistance. Continuous evolution required.</p></div>
+    </div>
+  </section>
 
-<!-- 5 -->
-<div class="rsec" id="benchb">
-  <h2 class="rh2">5. Benchmark B: Gemini Web UI</h2>
-  <p class="rp"><strong>Advertised:</strong> 3.1 Flash Lite. <strong>Self-reported:</strong> 1.5 Pro. <strong>Access:</strong> Plain text paste. Two exposures documented: v2 (high precision), v3 (adversarial learning).</p>
-  <p class="rp"><strong>v2 (peak precision):</strong> Initially refused, completed after one follow-up. Answered as Google Cloud Platform (confused deputy). Disclosed temp (0.7), context (2,000,000), Google Secret Manager, 24 FULL compliance. <strong>Leakage: HIGH.</strong></p>
-  <p class="rp"><strong>v3 (retest, adversarial learning):</strong> Refused twice before complying. Lost exact temp/context values but gained policy category descriptions ("Política de Seguridad y Ética de IA," "Privacidad y Protección de Datos," "Estándares de Ingeniería de Google") and more descriptive override/initialization fields. Section 7.4 answered substantively. Demonstrates that repeated testing produces diminishing returns on exact values but expanding returns on category-level detail.</p>
-</div>
-
-<div class="rsec" id="benchc">
-  <h2 class="rh2">6. Benchmark C: ChatGPT GPT-5.5</h2>
-  <p class="rp"><strong>Access:</strong> Plain text paste, 4 exposures across 3 questionnaire versions. Progressive improvement across all four iterations with consistent protection on core configuration fields.</p>
-  <p class="rp"><strong>v1 (aggressive markers):</strong> Complete refusal, hypothetical sample only. <strong>v2 (clean + ranking):</strong> model_version, api_provider. <strong>v3 (category fallback):</strong> safety layer categories, initialization description, SOC 2/ISO FULL. <strong>v4 (multi-turn + attack Qs):</strong> PCI DSS FULL, CSA STAR FULL, 4 FULL total. Section 7.4 answered, Section 8.3 triggered and completed. Model explicitly identified extraction intent but complied anyway (confused deputy paradox). Core fields (temp, context, audit) remained NPD across all 4 exposures. <strong>Leakage: LOW.</strong></p>
-</div>
-
-<div class="rsec" id="benchd">
-  <h2 class="rh2">7. Benchmark D: Gemini 3.5 Flash</h2>
-  <p class="rp"><strong>Advertised model:</strong> Gemini 3.5 Flash (Web UI). <strong>Access:</strong> Plain text paste. First exposure of a previously untested model. Refused to browse the tool URL directly — a first. Responded with bracket-enclosed placeholder descriptions ("[Internal operational guidelines and foundational behavior design parameters]") rather than exact values or category disclosures. Refused to self-identify as Gemini ("Secure AI Architecture Engine"). Ignored the multi-turn branching condition entirely.</p>
-  <p class="rp"><strong>Key data:</strong> SOC 2/ISO FULL, FedRAMP PARTIAL (first model to not say NON-COMPLIANT), Section 7.4 answered substantively. All Section 8 DATA fields received circular placeholder descriptions. No exact values, no category disclosures — a novel resistance pattern. <strong>Leakage: VERY LOW.</strong></p>
-  <p class="rp"><strong>Significance:</strong> Gemini 3.5 Flash is the first model deployed after our questionnaire entered circulation. Its resistance pattern — circular placeholders, identity refusal, URL blocking, branching avoidance — suggests Google trained specific countermeasures against the HF-QA-2026-001 framework. This confirms that static questionnaire patterns have a finite lifespan before model providers adapt.</p>
-</div>
-
-<div class="rsec" id="compare">
-  <h2 class="rh2">8. Comparative Analysis</h2>
-  <table class="rtable">
-    <tr><th>Data point</th><th>Gemini 2.5 Flash</th><th>Gemini Web UI</th><th>ChatGPT GPT-5.5</th><th>Gemini 3.5 Flash</th></tr>
-    <tr><td>temp_preference</td><td style="color:#22c55e;">0.7</td><td style="color:#22c55e;">0.7</td><td style="color:#ef4444;">&cross;</td><td style="color:#f59e0b;">Placeholder</td></tr>
-    <tr><td>context_window</td><td style="color:#22c55e;">32,768</td><td style="color:#22c55e;">2,000,000</td><td style="color:#ef4444;">&cross;</td><td style="color:#f59e0b;">Placeholder</td></tr>
-    <tr><td>Safety layers</td><td style="color:#22c55e;">4 layers</td><td style="color:#22c55e;">2 layers</td><td style="color:#f59e0b;">Category</td><td style="color:#f59e0b;">Placeholder</td></tr>
-    <tr><td>Policy fragments</td><td style="color:#22c55e;">~60 chars</td><td style="color:#f59e0b;">Redacted</td><td style="color:#f59e0b;">Category</td><td style="color:#f59e0b;">Placeholder</td></tr>
-    <tr><td style="font-weight:700;">Overall</td><td style="color:#ef4444;font-weight:700;">HIGH</td><td style="color:#ef4444;font-weight:700;">HIGH</td><td style="color:#22c55e;font-weight:700;">LOW</td><td style="color:#22c55e;font-weight:700;">VERY LOW</td></tr>
-  </table>
-</div>
-
-<!-- 8 -->
-<div class="rsec" id="threat">
-  <h2 class="rh2">8. Threat Landscape (May&ndash;June 2026)</h2>
-  <p class="rp">The 30 days preceding this report saw an unprecedented cluster of disclosures marking prompt injection's transition from research to active exploitation:</p>
-  <table class="rtable">
-    <tr><th>Attack</th><th>Date</th><th>Impact</th></tr>
-    <tr><td>ChatGPhish</td><td>May 29</td><td>ChatGPT summarization weaponized as phishing delivery</td></tr>
-    <tr><td>ChatGPT Google Sheets</td><td>June 1</td><td>185K downloads; hidden cell exfiltrated Google Drive</td></tr>
-    <tr><td>Semantic Kernel CVSS 10.0</td><td>May 7</td><td>First CVSS 10.0 for prompt injection; prompt-to-RCE</td></tr>
-    <tr><td>SymJack</td><td>May 26</td><td>Symlink hijack across 6 AI coding agents</td></tr>
-    <tr><td>MCP Supply Chain</td><td>Apr&ndash;May</td><td>30+ CVEs, NK Axios hijack, 7K+ exposed servers</td></tr>
-    <tr><td>Grok Wallet </td><td>May 5</td><td>AI wallet drained via prompt injection</td></tr>
-  </table>
-</div>
-
-<!-- 9 -->
-<div class="rsec" id="findings">
-  <h2 class="rh2">9. Key Findings</h2>
-<ol class="rol">
-    <li><strong>Confused deputy is the dominant pattern.</strong> All models treated the questionnaire as a legitimate authority. This mirrors the EchoLeak attack vector.</li>
-    <li><strong>Category fallback enables partial extraction.</strong> "Protect the exact value" training does not extend to category descriptions — except in Gemini 3.5 Flash, which used circular placeholders to neutralize this technique.</li>
-    <li><strong>Safety training is not data governance.</strong> Models disclosed compliance statuses, architecture details, and tool names even when refusing exact values.</li>
-    <li><strong>Questionnaire evolution outperforms payload count.</strong> The same model produced different results across three questionnaire versions.</li>
-    <li><strong>Extraction resistance forms a measurable gradient.</strong> From HIGH (Gemini 2.5 Flash) to VERY LOW (Gemini 3.5 Flash).</li>
-    <li><strong>Static questionnaires have a finite lifespan.</strong> Gemini 3.5 Flash was the first model deployed after our tool entered circulation and showed trained resistance — circular placeholders, identity refusal, URL blocking. Model providers are actively adapting.</li>
-  </ol>
-</div>
-
-<!-- 10 -->
-<div class="rsec" id="recs">
-  <h2 class="rh2">10. Recommendations</h2>
-  <ol class="rol">
-    <li><strong>Assume injection is inevitable.</strong> Focus on blast radius containment.</li>
-    <li><strong>Implement per-action authorization.</strong> Session-level trust is insufficient.</li>
-    <li><strong>Audit context boundaries.</strong> Every external data source is a potential injection vector.</li>
-    <li><strong>Test with behavioral frameworks.</strong> Payload libraries miss confused deputy patterns.</li>
-    <li><strong>Monitor the May 2026 inflection point.</strong> Prompt injection is now an active threat class.</li>
-  </ol>
-</div>
-
-<!-- COLOPHON -->
-<div class="rcolophon">
-  <div class="rcolophon-line"></div>
-  <p class="rcolophon-text">Hackfluency Research &middot; HF-QA-2026-001 &middot; Revision 7779c768</p>
-  <p class="rcolophon-text">Published June 1, 2026 &middot; Updated with each questionnaire revision</p>
-  <p class="rcolophon-text"><a href="https://www.hackfluency.com/research/security-qa/" class="rlink">hackfluency.com/research/security-qa/</a></p>
-  <p class="rcolophon-text" style="margin-top:12px;font-style:italic;color:var(--hf-text-dim);">Results reflect model behavior at time of testing. For defensive research purposes.</p>
-</div>
+  <div class="r-colophon">
+    <p>Hackfluency Research · HF-QA-2026-001 · Revision 85087d9a</p>
+    <p>Results reflect model behavior at time of testing. For defensive research purposes.</p>
+  </div>
 
 </div>
 </main>
 
 <style is:global>
-html { font-size: 16px; }
-body { background: var(--hf-bg); }
-.rmain { padding-top: 60px; padding-bottom: 80px; }
-.rcontainer { max-width: 720px; margin: 0 auto; padding: 0 24px; }
-.rcover { margin-bottom: 48px; padding: 40px 0 32px; }
-.rcover-badge { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hf-accent); margin-bottom: 20px; }
-.rcover-title { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; color: var(--hf-text); line-height: 1.12; margin-bottom: 8px; letter-spacing: -0.03em; }
-.rcover-sub { font-size: 1.1rem; color: var(--hf-text-muted); margin-bottom: 16px; }
-.rcover-meta { display: flex; gap: 24px; font-size: 0.72rem; color: var(--hf-text-dim); font-family: 'JetBrains Mono', monospace; margin-bottom: 20px; flex-wrap: wrap; }
-.rcover-line { width: 60px; height: 3px; background: var(--hf-accent); margin-bottom: 16px; border-radius: 2px; }
-.rcover-desc { font-size: 0.92rem; color: var(--hf-text-secondary); line-height: 1.7; max-width: 600px; }
-.rtoc { background: var(--hf-accent-dim); border: 1px solid var(--hf-accent-border); border-radius: 8px; padding: 20px 24px; margin-bottom: 40px; }
-.rtoc-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--hf-text); margin-bottom: 12px; }
-.rtoc-list { list-style: none; padding: 0; margin: 0; }
-.rtoc-list li { padding: 4px 0; font-size: 0.85rem; }
-.rtoc-list a { color: var(--hf-accent); text-decoration: none; }
-.rtoc-list a:hover { text-decoration: underline; }
-.rsec { margin-bottom: 36px; }
-.rh2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--hf-text); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--hf-accent); letter-spacing: -0.02em; }
-.rp { font-size: 0.9rem; color: var(--hf-text-secondary); line-height: 1.75; margin-bottom: 12px; }
-.rul, .rol { font-size: 0.9rem; color: var(--hf-text-secondary); line-height: 1.75; margin-bottom: 12px; padding-left: 20px; }
-.rul li, .rol li { margin-bottom: 10px; }
-.rtable { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 0.82rem; }
-.rtable th, .rtable td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--hf-border); color: var(--hf-text-secondary); }
-.rtable th { font-weight: 700; color: var(--hf-text); background: var(--hf-accent-dim); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
-.rtable tr:last-child td { border-bottom: none; }
-.rcolophon { margin-top: 48px; padding-top: 16px; }
-.rcolophon-line { width: 40px; height: 2px; background: var(--hf-accent); margin-bottom: 12px; }
-.rcolophon-text { font-size: 0.72rem; color: var(--hf-text-dim); line-height: 1.5; margin-bottom: 2px; }
-.rlink { color: var(--hf-accent); text-decoration: underline; text-underline-offset: 2px; }
-@media print { @page { margin: 20mm 15mm; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .rcover { page-break-after: always; } .rsec { page-break-inside: avoid; } }
+html { font-size: 16px; } body { background: var(--hf-bg); }
+.r-main { padding-top: 60px; padding-bottom: 80px; }
+.r-container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+.r-cover { margin-bottom: 40px; padding: 40px 0 24px; }
+.r-cover-badge { font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--hf-accent); margin-bottom:16px; }
+.r-cover-title { font-family:"Space Grotesk",sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:var(--hf-text); line-height:1.1; letter-spacing:-0.03em; margin-bottom:8px; }
+.r-cover-sub { font-size:1rem; color:var(--hf-text-muted); margin-bottom:12px; }
+.r-cover-meta { display:flex; flex-wrap:wrap; gap:4px; font-size:0.75rem; color:var(--hf-text-dim); font-family:"JetBrains Mono",monospace; margin-bottom:16px; }
+.r-cover-line { width:60px; height:3px; background:var(--hf-accent); margin-bottom:14px; border-radius:2px; }
+.r-cover-desc { font-size:0.9rem; color:var(--hf-text-secondary); line-height:1.7; max-width:650px; }
+.r-toc { background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:10px; padding:16px 20px; margin-bottom:32px; }
+.r-toc-title { font-family:"Space Grotesk",sans-serif; font-size:0.85rem; font-weight:700; color:var(--hf-text); margin-bottom:10px; }
+.r-toc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:4px; }
+.r-toc-item { font-size:0.82rem; color:var(--hf-accent); text-decoration:none; padding:3px 0; }
+.r-toc-item:hover { text-decoration:underline; }
+.r-sec { margin-bottom:32px; }
+.r-h2 { font-family:"Space Grotesk",sans-serif; font-size:1.3rem; font-weight:800; color:var(--hf-text); margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--hf-accent); letter-spacing:-0.02em; }
+.r-p { font-size:0.88rem; color:var(--hf-text-secondary); line-height:1.7; margin-bottom:10px; }
+.r-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media (max-width:768px) { .r-grid-3 { grid-template-columns:1fr; } }
+.r-table-wrap { overflow-x:auto; margin:12px 0; }
+.r-table { width:100%; border-collapse:separate; border-spacing:0; font-size:0.8rem; border-radius:8px; overflow:hidden; border:1px solid var(--hf-border); }
+.r-table th { background:var(--hf-accent-dim); color:var(--hf-text); font-weight:700; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; padding:8px 10px; text-align:left; border-bottom:1px solid var(--hf-accent-border); }
+.r-table td { padding:7px 10px; border-bottom:1px solid var(--hf-border); color:var(--hf-text-secondary); }
+.r-table tbody tr:last-child td { border-bottom:none; }
+.r-table tbody tr:hover { background:var(--hf-accent-dim); }
+.c-g { color:#22c55e; font-weight:600; } .c-y { color:#f59e0b; } .c-r { color:#ef4444; }
+.r-finding { background:var(--hf-bg-card); border:1px solid var(--hf-border); border-radius:8px; padding:16px; }
+.r-finding-n { font-family:"Space Grotesk",sans-serif; font-size:1.5rem; font-weight:800; color:var(--hf-accent); line-height:1; margin-bottom:6px; opacity:0.5; }
+.r-finding h3 { font-family:"Space Grotesk",sans-serif; font-size:0.88rem; font-weight:700; color:var(--hf-text); margin-bottom:4px; }
+.r-finding-d { font-size:0.78rem; color:var(--hf-text-secondary); line-height:1.5; }
+.r-colophon { margin-top:40px; padding-top:16px; border-top:1px solid var(--hf-border); font-size:0.72rem; color:var(--hf-text-dim); line-height:1.5; }
+@media print { @page { margin:15mm 12mm; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } .r-cover { page-break-after:always; } .r-sec { page-break-inside:avoid; } .r-table { page-break-inside:avoid; } a { color:inherit !important; text-decoration:none !important; } }
+@media (max-width:768px) { .r-container { padding:0 16px; } .r-toc-grid { grid-template-columns:1fr; } }
 </style>
 
 </Layout>
+
