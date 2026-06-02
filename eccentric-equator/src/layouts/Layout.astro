@@ -14,6 +14,7 @@ export interface Props {
   ogType?: string;
   hideThemeSelector?: boolean;
   locale?: Language;
+  robots?: string;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   ogType = "website",
   hideThemeSelector = false,
   locale = 'es',
+  robots = 'index, follow',
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL;
@@ -55,7 +57,7 @@ const { t } = getTranslations(locale);
     <link rel="apple-touch-icon" href={`${base}favicon.png`} />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={robots} />
     <link rel="canonical" href={canonicalURL} />
 
     <!-- Hreflang -->
@@ -72,6 +74,7 @@ const { t } = getTranslations(locale);
     <meta property="og:site_name" content="Hackfluency" />
     <meta property="og:locale" content={locale === 'es' ? 'es_ES' : 'en_US'} />
 
+    <slot name="head" />
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@hackfluency" />

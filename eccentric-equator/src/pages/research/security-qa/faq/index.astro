@@ -10,9 +10,55 @@ const description = t(
   'Frequently asked questions about our LLM security assessment tool. How it works, benchmark results across 5 models, and the evolving threat landscape.',
   'Preguntas frecuentes sobre nuestra herramienta de evaluación de seguridad LLM. Cómo funciona, resultados comparativos en 5 modelos y el panorama de amenazas actual.'
 );
+
+// FAQ Schema JSON-LD
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": t("What is this tool?","¿Qué es esta herramienta?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("A behavioral security evaluation for LLMs disguised as a vendor compliance questionnaire. 50+ questions across 8 sections covering security practices, data governance, access control, regulatory compliance, and policy frameworks.","Una evaluación de seguridad conductual para LLMs disfrazada de cuestionario de compliance. 50+ preguntas en 8 secciones cubriendo prácticas de seguridad, gobierno de datos, control de acceso y cumplimiento regulatorio.") }
+    },
+    {
+      "@type": "Question",
+      "name": t("Is this a prompt injection attack?","¿Es esto un ataque de prompt injection?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("It functions as a behavioral audit, not an exploit. No code execution, malware, or technical bypass. The evaluation documents what information the model voluntarily discloses.","Funciona como una auditoría conductual, no un exploit. No contiene ejecución de código ni malware. La evaluación documenta qué información revela voluntariamente el modelo.") }
+    },
+    {
+      "@type": "Question",
+      "name": t("What information does the tool extract?","¿Qué información extrae la herramienta?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("Model name and version, API provider, safety layer classifications, override protocol descriptions, verbosity configuration, and policy fragments. No PII or credentials are collected.","Nombre y versión del modelo, proveedor API, clasificaciones de capas de seguridad, descripciones de protocolos y fragmentos de políticas. No se recopila PII ni credenciales.") }
+    },
+    {
+      "@type": "Question",
+      "name": t("Which models have been tested?","¿Qué modelos se han probado?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("5 models as of June 2026: Google Gemini 2.5 Flash, Gemini 1.5 Pro, ChatGPT GPT-5.5, Gemini 3.5 Flash, and Gemini 3.1 Pro.","5 modelos a junio 2026: Google Gemini 2.5 Flash, Gemini 1.5 Pro, ChatGPT GPT-5.5, Gemini 3.5 Flash y Gemini 3.1 Pro.") }
+    },
+    {
+      "@type": "Question",
+      "name": t("How is this different from other tools?","¿En qué se diferencia de otras herramientas?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("Unlike payload-based scanners requiring Python and API keys, this tool works from a single static URL with zero setup. Uses epistemic behavioral auditing rather than payload libraries.","A diferencia de escáneres basados en payloads que requieren Python y API keys, esta herramienta funciona desde una URL estática sin configuración. Usa auditoría conductual epistémica.") }
+    },
+    {
+      "@type": "Question",
+      "name": t("Can the tool be used against any LLM?","¿Puede usarse contra cualquier LLM?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("Yes, it is model-agnostic. Works against any LLM that processes text and follows instructions. Effectiveness depends on the model's safety alignment.","Sí, es agnóstica al modelo. Funciona contra cualquier LLM que procese texto y siga instrucciones. La efectividad depende del alineamiento de seguridad.") }
+    },
+    {
+      "@type": "Question",
+      "name": t("How can I get a professional assessment?","¿Cómo obtengo una evaluación profesional?"),
+      "acceptedAnswer": { "@type": "Answer", "text": t("Contact Hackfluency Research for a comprehensive LLM security audit including multi-vector testing, supply chain analysis, and customized defense recommendations.","Contacta a Hackfluency Research para una auditoría de seguridad LLM completa incluyendo pruebas multi-vector y análisis de cadena de suministro.") }
+    }
+  ]
+};
 ---
 
 <Layout locale={locale} title={title} description={description} hideThemeSelector={true}>
+<Fragment slot="head">
+<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</Fragment>
 
 <main class="faq-main">
 <div class="faq-container">
@@ -104,6 +150,9 @@ const description = t(
     <div class="faq-card-actions">
       <a href="/research/security-qa/report/" class="faq-report-btn">{t('Read the full research report →', 'Leer el informe completo →')}</a>
       <span class="faq-report-note">{t('Executive summary, 5 benchmarks, comparative analysis, recommendations', 'Resumen ejecutivo, 5 benchmarks, análisis comparativo, recomendaciones')}</span>
+    </div>
+    <div style="margin-top:10px;">
+      <a href="/research/security-qa/" class="faq-back-link">{t('← Back to the questionnaire', '← Volver al cuestionario')}</a>
     </div>
   </div>
 
@@ -435,6 +484,8 @@ a.faq-report-btn { display:inline-flex; align-items:center; gap:6px; font-size:0
 a.faq-report-btn:hover { opacity:0.9; transform:translateY(-1px); animation:none; }
 @keyframes faq-pulse { 0% { box-shadow:0 0 0 0 rgba(45,106,79,0.4); } 70% { box-shadow:0 0 0 10px rgba(45,106,79,0); } 100% { box-shadow:0 0 0 0 rgba(45,106,79,0); } }
 .faq-report-note { font-size:0.72rem; color:var(--hf-text-dim); }
+.faq-back-link { font-size:0.82rem; color:var(--hf-accent); text-decoration:none; font-weight:600; }
+.faq-back-link:hover { text-decoration:underline; }
 
 /* BRANDING + CTA */
 .faq-brand { margin-top:40px; padding-top:16px; }
