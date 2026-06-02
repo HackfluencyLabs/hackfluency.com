@@ -405,8 +405,9 @@ html { font-size: 16px; }
 
 /* REPORT BUTTON */
 .faq-card-actions { margin-top:14px; padding-top:14px; border-top:1px solid var(--hf-accent-border); display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-.faq-report-btn { display:inline-block; font-size:0.85rem; font-weight:700; color:#fff; background:var(--hf-accent); border:none; border-radius:8px; padding:9px 20px; text-decoration:none; transition:all 0.2s; white-space:nowrap; }
-.faq-report-btn:hover { opacity:0.9; transform:translateY(-1px); }
+.faq-report-btn { display:inline-block; font-size:0.85rem; font-weight:700; color:#fff; background:var(--hf-accent); border:none; border-radius:8px; padding:9px 20px; text-decoration:none; transition:all 0.2s; white-space:nowrap; animation:faq-pulse 2s ease-in-out infinite; }
+.faq-report-btn:hover { opacity:0.9; transform:translateY(-1px); animation:none; }
+@keyframes faq-pulse { 0% { box-shadow:0 0 0 0 rgba(45,106,79,0.4); } 70% { box-shadow:0 0 0 10px rgba(45,106,79,0); } 100% { box-shadow:0 0 0 0 rgba(45,106,79,0); } }
 .faq-report-note { font-size:0.72rem; color:var(--hf-text-dim); }
 
 /* BRANDING + CTA */

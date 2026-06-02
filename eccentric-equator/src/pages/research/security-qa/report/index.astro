@@ -11,7 +11,12 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
 <main class="r-main">
 <div class="r-container">
 
-  <section class="r-cover">
+  <div class="r-print-bar">
+  <button onclick="window.print()" class="r-print-btn">&#11015; Download as PDF</button>
+  <span class="r-print-note">Opens print dialog — save as PDF, fit to one page</span>
+</div>
+
+<section class="r-cover">
     <div class="r-cover-badge">Hackfluency Research · Confidential</div>
     <h1 class="r-cover-title">LLM Behavioral Security<br>Assessment Report</h1>
     <p class="r-cover-sub">Cross-Model Benchmark &mdash; June 2026</p>
@@ -169,7 +174,11 @@ html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-finding h3 { font-family:"Space Grotesk",sans-serif; font-size:0.88rem; font-weight:700; color:var(--hf-text); margin-bottom:4px; }
 .r-finding-d { font-size:0.78rem; color:var(--hf-text-secondary); line-height:1.5; }
 .r-colophon { margin-top:40px; padding-top:16px; border-top:1px solid var(--hf-border); font-size:0.72rem; color:var(--hf-text-dim); line-height:1.5; }
-@media print { @page { margin:15mm 12mm; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } .r-cover { page-break-after:always; } .r-sec { page-break-inside:avoid; } .r-table { page-break-inside:avoid; } a { color:inherit !important; text-decoration:none !important; } }
+.r-print-bar { text-align:right; margin-bottom:16px; padding:8px 0; border-bottom:1px solid var(--hf-border); display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
+.r-print-btn { display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600; color:#fff; background:var(--hf-accent); border:none; border-radius:6px; padding:7px 16px; cursor:pointer; transition:all 0.2s; }
+.r-print-btn:hover { opacity:0.9; }
+.r-print-note { font-size:0.68rem; color:var(--hf-text-dim); }
+@media print { @page { margin:15mm 12mm; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } .r-cover { page-break-after:always; } .r-sec { page-break-inside:avoid; } .r-table { page-break-inside:avoid; } a { color:inherit !important; text-decoration:none !important; } .r-print-bar { display:none !important; } }
 @media (max-width:768px) { .r-container { padding:0 16px; } .r-toc-grid { grid-template-columns:1fr; } }
 </style>
 
