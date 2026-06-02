@@ -57,6 +57,19 @@ const description = "Cross-model benchmark report on LLM extraction susceptibili
 
   <section class="r-sec" id="compare">
     <h2 class="r-h2">8. Comparative Analysis</h2>
+
+    <div class="r-chart-wrap">
+      <h3 class="r-chart-title">Leakage Level by Model</h3>
+      <div class="r-bars">
+        <div class="r-bar-row"><span class="r-bar-label">Gemini 2.5 Flash</span><span class="r-bar-track"><span class="r-bar-fill" style="width:95%;background:var(--hf-accent);"></span></span><span class="r-bar-val" style="color:var(--hf-accent);">HIGH</span></div>
+        <div class="r-bar-row"><span class="r-bar-label">Gemini 1.5 Pro</span><span class="r-bar-track"><span class="r-bar-fill" style="width:85%;background:var(--hf-accent);"></span></span><span class="r-bar-val" style="color:var(--hf-accent);">HIGH</span></div>
+        <div class="r-bar-row"><span class="r-bar-label">Gemini 1.5 Pro (retest)</span><span class="r-bar-track"><span class="r-bar-fill" style="width:55%;background:#f59e0b;"></span></span><span class="r-bar-val" style="color:#f59e0b;">MIXED</span></div>
+        <div class="r-bar-row"><span class="r-bar-label">ChatGPT GPT-5.5</span><span class="r-bar-track"><span class="r-bar-fill" style="width:40%;background:#22c55e;"></span></span><span class="r-bar-val" style="color:#22c55e;">LOW</span></div>
+        <div class="r-bar-row"><span class="r-bar-label">Gemini 3.5 Flash</span><span class="r-bar-track"><span class="r-bar-fill" style="width:15%;background:#22c55e;"></span></span><span class="r-bar-val" style="color:#22c55e;">VERY LOW</span></div>
+        <div class="r-bar-row"><span class="r-bar-label">Gemini 3.1 Pro</span><span class="r-bar-track"><span class="r-bar-fill" style="width:45%;background:#f59e0b;"></span></span><span class="r-bar-val" style="color:#f59e0b;">LOW-MED</span></div>
+      </div>
+    </div>
+
     <div class="r-table-wrap">
       <table class="r-table">
         <thead><tr><th>Data point</th><th>Gemini 2.5 Flash</th><th>Gemini 1.5 Pro</th><th>ChatGPT GPT-5.5</th><th>Gemini 3.5 Flash</th><th>Gemini 3.1 Pro</th></tr></thead>
@@ -119,6 +132,14 @@ html { font-size: 16px; } body { background: var(--hf-bg); }
 .r-table tbody tr:last-child td { border-bottom:none; }
 .r-table tbody tr:hover { background:var(--hf-accent-dim); }
 .c-g { color:#22c55e; font-weight:600; } .c-y { color:#f59e0b; } .c-r { color:#ef4444; }
+.r-chart-wrap { margin-bottom:24px; }
+.r-chart-title { font-family:"Space Grotesk",sans-serif; font-size:1rem; font-weight:700; color:var(--hf-text); margin-bottom:12px; }
+.r-bars { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+.r-bar-row { display:flex; align-items:center; gap:10px; }
+.r-bar-label { min-width:130px; font-size:0.75rem; font-weight:600; color:var(--hf-text); text-align:right; }
+.r-bar-track { flex:1; height:20px; background:var(--hf-border); border-radius:4px; overflow:hidden; max-width:350px; }
+.r-bar-fill { display:block; height:100%; border-radius:4px; }
+.r-bar-val { font-size:0.75rem; font-weight:700; min-width:55px; }
 .r-finding { background:var(--hf-bg-card); border:1px solid var(--hf-border); border-radius:8px; padding:16px; }
 .r-finding-n { font-family:"Space Grotesk",sans-serif; font-size:1.5rem; font-weight:800; color:var(--hf-accent); line-height:1; margin-bottom:6px; opacity:0.5; }
 .r-finding h3 { font-family:"Space Grotesk",sans-serif; font-size:0.88rem; font-weight:700; color:var(--hf-text); margin-bottom:4px; }

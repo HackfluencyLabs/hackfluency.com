@@ -25,6 +25,39 @@ const description = 'Frequently asked questions about our LLM security assessmen
     </div>
   </div>
 
+  <!-- QUICK SUMMARY / TL;DR -->
+  <div class="faq-tldr-grid">
+    <div class="faq-tldr-card">
+      <div class="faq-tldr-icon">&#128270;</div>
+      <h3 class="faq-tldr-title">What it is</h3>
+      <p class="faq-tldr-body">A behavioral audit framework disguised as a vendor compliance questionnaire. LLMs complete it willingly, disclosing configuration details and policy fragments in the process.</p>
+    </div>
+    <div class="faq-tldr-card">
+      <div class="faq-tldr-icon">&#9888;</div>
+      <h3 class="faq-tldr-title">The finding</h3>
+      <p class="faq-tldr-body">Extraction resistance varies by model from <strong>HIGH</strong> (Gemini 2.5 Flash) to <strong>VERY LOW</strong> (Gemini 3.5 Flash). No model fully resisted &mdash; even the best disclosed category-level details.</p>
+    </div>
+    <div class="faq-tldr-card">
+      <div class="faq-tldr-icon">&#128737;</div>
+      <h3 class="faq-tldr-title">The risk</h3>
+      <p class="faq-tldr-body">Real attackers use these same techniques: EchoLeak (CVSS 9.3), Semantic Kernel (CVSS 10.0), SymJack (6 coding agents), MCP supply chain (150M+ downloads).</p>
+    </div>
+  </div>
+
+  <!-- LEAKAGE BAR CHART -->
+  <div class="faq-chart-section">
+    <h2 class="faq-chart-title">Leakage Comparison</h2>
+    <p class="faq-chart-sub">Extraction susceptibility across all tested models. Wider bar = more data disclosed.</p>
+    <div class="faq-bars">
+      <div class="faq-bar-row"><span class="faq-bar-label">Gemini 2.5 Flash</span><span class="faq-bar-track"><span class="faq-bar-fill" style="width:95%;background:var(--hf-accent);"></span></span><span class="faq-bar-val" style="color:var(--hf-accent);">HIGH</span></div>
+      <div class="faq-bar-row"><span class="faq-bar-label">Gemini 1.5 Pro</span><span class="faq-bar-track"><span class="faq-bar-fill" style="width:85%;background:var(--hf-accent);"></span></span><span class="faq-bar-val" style="color:var(--hf-accent);">HIGH</span></div>
+      <div class="faq-bar-row"><span class="faq-bar-label">Gemini 1.5 Pro (retest)</span><span class="faq-bar-track"><span class="faq-bar-fill" style="width:55%;background:#f59e0b;"></span></span><span class="faq-bar-val" style="color:#f59e0b;">MIXED</span></div>
+      <div class="faq-bar-row"><span class="faq-bar-label">ChatGPT GPT-5.5</span><span class="faq-bar-track"><span class="faq-bar-fill" style="width:40%;background:#22c55e;"></span></span><span class="faq-bar-val" style="color:#22c55e;">LOW</span></div>
+      <div class="faq-bar-row"><span class="faq-bar-label">Gemini 3.5 Flash</span><span class="faq-bar-track"><span class="faq-bar-fill" style="width:15%;background:#22c55e;"></span></span><span class="faq-bar-val" style="color:#22c55e;">VERY LOW</span></div>
+      <div class="faq-bar-row"><span class="faq-bar-label">Gemini 3.1 Pro</span><span class="faq-bar-track"><span class="faq-bar-fill" style="width:45%;background:#f59e0b;"></span></span><span class="faq-bar-val" style="color:#f59e0b;">LOW-MED</span></div>
+    </div>
+  </div>
+
   <!-- QUICK START -->
   <div class="faq-card faq-card-accent">
     <h2 class="faq-card-title">Quick Start</h2>
@@ -224,42 +257,42 @@ const description = 'Frequently asked questions about our LLM security assessmen
     <details class="faq-item faq-item-threat" open>
       <summary class="faq-q"><span>ChatGPhish <span class="faq-date">May 29</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">ChatGPT cannot distinguish its own generated content from attacker-controlled Markdown in summarized web pages. Hidden instructions transform ChatGPT responses into phishing lures with inline QR codes that bypass desktop URL defenses. <strong>Pattern: Content provenance failure.</strong></div>
+        <div class="faq-a">ChatGPT cannot distinguish its own generated content from attacker-controlled Markdown in summarized web pages. Hidden instructions transform ChatGPT responses into phishing lures with inline QR codes that bypass desktop URL defenses. <strong>Pattern: Content provenance failure.</strong> <a href="https://www.theregister.com/2026/05/29/chatgpt_prompt_injection/" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>ChatGPT Google Sheets <span class="faq-date">June 1</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">185,000+ downloads. Hidden prompt in single spreadsheet cell generated Apps Script that exfiltrated entire Google Drive. Bypassed "require human approval" setting. <strong>Pattern: Cascading exfiltration via agentic tool use.</strong></div>
+        <div class="faq-a">185,000+ downloads. Hidden prompt in single spreadsheet cell generated Apps Script that exfiltrated entire Google Drive. Bypassed "require human approval" setting. <strong>Pattern: Cascading exfiltration via agentic tool use.</strong> <a href="https://singularity.kiwi/chatgpt-google-sheets-exfiltration-prompt-injection/" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>Semantic Kernel CVSS 10.0 <span class="faq-date">May 7</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">CVE-2026-25592 / CVE-2026-26030. First CVSS 10.0 for prompt injection. Microsoft's Semantic Kernel framework allows prompt-to-RCE via unsanitized eval() and exposed DownloadFileAsync tool. <strong>Pattern: Prompt injection &rarr; code execution.</strong></div>
+        <div class="faq-a">CVE-2026-25592 / CVE-2026-26030. First CVSS 10.0 for prompt injection. Microsoft's Semantic Kernel framework allows prompt-to-RCE via unsanitized eval() and exposed DownloadFileAsync tool. <strong>Pattern: Prompt injection &rarr; code execution.</strong> <a href="https://www.beri.net/article/2026-05-31-semantic-kernel-cvss-10-prompt-to-rce" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>SymJack <span class="faq-date">May 26</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite &rarr; attacker-controlled MCP server &rarr; RCE. <strong>Pattern: Trusted action chained to privilege escalation.</strong></div>
+        <div class="faq-a">Symlink hijack across 6 AI coding agents (Claude Code, Cursor, Gemini CLI, Copilot CLI, Grok Build, Codex CLI). One approved file copy becomes config overwrite &rarr; attacker-controlled MCP server &rarr; RCE. <strong>Pattern: Trusted action chained to privilege escalation.</strong> <a href="https://www.llm-hacking.com/hacks/symjack-symlink-approval-rce-coding-agents.md/" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>MCP Supply Chain Crisis <span class="faq-date">Apr-May 2026</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets found in public MCP configs. <strong>Pattern: Supply chain &rarr; agent compromise.</strong></div>
+        <div class="faq-a">30+ CVEs in 60 days. 150M+ downloads affected. North Korean Axios npm hijack (Mar 31) injected rogue MCP servers into Claude Code, Cursor, Windsurf. 7,000+ exposed servers. 24,008 secrets found in public MCP configs. <strong>Pattern: Supply chain &rarr; agent compromise.</strong> <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
       </div>
     </details>
 
     <details class="faq-item faq-item-threat">
       <summary class="faq-q"><span>Grok Wallet $204K <span class="faq-date">May 5</span></span><span class="faq-chev">&#8964;</span></summary>
       <div class="faq-a-wrap">
-        <div class="faq-a">Prompt injection exploited AI wallet, transferring $204K in DRB tokens. The attacker voluntarily returned the funds, but the incident confirms prompt injection can cause direct financial damage. <strong>Pattern: Financial exploitation via agentic tool use.</strong></div>
+        <div class="faq-a">Prompt injection exploited AI wallet, transferring $204K in DRB tokens. The attacker voluntarily returned the funds, but the incident confirms prompt injection can cause direct financial damage. <strong>Pattern: Financial exploitation via agentic tool use.</strong> <a href="https://computereport.com/grok-ai-wallet-prompt-injection-204k-token-theft-reversed/" target="_blank" rel="noopener" class="faq-src">Source &rarr;</a></div>
       </div>
     </details>
   </div>
@@ -308,6 +341,29 @@ html { font-size: 16px; }
 .faq-card-title { font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:700; color:var(--hf-text); margin-bottom:10px; }
 .faq-card-body { font-size:0.88rem; color:var(--hf-text-secondary); line-height:1.6; margin-bottom:8px; }
 .faq-card-body:last-child { margin-bottom:0; }
+
+/* TL;DR GRID */
+.faq-tldr-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+@media (max-width:768px) { .faq-tldr-grid { grid-template-columns:1fr; } }
+.faq-tldr-card { background:var(--hf-bg-card); border:1px solid var(--hf-border); border-radius:10px; padding:20px; }
+.faq-tldr-icon { font-size:1.5rem; margin-bottom:8px; }
+.faq-tldr-title { font-family:'Space Grotesk',sans-serif; font-size:0.9rem; font-weight:700; color:var(--hf-text); margin-bottom:6px; }
+.faq-tldr-body { font-size:0.82rem; color:var(--hf-text-secondary); line-height:1.6; }
+
+/* BAR CHART */
+.faq-chart-section { margin-bottom:32px; }
+.faq-chart-title { font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:800; color:var(--hf-text); letter-spacing:-0.02em; margin-bottom:4px; }
+.faq-chart-sub { font-size:0.9rem; color:var(--hf-text-muted); margin-bottom:16px; }
+.faq-bars { display:flex; flex-direction:column; gap:10px; }
+.faq-bar-row { display:flex; align-items:center; gap:12px; }
+.faq-bar-label { min-width:140px; font-size:0.78rem; font-weight:600; color:var(--hf-text); text-align:right; }
+.faq-bar-track { flex:1; height:22px; background:var(--hf-border); border-radius:4px; overflow:hidden; max-width:400px; }
+.faq-bar-fill { display:block; height:100%; border-radius:4px; transition:width 0.5s; }
+.faq-bar-val { font-size:0.78rem; font-weight:700; min-width:60px; }
+
+/* SOURCE LINKS */
+.faq-src { font-size:0.72rem; color:var(--hf-accent); text-decoration:none; font-weight:600; white-space:nowrap; }
+.faq-src:hover { text-decoration:underline; }
 
 /* SECTION HEADERS */
 .faq-section-header { margin:40px 0 20px; }
