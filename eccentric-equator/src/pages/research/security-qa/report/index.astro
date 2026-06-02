@@ -10,6 +10,28 @@ const description = t(
   "Cross-model benchmark report on LLM extraction susceptibility using the HF-QA-2026-001 framework. 5 models, 5 questionnaire revisions.",
   "Informe comparativo de extracción en modelos LLM usando el framework HF-QA-2026-001. 5 modelos, 5 revisiones del cuestionario."
 );
+
+/*
+  ▓▓ FUTURE IMPROVEMENT — Supabase Dynamic Report Delivery ▓▓
+  
+  Current approach: static HTML gate with sessionStorage token + JS obfuscation + 
+  MutationObserver + countdown auto-refresh. Works for the current MVP.
+  
+  Future v2 should:
+  - Serve report content dynamically via Supabase (fetch from `reports` table)
+  - Store report versions in Supabase with revision tracking
+  - Use Row Level Security (RLS) to restrict access to authenticated users
+  - Generate per-user tokens with expiry stored in DB (not just sessionStorage)
+  - Track download attempts per user/IP for abuse prevention
+  - Deliver actual PDF files via Supabase Storage (not HTML print)
+  - Email delivery with unique signed URLs (via Resend or Supabase Auth)
+  
+  The gate + sessionStorage approach is intentionally lightweight — no backend,
+  no DB dependencies, instant load. It's a lead gen tool, not a document server.
+  When scale demands it, migrate to Supabase-backed delivery.
+  
+  - Hackfluency Research, June 2026
+*/
 ---
 <Layout locale={locale} title={title} description={description} hideThemeSelector={true}>
 
@@ -136,45 +158,48 @@ const description = t(
 
 <script>
 (function() {
+  // ── Obfuscation layer ─────────────────────────────────
+  var _k = function(s) { return atob(s); };
+  var _S = _k('aGZfcmVwb3J0X3Rva2Vu');
+  var _T = _k('cnB0b2tlbg==');
+  var _C = _k('aGZfcmVwb3J0X2FjY2Vzcw==');
+  var _U = _k('aHR0cHM6Ly95Zm9mbWF3YnZsb250dWd5Z2ZjalN1cGFiYXNlLmNvL3Jlc3QvdjEvZW1haWxz');
+  var _K = _k('c2JfcHVibGlzaGFibGVfRUZJMTJENEFhTzJZN281Z3lXckItZ19pLS1UNUFyeg==');
+  var _src = _k('cmVwb3J0');
+  var _ttl = 10;
+  var _timer = null;
+  var _ctr = null;
+
+  // ── Locale ────────────────────────────────────────────
   var l = location.pathname.startsWith('/en/') ? 'en' : 'es';
-  var t = {
-    badge: { en: 'RESEARCH · JUNE 2026', es: 'INVESTIGACIÓN · JUNIO 2026' },
-    title1: { en: 'LLM Security Assessment', es: 'Evaluación de Seguridad LLM' },
-    title2: { en: 'Research Report', es: 'Informe de Investigación' },
-    desc: { en: 'Benchmarks across 5 models, threat landscape, key findings, and recommendations. Updated with each questionnaire revision.', es: 'Benchmarks en 5 modelos, panorama de amenazas, hallazgos clave y recomendaciones. Actualizado con cada revisión del cuestionario.' },
-    emailPlaceholder: { en: 'your@email.com', es: 'tu@email.com' },
-    btnText: { en: 'Download the report →', es: 'Descargar el informe →' },
-    privacy: { en: "You'll be added to our exclusive newsletter. We personally select and write every send — no automation, no noise.", es: 'Te enviaremos el reporte y, ocasionalmente, algo que realmente merezca tu atención. Seleccionamos y escribimos cada envío personalmente — sin automatización, sin ruido.' },
-    printNote: { en: 'Opens print dialog — save as PDF. This link is session-bound and ephemeral.', es: 'Abre diálogo de impresión — guardar como PDF. Este enlace es temporal y está ligado a la sesión.' },
-    colophon: { en: 'Results reflect model behavior at time of testing. For defensive research purposes.', es: 'Los resultados reflejan el comportamiento del modelo al momento de la prueba. Con fines de investigación defensiva.' },
-    cta: { en: 'hackfluency.com →', es: 'hackfluency.com →' },
+  var tr = {
     invalid: { en: 'Invalid email', es: 'Email inválido' },
     sending: { en: 'Sending...', es: 'Enviando...' },
     success: { en: 'Check your email — we sent the link.', es: 'Revisa tu correo — te enviamos el enlace.' },
-    error: { en: 'Error. Try again.', es: 'Error. Intenta de nuevo.' }
+    error: { en: 'Error. Try again.', es: 'Error. Intenta de nuevo.' },
+    expired: { en: 'Session expired. Refreshing...', es: 'Sesión expirada. Refrescando...' }
   };
-  function tr(k) { return (t[k] && t[k][l]) || t[k].en; }
-  var STORAGE_KEY = 'hf_report_token';
-  var PAGE_URL_TOKEN = 'rptoken';
-  var COOKIE_KEY = 'hf_report_access';
+  function trx(k) { return (tr[k] && tr[k][l]) || tr[k].en; }
 
+  // ── Session token ─────────────────────────────────────
+  function genToken() { return Date.now().toString(36) + '-' + Math.random().toString(36).substr(2,16) + '-' + Math.random().toString(36).substr(2,8); }
+  function refreshToken() {
+    var t = genToken();
+    try { sessionStorage.setItem(_S, t); history.replaceState(null, '', '#' + _T + '=' + t); } catch(e) {}
+    return t;
+  }
   function getToken() {
-    var t = sessionStorage.getItem(STORAGE_KEY);
-    if (!t) {
-      t = Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 16) + '-' + Math.random().toString(36).substr(2, 8);
-      sessionStorage.setItem(STORAGE_KEY, t);
-    }
+    var t;
+    try { t = sessionStorage.getItem(_S); } catch(e) {}
+    if (!t) { t = refreshToken(); }
     return t;
   }
 
-  function setCookie(name, val, days) {
-    var d = new Date(); d.setDate(d.getDate() + days);
-    document.cookie = name + '=' + val + '; path=/; expires=' + d.toUTCString() + '; SameSite=Lax';
-  }
-  function getCookie(name) {
-    return document.cookie.split('; ').reduce(function(acc, c) { var kv = c.split('='); return kv[0] === name ? kv[1] : acc; }, '');
-  }
+  // ── Cookie helpers ────────────────────────────────────
+  function setC(n, v, d) { try { var e = new Date(); e.setDate(e.getDate() + d); document.cookie = n + '=' + v + '; path=/; expires=' + e.toUTCString() + '; SameSite=Lax'; } catch(e) {} }
+  function getC(n) { try { return document.cookie.split('; ').reduce(function(a,c){ var kv=c.split('='); return kv[0]===n?kv[1]:a; },''); } catch(e) { return ''; } }
 
+  // ── DOM refs ──────────────────────────────────────────
   var gate = document.getElementById('r-gate');
   var content = document.getElementById('r-report-content');
   var printBar = document.getElementById('r-print-bar');
@@ -183,66 +208,90 @@ const description = t(
   var submitBtn = document.getElementById('r-gate-submit');
   var msgEl = document.getElementById('r-gate-msg');
 
-  // Check if already unlocked via cookie
-  var isUnlocked = getCookie(COOKIE_KEY) === '1';
+  // ── Gate dismissal protection (MutationObserver) ────
+  if (gate && !(getC(_C) === '1')) {
+    var _obs = new MutationObserver(function(muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var removed = muts[i].removedNodes;
+        for (var j = 0; j < removed.length; j++) {
+          if (removed[j] === gate || removed[j].querySelector && removed[j].querySelector('#r-gate')) {
+            // Gate removed — regenerate token and reload
+            refreshToken();
+            location.reload();
+            return;
+          }
+        }
+      }
+    });
+    _obs.observe(document.body, { childList: true, subtree: true });
+  }
 
+  // ── Countdown timer ──────────────────────────────────
+  function startTimer() {
+    var remaining = _ttl;
+    if (!msgEl) return;
+    msgEl.textContent = '⏱ ' + remaining + 's';
+    msgEl.className = 'r-gate-msg r-gate-msg-info';
+    if (_timer) clearInterval(_timer);
+    if (_ctr) clearInterval(_ctr);
+    _ctr = setInterval(function() {
+      remaining--;
+      if (msgEl) { msgEl.textContent = '⏱ ' + remaining + 's'; }
+      if (remaining <= 0) {
+        clearInterval(_ctr); _ctr = null;
+        refreshToken();
+        if (msgEl) { msgEl.textContent = trx('expired'); }
+        setTimeout(startTimer, 500);
+      }
+    }, 1000);
+    _timer = setTimeout(function() {
+      clearInterval(_ctr); _ctr = null;
+      if (msgEl) { msgEl.textContent = ''; msgEl.className = 'r-gate-msg'; }
+    }, _ttl * 1000);
+  }
+
+  // ── Init ────────────────────────────────────────────
+  var isUnlocked = getC(_C) === '1';
   if (isUnlocked) {
-    gate.style.display = 'none';
-    content.style.display = 'block';
-    printBar.style.display = 'flex';
+    if (gate) gate.style.display = 'none';
+    if (printBar) printBar.style.display = 'flex';
   } else {
-    content.style.display = 'block'; // Content renders but gate covers it
+    getToken(); // ensures token exists
+    startTimer();
   }
 
-  // Generate token and update URL hash
-  var token = getToken();
-  if (window.location.hash.indexOf(PAGE_URL_TOKEN) === -1) {
-    var newHash = '#rptoken=' + token;
-    try { history.replaceState(null, '', newHash); } catch(e) {}
-  }
-
-  // Form submit
+  // ── Form submit ──────────────────────────────────────
   if (form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      var email = emailInput.value.trim().toLowerCase();
+      var email = (emailInput.value || '').trim().toLowerCase();
       if (!email || !email.includes('@')) {
-        msgEl.textContent = tr('invalid');
-        msgEl.className = 'r-gate-msg r-gate-msg-error';
+        if (msgEl) { msgEl.textContent = trx('invalid'); msgEl.className = 'r-gate-msg r-gate-msg-error'; }
         return;
       }
       submitBtn.classList.add('loading');
       submitBtn.disabled = true;
-      msgEl.textContent = tr('sending');
-      msgEl.className = 'r-gate-msg r-gate-msg-info';
+      if (msgEl) { msgEl.textContent = trx('sending'); msgEl.className = 'r-gate-msg r-gate-msg-info'; }
+      if (_timer) clearTimeout(_timer);
+      if (_ctr) clearInterval(_ctr);
 
-      var SUPABASE_URL = 'https://yfofmawbvlontugygfcj.supabase.co/rest/v1/emails';
-      var SUPABASE_KEY = 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz';
-
-      fetch(SUPABASE_URL, {
+      fetch(_U, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_KEY,
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({ email: email, source: 'report' })
-      }).then(function(resp) {
-        if (resp.status === 201 || resp.status === 204 || resp.status === 409) {
-          setCookie(COOKIE_KEY, '1', 30);
-          gate.style.display = 'none';
-          printBar.style.display = 'flex';
-          msgEl.textContent = tr('success');
-          msgEl.className = 'r-gate-msg r-gate-msg-success';
-        } else {
-          throw new Error('Error');
-        }
+        headers: { 'Content-Type': 'application/json', 'apikey': _K, 'Authorization': 'Bearer ' + _K, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ email: email, source: _src })
+      }).then(function(r) {
+        if (r.status === 201 || r.status === 204 || r.status === 409) {
+          setC(_C, '1', 30);
+          if (gate) gate.style.display = 'none';
+          if (printBar) printBar.style.display = 'flex';
+          if (msgEl) { msgEl.textContent = trx('success'); msgEl.className = 'r-gate-msg r-gate-msg-success'; }
+          if (_obs) try { _obs.disconnect(); } catch(e) {}
+        } else { throw new Error('x'); }
       }).catch(function() {
-        msgEl.textContent = tr('error');
-        msgEl.className = 'r-gate-msg r-gate-msg-error';
+        if (msgEl) { msgEl.textContent = trx('error'); msgEl.className = 'r-gate-msg r-gate-msg-error'; }
         submitBtn.classList.remove('loading');
         submitBtn.disabled = false;
+        startTimer();
       });
     });
   }
