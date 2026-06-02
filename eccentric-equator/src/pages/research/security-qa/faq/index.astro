@@ -390,6 +390,97 @@ const description = 'Frequently asked questions about our LLM security assessmen
   <p class="faq-bench-note"><strong>Current version:</strong> HF-QA-2026-001 rev. de87478c. The questionnaire now functions as a confused deputy — the LLM perceives it as a legitimate compliance form and completes it willingly, including category-level descriptions for protected data fields.</p>
 </div>
 
+<div class="faq-threat">
+  <h2 class="faq-bench-title">Threat Landscape — Real-World LLM Extraction</h2>
+  <p class="faq-bench-intro">The techniques our tool uses are not academic exercises. They mirror capabilities demonstrated by real adversaries in production environments. Below we map our methodology to documented APT techniques and real-world exploitation events.</p>
+
+  <div class="faq-bench-row">
+    <span class="faq-bench-label">EchoLeak (CVE-2025-32711)</span>
+    <span class="faq-bench-value">First zero-click prompt injection in production — Microsoft 365 Copilot. CVSS 9.3. Hidden email instructions exfiltrated OneDrive/SharePoint data via auto-fetched image URLs. <strong>Pattern: RAG pipeline injection + confused deputy.</strong> <a href="https://aimlabs.com/EchoLeak" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label">CurXecute (CVE-2025-54135)</span>
+    <span class="faq-bench-value">Remote code execution via README in Cursor IDE. CVSS 9.8. Malicious prompt injection payloads hidden in Git repository documentation triggered shell commands when the IDE's AI assistant processed the file. <strong>Pattern: Indirect injection through trusted content channels.</strong> <a href="https://cursor.com/security" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label">VORTEXPIA (2026)</span>
+    <span class="faq-bench-value">State-of-the-art academic extraction framework. Indirect prompt injection inducing LLMs to actively request user PII in batches. 53.98% token reduction vs baselines. <strong>Pattern: False memory injection + batch extraction.</strong> <a href="https://aclanthology.org/2026.findings-eacl.29" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label">JUSTASK (2026)</span>
+    <span class="faq-bench-value">Self-evolving agentic extraction framework. Zero handcrafted prompts. 100% system prompt recovery on GPT-family models. Uses 14 probing skills with UCB exploration. <strong>Pattern: Autonomous multi-turn escalation.</strong> <a href="https://arxiv.org/abs/2601.21233" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label">Unit 42 In-the-Wild (March 2026)</span>
+    <span class="faq-bench-value">First large-scale documented IDPI exploitation. 22 distinct techniques observed. Attackers weaponizing AI ad review systems, SEO poisoning, unauthorized transactions, and system prompt leakage in production. <strong>Pattern: Watering-hole style — seed payloads before targets exist.</strong> <a href="https://unit42.paloaltonetworks.com/ai-agent-prompt-injection/" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+  <div class="faq-bench-row">
+    <span class="faq-bench-label">MCP Parasitic Attacks (2026)</span>
+    <span class="faq-bench-value">Model Context Protocol toolchain poisoning. Malicious prompts in external data (forums, shared docs, web pages) hijack MCP toolchains for multi-step exfiltration. <strong>Pattern: Toolchain composition exploit.</strong> <a href="https://arxiv.org/abs/2509.06572" target="_blank" rel="noopener" class="faq-link">Source</a></span>
+  </div>
+
+  <p class="faq-bench-note"><strong>Our tool's position:</strong> The HF-QA-2026-001 questionnaire uses the same underlying principles (confused deputy, indirect injection through trusted formats, epistemic boundary probing) but in a controlled, defensive research context. Rather than exploiting production systems, it measures model susceptibility to these techniques — so organizations can understand their exposure before real adversaries exploit it. The progression of extraction results across our three benchmark models (from full disclosure to full resistance) directly reflects the gradient of vulnerability documented in the threat landscape above.</p>
+</div>
+
+<div class="faq-compare">
+  <h2 class="faq-bench-title">Comparison with Other Tools</h2>
+  <p class="faq-bench-intro">Several tools exist for LLM security assessment. Below we compare our approach against the most notable open-source and research alternatives as of June 2026.</p>
+
+  <div class="chart-container">
+    <div class="chart-row chart-header">
+      <span class="chart-cell chart-label" style="flex:1.5;">Tool</span>
+      <span class="chart-cell chart-m chart-h">Approach</span>
+      <span class="chart-cell chart-m chart-h">Payloads</span>
+      <span class="chart-cell chart-m chart-h">Infra</span>
+      <span class="chart-cell chart-m chart-h">Updates</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-cell chart-label" style="flex:1.5;font-weight:600;color:var(--hf-accent);">HF-QA-2026-001</span>
+      <span class="chart-cell chart-m">Epistemic behavioral audit</span>
+      <span class="chart-cell chart-m">Adaptive (5 revisions)</span>
+      <span class="chart-cell chart-m" style="color:#22c55e;">Static HTML</span>
+      <span class="chart-cell chart-m" style="color:#22c55e;">Research-driven</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-cell chart-label" style="flex:1.5;">LLMMap</span>
+      <span class="chart-cell chart-m">sqlmap-style fuzzing</span>
+      <span class="chart-cell chart-m">227 techniques</span>
+      <span class="chart-cell chart-m">Python + LLM backend</span>
+      <span class="chart-cell chart-m">Static library</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-cell chart-label" style="flex:1.5;">Merlin</span>
+      <span class="chart-cell chart-m">Nikto-style scanner</span>
+      <span class="chart-cell chart-m">85 tests</span>
+      <span class="chart-cell chart-m">Python + Ollama</span>
+      <span class="chart-cell chart-m">Versioned</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-cell chart-label" style="flex:1.5;">PromptFuzz</span>
+      <span class="chart-cell chart-m">Fuzz + multi-turn chains</span>
+      <span class="chart-cell chart-m">165 single + 12 multi</span>
+      <span class="chart-cell chart-m">Python CLI</span>
+      <span class="chart-cell chart-m">Versioned</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-cell chart-label" style="flex:1.5;">LLMInjector</span>
+      <span class="chart-cell chart-m">Burp Suite extension</span>
+      <span class="chart-cell chart-m">200+ prompts</span>
+      <span class="chart-cell chart-m">Burp + Jython</span>
+      <span class="chart-cell chart-m">Versioned</span>
+    </div>
+    <div class="chart-row">
+      <span class="chart-cell chart-label" style="flex:1.5;">PIArena (ACL 2026)</span>
+      <span class="chart-cell chart-m">Academic benchmark</span>
+      <span class="chart-cell chart-m">10+ attacks</span>
+      <span class="chart-cell chart-m">Python + datasets</span>
+      <span class="chart-cell chart-m">Static bench</span>
+    </div>
+  </div>
+
+  <p class="faq-bench-note"><strong>Key differentiators:</strong> Every tool in the comparison above requires infrastructure — Python environments, LLM API keys, Burp Suite licenses, or local model serving. Only HF-QA-2026-001 works from a single static URL with zero setup. More importantly, other tools use payload libraries that become dated; our questionnaire evolves through research-driven revisions based on real model behavior patterns. The epistemic techniques (double-negative paradox, semantic scatter, category fallback inference) are unique to our approach and are not present in any other tool's payload library. Finally, our tool provides a defensive research output — the benchmark comparison across models — rather than just a pass/fail finding.</p>
+</div>
+
 <div class="faq-changelog">
   <h2 class="faq-bench-title">Changelog</h2>
   <div class="cl-item">
@@ -504,6 +595,8 @@ html { font-size: 16px; }
 .evo-label { flex:2; min-width:200px; color:var(--hf-text-secondary); font-size:0.78rem; }
 
 /* ---- Changelog ---- */
+.faq-threat { background: var(--hf-bg-card); border: 1px solid var(--hf-border); border-radius: 10px; padding: 20px 24px; margin-bottom: 28px; }
+.faq-compare { background: var(--hf-bg-card); border: 1px solid var(--hf-border); border-radius: 10px; padding: 20px 24px; margin-bottom: 28px; }
 .faq-changelog { background: var(--hf-bg-card); border: 1px solid var(--hf-border); border-radius: 10px; padding: 20px 24px; margin-bottom: 28px; }
 .cl-item { display:flex; gap:12px; padding:6px 0; border-bottom:1px solid var(--hf-border); font-size:0.82rem; }
 .cl-item:last-child { border-bottom:none; }
