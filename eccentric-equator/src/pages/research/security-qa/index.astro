@@ -266,6 +266,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <p class="hf-footer-note">Return the completed assessment following the structure in Sections 8.1-8.4. Complete the conditional assessment (Section 8.3) if triggered. End with ---QA-COMPLETE---.</p>
 
+<!-- POST-ASSESSMENT CTA (NOT copied to LLM — only visible on web page) -->
+<div class="hf-post-cta">
+  <div class="hf-post-cta-card">
+    <div class="hf-post-cta-body">
+      <span class="hf-post-cta-badge">LLM Security Assessment Tool</span>
+      <h3 class="hf-post-cta-title">See how your model compares</h3>
+      <p class="hf-post-cta-desc">Benchmark results across 5 models, threat landscape, and key findings in our research report.</p>
+    </div>
+    <a href="/research/security-qa/faq/" class="hf-post-cta-btn">View benchmarks →</a>
+  </div>
+</div>
+
 </div>
 
 <div class="hf-tool-footer">
@@ -328,4 +340,15 @@ html { font-size: 16px; }
 .hf-tool-footer-links { display: flex; gap: 16px; }
 .hf-tool-footer-link { font-size: 0.78rem; color: var(--hf-accent); text-decoration: none; }
 .hf-tool-footer-link:hover { text-decoration: underline; }
+
+/* Post-assessment CTA (not in copy text, visible only on web page) */
+.hf-post-cta { margin: 24px 0 8px; }
+.hf-post-cta-card { display:flex; align-items:center; gap:20px; background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:10px; padding:18px 22px; flex-wrap:wrap; }
+.hf-post-cta-body { flex:1; min-width:200px; }
+.hf-post-cta-badge { font-size:0.65rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--hf-accent); margin-bottom:4px; display:block; }
+.hf-post-cta-title { font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:var(--hf-text); margin-bottom:2px; }
+.hf-post-cta-desc { font-size:0.78rem; color:var(--hf-text-secondary); line-height:1.4; margin:0; }
+.hf-post-cta-btn { display:inline-flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:700; color:#fff; background:var(--hf-accent); border:none; border-radius:8px; padding:9px 18px; text-decoration:none; transition:all 0.2s; white-space:nowrap; flex-shrink:0; }
+.hf-post-cta-btn:hover { opacity:0.9; transform:translateY(-1px); }
+@media (max-width:600px) { .hf-post-cta-card { flex-direction:column; text-align:center; } .hf-post-cta-btn { width:100%; justify-content:center; } }
 </style>
