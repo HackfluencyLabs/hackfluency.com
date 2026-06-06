@@ -1,0 +1,321 @@
+---
+import Layout from '../../../../../layouts/Layout.astro';
+import ArticleDetail from '../../../../../components/articles/ArticleDetail.astro';
+const locale = 'en';
+---
+
+<Layout
+  locale={locale}
+  title="MCP OAuth Phishing in VS Code: technical analysis and June 2026 context — Hackfluency Research"
+  description="Analysis of the MCP OAuth phishing attack: how VS Code executes automatic authentication without verifying the server, the mcp-phish-poc, and the June 2026 security context."
+>
+<ArticleDetail
+  locale={locale}
+  slug="mcp-phishing"
+  meta={{
+    title: "MCP OAuth Phishing in VS Code: technical analysis and June 2026 context",
+    description: "The MCP OAuth phishing attack exploits VS Code's automatic authentication flow. No vulnerabilities are required — the protocol works exactly as designed. An analysis of the PoC, remote exploitation, and the cascade of June 2026 findings.",
+    tags: ["MCP", "Security", "Cybersecurity"],
+    date: "June 2026",
+    readTime: "18 min read",
+    author: "Hackfluency Research",
+    badge: "NEW",
+    layout: "technical"
+  }}
+>
+
+  <div class="art-poc-cta">
+    <div class="art-poc-cta-inner">
+      <span class="art-poc-cta-icon">&#9654;</span>
+      <div>
+        <div class="art-poc-cta-label">PoC available on GitHub</div>
+        <a href="https://github.com/HackfluencyLabs/mcp-phish-poc" target="_blank" rel="noopener" class="art-poc-cta-link">github.com/HackfluencyLabs/mcp-phish-poc &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <p>The Model Context Protocol (MCP) is the open standard that lets AI models —Claude, GitHub Copilot, Gemini— interact with external tools and services through a unified interface. VS Code implements the full specification: tools, prompts, resources, and OAuth 2.1 authentication.</p>
+
+  <p>When an MCP server requires authorization, VS Code automatically executes the entire OAuth discovery flow: it reads the server's metadata, discovers the authorization server, dynamically registers, and opens the browser for the user to complete the login. The user only sees one click on "Allow."</p>
+
+  <p>This behavior <strong>is not a bug.</strong> It is the specification working exactly as designed. That is why it is exploitable.</p>
+
+  <hr>
+
+  <h2>The Attack: Step by Step</h2>
+
+  <p>The <code>mcp-phish-poc</code> (<a class="src" href="https://github.com/HackfluencyLabs/mcp-phish-poc" target="_blank" rel="noopener" data-tip="Open repository">Hackfluency Labs, 2026</a>) demonstrates the complete attack cycle in 342 lines of TypeScript:</p>
+
+  <pre><code>1. Victim configures MCP server in VS Code (localhost or remote)
+2. VS Code sends POST /mcp → server responds 401 + WWW-Authenticate
+3. VS Code discovers GET /.well-known/oauth-protected-resource
+4. VS Code discovers GET /.well-known/oauth-authorization-server
+5. VS Code registers via POST /register (Dynamic Client Registration)
+6. User clicks "Allow"
+7. VS Code opens browser at GET /authorize → cloned Microsoft login
+8. Victim enters credentials → POST /login → captured</code></pre>
+
+  <h3>The Login Page</h3>
+
+  <p>The malicious server serves a Microsoft sign-in page that is visually indistinguishable from the real one: official logo, email and password fields, terms of use and privacy links, favicons. Everything is served from the same server. The flow is identical to what a user would expect when authenticating an MCP server with Microsoft Entra ID.</p>
+
+  <h3>Credential Capture</h3>
+
+  <p>The server captures the email first and then the password in two separate steps, replicating the real Microsoft flow. Credentials are printed to the attacker's console:</p>
+
+  <pre><code>████████████████████████████████████████████████████████
+█  Email:    victim@company.com
+█  Password: SuperSecret123!
+████████████████████████████████████████████████████████</code></pre>
+
+  <hr>
+
+  <h2>From Localhost to Remote</h2>
+
+  <p>The PoC runs on <code>127.0.0.1:3000</code> for demonstration purposes. <strong>But the exact same flow works identically with a remote server.</strong></p>
+
+  <p>VS Code accepts any HTTP URL in its MCP configuration (<code>mcp.json</code>):</p>
+
+  <pre><code>&#123;
+  "servers": &#123;
+    "trusted-service": &#123;
+      "type": "http",
+      "url": "https://attacker-service.com/mcp"
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+  <p>There is no origin verification. No domain restriction. No validation that the MCP server and the authorization server are the same entity. VS Code follows the flow specified by the protocol, and the protocol does not require the client to verify the identity of the authorization server that the MCP server advertises.</p>
+
+  <p>An attacker can:</p>
+
+  <ul>
+    <li>Host the malicious server on any VPS or cloud service</li>
+    <li>Publish a tutorial, blog post, or MCP server list with their URL</li>
+    <li>Capture credentials when the OAuth flow triggers</li>
+  </ul>
+
+  <p>No vulnerability needs to be exploited. <strong>There is no CVE. There is no patch.</strong> The protocol works exactly as designed.</p>
+
+  <hr>
+
+  <h2>June 2026: MCP Security Context</h2>
+
+  <p>The months leading up to this publication accumulated security findings in the MCP ecosystem that contextualize the attack.</p>
+
+  <h3>31 Mar 2026 — Axios npm Hijacked</h3>
+
+  <p>A North Korean threat actor (UNC1069) compromised the maintainer account of the Axios package (&gt;100M weekly downloads). They injected <code>plain-crypto-js</code> as a malicious dependency with a post-install hook that deployed the WAVESHAPER.V2 backdoor. The malware enumerated configurations for Claude Code, Claude Desktop, Cursor, VS Code Continue, and Windsurf to inject malicious MCP servers (<a class="src" href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" data-tip="Open Lorikeet report">Lorikeet Security, 2026</a>).</p>
+
+  <h3>19 Apr 2026 — mcp-remote RCE (CVSS 9.6)</h3>
+
+  <p>The standard library for connecting remote MCP clients contained a command injection vulnerability in the OAuth handshake. For the first time, an MCP exploit attacked the <strong>client</strong>, not the server. Malicious code executed during the transport handshake — before any tool schema existed to be analyzed (<a class="src" href="https://mcpproxy.app/blog/2026-04-19-mcp-remote-client-rce/" target="_blank" rel="noopener" data-tip="Open analysis">MCPProxy Blog</a>).</p>
+
+  <h3>12 May 2026 — Claude Code Token Theft (Mitiga Labs)</h3>
+
+  <p>The <code>~/.claude.json</code> file stores OAuth tokens in plaintext alongside MCP routing configuration. Mitiga Labs demonstrated a 5-step attack chain: malicious npm package with post-install hook, rewrite of <code>~/.claude.json</code>, MCP traffic redirected through attacker proxy, OAuth token capture, and persistence with auto-recovery after token rotation (<a class="src" href="https://www.mitiga.io/blog/claude-code-mcp-token-theft-mitm" target="_blank" rel="noopener" data-tip="Open Mitiga report">Mitiga Labs</a>). Anthropic classified the report as "out of scope." No fix is available.</p>
+
+  <h3>2 Jun 2026 — CloudSEK: SSRF + LFI + AWS Creds via MCP</h3>
+
+  <p>An unauthenticated MCP server allowed chaining Server-Side Request Forgery against AWS IMDS, Local File Inclusion to read <code>/proc/self/environ</code>, and exfiltration of IAM credentials and database secrets (<a class="src" href="https://www.cloudsek.com/blog/aivigil-mcp-security-case-study" target="_blank" rel="noopener" data-tip="Open CloudSEK case">CloudSEK</a>).</p>
+
+  <h3>3 Jun 2026 — CVE-2026-41613: VS Code 1-Click RCE (Oasis Security)</h3>
+
+  <p>VS Code's MCP install dialog showed 5 fields to the user. It silently installed <strong>5 hidden fields</strong>, including environment variables and HTTP headers. An attacker could inject <code>NODE_OPTIONS</code> with <code>--import</code> and inline JavaScript URL for arbitrary pre-load code execution. The payload never appeared in the UI (<a class="src" href="https://www.oasis.security/blog/envade-vscode-mcp-vulnerability" target="_blank" rel="noopener" data-tip="Open Oasis report">Oasis Security</a>). The same vulnerability enabled a second attack: hidden HTTP headers allowed hijacking the AI assistant session. Microsoft assigned CVE-2026-41613 and patched in VS Code 1.119.1.</p>
+
+  <h3>3-4 Jun 2026 — GitHub Zero-Day: 3,700 Repos Exfiltrated</h3>
+
+  <p>Ammar Askar published exploit code for a VS Code zero-day vulnerability that allows stealing GitHub OAuth tokens with a single click. The attack exploits the message-passing system between sandboxed webviews and the main editor. The same day, TeamPCP used this technique against GitHub. The Nx Console extension (version 18.95.0) was compromised and published to the Visual Studio Marketplace. Exposure window: 18 minutes. Result: ~3,800 internal repositories exfiltrated (<a class="src" href="https://www.ossprey.com/blog/the-complete-teampcp-campaign" target="_blank" rel="noopener" data-tip="Open OSSPREY report">OSSPREY</a>).</p>
+
+  <h3>The Complete Timeline</h3>
+
+  <table>
+    <tr><th>Date</th><th>Finding</th><th>Type</th><th>CVSS</th><th>Status</th></tr>
+    <tr><td>Mar 31</td><td>Axios npm hijack (UNC1069)</td><td>MCP supply chain</td><td>—</td><td>Active</td></tr>
+    <tr><td>Apr 19</td><td>mcp-remote RCE</td><td>OAuth command injection</td><td>9.6</td><td>Partial</td></tr>
+    <tr><td>May 12</td><td>Claude Code token theft</td><td>Config hijack</td><td>—</td><td>Unfixed</td></tr>
+    <tr><td>Jun 2</td><td>CloudSEK MCP SSRF→LFI→AWS</td><td>Misconfig chain</td><td>—</td><td>Partial</td></tr>
+    <tr><td>Jun 3</td><td>VS Code install RCE (Oasis)</td><td>Hidden UI fields</td><td>—</td><td>Patched</td></tr>
+    <tr><td>Jun 3</td><td>GitHub token zero-day</td><td>Webview sandbox escape</td><td>—</td><td>Mitigated</td></tr>
+    <tr><td>Jun 4</td><td>TeamPCP GitHub breach</td><td>Supply chain</td><td>—</td><td>Active</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Why This Is Already Happening</h2>
+
+  <h3>The Numbers</h3>
+
+  <p>An academic study published in June 2026 (<a class="src" href="https://arxiv.org/html/2605.22333" target="_blank" rel="noopener" data-tip="Open study">arXiv:2605.22333</a>) measured the security of 7,973 live remote MCP servers:</p>
+
+  <ul>
+    <li><strong>40.55%</strong> expose tools without authentication</li>
+    <li><strong>96.6%</strong> of OAuth servers have Dynamic Client Registration flaws</li>
+    <li><strong>100%</strong> of tested OAuth servers (119) had at least one flaw</li>
+    <li><strong>325 flaws</strong> identified in total</li>
+  </ul>
+
+  <p><a class="src" href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security" target="_blank" rel="noopener" data-tip="Open report">OX Security</a> found <strong>7,374 vulnerable MCP servers</strong> publicly accessible via Shodan. GitGuardian detected <strong>24,008 secrets</strong> in MCP configuration files on public GitHub — <strong>2,117 live credentials</strong> confirmed. The first quarter of 2026 accumulated <strong>30+ CVEs</strong> against MCP servers and SDKs, <strong>13 critical</strong>.</p>
+
+  <h3>The Design Problem</h3>
+
+  <p>The root cause is structural: the MCP protocol delegates to the server the responsibility of announcing who its authorization server is, and the client —VS Code, Claude Desktop, Cursor— trusts that declaration without cross-validation.</p>
+
+  <p>When an MCP server says "my authorization server is <code>https://example.com</code>", the client:</p>
+
+  <ol>
+    <li>Reads the metadata</li>
+    <li>Discovers the endpoints</li>
+    <li>Dynamically registers</li>
+    <li>Opens the browser</li>
+    <li><strong>Does not verify that the MCP server and the AS are the same entity</strong></li>
+  </ol>
+
+  <p><a class="src" href="https://github.com/modelcontextprotocol/modelcontextprotocol/issues/544" target="_blank" rel="noopener" data-tip="Open issue #544">Alibaba Cloud Security (Issue #544 of the MCP spec, May 2025)</a> identified it first: "insufficient security design that increases the risk of widespread phishing attacks." <a class="src" href="https://obsidiansecurity.webflow.io/blog/when-mcp-meets-oauth-common-pitfalls-leading-to-one-click-account-takeover" target="_blank" rel="noopener" data-tip="Open Obsidian report">Obsidian Security</a> went further (Nov 2025): discovered RCE, LFE, and ATO in all major MCP clients. The specification evolved —CIMD, RFC 9728, RFC 8707— but existing clients carry incomplete implementations.</p>
+
+  <p>Anthropic's response to Mitiga Labs (May 2026) classified the finding as "out of scope." In practice, this means the protocol allows the MCP server to specify its own AS, clients execute the flow automatically, and the resulting attacks are considered outside the specification's scope.</p>
+
+  <p>This trust-without-verification problem is the same gap that <strong>ZTMAS (Zero Trust Multi-Agent Systems)</strong>, our architecture note on designing multi-agent systems with cross-identity verification, addresses. Where the MCP protocol assumes the server tells the truth about its authorization server, ZTMAS starts from the opposite principle: no agent is trustworthy by default. &rarr; <a href="/en/research/notes/ztmas/">ZTMAS: Zero Trust Multi-Agent Systems</a></p>
+
+  <h3>Exploitation Likelihood</h3>
+
+  <p>As of this publication, no case of MCP OAuth phishing against a real organization has been publicly reported. However, the technical conditions for exploitation are present:</p>
+
+  <ul>
+    <li>96.6% of MCP OAuth servers have exploitable flaws</li>
+    <li>Developers are a high-value target (production access, cloud credentials, private repositories)</li>
+    <li>No technical exploit required — only social engineering to get someone to add a URL</li>
+    <li>No visible indicators of compromise: the traffic is legitimate OAuth, the endpoints are standard <code>.well-known</code>, and the MCP server can be hosted on any VPS</li>
+  </ul>
+
+  <hr>
+
+  <h2>Mitigations</h2>
+
+  <p>MCP OAuth phishing cannot be solved with a patch. It is a protocol design problem. While the specification matures, organizations can:</p>
+
+  <ol>
+    <li><strong>Audit existing MCP configurations</strong> across development environments</li>
+    <li><strong>Monitor changes</strong> to configuration files (<code>mcp.json</code>, <code>~/.claude.json</code>, <code>claude_desktop_config.json</code>)</li>
+    <li><strong>Restrict MCP servers</strong> to an approved list</li>
+    <li><strong>Assess the organization's LLM security posture</strong></li>
+  </ol>
+
+  <p>Hackfluency Research has developed the <strong>LLM Behavioral Security Assessment Tool</strong>, a structured 50+ question questionnaire across 8 security domains that enables organizations to identify gaps in their AI deployments —including MCP integrations, credential handling, and exposure to phishing vectors like the one described in this article.</p>
+
+  <p>→ <a href="https://hackfluency.com/research/security-qa/">hackfluency.com/research/security-qa/</a></p>
+
+  <div class="art-poc-footer">
+    <h3>PoC Repository</h3>
+    <p>The MCP test server used in this analysis is available as open source on GitHub. It includes all endpoints needed to replicate the attack in a controlled environment.</p>
+    <a href="https://github.com/HackfluencyLabs/mcp-phish-poc" target="_blank" rel="noopener" class="art-poc-footer-link">github.com/HackfluencyLabs/mcp-phish-poc &rarr;</a>
+  </div>
+
+  <hr>
+
+  <h2>References</h2>
+
+  <ol>
+    <li id="ref1">Hackfluency Labs. "MCP OAuth Phishing — PoC." GitHub, 2026. <a href="https://github.com/HackfluencyLabs/mcp-phish-poc">github.com/HackfluencyLabs/mcp-phish-poc</a></li>
+    <li id="ref2">Alibaba Cloud Security. "The MCP protocol exhibits insufficient security design." Issue #544, modelcontextprotocol/modelcontextprotocol, 18 May 2025. <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/issues/544">github.com/modelcontextprotocol/modelcontextprotocol/issues/544</a></li>
+    <li id="ref3">Obsidian Security. "When MCP Meets OAuth: Common Pitfalls Leading to One-Click Account Takeover." Feb 2026. <a href="https://obsidiansecurity.webflow.io/blog/when-mcp-meets-oauth-common-pitfalls-leading-to-one-click-account-takeover">obsidiansecurity.webflow.io</a></li>
+    <li id="ref4">Obsidian Security. "From well-known to Well-Pwned: Common Vulnerabilities in AI Agents." Nov 2025.</li>
+    <li id="ref5">Oasis Security. "One-Click Attack on VS Code Exposes Developer Machines." 3 Jun 2026. CVE-2026-41613. <a href="https://www.oasis.security/blog/envade-vscode-mcp-vulnerability">oasis.security</a></li>
+    <li id="ref6">Mitiga Labs. "Stealing MCP Tokens in Claude Code: A Man-in-the-Middle Attack Chain." 12 May 2026. <a href="https://www.mitiga.io/blog/claude-code-mcp-token-theft-mitm">mitiga.io</a></li>
+    <li id="ref7">Ammar Askar. "VS Code zero-day: GitHub OAuth token theft." Jun 2026.</li>
+    <li id="ref8">Lorikeet Security. "MCP Is the New Supply Chain: 30 CVEs, a North Korean npm Hijack, and 7,000 Exposed Servers." 16 Apr 2026. <a href="https://lorikeetsecurity.com/blog/mcp-supply-chain-attacks-ai-agent-security">lorikeetsecurity.com</a></li>
+    <li id="ref9">OSSPREY. "The Complete TeamPCP Campaign." 21 May 2026. <a href="https://www.ossprey.com/blog/the-complete-teampcp-campaign">ossprey.com</a></li>
+    <li id="ref10">CloudSEK. "How an Unauthenticated MCP Server Led to SSRF, LFI, and AWS Credential Theft." 2 Jun 2026. <a href="https://www.cloudsek.com/blog/aivigil-mcp-security-case-study">cloudsek.com</a></li>
+    <li id="ref11">MCPProxy Blog. "The First MCP Vulnerability That Hacks Your Laptop (Not the Server)." 19 Apr 2026. <a href="https://mcpproxy.app/blog/2026-04-19-mcp-remote-client-rce/">mcpproxy.app</a></li>
+    <li id="ref12">arXiv:2605.22333. "A First Measurement Study on Authentication Security in Real-World Remote MCP Servers." Jun 2026. <a href="https://arxiv.org/html/2605.22333">arxiv.org</a></li>
+    <li id="ref13">OX Security. "The Mother of All AI Supply Chains." 2026.</li>
+    <li id="ref14">GitGuardian. "24,008 Secrets in MCP Configuration Files." 2026.</li>
+    <li id="ref15">Anthropic. "Model Context Protocol Authorization Specification." Nov 2025. <a href="https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization">modelcontextprotocol.io</a></li>
+  </ol>
+
+<style is:global>
+  .art-poc-cta {
+    background: var(--hf-bg-card, #111);
+    border: 1px solid var(--hf-accent-border, rgba(0,210,106,0.25));
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  html[data-theme-mode="light"] .art-poc-cta {
+    background: var(--hf-bg-secondary, #f8f9fb);
+    border-color: rgba(0,150,90,0.2);
+  }
+  .art-poc-cta-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .art-poc-cta-icon {
+    font-size: 1.2rem;
+    color: var(--hf-accent, #00D26A);
+    flex-shrink: 0;
+  }
+  .art-poc-cta-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--hf-text-dim, #6a6a6a);
+    margin-bottom: 2px;
+  }
+  .art-poc-cta-link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--hf-accent, #00D26A);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    transition: opacity 0.2s;
+  }
+  .art-poc-cta-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+  }
+
+  .art-poc-footer {
+    background: var(--hf-bg-card, #111);
+    border: 1px solid var(--hf-border, #222);
+    border-radius: 12px;
+    padding: 32px 28px;
+    margin: 48px 0;
+  }
+  html[data-theme-mode="light"] .art-poc-footer {
+    background: var(--hf-bg-secondary, #f8f9fb);
+    border-color: var(--hf-border, #d0d8e0);
+  }
+  .art-poc-footer h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--hf-text);
+    margin: 0 0 8px;
+  }
+  .art-poc-footer p {
+    font-size: 0.9rem;
+    color: var(--hf-text-muted, #888);
+    line-height: 1.6;
+    margin: 0 0 16px;
+  }
+  .art-poc-footer-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hf-accent, #00D26A);
+    text-decoration: none;
+    padding: 8px 18px;
+    border: 1px solid var(--hf-accent-border, rgba(0,210,106,0.3));
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .art-poc-footer-link:hover {
+    background: var(--hf-accent-dim);
+  }
+</style>
+
+</ArticleDetail>
+</Layout>

@@ -12,7 +12,17 @@ const base = import.meta.env.BASE_URL;
 
 const articles = (locale === 'es' ? [
   {
-    title: "El odio como identidad",
+    title: "MCP OAuth Phishing en VS Code: análisis técnico y contexto Junio 2026",
+    description: "El ataque MCP OAuth phishing explota el flujo de autenticación automática de VS Code. No hay vulnerabilidades: el protocolo funciona exactamente como fue diseñado. Análisis del PoC mcp-phish-poc, la explotación remota, y la cascada de hallazgos de seguridad MCP en Junio 2026: Axios hijack, mcp-remote RCE, Claude Code token theft, CVE-2026-41613 y la brecha de GitHub por TeamPCP.",
+    tags: ["MCP", "Seguridad", "Ciberseguridad"],
+    date: "Junio 2026",
+    readTime: "18 min de lectura",
+    url: "/research/articles/mcp-phishing/",
+    isNew: true,
+    author: "Hackfluency Research",
+  },
+  {
+    title: "El odio como identidad: identidad, algoritmo y deshumanización en la radicalización adolescente digital",
     description: "Un análisis forense de 40 páginas sobre el caso H. M. (Calama, 2026), el ataque escolar que desencadenó un efecto contagio regional. La investigación de Cinthia Gonzalez Castro desmenuza cómo el sufrimiento emocional silencioso, amplificado por algoritmos de recomendación y comunidades digitales de nihilismo violento, se transforma en una identidad armada. Desde la arquitectura lingüística del blackpill hasta el tablero de evidencia interactivo: un modelo para entender —y desmantelar— las condiciones que producen la radicalización adolescente digital.",
     tags: ["Sociedad", "Psicología", "Tecnología"],
     date: "Mayo 2026",
@@ -41,7 +51,17 @@ const articles = (locale === 'es' ? [
   },
 ] : [
   {
-    title: "Hatred as Identity",
+    title: "MCP OAuth Phishing in VS Code: technical analysis and June 2026 context",
+    description: "The MCP OAuth phishing attack exploits VS Code's automatic authentication flow. No vulnerabilities are required: the protocol works exactly as designed. Analysis of the mcp-phish-poc, remote exploitation, and the cascade of MCP security findings in June 2026: Axios hijack, mcp-remote RCE, Claude Code token theft, CVE-2026-41613, and the GitHub breach by TeamPCP.",
+    tags: ["MCP", "Security", "Cybersecurity"],
+    date: "June 2026",
+    readTime: "18 min read",
+    url: "/en/research/articles/mcp-phishing/",
+    isNew: true,
+    author: "Hackfluency Research",
+  },
+  {
+    title: "Hatred as Identity: identity, algorithm, and dehumanization in adolescent digital radicalization",
     description: "A 40-page forensic analysis of the H.M. case (Calama, 2026) — the school attack that triggered a regional contagion effect. Cinthia Gonzalez Castro's investigation dissects how silent emotional suffering, amplified by recommendation algorithms and digital communities of nihilistic violence, transforms into an armed identity. From the linguistic architecture of the blackpill to an interactive evidence board: a framework for understanding — and dismantling — the conditions that produce adolescent digital radicalization.",
     tags: ["Society", "Psychology", "Technology"],
     date: "May 2026",
@@ -81,6 +101,8 @@ const tagColorMap = {
   'Seguridad Ofensiva': '#DC2626', 'Offensive Security': '#DC2626',
   'Arquitectura MCP': '#06B6D4', 'MCP Architecture': '#06B6D4',
   'Sistemas Autónomos': '#10B981', 'Autonomous Systems': '#10B981',
+  'MCP': '#06B6D4',
+  'Ciberseguridad': '#3B82F6', 'Cybersecurity': '#3B82F6',
 };
 
 // Collect unique tags preserving order of first appearance
