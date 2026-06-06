@@ -59,9 +59,19 @@ const locale = 'es';
 
   <p>El servidor malicioso sirve una p&aacute;gina de inicio de sesi&oacute;n de Microsoft visualmente indistinguible de la real: logo oficial, campos de correo y contrase&ntilde;a, enlaces a t&eacute;rminos de uso y privacidad, favicons.</p>
 
+  <figure class="art-figure">
+    <img src="/assets/articulos/mcp-phishing/phish-login-page.png" alt="Página de inicio de sesión de Microsoft clonada por el servidor MCP malicioso" loading="lazy" width="440" height="500">
+    <figcaption>P&aacute;gina de inicio de sesi&oacute;n de Microsoft servida por el servidor MCP malicioso. Visualmente id&eacute;ntica a la real.</figcaption>
+  </figure>
+
   <h3>Captura de credenciales</h3>
 
   <p>El servidor captura primero el correo electrónico y luego la contraseña en dos pasos separados, replicando el flujo real de Microsoft. Las credenciales se imprimen en la consola del atacante:</p>
+
+  <figure class="art-figure">
+    <img src="/assets/articulos/mcp-phishing/phish-password-page.png" alt="Página de contraseña de Microsoft clonada mostrando el email ya capturado" loading="lazy" width="440" height="500">
+    <figcaption>P&aacute;gina de contrase&ntilde;a. El email ya fue capturado en el paso anterior y se muestra al usuario.</figcaption>
+  </figure>
 
   <pre><code>████████████████████████████████████████████████████████
 █  Email:    victima@empresa.com
@@ -314,6 +324,27 @@ const locale = 'es';
   }
   .art-poc-footer-link:hover {
     background: var(--hf-accent-dim);
+  }
+
+  .art-figure {
+    margin: 32px 0;
+    text-align: center;
+  }
+  .art-figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--hf-border, #2a2a2a);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  html[data-theme-mode="light"] .art-figure img {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .art-figure figcaption {
+    font-size: 0.8rem;
+    color: var(--hf-text-dim, #6a6a6a);
+    margin-top: 8px;
+    font-style: italic;
   }
 </style>
 

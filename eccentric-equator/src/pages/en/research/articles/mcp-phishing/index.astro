@@ -59,9 +59,19 @@ const locale = 'en';
 
   <p>The malicious server serves a Microsoft sign-in page that is visually indistinguishable from the real one: official logo, email and password fields, terms of use and privacy links, favicons. Everything is served from the same server. The flow is identical to what a user would expect when authenticating an MCP server with Microsoft Entra ID.</p>
 
+  <figure class="art-figure">
+    <img src="/assets/articulos/mcp-phishing/phish-login-page.png" alt="Microsoft sign-in page cloned by the malicious MCP server" loading="lazy" width="440" height="500">
+    <figcaption>Microsoft sign-in page served by the malicious MCP server. Visually identical to the real one.</figcaption>
+  </figure>
+
   <h3>Credential Capture</h3>
 
   <p>The server captures the email first and then the password in two separate steps, replicating the real Microsoft flow. Credentials are printed to the attacker's console:</p>
+
+  <figure class="art-figure">
+    <img src="/assets/articulos/mcp-phishing/phish-password-page.png" alt="Microsoft password page showing the previously captured email" loading="lazy" width="440" height="500">
+    <figcaption>Password page. The email was captured in the previous step and is displayed to the user.</figcaption>
+  </figure>
 
   <pre><code>████████████████████████████████████████████████████████
 █  Email:    victim@company.com
@@ -314,6 +324,27 @@ const locale = 'en';
   }
   .art-poc-footer-link:hover {
     background: var(--hf-accent-dim);
+  }
+
+  .art-figure {
+    margin: 32px 0;
+    text-align: center;
+  }
+  .art-figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--hf-border, #2a2a2a);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  html[data-theme-mode="light"] .art-figure img {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .art-figure figcaption {
+    font-size: 0.8rem;
+    color: var(--hf-text-dim, #6a6a6a);
+    margin-top: 8px;
+    font-style: italic;
   }
 </style>
 
