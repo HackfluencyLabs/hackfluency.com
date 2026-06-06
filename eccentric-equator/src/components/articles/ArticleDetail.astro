@@ -16,9 +16,10 @@ export interface Props {
   meta: ArticleMeta;
   children: any;
   locale?: 'es' | 'en';
+  slug: string;
 }
 
-const { meta, locale = 'es' } = Astro.props;
+const { meta, locale = 'es', slug = 'zero-day-ia-google' } = Astro.props;
 const giscusLang = locale === 'es' ? 'es' : 'en';
 const artLayout = meta.layout || 'technical';
 const layoutClass = 'art-layout--' + artLayout;
@@ -63,7 +64,7 @@ const layoutClass = 'art-layout--' + artLayout;
 
       <!-- Reactions -->
       <div class="art-claps-box">
-        <div class="art-claps" id="art-claps-root" data-slug="zero-day-ia-google">
+        <div class="art-claps" id="art-claps-root" data-slug={slug}>
           <span class="art-claps-count" id="art-claps-count">0</span>
           <button class="art-claps-btn" id="art-claps-btn" aria-label="React">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="position:absolute">
@@ -82,7 +83,7 @@ const layoutClass = 'art-layout--' + artLayout;
       <div id="cusdis_thread"
         data-host="https://cusdis.com"
         data-app-id="90d95120-41f5-4baa-8285-8e91d4d96c45"
-        data-page-id="zero-day-ia-google"
+        data-page-id={slug}
         data-page-url={Astro.url.href}
         data-page-title={meta.title}
         data-lang={locale === 'es' ? 'es' : 'en'}
@@ -178,10 +179,11 @@ const layoutClass = 'art-layout--' + artLayout;
 
 <script>
 (function() {
-  const clapsKey = 'hf_claps_zero-day-ia-google';
+  const root = document.getElementById('art-claps-root');
+  const slug = root ? root.dataset.slug : 'zero-day-ia-google';
+  const clapsKey = 'hf_claps_' + slug;
   const btn = document.getElementById('art-claps-btn');
   const countEl = document.getElementById('art-claps-count');
-  const slug = 'zero-day-ia-google';
   let count = 0;
   let clapped = localStorage.getItem(clapsKey) === 'true';
 
