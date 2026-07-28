@@ -89,18 +89,13 @@ try {
     <div class="article-embed" set:html={articleHTML} />
   </main>
 
-  <ArticleClosingPanel
-    locale="en"
-    slug="hatred-as-identity"
-    pageTitle="Hatred as Identity — Identity, Algorithm, and Dehumanization in Adolescent Digital Radicalization"
-    pageUrl={Astro.url.href}
-  />
+  <ArticleClosingPanel locale="en" />
 
   <footer class="art-footer">
     <div class="art-footer-inner">
       <a href="/en/research/articles" class="art-footer-back">&larr; Back to Articles</a>
       <span class="art-footer-copy">&copy; 2026 Hackfluency</span>
-      <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="art-footer-cta">Contact</a>
+      <a href="/en#contact" class="art-footer-cta">Contact</a>
     </div>
   </footer>
   <script is:inline src={ASSETS + 'borrador-articulo.en.js'}></script>
