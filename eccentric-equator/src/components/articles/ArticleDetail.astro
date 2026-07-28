@@ -1,5 +1,6 @@
 ---
 import ResearchNav from '../ResearchNav.astro';
+import ArticleGate from './ArticleGate.astro';
 
 export interface ArticleMeta {
   title: string;
@@ -19,8 +20,7 @@ export interface Props {
   slug: string;
 }
 
-const { meta, locale = 'es', slug = 'zero-day-ia-google' } = Astro.props;
-const giscusLang = locale === 'es' ? 'es' : 'en';
+const { meta, locale = 'es' } = Astro.props;
 const artLayout = meta.layout || 'technical';
 const layoutClass = 'art-layout--' + artLayout;
 
@@ -58,88 +58,49 @@ const layoutClass = 'art-layout--' + artLayout;
 
   </article>
 
+  <!-- Chat banner click handler -->
+  <script is:inline data-astro-rerun>
+  document.addEventListener('click', function(e) {
+    var banner = e.target.closest('#art-chat-banner');
+    if (!banner) return;
+    var floating = document.getElementById('rt-d6023b7d7713a023f5e73ab154aa7c08');
+    if (floating) {
+      var btn = floating.querySelector('img[alt*="join"], img[alt*="conversation"], img[alt*="chat"], img[alt*="message"], a, button');
+      if (btn) { btn.click(); return; }
+      // Fallback: click the first img in the floating div
+      var img = floating.querySelector('img');
+      if (img) img.click();
+    }
+  });
+  </script>
+
+  <!-- Article Gate -- mid-scroll email capture -->
+  <ArticleGate locale={locale} />
+
   <!-- Closing Panel -->
   <div class="art-closing-panel">
     <div class="art-closing-inner">
 
-      <!-- Reactions -->
-      <div class="art-claps-box">
-        <div class="art-claps" id="art-claps-root" data-slug={slug}>
-          <span class="art-claps-count" id="art-claps-count">0</span>
-          <button class="art-claps-btn" id="art-claps-btn" aria-label="React">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="position:absolute">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" opacity="0.15" transform="scale(1.5) translate(-4,-4)"/>
+      <!-- Chat banner -->
+      <div class="art-chat-banner" id="art-chat-banner" role="button" tabindex="0" aria-label="Abrir chat">
+        <div class="chat-banner-glow"></div>
+        <div class="chat-banner-content">
+          <span class="chat-banner-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
             </svg>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-          </button>
-          <span class="art-claps-label">{locale === 'es' ? 'destellos' : 'sparkles'}</span>
+          </span>
+          <span class="chat-banner-text">
+            <span class="chat-banner-title">{locale === 'es' ? 'Deja un mensaje' : 'Leave a message'}</span>
+            <span class="chat-banner-sub">{locale === 'es' ? 'Anónimo · Tiempo real · Otros usuarios conectados' : 'Anonymous · Live · Others are here'}</span>
+          </span>
+          <span class="chat-banner-dot"></span>
         </div>
       </div>
 
-      <!-- Comments -->
-      <div class="art-comments-box">
-      <div id="cusdis_thread"
-        data-host="https://cusdis.com"
-        data-app-id="90d95120-41f5-4baa-8285-8e91d4d96c45"
-        data-page-id={slug}
-        data-page-url={Astro.url.href}
-        data-page-title={meta.title}
-        data-lang={locale === 'es' ? 'es' : 'en'}
-      ></div>
-
-<script is:inline>
-(function() {
-  var thread = document.getElementById('cusdis_thread');
-  if (!thread) return;
-
-  function applyCusdisTheme() {
-    var iframe = thread.querySelector('iframe');
-    if (!iframe) return;
-    try {
-      var doc = iframe.contentDocument || iframe.contentWindow.document;
-      if (!doc || !doc.documentElement || !doc.documentElement.classList) return;
-      var isDark = document.documentElement.getAttribute('data-theme-mode') === 'dark';
-      if (isDark) {
-        doc.documentElement.classList.add('dark');
-        var s = doc.querySelector('style');
-        if (s) {
-          s.textContent = s.textContent.replace('color-scheme: light', 'color-scheme: dark');
-          if (!s.textContent.includes('/*hf-cusdis-btn*/')) {
-            s.textContent += '/*hf-cusdis-btn*/.dark button.dark\\:bg-transparent{color:#e5e7eb!important}';
-          }
-        }
-      } else {
-        doc.documentElement.classList.remove('dark');
-        var s = doc.querySelector('style');
-        if (s) s.textContent = s.textContent.replace('color-scheme: dark', 'color-scheme: light');
-      }
-    } catch(e) {}
-  }
-
-  // Watch iframe changes (Cusdis creates/replaces iframe on render)
-  var observer = new MutationObserver(applyCusdisTheme);
-  observer.observe(thread, { childList: true, subtree: true });
-
-  // Polling fallback — runs forever, always applies latest theme
-  setInterval(applyCusdisTheme, 800);
-
-  // Initial theme
-  var mode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
-  thread.setAttribute('data-theme', mode === 'light' ? 'light' : 'dark');
-  setTimeout(applyCusdisTheme, 300);
-  setTimeout(applyCusdisTheme, 1500);
-
-  // Theme switch — no CUSDIS.render(), just let observer+polling handle it
-  window.addEventListener('hf-theme-change', function() {
-    var mode = document.documentElement.getAttribute('data-theme-mode') || 'dark';
-    thread.setAttribute('data-theme', mode === 'light' ? 'light' : 'dark');
-    applyCusdisTheme();
-  });
-})();
-</script>
-<script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
+      <!-- Iine appreciation button -->
+      <div class="art-iine-box">
+        <button class="iine-button" aria-hidden="true" data-icon="heart"></button>
       </div>
 
     </div>
@@ -168,72 +129,19 @@ const layoutClass = 'art-layout--' + artLayout;
 
 </main>
 
+<!-- Iine script -->
+<script src="https://cdn.jsdelivr.net/gh/welpo/iine@main/iine.mini.js" data-astro-rerun></script>
+
 <!-- Footer -->
 <footer class="art-footer">
   <div class="art-footer-inner">
     <a href={locale === 'es' ? '/research/articles' : '/en/research/articles'} class="art-footer-back">&larr; {locale === 'es' ? 'Volver a Artículos' : 'Back to Articles'}</a>
     <span class="art-footer-copy">{locale === 'es' ? '© 2026 Hackfluency' : '© 2026 Hackfluency'}</span>
-    <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="art-footer-cta">{locale === 'es' ? 'Contacto' : 'Contact'}</a>
+    <a href={locale === 'es' ? '/#contact' : '/en#contact'} class="art-footer-cta">{locale === 'es' ? 'Contacto' : 'Contact'}</a>
   </div>
 </footer>
 
-<script>
-(function() {
-  const root = document.getElementById('art-claps-root');
-  const slug = root ? root.dataset.slug : 'zero-day-ia-google';
-  const clapsKey = 'hf_claps_' + slug;
-  const btn = document.getElementById('art-claps-btn');
-  const countEl = document.getElementById('art-claps-count');
-  let count = 0;
-  let clapped = localStorage.getItem(clapsKey) === 'true';
 
-  function updateCount(n) {
-    count = n;
-    if (countEl) countEl.textContent = count;
-  }
-
-  // Fetch current count with retry
-  function fetchCount(retries) {
-    var controller = new AbortController();
-    var timeout = setTimeout(function() { controller.abort(); }, 5000);
-    fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?slug=eq.${slug}&select=count`, {
-      headers: { 'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz' },
-      signal: controller.signal
-    })
-    .then(function(r) { clearTimeout(timeout); return r.json(); })
-    .then(function(data) {
-      if (data && data.length > 0) updateCount(data[0].count);
-    })
-    .catch(function() {
-      clearTimeout(timeout);
-      if (retries > 0) setTimeout(function() { fetchCount(retries - 1); }, 1500);
-    });
-  }
-  fetchCount(3);
-
-  if (btn) {
-    btn.addEventListener('click', function() {
-      if (clapped) return;
-      clapped = true;
-      localStorage.setItem(clapsKey, 'true');
-      const newCount = count + 1;
-      updateCount(newCount);
-      btn.classList.add('clapped');
-
-      // Upsert: insert if not exists, update count if exists
-      fetch(`https://yfofmawbvlontugygfcj.supabase.co/rest/v1/article_claps?on_conflict=slug`, {
-        method: 'POST',
-        headers: {
-          'apikey': 'sb_publishable_EFI12D4AaO2Y7o5gyWrB-g_i--T5Arz',
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify({ slug: slug, count: newCount })
-      }).catch(() => {});
-    });
-  }
-})();
-</script>
 
 <style is:global>
   .art-main {
@@ -605,49 +513,134 @@ const layoutClass = 'art-layout--' + artLayout;
 
   /* ── Closing Panel ── */
   .art-closing-panel {
-    padding: 60px 24px;
+    padding: 40px 24px;
     max-width: 820px;
     margin: 0 auto;
   }
   .art-closing-inner {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 40px;
-    background: var(--hf-bg-card, #111);
-    border: 1px solid var(--hf-border, #222);
-    border-radius: 16px;
-    padding: 40px 36px;
+    background: transparent;
+    border: none;
+    padding: 0;
     position: relative;
+    animation: none;
   }
   html[data-theme-mode="light"] .art-closing-inner {
-    background: var(--hf-bg-secondary, #ffffff);
-    border: 1px solid #dde0e6;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: transparent;
+    border: none;
+    animation: none;
   }
-  html[data-theme-mode="light"] .art-claps-box {
-    border-color: #e0e4ea;
-  }
-  html[data-theme-mode="light"] .art-closing-inner {
-    background: var(--hf-bg-secondary, #ffffff);
-    border: 1px solid var(--hf-border, #d0d8e0);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  }
-  .art-closing-inner {
-    display: grid;
-    grid-template-columns: 160px 1fr;
-    gap: 40px;
-    background: var(--hf-bg-card, #111);
-    border: 1px solid var(--hf-border, #222);
-    border-radius: 16px;
-    padding: 40px 36px;
+  /* Chat banner */
+  .art-chat-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    max-width: 400px;
+    cursor: pointer;
     position: relative;
-    animation: border-glow 3s ease-in-out infinite;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--hf-accent) 8%, transparent) 0%,
+      color-mix(in srgb, var(--hf-accent) 3%, transparent) 100%
+    );
+    border: 1px solid color-mix(in srgb, var(--hf-accent) 20%, var(--hf-border));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    animation: chatBannerPulse 4s ease-in-out 1s infinite;
+    overflow: hidden;
   }
-  html[data-theme-mode="light"] .art-closing-inner {
-    background: var(--hf-bg-secondary, #ffffff);
-    border-color: #dde0e6;
-    animation: border-glow-light 3s ease-in-out infinite;
+  html[data-theme-mode="light"] .art-chat-banner {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--hf-accent) 10%, white) 0%,
+      color-mix(in srgb, var(--hf-accent) 4%, white) 100%
+    );
+    border-color: color-mix(in srgb, var(--hf-accent) 25%, #ddd);
   }
+  @keyframes chatBannerPulse {
+    0%, 100% { border-color: color-mix(in srgb, var(--hf-accent) 20%, var(--hf-border)); box-shadow: 0 0 0 0 transparent; }
+    50% { border-color: color-mix(in srgb, var(--hf-accent) 45%, var(--hf-border)); box-shadow: 0 0 18px 1px color-mix(in srgb, var(--hf-accent) 8%, transparent); }
+  }
+  .chat-banner-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: radial-gradient(ellipse at 30% 50%, color-mix(in srgb, var(--hf-accent) 12%, transparent) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .art-chat-banner:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--hf-accent) 50%, var(--hf-border));
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--hf-accent) 12%, transparent);
+    animation-play-state: paused;
+  }
+  .art-chat-banner:hover .chat-banner-glow {
+    opacity: 1.5;
+  }
+  .chat-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .chat-banner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--hf-accent) 15%, transparent);
+    color: var(--hf-accent, #00D26A);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  .art-chat-banner:hover .chat-banner-icon {
+    background: color-mix(in srgb, var(--hf-accent) 25%, transparent);
+    transform: scale(1.05);
+  }
+  .chat-banner-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .chat-banner-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--hf-text, #fff);
+    line-height: 1.3;
+  }
+  html[data-theme-mode="light"] .chat-banner-title {
+    color: var(--hf-text, #1a1a18);
+  }
+  .chat-banner-sub {
+    font-size: 0.7rem;
+    color: var(--hf-text-muted, #888);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  .chat-banner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--hf-accent, #00D26A);
+    flex-shrink: 0;
+    animation: dotLive 2s ease-in-out infinite;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--hf-accent) 50%, transparent);
+  }
+  @keyframes dotLive {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
   @keyframes border-glow {
     0%, 100% { box-shadow: 0 0 0 0 transparent; }
     50% { box-shadow: 0 0 18px 1px var(--hf-accent-dim), 0 0 0 0 transparent; }
@@ -656,113 +649,66 @@ const layoutClass = 'art-layout--' + artLayout;
     0%, 100% { box-shadow: 0 0 0 0 transparent; }
     50% { box-shadow: 0 0 24px 3px rgba(0,150,90,0.15), 0 1px 4px rgba(0,0,0,0.06); }
   }
-  html[data-theme-mode="light"] .art-claps-box {
-    border-color: #e0e4ea;
+
+  @keyframes iineFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .art-closing-inner::before { display: none; }
-  html[data-theme-mode="light"] .art-closing-inner::before {
-    background: conic-gradient(from 0deg,
-      transparent 0deg,
-      transparent 255deg,
-      var(--hf-accent, #00965A) 255deg,
-      transparent 300deg,
-      transparent 360deg
-    );
-  }
-  @keyframes sweep {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  .art-closing-inner::after {
-    display: none;
+  @keyframes iinePulse {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    50% { box-shadow: 0 0 14px 1px var(--hf-accent-dim), 0 0 0 0 transparent; }
   }
 
-  /* Applause box */
-  .art-claps-box {
+  /* Iine appreciation button */
+  .art-iine-box {
     display: flex;
-    align-items: center;
     justify-content: center;
-    border-right: 1px solid var(--hf-border-secondary, #2a2a2a);
-    padding-right: 40px;
-  }
-  .art-claps {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    padding: 24px 0 4px;
+    animation: iineFadeIn 0.6s ease-out 0.2s both;
   }
-  .art-claps-btn {
-    background: var(--hf-accent-dim);
-    border: 2px solid var(--hf-accent-border, rgba(0,210,106,0.3));
-    color: var(--hf-accent, #00D26A);
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-  html[data-theme-mode="light"] .art-claps-btn {
-    background: var(--hf-accent-dim, rgba(0,150,90,0.08));
-    border-color: var(--hf-accent-border, rgba(0,150,90,0.25));
-    color: var(--hf-accent, #00965A);
-  }
-  .art-claps-btn svg:first-child {
-    animation: star-pulse 2s ease-in-out infinite;
-  }
-  .art-claps-btn svg:last-child {
-    animation: star-orbit 3s linear infinite;
-    transform-origin: center;
-  }
-  @keyframes star-pulse {
-    0%, 100% { transform: scale(1); opacity: 0.9; }
-    50% { transform: scale(1.08); opacity: 1; }
-  }
-  @keyframes star-orbit {
-    0% { transform: scale(1.35) translate(-3.5px,-3.5px) rotate(0deg); }
-    100% { transform: scale(1.35) translate(-3.5px,-3.5px) rotate(360deg); }
-  }
-  .art-claps-btn:hover {
-    border-color: var(--hf-accent, #00D26A);
-    color: var(--hf-accent, #00D26A);
-    transform: scale(1.08);
-    box-shadow: 0 0 24px var(--hf-accent-dim);
-  }
-  .art-claps-btn.clapped {
-    color: var(--hf-accent, #00D26A);
-    border-color: var(--hf-accent, #00D26A);
-    animation: clap-pop 0.3s ease;
-  }
-  @keyframes clap-pop {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.18); }
-    100% { transform: scale(1); }
-  }
-  .art-claps-count {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--hf-accent, #00D26A);
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  .art-claps-label {
-    font-size: 0.65rem;
-    color: var(--hf-text-dim, #6a6a6a);
-    text-transform: uppercase;
-    letter-spacing: 2px;
+  .iine-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 18px !important;
+    font-size: 0.9rem !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    cursor: pointer !important;
+    border: 1px solid var(--hf-accent-border, rgba(0,210,106,0.25)) !important;
+    border-radius: 100px !important;
+    background: var(--hf-accent-dim, rgba(0,210,106,0.05)) !important;
+    color: var(--hf-text-muted, #888) !important;
+    transition: all 0.3s ease !important;
+    line-height: 1 !important;
+    animation: iinePulse 4s ease-in-out 3s infinite !important;
   }
 
-  /* Comments box */
-  .art-comments-box {
-    min-width: 0;
+  .iine-button:hover {
+    border-color: var(--hf-accent, #00D26A) !important;
+    color: var(--hf-accent, #00D26A) !important;
+    background: var(--hf-accent-dim, rgba(0,210,106,0.1)) !important;
+    transform: scale(1.05);
   }
-  #cusdis_thread {
-    min-height: 200px;
+  .iine-button.clicked {
+    border-color: var(--hf-accent, #00D26A) !important;
+    color: var(--hf-accent, #00D26A) !important;
+    background: var(--hf-accent-dim, rgba(0,210,106,0.12)) !important;
   }
-  #cusdis_thread iframe {
-    border: none !important;
+  .iine-button .icon {
+    display: inline-flex !important;
+    align-items: center !important;
   }
+  .iine-button .icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .iine-button .counter {
+    font-weight: 600 !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+
 
   /* ── Footer ── */
   .art-footer {
@@ -808,17 +754,9 @@ const layoutClass = 'art-layout--' + artLayout;
   @media (max-width: 700px) {
     .art-container { padding: 48px 20px 0; }
     .art-container-narrow { padding: 0 20px; }
-    .art-closing-panel { padding: 40px 20px; }
+    .art-closing-panel { padding: 24px 20px; }
     .art-closing-inner {
-      grid-template-columns: 1fr;
-      gap: 24px;
-      padding: 28px 24px;
-    }
-    .art-claps-box {
-      border-right: none;
-      border-bottom: 1px solid var(--hf-border-secondary, #2a2a2a);
-      padding-right: 0;
-      padding-bottom: 24px;
+      padding: 0;
     }
     .art-footer-inner { padding: 0 20px; }
     .art-title { font-size: 1.6rem; letter-spacing: -0.5px; }

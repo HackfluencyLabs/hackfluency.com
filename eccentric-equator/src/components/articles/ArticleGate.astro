@@ -1,0 +1,280 @@
+---
+interface Props {
+  locale: 'es' | 'en';
+}
+const { locale } = Astro.props;
+const isES = locale === 'es';
+---
+
+<div id="article-gate" class="article-gate" aria-hidden="true"
+  data-is-es={isES ? '1' : '0'}
+  data-bot-token={import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN}
+  data-chat-id={import.meta.env.PUBLIC_TELEGRAM_CHAT_ID}>
+  <div class="ag-overlay"></div>
+  <div class="ag-card" role="dialog" aria-modal="true" aria-labelledby="ag-title">
+    <div class="ag-header">
+      <span class="ag-badge">{isES ? 'SIGUE LEYENDO' : 'CONTINUE READING'}</span>
+      <h3 id="ag-title" class="ag-title">
+        {isES ? '¿Disfrutando el artículo?' : 'Enjoying the article?'}
+      </h3>
+      <p class="ag-sub">
+        {isES
+          ? 'Recibe más investigaciones como esta directamente en tu bandeja de entrada. Sin spam, cancela cuando quieras.'
+          : 'Get more research like this delivered to your inbox. No spam, unsubscribe anytime.'}
+      </p>
+    </div>
+    <form id="ag-form" class="ag-form">
+      <!-- Honeypot: invisible to humans, bots fill it -->
+      <input type="text" id="ag-honey" class="ag-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <div class="ag-input-row">
+        <input type="email" id="ag-email" required
+          placeholder={isES ? 'tu@email.com' : 'your@email.com'}
+          aria-label={isES ? 'Tu correo electrónico' : 'Your email'}
+          autocomplete="email" />
+        <button type="submit" class="ag-btn">
+          {isES ? 'Suscribirme' : 'Subscribe'}
+        </button>
+      </div>
+      <p id="ag-msg" class="ag-msg"></p>
+    </form>
+    <button id="ag-skip" class="ag-skip" type="button">
+      {isES ? 'No, gracias — seguir leyendo' : 'No thanks — continue reading'}
+    </button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var gate = document.getElementById('article-gate');
+    if (!gate) return;
+
+    var isES = gate.getAttribute('data-is-es') === '1';
+    var BOT_TOKEN = gate.getAttribute('data-bot-token');
+    var CHAT_ID = gate.getAttribute('data-chat-id');
+
+    // ── Re-engagement & rate limiting ────────────────────────────
+    var SKIP_KEY = 'hf-gate-skip';
+    var DONE_KEY = 'hf-gate-done';
+    var RATE_KEY = 'hf-gate-rate';
+
+    function getExpiry(key) {
+      try { return parseInt(localStorage.getItem(key) || '0', 10); } catch(e) { return 0; }
+    }
+    function setExpiry(key, seconds) {
+      try { localStorage.setItem(key, String(Math.floor(Date.now() / 1000) + seconds)); } catch(e) {}
+    }
+
+    function isExpired(key) {
+      var expiry = getExpiry(key);
+      return expiry === 0 || Math.floor(Date.now() / 1000) > expiry;
+    }
+
+    function skipCount() {
+      try { return parseInt(localStorage.getItem('hf-gate-skip-count') || '0', 10); } catch(e) { return 0; }
+    }
+    function incrementSkipCount() {
+      try { localStorage.setItem('hf-gate-skip-count', String(skipCount() + 1)); } catch(e) {}
+    }
+
+    // Skip cooldowns: 7d → 14d → 30d → 60d
+    var SKIP_COOLDOWNS = [604800, 1209600, 2592000, 5184000]; // 7, 14, 30, 60 days
+    function getSkipCooldown() {
+      var n = skipCount();
+      return SKIP_COOLDOWNS[Math.min(n, SKIP_COOLDOWNS.length - 1)];
+    }
+
+    // Already subscribed? 90d cooldown
+    var SUB_COOLDOWN = 7776000; // 90 days
+
+    // Check if gate should be suppressed
+    var skipUntil = getExpiry(SKIP_KEY);
+    var doneUntil = getExpiry(DONE_KEY);
+    if (!isExpired(SKIP_KEY) || !isExpired(DONE_KEY)) return;
+
+    // ── Rate limiter: max 3 submits per hour ────────────────────
+    function checkRateLimit() {
+      try {
+        var raw = localStorage.getItem(RATE_KEY);
+        if (!raw) return true;
+        var list = JSON.parse(raw);
+        var now = Date.now();
+        var recent = list.filter(function(t) { return now - t < 3600000; }); // 1 hour
+        localStorage.setItem(RATE_KEY, JSON.stringify(recent));
+        return recent.length < 3;
+      } catch(e) { return true; }
+    }
+    function trackRateLimit() {
+      try {
+        var raw = localStorage.getItem(RATE_KEY);
+        var list = raw ? JSON.parse(raw) : [];
+        list.push(Date.now());
+        localStorage.setItem(RATE_KEY, JSON.stringify(list.slice(-10)));
+      } catch(e) {}
+    }
+
+    // ── Honeypot check ──────────────────────────────────────────
+    function isBot() {
+      var honey = document.getElementById('ag-honey');
+      return honey && honey.value.trim().length > 0;
+    }
+
+    // ── HTML escape ────────────────────────────────────────────
+    function esc(t) { return (t || '').replace(/[<>&]/g, function(c) { return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c] || c; }); }
+
+    // ── Telegram send ──────────────────────────────────────────
+    async function sendToTelegram(email) {
+      if (!BOT_TOKEN || !CHAT_ID) return false;
+      var text = '<b>📬 Nueva suscripci&oacute;n</b>\n<b>Email:</b> ' + esc(email) + '\n<b>Fuente:</b> article-gate\n<b>Fecha:</b> ' + new Date().toISOString();
+      try {
+        var r = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: Number(CHAT_ID), text: text, parse_mode: 'HTML' }),
+        });
+        return r.ok;
+      } catch(e) { return false; }
+    }
+
+    // ── Gate show ─────────────────────────────────────────────
+    var form = document.getElementById('ag-form');
+    var emailInput = document.getElementById('ag-email');
+    var msg = document.getElementById('ag-msg');
+    var skip = document.getElementById('ag-skip');
+    var shown = false;
+
+    function showGate() {
+      if (shown) return;
+      shown = true;
+      gate.style.display = 'flex';
+      gate.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(function() {
+        gate.style.opacity = '1';
+        var card = gate.querySelector('.ag-card');
+        if (card) card.style.transform = 'translateY(0) scale(1)';
+      });
+    }
+
+    function hideGate() {
+      gate.style.opacity = '0';
+      var card = gate.querySelector('.ag-card');
+      if (card) card.style.transform = 'translateY(20px) scale(0.95)';
+      setTimeout(function() {
+        gate.style.display = 'none';
+        gate.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }, 400);
+    }
+
+    // ── Trigger logic ──────────────────────────────────────────
+    var article = document.querySelector('article') || document.querySelector('.art-content') || document.querySelector('main');
+    if (article) {
+      var triggerPx = article.offsetTop + article.offsetHeight * 0.35;
+      if (window.scrollY > triggerPx) { showGate(); return; }
+      var sentinel = document.createElement('div');
+      sentinel.style.cssText = 'height:1px;width:100%;position:absolute;pointer-events:none;';
+      sentinel.style.top = triggerPx + 'px';
+      document.body.appendChild(sentinel);
+
+      var obs = new IntersectionObserver(function(entries) {
+        if (entries.some(function(e) { return e.isIntersecting; })) {
+          showGate(); obs.disconnect();
+        }
+      }, { threshold: 0 });
+      obs.observe(sentinel);
+
+      var scrollFired = false;
+      var scrollCheck = function() {
+        if (scrollFired || shown) return;
+        if (window.scrollY > triggerPx) { scrollFired = true; showGate(); window.removeEventListener('scroll', scrollCheck); }
+      };
+      window.addEventListener('scroll', scrollCheck, { passive: true });
+    } else {
+      var timer = setTimeout(showGate, 3000);
+      window.addEventListener('scroll', function onScroll() {
+        if (window.scrollY > window.innerHeight) { clearTimeout(timer); showGate(); window.removeEventListener('scroll', onScroll); }
+      }, { passive: true });
+    }
+
+    // ── Form submit ────────────────────────────────────────────
+    if (form && emailInput && msg) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Honeypot: silent reject for bots
+        if (isBot()) { hideGate(); setExpiry(DONE_KEY, SUB_COOLDOWN); return; }
+
+        // Rate limit check
+        if (!checkRateLimit()) {
+          msg.textContent = isES ? 'Demasiados intentos. Intenta más tarde.' : 'Too many attempts. Try later.';
+          msg.className = 'ag-msg ag-msg--error';
+          return;
+        }
+
+        var email = emailInput.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          msg.textContent = isES ? 'Email inválido' : 'Invalid email';
+          msg.className = 'ag-msg ag-msg--error';
+          return;
+        }
+
+        msg.textContent = isES ? 'Enviando...' : 'Sending...';
+        msg.className = 'ag-msg ag-msg--info';
+        trackRateLimit();
+
+        var ok = await sendToTelegram(email);
+        if (ok) {
+          msg.textContent = isES ? '¡Suscrito! Continúa leyendo ↓' : 'Subscribed! Continue reading ↓';
+          msg.className = 'ag-msg ag-msg--success';
+          setExpiry(DONE_KEY, SUB_COOLDOWN); // 90d re-engagement
+          localStorage.removeItem(SKIP_KEY);
+          setTimeout(hideGate, 1500);
+        } else {
+          msg.textContent = isES ? 'Error. Intenta de nuevo.' : 'Error. Try again.';
+          msg.className = 'ag-msg ag-msg--error';
+        }
+      });
+    }
+
+    // ── Skip → progressive cooldown ────────────────────────────
+    if (skip) {
+      skip.addEventListener('click', function() {
+        incrementSkipCount();
+        setExpiry(SKIP_KEY, getSkipCooldown());
+        hideGate();
+      });
+    }
+
+    // ── ESC key ────────────────────────────────────────────────
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape' && shown) {
+        incrementSkipCount();
+        setExpiry(SKIP_KEY, getSkipCooldown());
+        hideGate();
+        document.removeEventListener('keydown', onEsc);
+      }
+    });
+  })();
+</script>
+
+<style>
+  .article-gate { display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; opacity:0; transition:opacity .4s ease; font-family:'Inter',system-ui,sans-serif; }
+  .ag-overlay { position:absolute; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .ag-card { position:relative; background:var(--hf-bg-card,#111); border:1px solid var(--hf-accent-border,rgba(0,210,106,.3)); border-radius:20px; padding:48px 40px 36px; max-width:460px; width:90%; text-align:center; transform:translateY(20px) scale(.95); transition:transform .4s cubic-bezier(.16,1,.3,1); box-shadow:0 30px 80px rgba(0,0,0,.6); }
+  .ag-badge { display:inline-block; font-size:.6rem; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--hf-accent,#00D26A); padding:4px 12px; border:1px solid var(--hf-accent-border,rgba(0,210,106,.3)); border-radius:100px; margin-bottom:20px; }
+  .ag-title { font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:700; color:var(--hf-text,#fff); margin-bottom:12px; line-height:1.3; }
+  .ag-sub { font-size:.9rem; color:var(--hf-text-muted,#888); line-height:1.6; margin-bottom:28px; }
+  .ag-form { display:flex; flex-direction:column; gap:12px; }
+  .ag-honey { position:absolute; left:-9999px; top:-9999px; opacity:0; height:0; width:0; overflow:hidden; }
+  .ag-input-row { display:flex; gap:8px; }
+  .ag-input-row input { flex:1; padding:14px 16px; background:var(--hf-bg,#0a0a0a); border:1px solid var(--hf-border,#222); border-radius:10px; color:var(--hf-text,#fff); font-size:.9rem; font-family:inherit; outline:none; transition:border-color .2s; min-height:48px; }
+  .ag-input-row input:focus { border-color:var(--hf-accent,#00D26A); }
+  .ag-btn { padding:14px 28px; background:var(--hf-accent,#00D26A); color:var(--hf-text-on-accent,#000); border:none; border-radius:10px; font-size:.85rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:background .2s; min-height:48px; }
+  .ag-btn:hover { background:var(--hf-accent-light,#00FF7F); }
+  .ag-msg { font-size:.8rem; min-height:1.2em; }
+  .ag-msg--error { color:var(--accent,#E31B23); }
+  .ag-msg--success { color:var(--primary,#00D26A); }
+  .ag-msg--info { color:var(--hf-text-muted,#888); }
+  .ag-skip { display:inline-block; margin-top:20px; background:none; border:none; color:var(--hf-text-dim,#666); font-size:.8rem; cursor:pointer; font-family:inherit; text-decoration:underline; text-underline-offset:3px; text-decoration-color:transparent; transition:all .2s; }
+  .ag-skip:hover { color:var(--hf-text-muted,#888); text-decoration-color:currentColor; }
+  @media (max-width:480px) { .ag-card { padding:36px 24px 28px; } .ag-title { font-size:1.25rem; } .ag-input-row { flex-direction:column; } .ag-btn { width:100%; } }
+</style>
