@@ -168,6 +168,69 @@ const values = [
   const MAX_EMAIL_LENGTH = 254;
   const ALLOWED_EMAIL_CHARS = /^[a-zA-Z0-9@._-]+$/;
 
+  // ===== PROBLEM FORM HANDLER =====
+  const problemForm = document.getElementById("problem-form");
+  const problemMessage = document.getElementById("problem-form-message");
+
+  if (problemForm && problemMessage) {
+    problemForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const name = (document.getElementById("problem-name") as HTMLInputElement)?.value.trim() || "";
+      const email = (document.getElementById("problem-email") as HTMLInputElement)?.value.trim();
+      const area = (document.getElementById("problem-area") as HTMLSelectElement)?.value;
+      const contact = (document.getElementById("problem-contact") as HTMLSelectElement)?.value;
+      const description = (document.getElementById("problem-description") as HTMLTextAreaElement)?.value.trim();
+
+      const getMsg = (key: string) => problemForm?.getAttribute(`data-msg-${key}`) || '';
+
+      if (!email || !description) {
+        problemMessage.textContent = getMsg('required');
+        problemMessage.className = "form-message error";
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        problemMessage.textContent = getMsg('email-invalid');
+        problemMessage.className = "form-message error";
+        return;
+      }
+
+      problemMessage.textContent = getMsg('sending');
+      problemMessage.className = "form-message info";
+
+      const locale = window.location.pathname.startsWith('/en') ? 'en' : 'es';
+
+      try {
+        const BOT_TOKEN = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
+        const CHAT_ID = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
+        const esc = (t: string) => (t || '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c] || c));
+
+        const areaLabels: Record<string,string> = { security: 'Seguridad', architecture: 'Arquitectura', behavior: 'Comportamiento organizacional', intelligence: 'Inteligencia estratégica', other: 'Otro' };
+        const contactLabels: Record<string,string> = { email: 'Email', meeting: 'Reunión breve', depends: 'Depende' };
+
+        const text = '<b>🔬 Nuevo problema recibido</b>\n<b>Nombre:</b> ' + esc(name || '(sin nombre)') + '\n<b>Email:</b> ' + esc(email) + '\n<b>Área:</b> ' + esc(areaLabels[area] || area || '') + '\n<b>Contacto:</b> ' + esc(contactLabels[contact] || contact || '') + '\n<b>Descripción:</b>\n' + esc(description) + '\n<b>Fecha:</b> ' + new Date().toISOString();
+
+        if (BOT_TOKEN && CHAT_ID) {
+          const res = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: Number(CHAT_ID), text, parse_mode: 'HTML' }),
+          });
+          if (res.ok) {
+            problemMessage.textContent = getMsg('success');
+            problemMessage.className = "form-message success";
+            (problemForm as HTMLFormElement).reset();
+            return;
+          }
+        }
+        problemMessage.textContent = getMsg('error');
+        problemMessage.className = "form-message error";
+      } catch (err) {
+        problemMessage.textContent = getMsg('network');
+        problemMessage.className = "form-message error";
+      }
+    });
+  }
+
   // ===== DOM ELEMENTS =====
   const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
   const message = document.getElementById("form-message") as HTMLElement | null;
@@ -291,8 +354,8 @@ const values = [
       <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
     </a>
     <div class="nav-links">
-      <a href="#services">{t('nav.services')}</a>
-      <a href="#about">{t('nav.about')}</a>
+      <a href="#lineas">{t('nav.services')}</a>
+      <a href="#grupo">{t('nav.about')}</a>
       <a href="#values">{t('nav.approach')}</a>
       <a href={locale === 'es' ? '/research' : '/en/research'} class="nav-research">{t('nav.research')}</a>
     </div>
@@ -311,8 +374,8 @@ const values = [
   <div class="mobile-menu-overlay" id="mobile-menu">
     <div class="mobile-menu-content">
       <nav class="mobile-nav-links">
-        <a href="#services" class="mobile-nav-link">{t('nav.services')}</a>
-        <a href="#about" class="mobile-nav-link">{t('nav.about')}</a>
+        <a href="#lineas" class="mobile-nav-link">{t('nav.services')}</a>
+        <a href="#grupo" class="mobile-nav-link">{t('nav.about')}</a>
         <a href="#values" class="mobile-nav-link">{t('nav.approach')}</a>
           <a href={locale === 'es' ? '/research' : '/en/research'} class="mobile-nav-link mobile-nav-link--research">{t('nav.research')} ↗</a>
       </nav>
@@ -358,7 +421,7 @@ const values = [
         {t('hero.subtitle')}
       </p>
       <div class="hero-actions">
-        <a href="#services" class="btn btn-primary">
+        <a href="#lineas" class="btn btn-primary">
           <span>{t('hero.ctaPrimary')}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -468,8 +531,187 @@ const values = [
   </div>
 </section>
 
-<!-- Services Section -->
-<section id="services" class="services">
+<!-- Ticker de Últimas Indagaciones -->
+<section class="ticker-wrap"
+  data-items={JSON.stringify([
+    { tag: t('indagaciones.item1.tag'), title: t('indagaciones.item1.titulo'), fecha: t('indagaciones.item1.fecha'), color: '#F59E0B', recent: true },
+    { tag: t('indagaciones.item2.tag'), title: t('indagaciones.item2.titulo'), fecha: t('indagaciones.item2.fecha'), color: '#6C4F9E', recent: false },
+    { tag: t('indagaciones.item5.tag'), title: t('indagaciones.item5.titulo'), fecha: t('indagaciones.item5.fecha'), color: '#00D26A', recent: false },
+    { tag: t('indagaciones.item3.tag'), title: t('indagaciones.item3.titulo'), fecha: t('indagaciones.item3.fecha'), color: '#3B82F6', recent: false },
+    { tag: t('indagaciones.item6.tag'), title: t('indagaciones.item6.titulo'), fecha: t('indagaciones.item6.fecha'), color: '#9C5E4D', recent: false },
+    { tag: t('indagaciones.item7.tag'), title: t('indagaciones.item7.titulo'), fecha: t('indagaciones.item7.fecha'), color: '#9C5E4D', recent: false },
+    { tag: t('indagaciones.item4.tag'), title: t('indagaciones.item4.titulo'), fecha: t('indagaciones.item4.fecha'), color: '#3B82F6', recent: false },
+  ])}>
+  <div class="ticker-header">
+    <span class="ticker-header-badge">{t('indagaciones.tag')}</span>
+    <span class="ticker-header-live">
+      <span class="ticker-live-dot"></span>
+      {locale === 'es' ? '7 entregas · en vivo' : '7 deliveries · live'}
+    </span>
+  </div>
+  <div class="ticker-track" id="hf-ticker">
+    <div class="ticker-inner" id="hf-ticker-inner"></div>
+  </div>
+</section>
+
+<script is:inline data-astro-rerun>
+(function() {
+  var wrap = document.querySelector('.ticker-wrap');
+  if (!wrap) return;
+  var raw = wrap.getAttribute('data-items');
+  var items;
+  try { items = JSON.parse(raw); } catch(e) { return; }
+  if (!items || !items.length) return;
+
+  // Double the items for seamless loop
+  var doubled = items.concat(items);
+  var inner = document.getElementById('hf-ticker-inner');
+  if (!inner) return;
+
+  inner.innerHTML = doubled.map(function(item, idx) {
+    var color = item.color || 'var(--hf-accent)';
+    var isRecent = item.recent;
+    var pulseDur = isRecent ? '1.5s' : '3s';
+    var animName = isRecent ? 'tickerPulseRecent' : 'tickerPulseOld';
+    var dotSize = isRecent ? '14px' : '10px';
+    var glowIntensity = isRecent ? '0 0 14px ' + color : '0 0 6px ' + color;
+    var tagBg = color + '20';
+    var tagBorder = color + '40';
+    return '<div class="ticker-item' + (isRecent ? ' ticker-item--recent' : '') + '" style="border-color:' + color + '60;' + (isRecent ? 'border-width:1.5px;' : '') + '">' +
+      '<span class="ticker-dot" style="background:' + color + ';box-shadow:' + glowIntensity + ';animation:' + animName + ' ' + pulseDur + ' ease-in-out infinite;width:' + dotSize + ';height:' + dotSize + ';"></span>' +
+      '<span class="ticker-meta">' +
+        '<span class="ticker-tag" style="background:' + tagBg + ';border-color:' + tagBorder + ';color:' + color + ';">' + item.tag + '</span>' +
+        '<span class="ticker-fecha">' + item.fecha + '</span>' +
+      '</span>' +
+      '<span class="ticker-title">' + item.title + '</span>' +
+    '</div>';
+  }).join('');
+
+  // Calculate animation duration based on total width
+  var totalWidth = 0;
+  var children = inner.children;
+  for (var i = 0; i < children.length; i++) {
+    totalWidth += children[i].offsetWidth;
+  }
+  var duration = Math.max(20, totalWidth / 80); // ~80px per second
+  inner.style.setProperty('--ticker-duration', duration + 's');
+  inner.style.animationDuration = duration + 's';
+  inner.style.animationPlayState = 'running';
+
+  // Pause on hover
+  var track = document.getElementById('hf-ticker');
+  if (track) {
+    track.addEventListener('mouseenter', function() { inner.style.animationPlayState = 'paused'; });
+    track.addEventListener('mouseleave', function() { inner.style.animationPlayState = 'running'; });
+  }
+
+  // Accessibility: reduce motion
+  var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq.matches) { inner.style.animation = 'none'; inner.style.transform = 'none'; }
+})();
+</script>
+
+<style is:global>
+  .ticker-wrap {
+    background: var(--hf-bg-secondary, #111);
+    border-top: 1px solid var(--hf-accent-border, rgba(0,210,106,0.15));
+    border-bottom: 1px solid var(--hf-accent-border, rgba(0,210,106,0.15));
+    padding: 12px 0;
+    overflow: hidden;
+    position: relative;
+  }
+  html[data-theme-mode="light"] .ticker-wrap {
+    background: color-mix(in srgb, var(--hf-accent) 5%, var(--hf-bg-secondary));
+    border-color: color-mix(in srgb, var(--hf-accent) 20%, transparent);
+  }
+  .ticker-wrap::before, .ticker-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 60px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .ticker-wrap::before { left: 0; background: linear-gradient(90deg, var(--hf-bg-secondary, #111) 0%, transparent 100%); }
+  .ticker-wrap::after { right: 0; background: linear-gradient(270deg, var(--hf-bg-secondary, #111) 0%, transparent 100%); }
+  .ticker-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 24px 10px;
+  }
+  .ticker-header-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--hf-accent, #00D26A);
+    border: 1px solid var(--hf-accent-border, rgba(0,210,106,0.3));
+    padding: 3px 12px;
+    border-radius: 100px;
+  }
+  .ticker-header-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--hf-text-dim, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .ticker-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--hf-accent, #00D26A);
+    animation: tickerLivePulse 2s ease-in-out infinite;
+  }
+  @keyframes tickerLivePulse {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px var(--hf-accent, #00D26A); }
+    50% { opacity: 0.5; transform: scale(0.85); box-shadow: 0 0 0 transparent; }
+  }
+  .ticker-track { overflow: hidden; width: 100%; }
+  .ticker-inner { display: flex; gap: 0; width: max-content; animation: tickerScroll var(--ticker-duration, 30s) linear infinite; will-change: transform; }
+  @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .ticker-item--recent {
+    border-color: var(--hf-accent, #00D26A) !important;
+    background: color-mix(in srgb, var(--hf-accent) 10%, var(--hf-bg)) !important;
+    box-shadow: 0 0 24px color-mix(in srgb, var(--hf-accent) 12%, transparent);
+  }
+  html[data-theme-mode="light"] .ticker-item--recent {
+    background: color-mix(in srgb, var(--hf-accent) 12%, white) !important;
+  }
+  .ticker-item--recent .ticker-title {
+    color: var(--hf-accent, #00D26A) !important;
+    font-weight: 500 !important;
+  }
+  .ticker-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 16px 6px 12px; margin: 0 8px;
+    white-space: nowrap; flex-shrink: 0; font-size: 0.85rem;
+    color: var(--hf-text-secondary, #ccc);
+    border: 1px solid; border-radius: 100px;
+    background: color-mix(in srgb, var(--hf-bg) 60%, transparent);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .ticker-item:hover { box-shadow: 0 0 20px color-mix(in srgb, currentColor 15%, transparent); }
+  html[data-theme-mode="light"] .ticker-item { background: color-mix(in srgb, var(--hf-bg-secondary) 80%, transparent); color: var(--hf-text-muted, #555); }
+  .ticker-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+  @keyframes tickerPulseRecent { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.6; } }
+  @keyframes tickerPulseOld { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 0.3; } }
+  .ticker-meta { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .ticker-fecha { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 600; color: var(--hf-text-dim, #666); letter-spacing: 0.04em; text-transform: uppercase; }
+  .ticker-sep { display: none; }
+  .ticker-tag { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; border: 1px solid; }
+  .ticker-title { font-weight: 400; color: var(--hf-text, #fff); max-width: 360px; overflow: hidden; text-overflow: ellipsis; font-size: 0.82rem; }
+  html[data-theme-mode="light"] .ticker-title { color: var(--hf-text-secondary, #333); }
+</style>
+
+<!-- Líneas de Indagación Section -->
+<section id="lineas" class="services">
   <div class="container">
     <div class="section-header">
       <span class="section-tag">{t('services.tag')}</span>
@@ -515,7 +757,7 @@ const values = [
                   {service.link ? (
                     <a href={service.link} class="spec-link">{t(service.linkTextKey || 'services.explore')}</a>
                   ) : (
-                    <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" class="spec-link">{t('services.bookConsultation')}</a>
+                    <a href="#contact" class="spec-link">{t('services.bookConsultation')}</a>
                   )}
                 </div>
               </div>
@@ -528,89 +770,107 @@ const values = [
 </section>
 
 <!-- About Section -->
-<section id="about" class="about">
+<section id="grupo" class="about">
   <div class="container">
-    <div class="about-grid">
-      <div class="about-content">
-        <span class="section-tag">{t('about.tag')}</span>
-        <h2 class="section-title">{t('about.title')}</h2>
-        <p class="about-text">{t('about.text1')}</p>
-        <p class="about-text">{t('about.text2')}</p>
-        <div class="about-features">
-          <div class="about-feature">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            <span>{t('about.feature1')}</span>
-          </div>
-          <div class="about-feature">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            <span>{t('about.feature2')}</span>
-          </div>
-          <div class="about-feature">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            <span>{t('about.feature3')}</span>
-          </div>
+    <div class="section-header">
+      <span class="section-tag">{t('about.tag')}</span>
+      <h2 class="section-title">{t('about.title')}</h2>
+    </div>
+    <p class="about-text" style="text-align:center;max-width:720px;margin:0 auto 48px;">{t('about.text1')}</p>
+    <p class="about-text" style="text-align:center;max-width:720px;margin:0 auto 48px;">{t('about.text2')}</p>
+    
+    <!-- Member grid -->
+    <div class="member-grid">
+      <!-- Marcelo — perfil bajo -->
+      <div class="member-card">
+        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
+        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <h3 class="member-name">Marcelo Burgos</h3>
+        <p class="member-role">{t('member.marcelo.role')}</p>
+        <p class="member-desc">{t('member.marcelo.desc')}</p>
+        <div class="member-lenses">
+          <span class="m-lens m-lens--digital" title="Digital">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
+            <span>Digital</span>
+          </span>
+          <span class="m-lens m-lens--philosophy" title="Filosófico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></svg>
+            <span>Filosófico</span>
+          </span>
         </div>
       </div>
-      <div class="about-visual">
-        <div class="insight-dashboard">
-          <!-- Digital Panel -->
-          <div class="insight-panel insight-panel--digital">
-            <div class="insight-panel-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/>
-              </svg>
-            </div>
-            <div class="insight-panel-content">
-              <span class="insight-panel-label">{t('about.panel.digital')}</span>
-              <span class="insight-panel-text">{t('about.panel.digitalDesc')}</span>
-            </div>
-          </div>
-          <!-- Human Panel -->
-          <div class="insight-panel insight-panel--human">
-            <div class="insight-panel-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              </svg>
-            </div>
-            <div class="insight-panel-content">
-              <span class="insight-panel-label">{t('about.panel.human')}</span>
-              <span class="insight-panel-text">{t('about.panel.humanDesc')}</span>
-            </div>
-          </div>
-          <!-- Social Panel -->
-          <div class="insight-panel insight-panel--social">
-            <div class="insight-panel-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/>
-              </svg>
-            </div>
-            <div class="insight-panel-content">
-              <span class="insight-panel-label">{t('about.panel.social')}</span>
-              <span class="insight-panel-text">{t('about.panel.socialDesc')}</span>
-            </div>
-          </div>
-          <!-- Philosophical Panel -->
-          <div class="insight-panel insight-panel--philosophy">
-            <div class="insight-panel-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/>
-              </svg>
-            </div>
-            <div class="insight-panel-content">
-              <span class="insight-panel-label">{t('about.panel.philosophy')}</span>
-              <span class="insight-panel-text">{t('about.panel.philosophyDesc')}</span>
-            </div>
-          </div>
+      <!-- Victor Cayupil — consultor asociado Ágil Chile -->
+      <div class="member-card">
+        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent-analysis)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent-analysis)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent-analysis)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
+        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <h3 class="member-name">{t('member.victor.name')}</h3>
+        <p class="member-role">{t('member.victor.role')}</p>
+        <p class="member-desc">{t('member.victor.desc')}</p>
+        <div class="member-lenses">
+          <span class="m-lens m-lens--digital" title="Digital">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
+            <span>Digital</span>
+          </span>
         </div>
+      </div>
+      <!-- Cinthia González -->
+      <div class="member-card">
+        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent-human)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent-human)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent-human)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
+        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <h3 class="member-name">Cinthia González</h3>
+        <p class="member-role">{t('member.cinthia.role')}</p>
+        <p class="member-desc">{t('member.cinthia.desc')}</p>
+        <div class="member-lenses">
+          <span class="m-lens m-lens--human" title="Humano">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span>Humano</span>
+          </span>
+          <span class="m-lens m-lens--social" title="Social">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+            <span>Social</span>
+          </span>
+        </div>
+      </div>
+      <!-- Daniel Mella -->
+      <div class="member-card">
+        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
+        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <h3 class="member-name">{t('member.daniel.name')}</h3>
+        <p class="member-role">{t('member.daniel.role')}</p>
+        <p class="member-desc">{t('member.daniel.desc')}</p>
+        <div class="member-lenses">
+          <span class="m-lens m-lens--social" title="Social">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+            <span>Social</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Socios Section -->
+<section class="partners">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">{t('partners.tag')}</span>
+      <h2 class="section-title">{t('partners.title')}</h2>
+      <p class="section-subtitle">{t('partners.subtitle')}</p>
+    </div>
+    <div class="partners-grid">
+      <a href="https://agilchile.com" target="_blank" rel="noopener" class="partner-item">
+        <div class="partner-icon">
+          <img src="/assets/agilchile-logo.png" alt="Ágil Chile logo" width="72" height="72" class="partner-logo-img" />
+        </div>
+        <h4 class="partner-name">Ágil Chile</h4>
+        <p class="partner-desc">Tech company: IA, talento y ciberseguridad. Partner estratégico en servicios de ciberseguridad — pentesting, red team y assessment entregados a través de su ecosistema.</p>
+      </a>
+      <div class="partner-item partner-item--placeholder">
+        <div class="partner-icon">
+          <svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="30" stroke="var(--hf-border)" stroke-width="1" fill="none" stroke-dasharray="4 4"/><text x="40" y="46" text-anchor="middle" fill="var(--hf-text-dim)" font-size="28" font-family="Space Grotesk,sans-serif" font-weight="300">+</text></svg>
+        </div>
+        <h4 class="partner-name">Próximamente</h4>
+        <p class="partner-desc">Institutos, laboratorios, herramientas y entidades que se suman al observatorio.</p>
       </div>
     </div>
   </div>
@@ -669,14 +929,49 @@ const values = [
           <span>{t('cta.feature3')}</span>
         </div>
       </div>
-      <div class="cta-actions">
-        <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="btn btn-primary btn-large">
-          <span>{t('cta.button')}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-        </a>
-      </div>
+      
+      <!-- Problem Form -->
+      <form id="problem-form" class="problem-form"
+        data-msg-required="{t('form.required')}"
+        data-msg-email-invalid="{t('form.emailInvalid')}"
+        data-msg-sending="{t('form.sending')}"
+        data-msg-success="{t('form.success')}"
+        data-msg-error="{t('form.error')}"
+        data-msg-network="{t('form.networkError')}">
+        <div class="problem-form-row">
+          <input type="text" id="problem-name" placeholder={t('form.name')} aria-label={t('form.name')} />
+          <input type="email" id="problem-email" placeholder={t('form.email')} required aria-label={t('form.email')} autocomplete="email" />
+        </div>
+        <div class="problem-form-row">
+          <select id="problem-area" aria-label={t('form.area')}>
+            <option value="">{t('form.areaDefault')}</option>
+            <option value="security">{t('form.area.security')}</option>
+            <option value="architecture">{t('form.area.architecture')}</option>
+            <option value="behavior">{t('form.area.behavior')}</option>
+            <option value="intelligence">{t('form.area.intelligence')}</option>
+            <option value="other">{t('form.area.other')}</option>
+          </select>
+          <select id="problem-contact" aria-label={t('form.contact')}>
+            <option value="email">{t('form.contact.email')}</option>
+            <option value="meeting">{t('form.contact.meeting')}</option>
+            <option value="depends">{t('form.contact.depends')}</option>
+          </select>
+        </div>
+        <div class="problem-form-row">
+          <textarea id="problem-description" rows="5" placeholder={t('form.description')} required aria-label={t('form.description')}></textarea>
+        </div>
+        <div class="cta-actions">
+          <button type="submit" class="btn btn-primary btn-large">
+            <span>{t('cta.button')}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </button>
+        </div>
+        <div id="problem-form-message" class="form-message"></div>
+      </form>
+      
       <p class="cta-note">{t('cta.note')}</p>
     </div>
   </div>
@@ -696,19 +991,19 @@ const values = [
       <div class="footer-links">
         <nav class="footer-column" aria-label={t('footer.servicesTitle')}>
           <h5>{t('footer.servicesTitle')}</h5>
-          <a href="#services">{t('services.strategicAdvisory.title')}</a>
-          <a href="#services">{t('services.securityEngineering.title')}</a>
-          <a href="#services">{t('services.offensiveSecurity.title')}</a>
-          <a href="#services">{t('services.aiSystems.title')}</a>
-          <a href="#services">{t('services.training.title')}</a>
-          <a href="#services">{t('services.research.title')}</a>
+          <a href={locale === 'es' ? '#lineas' : '/en#lineas'}>{t('services.strategicAdvisory.title')}</a>
+          <a href={locale === 'es' ? '#lineas' : '/en#lineas'}>{t('services.securityEngineering.title')}</a>
+          <a href={locale === 'es' ? '#lineas' : '/en#lineas'}>{t('services.offensiveSecurity.title')}</a>
+          <a href={locale === 'es' ? '#lineas' : '/en#lineas'}>{t('services.aiSystems.title')}</a>
+          <a href={locale === 'es' ? '#lineas' : '/en#lineas'}>{t('services.training.title')}</a>
+          <a href={locale === 'es' ? '#lineas' : '/en#lineas'}>{t('services.research.title')}</a>
         </nav>
         <nav class="footer-column" aria-label={t('footer.companyTitle')}>
           <h5>{t('footer.companyTitle')}</h5>
-          <a href="#about">{t('footer.aboutUs')}</a>
+          <a href="#grupo">{t('footer.aboutUs')}</a>
           <a href="#values">{t('nav.approach')}</a>
           <a href="/SecurityRoadmap.HF">{t('footer.strategyRoadmap')}</a>
-          <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener">{t('common.bookCall')}</a>
+          <a href={locale === 'es' ? '#contact' : '/en#contact'}>{t('common.bookCall')}</a>
         </nav>
         <nav class="footer-column" aria-label={t('footer.connectTitle')}>
           <h5>{t('footer.connectTitle')}</h5>
@@ -736,21 +1031,12 @@ const values = [
         </form>
       </div>
 
-    <!-- Trustpilot Widget Section -->
-    <div class="trustpilot-section">
+    <!-- Trustpilot — currently in progress -->
+    <div class="trustpilot-section" style="display:none;">
       <div class="trustpilot-inner">
         <div class="trustpilot-header">
-          <div class="trustpilot-stars" aria-label="Five stars">
-            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
-            <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
-          </div>
           <p class="trustpilot-label">{t('footer.trustpilot.label')}</p>
-          <p class="trustpilot-sub">{t('footer.trustpilot.sub')}</p>
         </div>
-        <!-- TrustBox widget - Review Collector -->
         <div class="trustpilot-widget"
              data-locale={locale === 'es' ? 'es-ES' : 'en-US'}
              data-template-id="56278e9abfbbba0bdcd568bc"
@@ -760,7 +1046,6 @@ const values = [
              data-token="9de2933f-e5a7-4a91-936a-a96daf9fce17">
           <a href="https://www.trustpilot.com/review/hackfluency.com" target="_blank" rel="noopener">{t('footer.trustpilot.review')}</a>
         </div>
-        <!-- End TrustBox widget -->
       </div>
     </div>
 
@@ -1546,6 +1831,8 @@ const values = [
     margin: 0 auto;
   }
 
+
+
   /* Tool CTA Banner */
   .tool-cta { padding: 0 0 60px; }
   .tool-cta-card { display:flex; align-items:center; gap:20px; background:var(--hf-accent-dim); border:1px solid var(--hf-accent-border); border-radius:12px; padding:20px 24px; flex-wrap:wrap; }
@@ -2097,6 +2384,113 @@ const values = [
     .gear-card-tooltip { width: 200px; bottom: calc(100% + 10px); }
   }
 
+  /* Member Grid */
+  .member-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .member-card {
+    flex: 0 0 220px;
+    background: var(--hf-bg);
+    border: 1px solid var(--hf-border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .member-card:hover {
+    border-color: color-mix(in srgb, var(--hf-accent) 40%, var(--hf-border));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--hf-accent) 8%, transparent);
+  }
+
+  .member-avatar {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+  }
+  .member-photo-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+  .member-lenses {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .m-lens {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px 3px 6px;
+    border-radius: 100px;
+    border: 1px solid;
+    background: color-mix(in srgb, var(--hf-bg) 50%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.25s ease;
+    position: relative;
+  }
+  .m-lens svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+  .m-lens span {
+    line-height: 1;
+  }
+  .member-card:hover .m-lens {
+    transform: translateY(-1px);
+    box-shadow: 0 0 8px color-mix(in srgb, currentColor 8%, transparent);
+  }
+  .m-lens--digital { color: var(--hf-accent); border-color: color-mix(in srgb, var(--hf-accent) 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--hf-accent) 10%, var(--hf-bg)) 0%, color-mix(in srgb, var(--hf-accent) 3%, var(--hf-bg)) 100%); }
+  .m-lens--human { color: var(--hf-accent-human); border-color: color-mix(in srgb, var(--hf-accent-human) 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--hf-accent-human) 10%, var(--hf-bg)) 0%, color-mix(in srgb, var(--hf-accent-human) 3%, var(--hf-bg)) 100%); }
+  .m-lens--social { color: var(--hf-accent-privacy); border-color: color-mix(in srgb, var(--hf-accent-privacy) 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--hf-accent-privacy) 10%, var(--hf-bg)) 0%, color-mix(in srgb, var(--hf-accent-privacy) 3%, var(--hf-bg)) 100%); }
+  .m-lens--philosophy { color: var(--hf-accent-philosophy); border-color: color-mix(in srgb, var(--hf-accent-philosophy) 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--hf-accent-philosophy) 10%, var(--hf-bg)) 0%, color-mix(in srgb, var(--hf-accent-philosophy) 3%, var(--hf-bg)) 100%); }
+  .m-lens--digital { color: var(--hf-accent); border-color: color-mix(in srgb, var(--hf-accent) 30%, transparent); }
+  .m-lens--human { color: var(--hf-accent-human); border-color: color-mix(in srgb, var(--hf-accent-human) 30%, transparent); }
+  .m-lens--social { color: var(--hf-accent-privacy); border-color: color-mix(in srgb, var(--hf-accent-privacy) 30%, transparent); }
+  .m-lens--philosophy { color: var(--hf-accent-philosophy); border-color: color-mix(in srgb, var(--hf-accent-philosophy) 30%, transparent); }
+
+  .member-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--hf-text);
+    margin-bottom: 4px;
+  }
+
+  .member-role {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hf-accent);
+    margin-bottom: 10px;
+  }
+
+  .member-desc {
+    font-size: 0.82rem;
+    color: var(--gray-400);
+    line-height: 1.5;
+  }
+
   /* About */
   .about {
     position: relative;
@@ -2162,85 +2556,74 @@ const values = [
     flex-shrink: 0;
   }
 
-  .about-visual {
-    display: flex;
-    justify-content: center;
-  }
 
-  .insight-dashboard {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    width: 100%;
-    max-width: 500px;
-  }
 
-  .insight-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 20px;
-    border: 1px solid var(--hf-border);
+  /* Partners Grid */
+  .partners {
     background: var(--hf-bg);
-    transition: border-color 0.3s ease, transform 0.3s ease;
+    border-top: 1px solid var(--hf-border);
+    border-bottom: 1px solid var(--hf-border);
+    padding: 80px 0;
   }
 
-  .insight-panel:hover {
-    transform: translate(-2px, -2px);
+  .partners-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px 60px;
+    max-width: 900px;
+    margin: 0 auto;
   }
 
-  .insight-panel--digital:hover { border-color: var(--hf-accent); }
-  .insight-panel--human:hover { border-color: var(--hf-accent-human); }
-  .insight-panel--social:hover { border-color: var(--hf-accent-privacy); }
-  .insight-panel--philosophy:hover { border-color: var(--hf-accent-philosophy); }
+  .partner-item {
+    flex: 0 0 200px;
+    text-align: center;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
 
-  .insight-panel-icon {
-    width: 40px;
-    height: 40px;
+  .partner-item:hover {
+    opacity: 1;
+  }
+
+  .partner-item--placeholder {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .partner-logo-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .partner-item a {
+    text-decoration: none;
+  }
+
+  .partner-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--hf-border);
-    background: var(--hf-bg-secondary);
   }
 
-  .insight-panel-icon svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .insight-panel--digital .insight-panel-icon svg { stroke: var(--hf-accent); }
-  .insight-panel--human .insight-panel-icon svg { stroke: var(--hf-accent-human); }
-  .insight-panel--social .insight-panel-icon svg { stroke: var(--hf-accent-privacy); }
-  .insight-panel--philosophy .insight-panel-icon svg { stroke: var(--hf-accent-philosophy); }
-
-  .insight-panel-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .insight-panel-label {
+  .partner-name {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--hf-text);
+    margin-bottom: 6px;
   }
 
-  .insight-panel--digital .insight-panel-label { color: var(--hf-accent); }
-  .insight-panel--human .insight-panel-label { color: var(--hf-accent-human); }
-  .insight-panel--social .insight-panel-label { color: var(--hf-accent-privacy); }
-  .insight-panel--philosophy .insight-panel-label { color: var(--hf-accent-philosophy); }
-
-  .insight-panel-text {
+  .partner-desc {
     font-size: 0.78rem;
-    color: var(--gray-400);
+    color: var(--gray-500);
     line-height: 1.5;
-  }
-
-  @media (max-width: 480px) {
-    .insight-dashboard { grid-template-columns: 1fr; }
   }
 
   /* Values */
@@ -2406,6 +2789,66 @@ const values = [
     font-size: 0.8rem;
     color: var(--gray-600);
     font-style: italic;
+  }
+
+  /* Problem Form */
+  .problem-form {
+    max-width: 600px;
+    margin: 0 auto 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .problem-form-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .problem-form-row input,
+  .problem-form-row select,
+  .problem-form-row textarea {
+    flex: 1;
+    min-width: 200px;
+    padding: 14px 16px;
+    background: var(--hf-bg);
+    border: 1px solid var(--hf-border);
+    border-radius: 10px;
+    color: var(--hf-text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+    min-height: 48px;
+  }
+
+  .problem-form-row textarea {
+    width: 100%;
+    min-width: 100%;
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .problem-form-row input:focus,
+  .problem-form-row select:focus,
+  .problem-form-row textarea:focus {
+    border-color: var(--hf-accent);
+  }
+
+  .problem-form-row input::placeholder,
+  .problem-form-row textarea::placeholder {
+    color: var(--gray-600);
+  }
+
+  .problem-form-row select {
+    cursor: pointer;
+    appearance: auto;
+  }
+
+  .problem-form-row select option {
+    background: var(--hf-bg-secondary);
+    color: var(--hf-text);
   }
 
   /* Footer */

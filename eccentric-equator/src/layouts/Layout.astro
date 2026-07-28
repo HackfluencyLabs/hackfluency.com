@@ -10,6 +10,7 @@ import type { Language } from '../i18n/translations';
 export interface Props {
   title?: string;
   description?: string;
+  ogTitle?: string;
   ogImage?: string;
   ogType?: string;
   hideThemeSelector?: boolean;
@@ -18,8 +19,8 @@ export interface Props {
 }
 
 const {
-  title = "Hackfluency — Advanced Cybersecurity & AI Systems Consulting",
-  description = "Hackfluency — Boutique technical consulting in advanced security, AI systems and automation architecture. Founder-led engagements for complex challenges.",
+  title = "Hackfluency — Observatorio de Sistemas Complejos",
+  description = "Hackfluency es un observatorio de sistemas complejos. Indagamos, construimos instrumentos y generamos evidencia en seguridad, IA, comportamiento organizacional e inteligencia estratégica.",
   ogImage = "/HFNeon.png",
   ogType = "website",
   hideThemeSelector = false,
@@ -50,6 +51,42 @@ const { t } = getTranslations(locale);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval'
+        https://cdn.jsdelivr.net
+        https://rumbletalk.com
+        https://widget.trustpilot.com
+        http://widget.trustpilot.com
+        https://*.trustpilot.com
+        https://fonts.googleapis.com
+        https://unpkg.com;
+      style-src 'self' 'unsafe-inline'
+        https://fonts.googleapis.com
+        https://rumbletalk.com;
+      font-src 'self'
+        https://fonts.gstatic.com
+        data:;
+      img-src 'self' https: data:;
+      connect-src 'self'
+        https://api.telegram.org
+        https://rumbletalk.com
+        https://*.rumbletalk.net
+        wss://*.rumbletalk.net
+        https://widget.trustpilot.com
+        http://widget.trustpilot.com
+        https://*.trustpilot.com
+        https://yfofmawbvlontugygfcj.supabase.co
+        https://vhiweeypifbwacashxjz.supabase.co;
+      frame-src 'self'
+        https://rumbletalk.com
+        https://*.rumbletalk.net
+        https://*.trustpilot.com;
+      form-action 'self'
+        https://api.telegram.org;
+      base-uri 'self';
+      manifest-src 'self';
+    ">
     <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16.png`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
     <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon.png`} />
@@ -85,8 +122,9 @@ const { t } = getTranslations(locale);
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet"></noscript>
 
     <!-- TrustBox script -->
     <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
@@ -109,11 +147,12 @@ const { t } = getTranslations(locale);
         "https://www.linkedin.com/company/hackfluency",
       ],
       "knowsAbout": [
+        "Complex Systems",
         "Cybersecurity Architecture",
         "AI Systems Engineering",
-        "Offensive Security",
-        "Autonomous Systems",
-        "Security Automation",
+        "Organizational Behavior",
+        "Intelligence Analysis",
+        "Sociotechnical Systems",
       ],
     })} />
     <script type="application/ld+json" set:html={JSON.stringify({
@@ -151,6 +190,92 @@ const { t } = getTranslations(locale);
     <slot />
     <SubscriptionPopup locale={locale} />
     {!hideThemeSelector && <ThemeSelector client:idle variant="floating" transition:persist />}
+
+    <!-- RumbleTalk embed (hidden container, click toggles chat) -->
+    <div id="rt-d6023b7d7713a023f5e73ab154aa7c08" data-floating="true" data-side="left" data-width="700" data-height="500"
+      data-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      style="position:fixed; bottom:0; left:0; z-index:1;">
+    </div>
+
+    <!-- Custom floating button -->
+    <div id="hf-fab" class="hf-fab" aria-label="Conversar">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 11a2 2 0 0 1-2 2H5l-3 3V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z" opacity="0.35" style="translate:-4px -3px"/>
+        <path d="M21 15a2 2 0 0 1-2 2H9l-3 3V9a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/>
+      </svg>
+    </div>
+
+    <style>
+      .hf-fab {
+        position: fixed; bottom: 24px; left: 24px; z-index: 9999;
+        width: 54px; height: 54px; border-radius: 50%;
+        background: linear-gradient(135deg, #00D26A, #00994D);
+        color: #0a0a0a; border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 20px rgba(0,210,106,0.3);
+        transition: transform 0.2s, box-shadow 0.2s;
+        animation: hfPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      }
+      @keyframes hfPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .hf-fab:hover { transform: scale(1.12); box-shadow: 0 6px 30px rgba(0,210,106,0.5); }
+      .hf-fab:active { transform: scale(0.92); }
+      .hf-fab svg { width: 24px; height: 24px; }
+    </style>
+
+    <script is:inline>
+    (function(){
+      var c = document.getElementById('rt-d6023b7d7713a023f5e73ab154aa7c08');
+      var fab = document.getElementById('hf-fab');
+      if (!c || !fab) return;
+
+      // Load RumbleTalk
+      var s = document.createElement('script');
+      s.src = 'https://rumbletalk.com/client/?1Yejiy6L';
+      s.async = true;
+      document.body.appendChild(s);
+
+      // Ring until first click
+      var KEY = 'hf-ring';
+      var up = true;
+      var ring;
+
+      function startRing() {
+        if (localStorage.getItem(KEY)) return;
+        ring = setInterval(function() {
+          up = !up;
+          fab.style.transform = up ? 'scale(1)' : 'scale(1.08)';
+          fab.style.boxShadow = up ? '0 4px 20px rgba(0,210,106,0.3)' : '0 0 40px 12px rgba(0,210,106,0.6)';
+        }, 700);
+      }
+      var chatOpen = false;
+      startRing();
+
+      function clickChat() {
+        if (chatOpen) return;
+        chatOpen = true;
+        clearInterval(ring);
+        fab.style.transform = '';
+        fab.style.boxShadow = '0 4px 20px rgba(0,210,106,0.3)';
+        localStorage.setItem(KEY, '1');
+        fab.style.display = 'none';
+        var img = c.querySelector('img');
+        if (img) img.click();
+      }
+
+      // Close chat when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!chatOpen) return;
+        if (c.contains(e.target)) return;
+        if (fab.contains(e.target)) return;
+        var img = c.querySelector('img');
+        if (img) img.click();
+        fab.style.display = 'flex';
+        chatOpen = false;
+      });
+
+      fab.addEventListener('click', clickChat);
+    })();
+    </script>
   </body>
 </html>
 
@@ -325,4 +450,6 @@ const { t } = getTranslations(locale);
       padding: 0 64px;
     }
   }
+
+
 </style>
