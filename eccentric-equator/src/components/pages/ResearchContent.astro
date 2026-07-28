@@ -147,7 +147,7 @@ const base = import.meta.env.BASE_URL;
     <div class="r-footer-inner">
         <a href={locale === 'es' ? '/' : '/en'} class="r-footer-home">{t('research.footer.back')}</a>
       <span class="r-footer-copy">{t('common.copyright')}</span>
-      <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="r-footer-cta">
+      <a href={locale === 'es' ? '/#contact' : '/en#contact'} class="r-footer-cta">
         {t('common.bookCall')}
       </a>
     </div>

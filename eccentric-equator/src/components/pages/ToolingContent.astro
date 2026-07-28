@@ -144,7 +144,7 @@ const tools = (locale === 'es' ? [
     <div class="r-footer-inner">
         <a href={locale === 'es' ? '/research' : '/en/research'} class="r-footer-home">{t('tooling.footer.back')}</a>
       <span class="r-footer-copy">{t('common.copyright')}</span>
-      <a href="https://hackfluency.zohobookings.com/#/hackfluency" target="_blank" rel="noopener" class="r-footer-cta">
+      <a href={locale === 'es' ? '/#contact' : '/en#contact'} class="r-footer-cta">
         {t('common.bookCall')}
       </a>
     </div>
