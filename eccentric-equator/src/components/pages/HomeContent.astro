@@ -3169,8 +3169,8 @@ const values = [
     .paper-sankey { min-height: auto; background: transparent; border: none; }
     .sankey-mobile-preview { display: flex; flex-direction: column; gap: 12px; }
     .sankey-mobile-preview img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--hf-border, #222); }
-    .sankey-mobile-cta { display: block; text-align: center; padding: 14px 20px; background: var(--hf-accent, #00D26A); color: #000; border-radius: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: opacity 0.2s; }
-    .sankey-mobile-cta:active { opacity: 0.8; }
+    .sankey-mobile-cta { display: block; text-align: center; padding: 16px 20px; background: var(--hf-accent, #00D26A); color: #000; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,210,106,0.25); }
+    .sankey-mobile-cta:active { transform: scale(0.97); box-shadow: 0 1px 4px rgba(0,210,106,0.15); opacity: 0.85; }
   }
 
   .paper-findings { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
@@ -3229,5 +3229,9 @@ const values = [
   .paper-cta:hover {
     background: var(--hf-accent-dim);
     border-color: var(--hf-accent);
+  }
+
+  @media (max-width: 767px) {
+    .paper-cta { display: none; }
   }
 </style>
