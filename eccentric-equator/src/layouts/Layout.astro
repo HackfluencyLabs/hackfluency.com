@@ -53,6 +53,7 @@ const { t } = getTranslations(locale);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content={viewportDesktop ? 'width=1200, minimum-scale=0.25, maximum-scale=5, user-scalable=yes' : 'width=device-width, initial-scale=1.0, user-scalable=yes'} />
+    {viewportDesktop && <script is:inline data-astro-rerun>document.querySelector('meta[name="viewport"]')?.setAttribute('content','width=1200, minimum-scale=0.25, maximum-scale=5, user-scalable=yes');</script>}
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval'
