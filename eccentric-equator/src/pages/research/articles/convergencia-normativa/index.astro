@@ -1,0 +1,18 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import ArticleGate from '../../../../components/articles/ArticleGate.astro';
+import { readFileSync } from 'fs';
+
+const locale = 'es';
+const htmlContent = readFileSync('src/assets/reports/convergencia_normativa.html', 'utf-8');
+---
+
+<Layout
+  locale={locale}
+  title="Convergencia Normativa — Chile 2026 | Hackfluency Research"
+  description="Análisis de convergencia regulatoria en ciberseguridad: 31 controles, 5 marcos legales, 1 hoja de ruta unificada para Chile 2026."
+  hideThemeSelector={true}
+>
+  <Fragment set:html={htmlContent} />
+  <ArticleGate locale={locale} />
+</Layout>

@@ -87,6 +87,7 @@ const { t } = getTranslations(locale);
       base-uri 'self';
       manifest-src 'self';
     ">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
     <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16.png`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
     <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon.png`} />
@@ -251,6 +252,11 @@ const { t } = getTranslations(locale);
       startRing();
 
       function clickChat() {
+        // Mobile: open in new tab (RumbleTalk inline doesn't work on mobile)
+        if (window.innerWidth < 768) {
+          window.open('https://rumbletalk.com/client/?1Yejiy6L', '_blank', 'noopener');
+          return;
+        }
         if (chatOpen) return;
         chatOpen = true;
         clearInterval(ring);
