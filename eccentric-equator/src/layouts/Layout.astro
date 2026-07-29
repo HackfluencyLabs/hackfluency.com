@@ -16,6 +16,7 @@ export interface Props {
   hideThemeSelector?: boolean;
   locale?: Language;
   robots?: string;
+  viewportDesktop?: boolean;
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   hideThemeSelector = false,
   locale = 'es',
   robots = 'index, follow',
+  viewportDesktop = false,
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL;
@@ -50,7 +52,7 @@ const { t } = getTranslations(locale);
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta name="viewport" content={viewportDesktop ? 'width=1024' : 'width=device-width, initial-scale=1.0, user-scalable=yes'} />
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval'

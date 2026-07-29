@@ -421,6 +421,10 @@ const values = [
     <div class="paper-grid">
       <div class="paper-sankey">
         <iframe src="/research/articles/convergencia-normativa/sankey" class="hf-sankey-iframe" loading="lazy" title="Diagrama de convergencia normativa"></iframe>
+        <div class="sankey-mobile-preview">
+          <img src="/assets/sankey-preview.png" alt="Vista previa del mapa de convergencia regulatoria" loading="lazy" />
+          <a href="/research/articles/convergencia-normativa" class="sankey-mobile-cta">{locale === 'es' ? 'Explorar mapa interactivo →' : 'Explore interactive map →'}</a>
+        </div>
       </div>
       <div class="paper-findings">
         <div class="findings-header">
@@ -3099,6 +3103,18 @@ const values = [
   }
 
   .hf-sankey-iframe { width: 100%; height: 730px; border: none; display: block; }
+
+  /* Mobile: preview image + CTA instead of iframe */
+  .sankey-mobile-preview { display: none; }
+  @media (max-width: 767px) {
+    .hf-sankey-iframe { display: none; }
+    .paper-sankey { min-height: auto; background: transparent; border: none; }
+    .sankey-mobile-preview { display: flex; flex-direction: column; gap: 12px; }
+    .sankey-mobile-preview img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--hf-border, #222); }
+    .sankey-mobile-cta { display: block; text-align: center; padding: 14px 20px; background: var(--hf-accent, #00D26A); color: #000; border-radius: 10px; font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: opacity 0.2s; }
+    .sankey-mobile-cta:active { opacity: 0.8; }
+  }
+
   .paper-findings { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
   .findings-header {
     display: flex;
