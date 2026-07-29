@@ -52,7 +52,7 @@ const { t } = getTranslations(locale);
 <html lang={locale}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content={viewportDesktop ? 'width=1024' : 'width=device-width, initial-scale=1.0, user-scalable=yes'} />
+    <meta name="viewport" content={viewportDesktop ? 'width=1024, minimum-scale=0.25, maximum-scale=5, user-scalable=yes' : 'width=device-width, initial-scale=1.0, user-scalable=yes'} />
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval'
@@ -256,7 +256,7 @@ const { t } = getTranslations(locale);
       function clickChat() {
         // Mobile: open in new tab (RumbleTalk inline doesn't work on mobile)
         if (window.innerWidth < 768) {
-          window.open('https://rumbletalk.com/client/?1Yejiy6L', '_blank', 'noopener');
+          window.open('https://rumbletalk.com/client/chat.php?1Yejiy6L', '_blank', 'noopener');
           return;
         }
         if (chatOpen) return;
