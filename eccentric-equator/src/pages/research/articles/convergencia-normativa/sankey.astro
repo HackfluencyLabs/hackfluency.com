@@ -65,8 +65,8 @@ var pos=i/len,ph=pos-flowPhase,dx=ph-Math.round(ph),dist=Math.max(0,1-Math.abs(d
 newLinks.push({source:lk[i].source,target:lk[i].target,value:lk[i].value,lineStyle:{opacity:0.04+pulse+wave*0.18,curveness:0.35+Math.sin(ph*Math.PI*3+lk[i].source.length)*0.25}});}
 c1.setOption({series:[{animationDuration:0,links:newLinks,emphasis:{focus:'adjacency',lineStyle:{width:4,opacity:0.95,color:'#fff'}},blur:{lineStyle:{opacity:0.03}}}]});}
 requestAnimationFrame(animateFlow);}
-c1.on('mouseover',function(p){if(p.componentType==='series' && !activeLaw)flowPaused=true;});
-c1.on('mouseout',function(p){if(p.componentType==='series' && !activeLaw)flowPaused=false;});
+c1.on('mouseover',function(p){if(p.componentType==='series' && Object.keys(activeLaws).length===0)flowPaused=true;});
+c1.on('mouseout',function(p){if(p.componentType==='series' && Object.keys(activeLaws).length===0)flowPaused=false;});
 setTimeout(function(){if(flowActive)animateFlow();},50);
 window.addEventListener('resize',function(){c1.resize();});
 var activeLaws={};window.toggleLawFilter=function(law){

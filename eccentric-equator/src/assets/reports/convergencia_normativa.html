@@ -349,8 +349,8 @@ c1.setOption({series:[{animationDuration:0,links:newLinks,emphasis:{focus:'adjac
 requestAnimationFrame(animateFlow);
 }
 // Hover pause only when no law filter is active
-c1.on('mouseover',function(p){if(p.componentType==='series' && !activeLaw)flowPaused=true;});
-c1.on('mouseout',function(p){if(p.componentType==='series' && !activeLaw)flowPaused=false;});
+c1.on('mouseover',function(p){if(p.componentType==='series' && Object.keys(activeLaws).length===0)flowPaused=true;});
+c1.on('mouseout',function(p){if(p.componentType==='series' && Object.keys(activeLaws).length===0)flowPaused=false;});
 setTimeout(function(){if(flowActive)animateFlow();},50);
 window.addEventListener('resize',function(){c1.resize();});
 
