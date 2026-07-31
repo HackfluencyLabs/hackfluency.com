@@ -194,7 +194,7 @@ const CTINode = ({ data }: { data: CTINodeData }) => {
           color: headerColor,
           letterSpacing: '0.3px',
         }}>
-          {data.label.replace('\n', ' ')}
+          {data.label.replaceAll('\n', ' ')}
         </div>
 
         {/* Info Content */}

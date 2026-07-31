@@ -2,7 +2,7 @@ const BOT_TOKEN = typeof import.meta !== 'undefined' ? import.meta.env.PUBLIC_TE
 const CHAT_ID = typeof import.meta !== 'undefined' ? import.meta.env.PUBLIC_TELEGRAM_CHAT_ID : '';
 
 function escapeMd(text: string): string {
-  return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+  return text.replace(/[\\_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
 
 export async function sendTelegram(type: 'subscribe' | 'problem', data: Record<string, any>): Promise<boolean> {

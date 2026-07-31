@@ -1,6 +1,6 @@
 ---
 import SubscriptionPopup from '../components/SubscriptionPopup.astro';
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 import ThemeInit from '../components/ThemeInit.astro';
 import ThemeSelector from '../components/ThemeSelector';
 import LanguageSelector from '../components/LanguageSelector.astro';
@@ -135,7 +135,7 @@ const { t } = getTranslations(locale);
     <!-- End TrustBox script -->
 
     <title>{title}</title>
-    <ViewTransitions />
+    <ClientRouter />
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify({
