@@ -800,8 +800,7 @@ const values = [
     <div class="member-grid">
       <!-- Marcelo — perfil bajo -->
       <div class="member-card">
-        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
-        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <div class="member-photo"><img src="/assets/marcelo-burgos.jpg" alt="Marcelo Burgos" class="member-photo-img" width="120" height="120"/></div>
         <h3 class="member-name">Marcelo Burgos</h3>
         <p class="member-role">{t('member.marcelo.role')}</p>
         <p class="member-desc">{t('member.marcelo.desc')}</p>
@@ -818,8 +817,7 @@ const values = [
       </div>
       <!-- Victor Cayupil — consultor asociado Ágil Chile -->
       <div class="member-card">
-        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent-analysis)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent-analysis)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent-analysis)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
-        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <div class="member-photo"><img src="/assets/victor-cayupil.jpg" alt="Victor Cayupil" class="member-photo-img" width="120" height="120"/></div>
         <h3 class="member-name">{t('member.victor.name')}</h3>
         <p class="member-role">{t('member.victor.role')}</p>
         <p class="member-desc">{t('member.victor.desc')}</p>
@@ -832,8 +830,7 @@ const values = [
       </div>
       <!-- Cinthia González -->
       <div class="member-card">
-        <div class="member-avatar"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" stroke="var(--hf-accent-human)" stroke-width="1" fill="none" opacity="0.2"/><circle cx="40" cy="30" r="12" stroke="var(--hf-accent-human)" stroke-width="1" fill="none" opacity="0.3"/><path d="M18 64c0-12 10-22 22-22s22 10 22 22" stroke="var(--hf-accent-human)" stroke-width="1" fill="none" opacity="0.3"/></svg></div>
-        <div class="member-photo" style="display:none;"><img src="" alt="" class="member-photo-img"/></div>
+        <div class="member-photo"><img src="/assets/cinthia-gonzalez.jpg" alt="Cinthia González" class="member-photo-img" width="120" height="120"/></div>
         <h3 class="member-name">Cinthia González</h3>
         <p class="member-role">{t('member.cinthia.role')}</p>
         <p class="member-desc">{t('member.cinthia.desc')}</p>
@@ -2427,16 +2424,31 @@ const values = [
   }
 
   .member-avatar {
-    width: 72px;
-    height: 72px;
+    width: 120px;
+    height: 120px;
     margin: 0 auto 16px;
   }
+  .member-photo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 16px;
+    position: relative;
+  }
   .member-photo-img {
-    width: 72px;
-    height: 72px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
     display: block;
+    border: 3px solid var(--hf-border);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--hf-accent) 15%, transparent);
+    transition: all 0.3s ease;
+    background: var(--hf-bg);
+  }
+  .member-card:hover .member-photo-img {
+    border-color: color-mix(in srgb, var(--hf-accent) 45%, var(--hf-border));
+    transform: scale(1.04);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--hf-accent) 25%, transparent);
   }
   .member-lenses {
     display: flex;
@@ -3169,7 +3181,7 @@ const values = [
     .paper-sankey { min-height: auto; background: transparent; border: none; }
     .sankey-mobile-preview { display: flex; flex-direction: column; gap: 12px; }
     .sankey-mobile-preview img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--hf-border, #222); }
-    .sankey-mobile-cta { display: block; text-align: center; padding: 16px 20px; background: var(--hf-accent, #00D26A); color: #000; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,210,106,0.25); }
+    .sankey-mobile-cta { display: block; text-align: center; padding: 16px 20px; background: var(--hf-accent, #00D26A); color: var(--hf-text-on-accent, #000); border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,210,106,0.25); }
     .sankey-mobile-cta:active { transform: scale(0.97); box-shadow: 0 1px 4px rgba(0,210,106,0.15); opacity: 0.85; }
   }
 
