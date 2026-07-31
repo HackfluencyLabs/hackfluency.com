@@ -234,6 +234,7 @@ const values = [
   // ===== DOM ELEMENTS =====
   const emailInput = document.getElementById("email-input") as HTMLInputElement | null;
   const message = document.getElementById("form-message") as HTMLElement | null;
+  const subscribeForm = document.getElementById("subscribe-form") as HTMLFormElement | null;
 
   // ===== VALIDATION FUNCTIONS =====
 
@@ -254,19 +255,19 @@ const values = [
 
   function validateEmail(email: string): { valid: boolean; error?: string } {
     if (!email) {
-      return { valid: false, error: "Email is required" };
+      return { valid: false, error: subscribeForm?.getAttribute('data-msg-required') ?? '' };
     }
 
     if (!validateEmailLength(email)) {
-      return { valid: false, error: `Email exceeds ${MAX_EMAIL_LENGTH} characters` };
+      return { valid: false, error: subscribeForm?.getAttribute('data-msg-too-long') ?? '' };
     }
 
     if (!ALLOWED_EMAIL_CHARS.test(email)) {
-      return { valid: false, error: "Invalid characters. Only letters, numbers, @._- allowed" };
+      return { valid: false, error: subscribeForm?.getAttribute('data-msg-invalid-chars') ?? '' };
     }
 
     if (!validateEmailFormat(email)) {
-      return { valid: false, error: "Invalid email format. Use user@domain.com" };
+      return { valid: false, error: subscribeForm?.getAttribute('data-msg-invalid-format') ?? '' };
     }
 
     return { valid: true };
@@ -291,7 +292,7 @@ const values = [
         return;
       }
 
-      message.textContent = "Valid email";
+      message.textContent = subscribeForm?.getAttribute('data-msg-valid') ?? '';
       message.className = "form-message success";
     });
 
@@ -304,7 +305,6 @@ const values = [
       }
     });
 
-    const subscribeForm = document.getElementById("subscribe-form");
     subscribeForm?.addEventListener("submit", async function (e) {
         e.preventDefault();
 
@@ -318,28 +318,27 @@ const values = [
         }
 
         message.className = "form-message info";
-        message.textContent = "Subscribing...";
+        message.textContent = subscribeForm?.getAttribute('data-msg-subscribing') ?? '';
 
         try {
           const result = await subscribeEmail(email);
 
           if (result.success) {
-            message.textContent = "Successfully subscribed!";
+            message.textContent = subscribeForm?.getAttribute('data-msg-success') ?? '';
             emailInput.value = "";
             message.className = "form-message success";
             return;
           }
           if (result.message === 'Already subscribed.') {
-            message.textContent = "Already subscribed.";
+            message.textContent = subscribeForm?.getAttribute('data-msg-already') ?? '';
             message.className = "form-message warning";
             return;
           }
-          message.textContent = result.message || "Error. Please try again.";
-          message.className = "form-message error";
+          message.textContent = subscribeForm?.getAttribute('data-msg-error') ?? result.message;
 
         } catch (error) {
           console.error(error);
-          message.textContent = "Network error. Check connection.";
+          message.textContent = subscribeForm?.getAttribute('data-msg-network') ?? '';
           message.className = "form-message error";
         }
       });
@@ -1031,13 +1030,23 @@ const values = [
       <div class="newsletter-section">
         <h4 class="newsletter-title">{t('footer.newsletter.title')}</h4>
         <p class="newsletter-subtitle">{t('footer.newsletter.subtitle')}</p>
-        <form id="subscribe-form" class="subscribe-form">
+        <form id="subscribe-form" class="subscribe-form"
+          data-msg-required={t('footer.newsletter.required')}
+          data-msg-too-long={t('footer.newsletter.tooLong')}
+          data-msg-invalid-chars={t('footer.newsletter.invalidChars')}
+          data-msg-invalid-format={t('footer.newsletter.invalidFormat')}
+          data-msg-valid={t('footer.newsletter.validEmail')}
+          data-msg-subscribing={t('footer.newsletter.subscribing')}
+          data-msg-success={t('footer.newsletter.success')}
+          data-msg-already={t('footer.newsletter.alreadySubscribed')}
+          data-msg-error={t('footer.newsletter.error')}
+          data-msg-network={t('footer.newsletter.networkError')}>
           <input
             type="email"
             id="email-input"
             placeholder={t('footer.newsletter.placeholder')}
             required
-            aria-label="Email address"
+            aria-label={t('footer.newsletter.ariaLabel')}
             autocomplete="email"
           />
           <button type="submit" class="subscribe-btn">{t('footer.newsletter.button')}</button>
