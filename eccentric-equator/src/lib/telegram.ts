@@ -5,16 +5,22 @@ function escapeMd(text: string): string {
   return text.replace(/[\\_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
 
+// Escape para contenido DENTRO de entidades de código (backticks / bloques ```):
+// solo backslash y backtick necesitan escape; el resto se muestra tal cual.
+function codeEscape(text: string): string {
+  return text.replace(/[\\`]/g, '\\$&');
+}
+
 export async function sendTelegram(type: 'subscribe' | 'problem', data: Record<string, any>): Promise<boolean> {
   if (!BOT_TOKEN || !CHAT_ID) return false;
 
   let text = '';
   if (type === 'subscribe') {
-    text = '📬 *Nueva suscripción*\n*Email:* `' + escapeMd(data.email || '') + '`\n*Fuente:* ' + escapeMd(data.source || 'directa') + '\n*Fecha:* ' + new Date().toISOString();
+    text = '📬 *Nueva suscripción*\n*Email:* `' + codeEscape(data.email || '') + '`\n*Fuente:* ' + escapeMd(data.source || 'directa') + '\n*Fecha:* ' + escapeMd(new Date().toISOString());
   } else {
     const areaLabels: Record<string, string> = { security: 'Seguridad', architecture: 'Arquitectura', behavior: 'Comportamiento organizacional', intelligence: 'Inteligencia estratégica', other: 'Otro' };
     const contactLabels: Record<string, string> = { email: 'Email', meeting: 'Reunión breve', depends: 'Depende' };
-    text = '🔬 *Nuevo problema recibido*\n*Nombre:* ' + escapeMd(data.name || '(sin nombre)') + '\n*Email:* `' + escapeMd(data.email || '') + '`\n*Área:* ' + escapeMd(areaLabels[data.area] || data.area || '') + '\n*Contacto:* ' + escapeMd(contactLabels[data.contact] || data.contact || '') + '\n*Descripción:*\n```\n' + escapeMd(data.description || '') + '\n```\n*Fecha:* ' + new Date().toISOString();
+    text = '🔬 *Nuevo problema recibido*\n*Nombre:* ' + escapeMd(data.name || '(sin nombre)') + '\n*Email:* `' + codeEscape(data.email || '') + '`\n*Área:* ' + escapeMd(areaLabels[data.area] || data.area || '') + '\n*Contacto:* ' + escapeMd(contactLabels[data.contact] || data.contact || '') + '\n*Descripción:*\n```\n' + codeEscape(data.description || '') + '\n```\n*Fecha:* ' + escapeMd(new Date().toISOString());
   }
 
   try {
