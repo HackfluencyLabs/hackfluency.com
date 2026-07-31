@@ -400,20 +400,20 @@ const values = [
       <div class="paper-meta">
         <span class="paper-ref">HF-RPT-2026-003</span>
         <span class="paper-sep">·</span>
-        <span class="paper-date">Julio 2026</span>
+        <span class="paper-date">{locale === 'es' ? 'Julio 2026' : 'July 2026'}</span>
         <span class="paper-sep">·</span>
         <span class="paper-tag">Convergencia Normativa</span>
       </div>
       <div class="paper-authors">
-        <a href="https://hackfluency.com/research" class="paper-org">Hackfluency — Observatorio</a>
+        <a href="https://hackfluency.com/research" class="paper-org">{locale === 'es' ? 'Hackfluency — Observatorio' : 'Hackfluency — Observatory'}</a>
       </div>
     </div>
 
     <!-- Title area -->
     <div class="paper-title-area">
       <h1 class="paper-title">Convergencia Normativa</h1>
-      <p class="paper-chart-lead">CHILE 2026 · &iquest;Qu&eacute; controles te cubren de cada ley?</p>
-      <p class="paper-desc">Cada flecha es un art&iacute;culo legal exacto. 31 controles &middot; 5 marcos legales &middot; 1 hoja de ruta unificada. Seleccion&aacute; leyes para filtrar tu cobertura.</p>
+      <p class="paper-chart-lead">{locale === 'es' ? 'CHILE 2026 · ¿Qué controles te cubren de cada ley?' : 'CHILE 2026 · Which controls cover you under each law?'}</p>
+      <p class="paper-desc">{locale === 'es' ? 'Cada flecha es un artículo legal exacto. 31 controles · 5 marcos legales · 1 hoja de ruta unificada. Seleccioná leyes para filtrar tu cobertura.' : 'Each arrow is an exact legal article. 31 controls · 5 legal frameworks · 1 unified roadmap. Select laws to filter your coverage.'}</p>
     </div>
 
     <!-- Content: Sankey + Conclusions -->
@@ -439,32 +439,32 @@ const values = [
             <text x="268" y="21" class="mh" fill="#28A745">BOD</text>
             <!-- Row 1: ISO 27001 → all 5 -->
             <text x="10" y="63" class="ml">ISO 27001</text>
-            <text x="10" y="76" class="mc">cubre las 5 leyes</text>
+            <text x="10" y="76" class="mc">{locale === 'es' ? 'cubre las 5 leyes' : 'covers all 5 laws'}</text>
             <circle cx="96"  cy="63" r="7" fill="#DC3545" class="mr"/>
             <circle cx="139" cy="63" r="7" fill="#5B6ABF" class="mr"/>
             <circle cx="182" cy="63" r="7" fill="#6F42C1" class="mr"/>
             <circle cx="225" cy="63" r="7" fill="#E67E22" class="mr"/>
             <circle cx="268" cy="63" r="7" fill="#28A745" class="mr"/>
             <!-- Row 2: Reporte → 4 -->
-            <text x="10" y="113" class="ml">Reporte</text>
-            <text x="10" y="126" class="mc">incidentes</text>
+            <text x="10" y="113" class="ml">{locale === 'es' ? 'Reporte' : 'Reporting'}</text>
+            <text x="10" y="126" class="mc">{locale === 'es' ? 'incidentes' : 'incidents'}</text>
             <circle cx="96"  cy="113" r="7" fill="#DC3545" class="mr"/>
             <circle cx="139" cy="113" r="7" fill="#5B6ABF" class="mr"/>
             <circle cx="182" cy="113" r="7" fill="#6F42C1" class="mr"/>
             <circle cx="268" cy="113" r="7" fill="#28A745" class="mr"/>
             <!-- Row 3: Delegado → 3 -->
-            <text x="10" y="163" class="ml">Delegado</text>
-            <text x="10" y="176" class="mc">ciberseguridad</text>
+            <text x="10" y="163" class="ml">{locale === 'es' ? 'Delegado' : 'Delegate'}</text>
+            <text x="10" y="176" class="mc">{locale === 'es' ? 'ciberseguridad' : 'cybersecurity'}</text>
             <circle cx="96"  cy="163" r="7" fill="#DC3545" class="mr"/>
             <circle cx="139" cy="163" r="7" fill="#5B6ABF" class="mr"/>
             <circle cx="182" cy="163" r="7" fill="#6F42C1" class="mr"/>
             <!-- Row 4: Cifrado → 2 -->
-            <text x="10" y="213" class="ml">Cifrado</text>
+            <text x="10" y="213" class="ml">{locale === 'es' ? 'Cifrado' : 'Encryption'}</text>
             <text x="10" y="226" class="mc">AES / TLS</text>
             <circle cx="139" cy="213" r="7" fill="#5B6ABF" class="mr"/>
             <circle cx="225" cy="213" r="7" fill="#E67E22" class="mr"/>
             <!-- Row 5: Capacitacion → 2 -->
-            <text x="10" y="263" class="ml">Capacitacion</text>
+            <text x="10" y="263" class="ml">{locale === 'es' ? 'Capacitacion' : 'Training'}</text>
             <circle cx="96"  cy="263" r="7" fill="#DC3545" class="mr"/>
             <circle cx="139" cy="263" r="7" fill="#5B6ABF" class="mr"/>
             <!-- Legend bar -->
