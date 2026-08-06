@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Autodiagnóstico Regulatorio — Chile 2026</title>
+<style>
+:root{--bg:#1A1A18;--bg2:#232321;--card:#262624;--line:#383836;--txt:#F5F5F4;--mut:#B0B0AA;--dim:#8A8A84;--lc:#DC3545;--lo:#5B6ABF;--lm:#6F42C1;--ng:#E67E22;--bd:#28A745;--ok:#2D6A4F}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+#top{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(26,26,24,.82);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:50}
+#brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px;font-size:15px}
+#brand .dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--lc),var(--ng));box-shadow:0 0 12px rgba(230,126,34,.5);flex:0 0 auto}
+#btsub{display:block;font-weight:400;color:var(--mut);font-size:11px;letter-spacing:.3px;margin-top:1px}
+#stepper{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--mut);font-weight:600}
+#stepper b{color:var(--txt)}
+#progwrap{width:120px;height:5px;background:var(--line);border-radius:4px;overflow:hidden}
+#progfill{height:100%;width:0;background:linear-gradient(90deg,var(--ng),var(--bd));border-radius:4px;transition:width .5s}
+#deck{position:fixed;inset:0;top:56px}
+.slide{position:absolute;inset:0;display:none;align-items:flex-start;justify-content:center;padding:30px 5vw;overflow:auto}
+.slide.active{display:flex;animation:pop .4s ease}
+@keyframes pop{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.inner{width:100%;max-width:1000px;margin:2vh auto}
+.center{text-align:center}
+.center .inner{margin:auto}
+.kicker{font-size:12px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--ng);margin-bottom:12px}
+h1{font-size:clamp(32px,4.8vw,56px);line-height:1.06;font-weight:800;letter-spacing:-1px;margin:6px 0 14px}
+h2{font-size:clamp(24px,3.4vw,40px);font-weight:800;letter-spacing:-.5px;margin:6px 0 12px}
+.sub{color:var(--mut);font-size:clamp(15px,2vw,19px);line-height:1.6;max-width:800px;margin:0 auto 4px}
+.center .sub{margin:0 auto}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 28px;border-radius:12px;border:0;font-size:15px;font-weight:700;cursor:pointer;color:#fff;transition:.2s;background:linear-gradient(135deg,#2D6A4F,#1F513B);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.ghost:hover{border-color:var(--mut)}
+.btn.big{padding:18px 36px;font-size:17px}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.row-btn{display:flex;gap:14px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.grid{display:grid;gap:14px;margin-top:20px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;cursor:pointer;transition:.2s;text-align:left;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.card:hover{transform:translateY(-3px);border-color:#444}
+.card .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.8px;padding:3px 10px;border-radius:8px;margin-bottom:10px}
+.card h3{font-size:15.5px;font-weight:800;margin-bottom:5px}
+.card .mini{font-size:12.5px;color:var(--mut);line-height:1.5}
+.card .ext{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:14px;line-height:1.6;color:#fff}
+.card .ext.open{display:block}
+.card .ext b{color:var(--ok);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.card .hint{display:inline-block;margin-top:11px;font-size:11px;color:var(--dim);font-weight:700}
+.qbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 32px;margin-top:16px;text-align:left}
+.qnum{font-size:12px;font-weight:800;letter-spacing:2px;color:var(--ng);text-transform:uppercase}
+.qtext{font-size:clamp(21px,3vw,32px);font-weight:800;line-height:1.25;margin:10px 0 8px}
+.qdesc{color:var(--mut);font-size:15.5px;line-height:1.5;margin-bottom:6px}
+.qdef{margin-top:14px;background:rgba(230,126,34,.07);border-left:3px solid var(--ng);padding:12px 16px;border-radius:0 10px 10px 0;font-size:13.5px;line-height:1.6;color:#F0E6D8}
+.qdef b{color:var(--ng)}
+.yn{display:flex;gap:14px;margin-top:24px;flex-wrap:wrap}
+.yn button{flex:1;min-width:150px;padding:17px;border-radius:14px;border:2px solid var(--line);background:var(--bg2);color:var(--txt);font-size:18px;font-weight:800;cursor:pointer;transition:.2s}
+.yn .y:hover{border-color:var(--ok);background:rgba(45,106,79,.2)}
+.yn .n:hover{border-color:var(--lc);background:rgba(220,53,69,.15)}
+.yn button.done{opacity:.45;transform:none;cursor:default;border-style:dashed}
+.ck{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.2s;text-align:left}
+.ck:hover{border-color:var(--mut)}
+.ck .tick{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:.2s;font-weight:800}
+.ck.on{border-color:var(--ok);background:rgba(45,106,79,.12)}
+.ck.on .tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.ck .nm{font-weight:800;font-size:15px}
+.ck .ds{font-size:12px;color:var(--mut);margin-top:2px}
+.ck .gloss{margin-left:auto;font-size:10.5px;color:var(--dim);background:var(--bg2);padding:6px 9px;border-radius:8px;flex:0 0 auto;border:1px solid var(--line)}
+.cklist{display:grid;gap:11px;margin-top:18px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+.met{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center}
+.met .num{font-size:clamp(28px,3.4vw,44px);font-weight:800;line-height:1}
+.met .lab{font-size:12.5px;color:var(--mut);margin-top:8px;font-weight:600}
+.bar{height:14px;background:var(--line);border-radius:8px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:8px;transition:width .8s}
+.prio{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--lc);border-radius:12px;padding:14px 18px;margin-top:12px;text-align:left}
+.prio.no-gap{border-left-color:var(--ok)}
+.prio h4{font-size:15.5px;font-weight:800}
+.prio .ord{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:6px;background:#1A1A18;color:#fff;font-size:12px;font-weight:800;margin-right:8px;vertical-align:middle}
+.prio .prhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.prio .prstat{font-size:11px;font-weight:800;color:var(--ok);background:rgba(45,106,79,.14);padding:4px 10px;border-radius:8px;white-space:nowrap}
+.prio .prstat.warn{color:var(--ng);background:rgba(230,126,34,.14)}
+.prio.hito{border-left:4px solid var(--ok)}
+.prio .prstat.hito{color:var(--ok);background:rgba(45,106,79,.14)}
+.prio .rq{display:flex;align-items:center;gap:9px;font-size:13.5px;line-height:1.55;color:#FFF6E0;padding:3px 0}
+.prio .rq .rqmark{width:20px;flex:0 0 auto;text-align:center;font-weight:800}
+.prio .rq.ok{color:#D8F3E0}
+.prio .rq.ok .rqmark{color:var(--ok)}
+.prio .rq.miss{color:#FFD9D9}
+.prio .rq.miss .rqmark{color:var(--lc)}
+.prio .rq .rqlaw{margin-left:auto;font-size:10.5px;color:var(--dim);background:var(--bg2);padding:3px 8px;border-radius:6px;border:1px solid var(--line);flex:0 0 auto;font-weight:700}
+.prio .dst{font-size:13px;color:var(--mut);margin-top:3px}
+.prio .reqs{margin-top:10px;border-top:1px dashed var(--line);padding-top:9px}
+.prio .reqs .ship{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:5px}
+.prio .reqs div{font-size:13.5px;line-height:1.55;color:#FFF6E0}
+.sec{text-align:left;margin-top:22px}
+.sec h3{font-size:12.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.ley{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+.ley-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ley-n{display:flex;align-items:center;gap:9px}
+.ley-tag{color:#fff;font-weight:800;font-size:10.5px;padding:3px 10px;border-radius:10px;letter-spacing:.4px}
+.ley-name{font-size:15px;font-weight:800}
+.ley-status{font-size:11px;font-weight:800;color:var(--ok);background:rgba(45,106,79,.14);padding:4px 10px;border-radius:8px;white-space:nowrap}
+.ley-status.warn{color:#E67E22;background:rgba(230,126,34,.14)}
+.rd{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-size:14px}
+.rd .x{width:22px;flex:0 0 auto;text-align:center;font-weight:800}
+#foot{position:fixed;left:0;right:0;bottom:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;color:var(--dim);z-index:50;background:rgba(13,13,13,.72);backdrop-filter:blur(6px);border-top:1px solid var(--line)}
+#foot>div:first-child{display:none}
+#knav{display:flex;gap:9px;align-items:center;margin-left:auto}
+#knav button{background:var(--bg2);border:1px solid var(--line);color:var(--txt);font-size:12px;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.2s;font-weight:600}
+#knav button:hover:not(:disabled){border-color:var(--mut)}
+#knav button:disabled{opacity:.3;cursor:not-allowed}
+#dots{display:flex;gap:6px}
+#dots i{width:6px;height:6px;border-radius:50%;background:var(--line);transition:.2s}
+#dots i.on{background:var(--ng);width:18px;border-radius:4px}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+/* ===== Hoja de cobertura (fidelidad del modelo) ===== */
+.covcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;cursor:pointer;transition:.2s;text-align:left;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.covcard:hover{transform:translateY(-3px);border-color:#444}
+.cov-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.cov-name{font-size:15px;font-weight:800;line-height:1.3;margin:2px 0 8px}
+.cov-src{font-size:11px;font-weight:800;color:var(--ng);background:rgba(230,126,34,.08);border:1px solid rgba(230,126,34,.5);padding:6px 11px;border-radius:8px;cursor:pointer;flex:0 0 auto;white-space:nowrap;text-decoration:none;transition:.2s;font-family:inherit}
+.cov-src:hover{background:rgba(230,126,34,.2)}
+.cov-status{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{font-size:11px;font-weight:800;padding:4px 10px;border-radius:8px;white-space:nowrap}
+.cov-note{font-size:12.5px;color:var(--mut)}
+.covpro{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:11px}
+.covpro i{display:block;height:100%;border-radius:6px}
+.covcard .hint{display:inline-block;margin-top:11px;font-size:11px;color:var(--dim);font-weight:700}
+.covcard .ext{display:none;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:14px;line-height:1.6;color:#fff}
+.covcard .ext.open{display:block}
+.covship{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin:6px 0 8px}
+.cov-rows{margin-top:6px}
+.cov-r{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13.5px;line-height:1.5;border-top:1px solid rgba(56,56,54,.5)}
+.cov-r:first-child{border-top:0}
+.cov-r .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:6px}
+.cov-r .ob{flex:1}
+.cov-r .ob b{font-weight:700}
+.cov-r .via{display:block;font-size:11px;color:var(--dim);margin-top:1px}
+.cov-badge{font-size:10px;font-weight:800;border:1px solid;border-radius:8px;padding:2px 7px;white-space:nowrap;flex:0 0 auto}
+/* ===== ROI de Cumplimiento: Matriz de Cobertura Legal por Control (chart del informe de convergencia) ===== */
+.roim-wrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg2);padding:10px 12px}
+.roim{border-collapse:collapse;font-size:10.5px;width:100%}
+.roim th{font-weight:800;color:var(--mut);padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap;text-transform:uppercase;font-size:9.5px;letter-spacing:.4px}
+.roim td{border:1px solid rgba(56,56,54,.6);width:26px;height:26px;text-align:center;font-weight:800;color:#fff}
+.roim .roim-law{width:auto;min-width:150px;color:var(--txt);text-align:left;font-weight:700;background:transparent;white-space:nowrap}
+.roim .roim-law .roim-fine{display:block;font-size:10px;color:var(--dim);font-weight:600;margin-top:2px}
+.roim .roim-cell{color:transparent}
+.roim .roim-cell.req{opacity:.55}
+.roim .roim-cell.hit{outline:2px solid #fff;opacity:1}
+@media(max-width:700px){.metrics{grid-template-columns:1fr}.qbox{padding:20px}
+</style>
+</head>
+<body>
+<div id="top">
+  <div id="brand"><span class="dot"></span><div>HACKFLUENCY<div id="btsub">Autodiagnóstico Regulatorio · Chile 2026</div></div></div>
+  <div id="stepper">Paso <b id="step-cur">1</b>/<span id="step-tot">1</span><div id="progwrap"><div id="progfill"></div></div></div>
+</div>
+<div id="deck"></div>
+<div id="foot">
+  <div id="footnote">Convergencia Normativa · 21.663 · 21.719 · 21.595 · NCG 538 · BOD 26-04</div>
+  <div id="knav"><button id="btn-prev">← Atrás</button><span id="dots"></span><button id="btn-next">Siguiente →</button></div>
+</div>
+<script>
+/* ===== MODELO CANONICO — misma fuente que Sankey y ROI (convergencia_normativa.html) ===== */
+var STD_DEFS=[
+ {n:'ISO 27001 (SGSI)',leyes:{'21.663':'exige','21.719':'satisface'},ctrls:['SGSI ISO 27001','Evaluacion Riesgos','Auditoria Pentest','Capacitacion','Due Diligence Terceros','Plan Continuidad','Monitoreo SOC 24x7','Delegado Ciberseguridad']},
+ {n:'NCG 538 (Regulacion CMF)',leyes:{'NCG':'exige','21.719':'satisface'},ctrls:['MFA Autenticacion','Cifrado AES / TLS']},
+ {n:'BOD 26-04 (Gest. Vulnerabilidades)',leyes:{'21.663':'satisface'},ctrls:['Reporte Incidentes','Auditoria Pentest','Canal Disclosure']},
+ {n:'Reporte y Notificacion',leyes:{'21.663':'exige','21.719':'exige'},ctrls:['Reporte Incidentes','Canal Disclosure']},
+ {n:'Modelo de Prevencion de Delitos (Ley 20.393)',leyes:{'21.595':'exige'},ctrls:['Encargado de Prevencion','Matriz Riesgo Penal','Protocolos Prevencion','Canal Denuncias','Evaluacion Independiente']}
+];
+var MULTAS={'21.663':40000,'21.719':20000}; // UTM techo legal (Ley 21.663 Art.40; 21.719). 21.595 y NCG 538: sin multa UTM pero con sancion (penal / CMF).
+var UTM_CLP=69611; // valor UTM (Feb 2026)
+function fmtUTM(u){if(!u)return '';return u.toLocaleString('es-CL').replace(/,/g,'.')+' UTM';}
+function fmtCLPm(u){return '~$'+Math.round(u*UTM_CLP/1e6)+'M CLP';}
+/* Severidad ponderada por ley: el riesgo penal de la 21.595 supera cualquier multa (asignamos
+   50000 > 40000 de la 21.663); luego multa del techo. NCG 538 sanciona (administrativa CMF) pero
+   sin monto UTM propio, por lo que pesa 0 en la clave de orden (no es monetaria comparable).
+   BOD es voluntaria (no sanciona). Se usa como clave primaria de prioridad y de orden de columnas. */
+var lawSev=function(l){if(l==='21.595')return 50000;return MULTAS[l]||0;};
+function sevLabel(l){if(l==='21.595')return 'sanción penal (presidio)';if(l==='NCG')return 'sanción CMF (multas)';if(MULTAS[l])return fmtUTM(MULTAS[l])+' ('+fmtCLPm(MULTAS[l])+')';return 'sin sanción modelada';}
+/* Derivado: inventario 17 controles + vinculos control->leyes (clave canonica 'NCG') */
+var CTRLS=[],ctrlLeyes={};
+for(var di=0;di<STD_DEFS.length;di++){var sdD=STD_DEFS[di];
+ for(var dd=0;dd<sdD.ctrls.length;dd++){var ccD=sdD.ctrls[dd];
+  if(CTRLS.indexOf(ccD)<0)CTRLS.push(ccD);
+  if(!ctrlLeyes[ccD])ctrlLeyes[ccD]=[];
+  for(var lkN in sdD.leyes){if(ctrlLeyes[ccD].indexOf(lkN)<0)ctrlLeyes[ccD].push(lkN);}
+ }}
+var lawName={'21.663':'Ley 21.663 — Ciberseguridad e Infraestructura Crítica','21.719':'Ley 21.719 — Protección de Datos Personales','21.595':'Ley 21.595 — Delitos Económicos','NCG':'NCG 538 — CMF','BOD':'BOD 26-04 — CISA (voluntaria)'};
+var lawColor={'21.663':'#DC3545','21.719':'#5B6ABF','21.595':'#6F42C1','NCG':'#E67E22','BOD':'#28A745'};
+var ctrlDesc={'SGSI ISO 27001':'Tu sistema de gestión de seguridad','MFA Autenticacion':'Doble verificación en todas las cuentas','Reporte Incidentes':'Aviso de incidentes 3h / 72h / 15d','Delegado Ciberseguridad':'Delegado oficial de ciberseguridad','Plan Continuidad':'Plan para seguir operando ante una crisis','Cifrado AES / TLS':'Cifrado al enviar y al guardar datos','Auditoria Pentest':'Simulacros de ataque y auditorías','Capacitacion':'Capacitación recurrente del personal','Evaluacion Riesgos':'Evaluación de riesgos formal','Monitoreo SOC 24x7':'Vigilancia y respuesta las 24 horas','Canal Disclosure':'Canal público de alertas (security.txt)','Due Diligence Terceros':'Revisión de proveedores y socios','Encargado de Prevencion':'Encargado de prevención designado (Art.4 Ley 20.393)','Matriz Riesgo Penal':'Matriz de riesgo penal de las actividades de la empresa','Protocolos Prevencion':'Protocolos internos de prevención y sanción','Canal Denuncias':'Canal seguro de denuncias, confidencial y anónimo','Evaluacion Independiente':'Evaluación periódica por entidad independiente'};
+var gloss={
+ 'SGSI ISO 27001':['Tu sistema de gestión de seguridad','Es la forma de ordenar tus defensas. Ser ISO 27001 significa que ese sistema está por un estándar reconocido.'],
+ 'MFA Autenticacion':['Doble verificación','Además de la clave, pides un segundo dato (por ejemplo, un código al celular) para confirmar que eres tú.'],
+ 'Reporte Incidentes':['Aviso de incidentes','Un proceso para avisar rápido: alerta temprana en 3 horas, informe en 72 horas e informe final en 15 días.'],
+ 'Cifrado AES / TLS':['Cifrado de información','Conviertes los datos en un código para que nadie los lea: al enviarlos (TLS) y al guardarlos (AES).'],
+ 'Delegado Ciberseguridad':['Encargado de la seguridad','La persona responsable en tu empresa de cuidar la ciberseguridad.'],
+ 'Plan Continuidad':['Plan de respaldo','El plan para que tu empresa siga funcionando si ocurre una crisis o un ataque.'],
+ 'Auditoria Pentest':['Simulación de ataque','Expertos prueban tus defensas como si fueran un atador real, para encontrar los huecos.'],
+ 'Capacitacion':['Capacitación','Entrenar a tu personal para que no caiga en engaños y sepa reaccionar.'],
+ 'Evaluacion Riesgos':['Gestión de riesgos','Analizas los peligros sobre tu información y decides qué proteger primero.'],
+ 'Monitoreo SOC 24x7':['Vigilancia continua','Un equipo que vigila tus sistemas las 24 horas y actúa ante cualquier alerta.'],
+ 'Canal Disclosure':['Canal de alertas','Un aviso público para que personas buenas puedan avisarte de errores de seguridad.'],
+ 'Due Diligence Terceros':['Revisión de socios','Verificar que tus proveedores y socios cuiden la información antes de trabajar con ellos.'],
+ 'Encargado de Prevencion':['Encargado de prevención','La persona responsable de operar el modelo de prevención de delitos (Ley 20.393).'],
+ 'Matriz Riesgo Penal':['Matriz de riesgo penal','El mapa de delitos a los que tu empresa está expuesta y cómo prevenirlos.'],
+ 'Protocolos Prevencion':['Protocolos internos','Reglas internas de prevención y sanciones para evitar delitos económicos.'],
+ 'Canal Denuncias':['Canal de denuncias','Un canal confidencial y anónimo para reportar irregularidades sin miedo.'],
+ 'Evaluacion Independiente':['Evaluación independiente','Un tercero revisa periódicamente que tu modelo de prevención funcione.']
+};
+/* ===== COBERTURA / FIDELIDAD del modelo (hoja web + anexo PDF) =====
+   Nuestra cobertura tecnica vs obligaciones completas de cada norma.
+   st: 'ok' cubierto · 'par' parcial · 'gap' brecha. Fuente oficial clickeable. */
+var COVERAGE=[
+ {id:'21.663',name:'Ley 21.663 — Ciberseguridad e Infraestructura Crítica',pct:63,url:'https://www.bcn.cl/leychile/navegar?idNorma=1202434',src:'BCN · Ley Chile',
+  rows:[
+   {t:'Gobernanza y funciones de ciberseguridad',st:'par',a:'Art. 8 letra a',na:'SGSI + Capacitación'},
+   {t:'Gestión de riesgos de ciberseguridad',st:'par',a:'Art. 8',na:'SGSI (cláusula 6)'},
+   {t:'Medidas técnicas y organizacionales',st:'ok',a:'Art. 8',na:'SGSI + MFA + Cifrado'},
+   {t:'Notificación de incidentes a la ANCI',st:'ok',a:'Arts. 9 y 11',na:'Reporte Incidentes'},
+   {t:'Auditoría y cumplimiento continuo',st:'par',a:'Art. 8',na:'Monitoreo SOC 24x7'},
+   {t:'Continuidad de negocio / resiliencia',st:'par',a:'Art. 8',na:'Plan Continuidad'},
+   {t:'Coordinación con ENCs y sector público',st:'gap',a:'Art. 8',na:'No modelado'},
+   {t:'Informe / rendición a la autoridad',st:'gap',a:'Art. 8',na:'No modelado'}
+  ]},
+ {id:'21.719',name:'Ley 21.719 — Protección de Datos Personales',pct:36,url:'https://www.bcn.cl/leychile/navegar?idNorma=1209272',src:'BCN · Ley Chile',
+  rows:[
+   {t:'Principios del tratamiento',st:'par',a:'Art. 3',na:'Solo seguridad y confidencialidad'},
+   {t:'Derechos ARCOPB del titular',st:'gap',a:'Arts. 6 a 11',na:'No modelado'},
+   {t:'Seudonimización y cifrado',st:'ok',a:'Art. 14 quinquies letra a',na:'Cifrado AES / TLS'},
+   {t:'Confidencialidad, integridad, disponibilidad',st:'ok',a:'Art. 14 quinquies letra b',na:'SGSI ISO 27001'},
+   {t:'Restauración de disponibilidad',st:'par',a:'Art. 14 quinquies c',na:'Respaldo / DR'},
+   {t:'Verificación y evaluación de medidas',st:'par',a:'Art. 14 quinquies d',na:'SOC + SGSI'},
+   {t:'Notificación de brechas (72h)',st:'ok',a:'Art. 14 sexies',na:'Reporte Incidentes'},
+   {t:'Información y transparencia',st:'gap',a:'Art. 14 ter',na:'No modelado'},
+   {t:'Protección desde el diseño y por defecto',st:'gap',a:'Art. 14 quáter',na:'No modelado'},
+   {t:'Evaluación de impacto (EIPD)',st:'gap',a:'Art. 15 ter',na:'No modelado'},
+   {t:'Delegado de Protección de Datos (DPD)',st:'gap',a:'—',na:'No modelado'},
+   {t:'Registro de actividades de tratamiento (RAT)',st:'gap',a:'—',na:'No modelado'},
+   {t:'Contratos con encargados (DPA)',st:'gap',a:'Art. 15 bis',na:'No modelado'},
+   {t:'Estándar diferenciado para PYMES',st:'par',a:'Art. 14 septies',na:'Tratamiento uniforme'}
+  ]},
+ {id:'NCG',name:'NCG 538 — CMF (medios de pago)',pct:40,url:'https://www.cmfchile.cl/normativa/ncg_538_2025.pdf',src:'CMF · PDF oficial',
+  rows:[
+   {t:'Autenticación reforzada (ARC / MFA)',st:'ok',a:'obligatoria jul-2026',na:'MFA Autenticación'},
+   {t:'Cifrado de datos',st:'ok',a:'NCG 538',na:'Cifrado AES / TLS'},
+   {t:'Trazabilidad de transacciones',st:'gap',a:'NCG 538',na:'No modelado'},
+   {t:'Monitoreo de fraudes',st:'par',a:'NCG 538',na:'Monitoreo SOC 24x7'},
+   {t:'Protección contra manipulación de dispositivos',st:'gap',a:'NCG 538',na:'No modelado'}
+  ]},
+ {id:'21.595',name:'Ley 21.595 — Delitos Económicos',pct:17,url:'https://www.bcn.cl/leychile/navegar?idNorma=1195119',src:'BCN · Ley Chile',
+  rows:[
+   {t:'Encargado de Prevención de Delitos',st:'gap',a:'Ley 20.393',na:'No modelado'},
+   {t:'Matriz de riesgos penales',st:'par',a:'MPD',na:'SGSI (riesgo de seguridad, no penal)'},
+   {t:'Protocolos y procedimientos',st:'par',a:'MPD',na:'SGSI (políticas)'},
+   {t:'Canal de denuncias',st:'gap',a:'MPD',na:'No modelado'},
+   {t:'Supervisión / evaluación independiente',st:'gap',a:'MPD',na:'No modelado'},
+   {t:'Régimen sancionatorio (penal, sin UTM)',st:'ok',a:'Ley 21.595',na:'Correcto en informe'}
+  ]},
+ {id:'BOD',name:'BOD 26-04 — CISA (referencia voluntaria)',pct:100,url:'https://www.cisa.gov/news-events/directives/bod-26-04-prioritizing-security-updates-based-risk',src:'CISA · sitio oficial',
+  rows:[
+   {t:'Gestión de vulnerabilidades priorizada por riesgo',st:'ok',a:'BOD 26-04',na:'SGSI (voluntaria)'}
+  ]}
+];
+function covColor(s){return s==='ok'?'#2D6A4F':(s==='par'?'#E67E22':'#DC3545');}
+function covMark(s){return s==='ok'?'✓':(s==='par'?'◐':'✗');}
+function covRowsHtml(item){
+ var h='';
+ (item.rows||[]).forEach(function(r){
+  h+='<div class="cov-r"><span class="dot" style="background:'+covColor(r.st)+'"></span><div class="ob"><b>'+esc(r.t)+'</b><span class="via">'+esc(r.na||'')+(r.a?' · '+esc(r.a):'')+'</span></div><span class="cov-badge" style="color:'+covColor(r.st)+';border-color:'+covColor(r.st)+'">'+covMark(r.st)+' '+(r.st==='ok'?'Cubierto':(r.st==='par'?'Parcial':'Brecha'))+'</span></div>';
+ });
+ return h;
+}
+var diagData=[
+ {k:'oiv',q:'¿Tu empresa está en la lista de empresas críticas?',d:'Son las de infraestructura crítica: telecom, energía, banca, salud, agua, transporte.',g:'Son las empresas que Chile no puede dejar de funcionar. Si prestas un servicio que sostiene el país, aplícalo. La lista es pública.'},
+ {k:'cmf',q:'¿Trabajas con dinero regulado?',d:'Es lo que vigila el regulador financiero: bancos, medios de pago, aseguradoras, corredoras.',g:'El regulador financiero fiscaliza a casi todo el sector del dinero. Si manejas dinero a gran escala o servicios financieros, tu empresa es de las que vigila.'},
+ {k:'datos',q:'¿Tratas datos de personas?',d:'Datos de clientes, empleados, usuarios, pacientes, proveedores…',g:'Si guardas o usas datos que identifican a personas (nombre, correo, clave, salud), son datos personales.'}
+];
+var diagState={oiv:null,cmf:null,datos:null},diagHave=[];
+function applicableLaws(){var l=['21.595'];if(diagState.oiv===1)l.push('21.663');if(diagState.cmf===1)l.push('NCG');if(diagState.datos===1)l.push('21.719');return l;}
+function controlsFor(laws){var out=[];for(var c=0;c<CTRLS.length;c++){var nm=CTRLS[c];var cv=ctrlLeyes[nm];if(!cv)continue;var m=false;for(var j=0;j<cv.length;j++){for(var k=0;k<laws.length;k++){if(cv[j].indexOf(laws[k])>=0){m=true;break;}}if(m)break;}if(m)out.push(nm);}return out;}
+/* Cobertura de ley (semantica ROI): ley cubierta = TODOS los controles de sus estandares 'exige' implementados (union). */
+function leyCobertura(laws){
+ var out={};
+ for(var i=0;i<laws.length;i++){var law=laws[i];var req=[],done=true;
+  for(var s=0;s<STD_DEFS.length;s++){var sd=STD_DEFS[s];
+   if(sd.leyes[law]==='exige'){for(var c=0;c<sd.ctrls.length;c++){var cc=sd.ctrls[c];
+    if(req.indexOf(cc)<0)req.push(cc);if(diagHave.indexOf(cc)<0)done=false;}}}
+  out[law]={req:req,covered:done};}
+ return out;
+}
+/* Controles exigidos (union 'exige') por las leyes aplicables */
+function ctrlUnion(laws){
+ var u=[];
+ for(var i=0;i<laws.length;i++){for(var s=0;s<STD_DEFS.length;s++){var sd=STD_DEFS[s];
+  if(sd.leyes[laws[i]]==='exige'){for(var c=0;c<sd.ctrls.length;c++){if(u.indexOf(sd.ctrls[c])<0)u.push(sd.ctrls[c]);}}}}
+ return u;
+}
+/* Jerarquia Ley -> Estandar -> Controles (igual que el sankey).
+   Para cada ley aplicable: sus estandares EXIGE (obligatorios) y SATISFACE (referencia), con estado por control. */
+function leyEstandares(laws){
+ var out=[];
+ for(var i=0;i<laws.length;i++){var l=laws[i];var exige=[],satf=[];
+  for(var s=0;s<STD_DEFS.length;s++){var sd=STD_DEFS[s];var rel=sd.leyes[l];if(!rel)continue;
+   var items=sd.ctrls.map(function(c){return {ctrl:c,on:diagHave.indexOf(c)>=0};});
+   var done=items.filter(function(x){return x.on;}).length;
+   var blk={std:sd.n,leyes:sd.leyes,rel:rel,items:items,done:done,total:items.length};
+   if(rel==='exige')exige.push(blk);else satf.push(blk);}
+  out.push({law:l,exige:exige,satf:satf});}
+ return out;
+}
+/* Prioridad (orden ROI 'cerrar por proximidad'): controles faltantes ordenados por PROXIMIDAD
+   a cerrar una ley — cuántos controles quedan por implementar en la ley más cercana tras
+   aplicar este control. prox 0 = hito ◆ (completa una ley), luego 1, 2, ... Así "llenar una ley"
+   manda sin depender de que exista multa: NCG/21.595 a 1 paso gana ante 21.663 a 20 pasos.
+   Desempate: severidad de la ley que cierran/tocan (penal > multas), nº de leyes, orden canónico. */
+function prioControles(laws,lc){
+ var pri={};
+ for(var l=0;l<laws.length;l++){if(lc[laws[l]].covered)continue;
+  var req=lc[laws[l]].req;
+  var faltan=req.filter(function(c){return diagHave.indexOf(c)<0;}).length;
+  for(var i=0;i<req.length;i++){var c=req[i];
+   if(diagHave.indexOf(c)>=0)continue;
+   if(!pri[c])pri[c]={n:0,sev:0,prox:9999,completa:{},toca:{}};
+   pri[c].n++;pri[c].sev=Math.max(pri[c].sev,lawSev(laws[l]));pri[c].toca[laws[l]]=true;
+   if((faltan-1)<pri[c].prox)pri[c].prox=faltan-1;
+   if(faltan===1)pri[c].completa[laws[l]]=true;}}
+ var list=[];
+ for(var c3 in pri){var p=pri[c3];
+  var comp=Object.keys(p.completa),toca=Object.keys(p.toca);
+  var compSev=0;comp.forEach(function(l){compSev=Math.max(compSev,lawSev(l));});
+  list.push({ctrl:c3,n:p.n,sev:p.sev,prox:p.prox,completa:comp,compSev:compSev,laws:toca});}
+ list.sort(function(a,b){
+  if(a.prox!==b.prox)return a.prox-b.prox;
+  var ah=a.completa.length>0,bh=b.completa.length>0;
+  if(ah!==bh)return ah?-1:1;
+  if(ah&&bh&&b.compSev!==a.compSev)return b.compSev-a.compSev;
+  if(b.sev!==a.sev)return b.sev-a.sev;
+  if(b.n!==a.n)return b.n-a.n;
+  return CTRLS.indexOf(a.ctrl)-CTRLS.indexOf(b.ctrl);});
+ return list;
+}
+var qIndex=0;
+function answeredCount(){var n=0;for(var k in diagState){if(diagState[k]===1||diagState[k]===0)n++;}return n;}
+function maxReachable(){var a=answeredCount();return a>=3?slides.length-1:2+a;}
+function ans(k,v){var same=diagState[k]===v;diagState[k]=v;var sl=cur;showDone(k,v);if(answeredCount()===3){renderChecklist();go(5);}else if(same&&answeredCount()>0){go(sl);}else{go(Math.min(sl+1,slides.length-1));}}
+function showDone(k,v){var sl=document.querySelector('.slide.active .yn');if(sl){var btns=sl.querySelectorAll('button');for(var i=0;i<btns.length;i++){if(i===(v?0:1))btns[i].className='done';var t=btns[i];if(btns[i].textContent.indexOf((v?'Sí':'No'))===0)btns[i].className='done';}}}
+var deck=document.getElementById('deck'),cur=0;
+var slides=[],stepOf=[],stepTot=1;
+function escTo(lst){return lst.map(function(x){return x;})}
+// Inventario abierto: el checklist del Paso 3 muestra SIEMPRE los 17 controles (independiente de las respuestas previas). Se asume criterio del usuario; el reporte cruza inventario vs contexto legal.
+function renderChecklist(){var app=CTRLS.slice();var h='<div class="cklist">';app.forEach(function(nm){var g=gloss[nm]||[''];h+='<div class="ck" data-n="'+nm+'" onclick="toggleCk(this)"><div class="tick">✓</div><div><div class="nm">'+esc(nm)+'</div><div class="ds">'+esc(ctrlDesc[nm]||'')+'</div></div><span class="gloss">'+(g[0]||'')+'</span></div>';});h+='</div>';document.getElementById('ckwrap').innerHTML=h;document.getElementById('goCalc').disabled=false;}
+function build(){
+ var S=[];
+ S.push('<div class="slide center"><div class="inner"><div class="kicker">Hackfluency · Chile 2026</div><h1>Autodiagnóstico<br>Regulatorio</h1><div class="sub">Descubre en menos de 2 minutos qué leyes te aplican y qué controles faltan por implementar.<br>Todo explicado sin tecnicismos.</div><div class="row-btn"><button class="btn big" onclick="go(1)">Comenzar →</button></div></div></div>');
+ var lawList='';var lawKeys=['21.663','21.719','21.595','NCG','BOD'];
+ var lawDef={'21.663':'Protege los servicios esenciales del país y las empresas críticas.','21.719':'Protege los datos personales de las personas.','21.595':'Persigue delitos económicos y responsabiliza a los directores.','NCG':'Norma del regulador financiero para el mundo del dinero.','BOD':'Modelo voluntario para priorizar lo más importante de tu sistema.'};
+ lawKeys.forEach(function(k){var tagTxt=(k==='BOD'?'BOD 26-04':k);lawList+='<div class="card" onclick="openExt(this)"><span class="tag" style="background:'+lawColor[k]+'">'+tagTxt+'</span><h3>'+esc(lawName[k].split(' — ')[0])+'</h3><div class="mini">'+esc(lawDef[k]||'')+'</div><div class="hint">toca para entender →</div><div class="ext"><b>En simple</b><br>'+esc(lawDef[k]||'')+'</div></div>';});
+ S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 1 · Contexto</div><h2>¿Qué leyes miden tu empresa?</h2><div class="sub">Cada ley exige controles distintos. Conócelas rápido antes de contestar.</div><div class="grid g3">'+lawList+'</div></div></div>');
+ // Encuesta
+ for(var qi=0;qi<diagData.length;qi++){var d=diagData[qi];
+   S.push('<div class="slide center"><div class="inner"><div class="qbox"><div class="qnum">Pregunta '+(qi+1)+' de 3</div><div class="qtext">'+esc(d.q)+'</div><div class="qdesc">'+esc(d.d)+'</div></div><div class="qdef"><b>En simple</b> → '+esc(d.g)+'</div><div class="yn"><button class="y" onclick="ans(\''+d.k+'\',1)">Sí ✓</button><button class="n" onclick="ans(\''+d.k+'\',0)">No ✗</button></div></div></div>');}
+ // Glosario de controles
+ var cg=''; CTRLS.forEach(function(nm){var g=gloss[nm]||['',''];cg+='<div class="card" onclick="openExt(this)"><h3>'+esc(nm)+'</h3><div class="mini">'+esc(ctrlDesc[nm]||'')+'</div><div class="hint">¿qué es? toca aquí →</div><div class="ext"><b>'+esc(g[0])+'</b><br>'+esc(g[1])+'</div></div>';});
+S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 2 · Vocabulario</div><h2>Los 17 controles, explicados</h2><div class="sub">Son los 17 controles que piden las leyes, agrupados en 5 estándares. Toca cada uno para ver qué significa.</div><div class="grid g3">'+cg+'</div></div></div>');
+  S.push('<div class="slide center"><div class="inner"><div class="kicker">Paso 3 · Tu lista de verificaciones</div><h2>Marca lo que YA funciona</h2><div class="sub">No marques lo que está en un papel o en una idea. Marca solo lo que realmente usas y funciona hoy en tu empresa.</div><div id="ckwrap"></div><div class="row-btn"><button class="btn big" id="goCalc" onclick="calc()" disabled>Ver mi resultado →</button></div></div></div>');
+  S.push('<div class="slide center"><div class="inner" id="reswrap"><div class="kicker">Paso 4 · Tu resultado</div><h2 id="restitle"></h2><div id="resbody"></div></div></div>');
+  // Hoja de cobertura / fidelidad del modelo
+  var cCover='';
+  COVERAGE.forEach(function(co){
+   cCover+='<div class="covcard" onclick="openExt(this)"><div class="cov-hd"><span class="tag" style="background:'+lawColor[co.id]+'">'+esc(co.id)+'</span><button class="cov-src" onclick="window.open(\''+esc(co.url)+'\',\'_blank\');event.stopPropagation();">Fuente ↗</button></div>'
+    +'<div class="cov-name">'+esc(co.name)+'</div>'
+    +'<div class="cov-status"><span class="pill" style="color:#fff;background:'+covColor((co.pct>=60?'ok':(co.pct>=35?'par':'gap')))+'">Cobertura técnica '+co.pct+'%</span><span class="cov-note">'+esc(co.src)+'</span></div>'
+    +'<div class="covpro"><i style="width:'+co.pct+'%;background:'+covColor((co.pct>=60?'ok':(co.pct>=40?'par':'gap')))+'"></i></div>'
+    +'<div class="hint">toca para ver obligaciones →</div>'
+    +'<div class="ext"><div class="covship">Obligaciones de la norma vs. nuestro modelo</div>'+covRowsHtml(co)+'</div></div>';
+  });
+  S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 5 · Transparencia del alcance del modelo</div><h2>Qué mide este informe y qué queda fuera</h2><div class="sub">Nuestro informe se centra en controles técnicos. A continuación puedes ver el nivel de fidelidad de este reporte y su modelamiento respecto de la ley actual: qué obligaciones cubre el modelo y cuáles quedan fuera.</div><div class="grid g2">'+cCover+'</div><div class="sub" style="margin-top:20px;font-size:12.5px;color:var(--dim)"><b style="color:var(--mut)">Leyenda:</b> <span style="color:#2D6A4F">✓ Cubierto</span> · <span style="color:#E67E22">◐ Parcial</span> · <span style="color:#DC3545">✗ Brecha</span> — El modelo prioriza controles técnicos de seguridad sobre obligaciones organizacionales; la cobertura no es asesoría legal. Ver fuentes oficiales para el texto completo.</div></div></div>');
+ return S;
+}
+function toggleCk(el){el.classList.toggle('on');}
+function calc(){var c=document.querySelectorAll('.ck.on');diagHave=[];c.forEach(function(x){diagHave.push(x.getAttribute('data-n'));});renderResult();go(slides.length-2);}
+function renderResult(){
+ var laws=applicableLaws();var lc=leyCobertura(laws);
+ var covLaws=laws.filter(function(l){return lc[l].covered;});
+ var pct=laws.length?Math.round(covLaws.length/laws.length*100):0;
+ var uni=ctrlUnion(laws);var onCtrls=uni.filter(function(c){return diagHave.indexOf(c)>=0;}).length;
+ document.getElementById('restitle').textContent=(covLaws.length===laws.length&&laws.length>0)?'Estás al día 🎉':'Tu resultado para cerrar la brecha';
+ var h='<div class="metrics">';
+ h+='<div class="met"><div class="num" style="color:'+lawColor[laws[0]||'21.595']+'">'+laws.length+'</div><div class="lab">Leyes que te aplican</div></div>';
+  h+='<div class="met"><div class="num" style="color:#2D6A4F">'+covLaws.length+'/'+laws.length+'</div><div class="lab">Leyes al día ('+pct+'%)</div></div>';
+  h+='<div class="met"><div class="num" style="color:#DC3545">'+onCtrls+'/'+uni.length+'</div><div class="lab">Controles implementados de los exigidos</div></div></div>';
+ h+='<div class="bar"><i style="width:'+pct+'%;background:'+(pct>=60?'#2D6A4F':(pct>=30?'#E67E22':'#DC3545'))+'"></i></div>';
+ if(!laws.length){h+='<div class="prio no-gap"><h4>Sin leyes que cumplir 🎉</h4><div class="dst">Con el escenario respondido no te aplican requisitos legales.</div></div>';}
+ else{
+var le=leyEstandares(laws);
+   h+='<div class="sec"><h3>→ Checklist para cumplir cada ley</h3>';
+   le.forEach(function(o){
+    var cov=lc[o.law].covered;
+    h+='<div class="ley" style="border-left:4px solid '+lawColor[o.law]+'">';
+    h+='<div class="ley-h"><div class="ley-n"><span class="ley-tag" style="background:'+lawColor[o.law]+'">'+o.law+'</span><span class="ley-name">'+esc(lawName[o.law].split(' — ')[0])+'</span></div><span class="ley-status'+(cov?'':' warn')+'">'+(cov?'Ley cubierta ✅':'Incompleta')+'</span></div>';
+    if(!o.exige.length&&!o.satf.length){h+='<div class="dst" style="margin-top:8px">Esta ley aplica a tu empresa en el escenario respondido.</div>';}
+    o.exige.forEach(function(g){
+     h+='<div class="prio '+(g.done===g.total?'no-gap':'')+'" style="margin-top:10px"><div class="prhead"><h4>'+esc(g.std)+'</h4><span class="prstat">'+g.done+'/'+g.total+' controles</span></div>';
+     h+='<div class="dst"><b style="color:#2D6A4F">EXIGIDO</b> · '+(g.done===g.total?'Completo ✅':'Faltan '+(g.total-g.done)+' control'+(g.total-g.done>1?'es':'')+' para cumplir')+'</div>';
+     h+='<div class="reqs"><div class="ship">Controles '+o.law+' · estándar</div>'+
+      g.items.map(function(it){return '<div class="rq '+(it.on?'ok':'miss')+'"><span class="rqmark">'+(it.on?'✓':'✗')+'</span><span>'+esc(it.ctrl)+'</span></div>';}).join('')+'</div></div>';});
+    o.satf.forEach(function(g){
+     h+='<div class="prio" style="margin-top:8px;opacity:.72;border-left-style:dashed"><div class="prhead"><h4>'+esc(g.std)+'</h4><span class="prstat" style="background:rgba(176,141,62,.16)">'+g.done+'/'+g.total+' controles</span></div>';
+     h+='<div class="dst"><b style="color:#B08D3E">SATISFACE (referencia)</b> · contribuye pero no es obligatorio para esta ley</div>';
+     h+='<div class="reqs"><div class="ship">Controles '+o.law+' · referencia</div>'+
+      g.items.map(function(it){return '<div class="rq '+(it.on?'ok':'miss')+'"><span class="rqmark">'+(it.on?'✓':'✗')+'</span><span>'+esc(it.ctrl)+'</span></div>';}).join('')+'</div></div>';});
+    h+='</div>';
+   });
+   h+='</div>';
+  var pri=prioControles(laws,lc);
+  if(pri.length){h+='<div class="sec"><h3>→ Por dónde empezar (cerrar por proximidad)</h3>';
+   pri.forEach(function(p,ix){
+    var hito=p.completa.length>0;
+    if(hito){
+     h+='<div class="prio hito"><div class="prhead"><h4><span class="ord">'+(ix+1)+'</span> '+esc(p.ctrl)+'</h4><span class="prstat hito">◆ completa '+esc(p.completa.join(' y '))+' · '+esc(sevLabel(p.completa.slice().sort(function(a,b){return lawSev(b)-lawSev(a);})[0]))+'</span></div><div class="dst"><b>◆ Hito de cobertura:</b> con este control <b>completas la ley '+(p.completa.length>1?'':p.completa[0])+'</b> y pasas a estar al día en ella. '+(p.laws.length>p.completa.length?'Además avanza hacia: '+p.laws.join(', '):'')+'</div></div>';
+    }else{
+     var topSev=p.laws.slice().sort(function(a,b){return lawSev(b)-lawSev(a);})[0];
+     h+='<div class="prio"><div class="prhead"><h4><span class="ord">'+(ix+1)+'</span> '+esc(p.ctrl)+'</h4><span class="prstat" style="color:'+(topSev==='21.595'?'#6F42C1':'#DC3545')+'">'+sevLabel(topSev)+'</span></div><div class="dst">Avanza hacia cubrir: '+p.laws.join(', ')+' — deja la ley más cercana a '+(p.prox)+' control(es) de cerrarse.</div></div>';
+    }});
+   h+='</div>';}
+  h+='<div class="sec"><h3>→ Qué arriesgas (contexto legal)</h3>';
+  laws.forEach(function(l){if(MULTAS[l]){h+='<div class="prio"><div class="prhead"><h4>'+esc(lawName[l].split(' — ')[0])+'</h4><span class="prstat" style="color:#DC3545">'+fmtUTM(MULTAS[l])+' ('+fmtCLPm(MULTAS[l])+')</span></div><div class="dst">Multa techo máxima por infracción gravísima. Una sola sanción del techo puede superar con creces la inversión en controles.</div></div>';}});
+  if(laws.indexOf('21.595')>=0){h+='<div class="prio"><div class="prhead"><h4>Ley 21.595 — Delitos Económicos</h4><span class="prstat" style="color:#6F42C1">sanción penal</span></div><div class="dst">No define multa en UTM, pero <b>sí sanciona</b>: es una ley penal que responsabiliza a directores y ejecutivos con <b>presidio e inhabilidades</b> (además exige Modelo de Prevención de Delitos, Ley 20.393). El riesgo no es monetario sino de libertad y de poder ejercer cargos.</div></div>';}
+  if(laws.indexOf('NCG')>=0){h+='<div class="prio"><div class="prhead"><h4>NCG 538 — CMF</h4><span class="prstat" style="color:#E67E22">sanción administrativa CMF</span></div><div class="dst">No define multa en UTM, pero <b>sí sanciona</b>: el incumplimiento habilita a la <b>CMF</b> a aplicar <b>multas administrativas e inhabilidades</b> bajo el régimen sancionatorio del mercado financiero (Ley General de Bancos / mercado de valores), con montos graduables caso a caso.</div></div>';}
+   if(laws.indexOf('21.663')>=0){h+='<div class="prio"><div class="prhead"><h4>ROI de certificación ISO 27001</h4></div><div class="dst">Retorno promedio en <b>8.3 meses</b> (G-CERTI 2026) y <b>62% de reducción</b> del impacto de una brecha (de USD 4.2M a USD 1.6M promedio LATAM). Costo de implementación $17-79M CLP año 1 (FideliNorm 2026), equivalente al 0.6%-2.8% del techo de sanción. Una sanción del techo paga <b>35 veces</b> la inversión.</div></div>';}
+   if(diagState.datos===1&&diagState.oiv!==1&&diagState.cmf!==1){h+='<div class="sec"><h3>→ Si tus datos incluyen categorías especiales</h3>';
+    h+='<div class="prio" style="border-left-color:#5B6ABF"><div class="prhead"><h4>Obligaciones adicionales que este informe no modela</h4><span class="prstat warn">fuente externa</span></div><div class="dst">Tratar datos <b>sensibles</b> (salud, biometría, origen étnico, datos de menores) activa deberes de la <b>Ley 21.719</b> que este autodiagnóstico <b>aún no cubre</b>: <b>EIPD</b> (Evaluación de Impacto, Art. 15 ter), <b>DPO</b> (Delegado de Protección de Datos) y <b>RAT</b> (Registro de Actividades de Tratamiento). Para estar al día con esas obligaciones, consulta el texto oficial de la ley:</div>';
+    h+='<div class="reqs" style="margin-top:8px"><a href="https://www.bcn.cl/leychile/navegar?idNorma=1209272" target="_blank" style="color:#5B6ABF;font-weight:700;text-decoration:underline">Ley 21.719 · BCN Ley Chile ↗</a></div></div></div>';}
+   h+='</div>';
+   h+=roiMatWeb(laws,lc);
+   var foraLey=ctrlsFueraContexto(laws);
+   if(foraLey.length){h+='<div class="sec"><h3>→ Tienes controles fuera de tu contexto legal</h3>';
+    h+='<div class="prio" style="border-left-style:dashed"><div class="dst">Marcaste como implementados controles que <b>ninguna de tus leyes aplicables exige</b> en el escenario respondido. No es un problema, pero conviene revisar si fueron vendidos como obligatorios: pueden ser sobredimensionamiento o parte de una referencia voluntaria (BOD 26-04).</div>';
+    h+='<div class="reqs" style="margin-top:8px">'+foraLey.map(function(c){return '<div class="rq miss"><span class="rqmark" style="background:#E67E22">◐</span><span>'+esc(c)+'</span></div>';}).join('')+'</div></div></div>';}
+  }
+ document.getElementById('resbody').innerHTML=h+'<div class="row-btn" style="margin-top:28px"><button class="btn big" onclick="diagBuildReport()">Descargar reporte PDF ↓</button><button class="btn ghost big" onclick="go(slides.length-1)">Ver cobertura del modelo →</button><button class="btn ghost big" onclick="resetAll()">Repetir diagnóstico ↺</button></div>';
+}
+/* Controles que el usuario marcó como implementados pero que NINGUNA ley aplicable a su
+   escenario los exige. Resultado util: deteccion de sobredimension / 'venta de humo'. */
+function ctrlsFueraContexto(laws){
+  var out=[];
+  for(var i=0;i<diagHave.length;i++){var c=diagHave[i];var cv=ctrlLeyes[c]||[];
+   var inContext=false;for(var j=0;j<cv.length;j++){if(laws.indexOf(cv[j])>=0){inContext=true;break;}}
+   if(!inContext&&out.indexOf(c)<0)out.push(c);}
+  return out;
+}
+/* ===== ROI de Cumplimiento: Matriz de Cobertura Legal por Control =====
+   Replica el chart 'ROI de Cumplimiento' del informe de convergencia (convergencia_normativa.html):
+   filas = leyes aplicables con su techo de multa en UTM, o su tipo de sanción cuando no hay
+   monto (21.595 = sanción penal con presidio; NCG 538 = sanción administrativa CMF);
+   columnas = controles exigidos por al menos una ley aplicable, en orden de implementación
+   'máxima cobertura primero' (nº de leyes que destapan, desempate por orden en STD_DEFS);
+   celda coloreada = esa ley EXIGE ese control; ◆ = última celda requerida por la ley (hito de cobertura). */
+var SHORTCTRL={'SGSI ISO 27001':'SGSI','Evaluacion Riesgos':'Riesgos','Auditoria Pentest':'Pentest','Capacitacion':'Capacitac.','Due Diligence Terceros':'DD Terceros','Plan Continuidad':'Continuidad','Monitoreo SOC 24x7':'SOC','Delegado Ciberseguridad':'Delegado','MFA Autenticacion':'MFA','Cifrado AES / TLS':'Cifrado','Reporte Incidentes':'Reporte Inc.','Canal Disclosure':'Canal Disc.','Encargado de Prevencion':'Enc. Prev.','Matriz Riesgo Penal':'Matriz Penal','Protocolos Prevencion':'Protocolos','Canal Denuncias':'Denuncias','Evaluacion Independiente':'Eval. Indep.'};
+function roiMat(laws,lc){
+  var uni=ctrlUnion(laws);
+  function covers(ctrl){var n=0;for(var i=0;i<laws.length;i++){if(lc[laws[i]].req.indexOf(ctrl)>=0)n++;}return n;}
+  function sev(ctrl){var s=0;for(var i=0;i<laws.length;i++){if(lc[laws[i]].req.indexOf(ctrl)>=0)s=Math.max(s,lawSev(laws[i]));}return s;}
+  var order=uni.slice().sort(function(a,b){var sa=sev(a),sb=sev(b);if(sb!==sa)return sb-sa;var ca=covers(a),cb=covers(b);if(cb!==ca)return cb-ca;return CTRLS.indexOf(a)-CTRLS.indexOf(b);});
+  var idx={};order.forEach(function(c,i){idx[c]=i;});
+  var doneAt={};
+  laws.forEach(function(l){var last=-1;lc[l].req.forEach(function(c){if(idx[c]>last)last=idx[c];});doneAt[l]=last;});
+  return {order:order,doneAt:doneAt,reqOf:lc,laws:laws};
+}
+function roiMatWeb(laws,lc){
+  var m=roiMat(laws,lc);
+  var h='<div class="sec"><h3>→ ROI de Cumplimiento: Matriz de Cobertura Legal por Control</h3>';
+  h+='<div class="roim-wrap"><table class="roim"><thead><tr><th>Ley (techo de multa o sanción)</th>';
+  m.order.forEach(function(c){h+='<th title="'+esc(c)+'">'+esc(SHORTCTRL[c]||c)+'</th>';});
+  h+='</tr></thead><tbody>';
+  m.laws.forEach(function(l){
+    var fine=MULTAS[l];
+    var sanTxt=(l==='21.595'?'sanción penal (presidio)':(l==='NCG'?'sanción CMF (multas)':'sin sanción modelada'));
+    h+='<tr><td class="roim-law"><span style="color:'+lawColor[l]+'">■ '+esc(l)+'</span><span class="roim-fine">'+(fine?fmtUTM(fine)+' ('+fmtCLPm(fine)+')':sanTxt)+'</span></td>';
+    m.order.forEach(function(c,i){
+      var req=m.reqOf[l].req.indexOf(c)>=0,hit=m.doneAt[l]===i;
+      h+='<td class="roim-cell'+(req?' req':'')+(hit?' hit':'')+'" style="background:'+(req?lawColor[l]:'transparent')+'" title="'+esc(c)+(req?' — '+esc(l)+' lo exige':' — no exigido por '+esc(l))+'">'+(hit?'◆':'')+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="dst" style="font-size:12px;color:var(--dim);margin-top:8px">Celda de color = control <b>exigido</b> por esa ley. <b>◆</b> = último control que completa la ley (hito de cobertura). En la priorización manda la <b>proximidad</b>: primero los hitos (◆) que completan leyes, luego los que más las acercan a cerrarse, sin importar que haya multa — una ley sin multa UTM a 1 paso gana ante una con multa a muchos pasos. La severidad (riesgo penal y multa del techo) desempata. Las leyes sin multa en UTM <b>igual sancionan</b>: 21.595 = penal (presidio), NCG 538 = administrativa CMF (multas/inhabilidades).</div>';
+  h+='</div>';
+  return h;
+}
+function roiMatPdf(laws,lc){
+  var m=roiMat(laws,lc);
+  var h='<div style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">ROI de Cumplimiento: Matriz de Cobertura Legal por Control</h3>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
+  h+='<tr style="background:rgba(0,0,0,.03)"><td style="padding:4px 6px;border:1px solid #ddd;font-weight:700">Ley (techo de multa o sanción)</td>';
+  m.order.forEach(function(c){h+='<td style="padding:4px 2px;border:1px solid #ddd;font-weight:700;text-align:center" title="'+esc(c)+'">'+esc(SHORTCTRL[c]||c)+'</td>';});
+  h+='</tr>';
+  m.laws.forEach(function(l){
+    var fine=MULTAS[l];
+    var sanTxt=(l==='21.595'?' · sanción penal':(l==='NCG'?' · sanción CMF':' · sin sanción modelada'));
+    h+='<tr><td style="padding:3px 6px;border:1px solid #ddd;font-weight:700;white-space:nowrap">'+esc(l)+(fine?' · '+fmtUTM(fine):sanTxt)+'</td>';
+    m.order.forEach(function(c,i){
+      var req=m.reqOf[l].req.indexOf(c)>=0,hit=m.doneAt[l]===i;
+      h+='<td style="padding:3px 2px;border:1px solid #ddd;text-align:center;background:'+(req?lawColor[l]+'55':'transparent')+';font-weight:800;color:'+(req?'#1A1A18':'transparent')+'">'+(hit?'◆':'')+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</table>';
+  h+='<div style="font-size:9px;color:#888;margin-top:4px">Celda de color = control exigido por esa ley; ◆ = hito de cobertura (último control que completa la ley). La priorización manda por proximidad a cerrar una ley (◆ primero, luego los que más la acercan), y la severidad desempata; una ley sin multa UTM a 1 paso gana ante una con multa a muchos pasos. Las leyes sin multa UTM igual sancionan (21.595 = penal con presidio, NCG 538 = sanción administrativa CMF).</div></div>';
+  return h;
+}
+function diagBuildReport(){
+ var laws=applicableLaws();var lc=leyCobertura(laws);
+ var covLaws=laws.filter(function(l){return lc[l].covered;});
+ var pct=laws.length?Math.round(covLaws.length/laws.length*100):0;
+ var uni=ctrlUnion(laws);var onCtrls=uni.filter(function(c){return diagHave.indexOf(c)>=0;}).length;
+ var today=new Date(),dateStr=today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
+ var h='<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1A1A18;padding-bottom:10px;margin-bottom:14px">';
+ h+='<div><div style="font-size:20px;font-weight:800;color:#1A1A18">HACKFLUENCY</div><div style="font-size:11px;color:#555">Convergencia Normativa Chile 2026 — Autodiagnóstico</div></div></div>';
+ h+='<div style="display:flex;gap:8px;margin-bottom:12px"><div style="background:#1A1A18;color:#fff;padding:6px 12px;border-radius:8px;font-size:11px"><b>Fecha:</b>'+dateStr+'</div><div style="background:#1A1A18;color:#fff;padding:6px 12px;border-radius:8px;font-size:11px"><b>Reporte:</b> HF-PRES-2026-001</div></div>';
+ if(covLaws.length===laws.length&&laws.length>0){h+='<div style="background:#2D6A4F;color:#fff;font-weight:800;font-size:14px;padding:8px 12px;border-radius:8px;margin-bottom:10px">Estás al día 🎉 — cumples las leyes aplicables a tu escenario</div>';}
+  h+='<h3 style="margin:0 0 6px;font-size:15px">Resumen ejecutivo</h3>';
+ h+='<p style="margin:0 0 10px;font-size:12px">Según tu escenario respondido, te aplican <b>'+laws.length+' ley(es)</b>. Hoy cubres <b>'+covLaws.length+' ('+pct+'%)</b> de tus leyes y tienes implementados <b>'+onCtrls+' de '+uni.length+'</b> controles exigidos. Una ley queda cubierta cuando TODOS los controles de sus estándares obligatorios están implementados.</p>';
+ for(var i=0;i<laws.length;i++){h+='<span style="background:'+lawColor[laws[i]]+';color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:10px;margin-right:6px">'+(lawName[laws[i]].split(' — ')[0])+'</span>';}
+ var le=leyEstandares(laws);
+ if(le.length){h+='<div style="margin-top:16px"><h3 style="margin:0 0 8px;font-size:15px">Checklist para cumplir cada ley</h3>';
+  le.forEach(function(o){
+   var cov=lc[o.law].covered;
+   h+='<div style="border:1px solid '+lawColor[o.law]+';border-left:5px solid '+lawColor[o.law]+';border-radius:8px;margin-bottom:10px;overflow:hidden">';
+   h+='<div style="background:#1A1A18;color:#fff;font-weight:700;font-size:12.5px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center"><span>'+o.law+' — '+esc(lawName[o.law].split(' — ')[0])+'</span><span style="font-size:10px;padding:2px 8px;border-radius:8px;background:'+(cov?'rgba(45,106,79,.9)':'rgba(230,126,34,.9)')+'">'+(cov?'Ley cubierta ✅':'Incompleta')+'</span></div>';
+   if(!o.exige.length&&!o.satf.length){h+='<div style="padding:6px 12px;font-size:11px">Esta ley aplica a tu empresa en el escenario respondido.</div>';}
+   [['exige','EXIGIDO','#2D6A4F'],['satf','SATISFACE (referencia)','#B08D3E']].forEach(function(kind){
+    var arr=o[kind[0]];
+    arr.forEach(function(g){
+     var isEx=kind[0]==='exige';
+     var status=g.done===g.total?'Completo ✅':'Faltan '+(g.total-g.done)+' control'+(g.total-g.done>1?'es':'');
+     h+='<div style="border-top:1px solid '+(isEx?'#2D6A4F':'#ddd')+';padding:6px 12px">';
+     h+='<div style="display:flex;justify-content:space-between;padding:2px 0 4px"><b style="font-size:12px">'+esc(g.std)+'</b><span style="font-size:9px;font-weight:700;color:'+kind[1]+';border:1px solid '+kind[1]+';border-radius:8px;padding:1px 6px">'+kind[1]+'</span></div>';
+     h+='<div style="font-size:10.5px;color:#666;padding-bottom:4px">'+g.done+'/'+g.total+' · '+status+'</div>';
+     h+='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="background:rgba(0,0,0,.03);font-weight:700"><td style="padding:4px 8px;border-bottom:1px solid #ddd">Estado</td><td style="padding:4px 8px;border-bottom:1px solid #ddd">Control</td></tr>';
+     g.items.forEach(function(it){h+='<tr><td style="padding:4px 8px;border-bottom:1px solid #eee">'+(it.on?'✅':'❌')+'</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-weight:600">'+esc(it.ctrl)+'</td></tr>';});
+     h+='</table></div>';
+    });
+   });
+   h+='</div>';
+  });
+   }
+   var pri=prioControles(laws,lc);
+  if(pri.length){h+='<div style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">Por dónde empezar (cerrar por proximidad)</h3>';
+   pri.forEach(function(p,ix){
+    if(p.completa.length>0){
+     var topComp=p.completa.slice().sort(function(a,b){return lawSev(b)-lawSev(a);})[0];
+     h+='<div style="font-size:11.5px;padding:2px 0"><b>'+(ix+1)+'. '+esc(p.ctrl)+'</b> — <span style="color:#2D6A4F;font-weight:700">◆ completa '+esc(p.completa.join(' y '))+' · '+esc(sevLabel(topComp))+'</span> · hito de cobertura, quedas al día en ella'+(p.laws.length>p.completa.length?' (además avanza hacia '+esc(p.laws.join(', '))+')':'')+'</div>';
+    }else{
+     var topSev=p.laws.slice().sort(function(a,b){return lawSev(b)-lawSev(a);})[0];
+      h+='<div style="font-size:11.5px;padding:2px 0"><b>'+(ix+1)+'. '+esc(p.ctrl)+'</b> — avanza hacia '+esc(p.laws.join(', '))+' · riesgo: <span style="color:'+(topSev==='21.595'?'#6F42C1':'#DC3545')+';font-weight:700">'+esc(sevLabel(topSev))+'</span> (deja la ley más cercana a '+p.prox+' control(es) de cerrarse)</div>';
+    }});
+   h+='</div>';}
+ h+='<div style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">Qué arriesgas (contexto legal)</h3>';
+ laws.forEach(function(l){if(MULTAS[l]){h+='<div style="font-size:11.5px;padding:2px 0"><b>'+esc(lawName[l].split(' — ')[0])+'</b>: multa techo <span style="color:#DC3545;font-weight:700">'+fmtUTM(MULTAS[l])+' ('+fmtCLPm(MULTAS[l])+')</span></div>';}});
+ if(laws.indexOf('21.595')>=0){h+='<div style="font-size:11.5px;padding:2px 0"><b>Ley 21.595 — Delitos Económicos</b>: no define multa en UTM, pero <b>sí sanciona</b> — ley penal que responsabiliza a directores y ejecutivos con <b>presidio e inhabilidades</b>; exige Modelo de Prevención de Delitos (Ley 20.393). Riesgo penal, no monetario.</div>';}
+ if(laws.indexOf('NCG')>=0){h+='<div style="font-size:11.5px;padding:2px 0"><b>NCG 538 — CMF</b>: no define multa en UTM, pero <b>sí sanciona</b> — la CMF puede aplicar <b>multas administrativas e inhabilidades</b> bajo el régimen sancionatorio del mercado financiero, con montos graduables caso a caso.</div>';}
+ if(laws.indexOf('21.663')>=0){h+='<div style="font-size:11.5px;padding:2px 0"><b>ROI de certificación ISO 27001</b>: retorno promedio en 8.3 meses (G-CERTI 2026), 62% de reducción del impacto de brecha (USD 4.2M→1.6M LATAM), costo $17-79M CLP año 1 (FideliNorm 2026) = 0.6%-2.8% del techo de sanción. Una sanción del techo paga 35 veces la inversión.</div>';}
+ if(diagState.datos===1&&diagState.oiv!==1&&diagState.cmf!==1){h+='<div style="margin-top:10px;border:1px solid #5B6ABF;border-left:4px solid #5B6ABF;border-radius:8px;padding:8px 10px;background:rgba(91,106,191,.06)"><b style="font-size:11.5px;color:#5B6ABF">Obligaciones adicionales no modeladas (EIPD · DPO · RAT)</b><div style="font-size:11px;padding-top:3px">Si tus datos incluyen <b>categorías especiales</b> (salud, biometría, origen étnico, menores), la <b>Ley 21.719</b> exige <b>EIPD</b> (Art. 15 ter), <b>DPO</b> y <b>RAT</b> — deberes que este autodiagnóstico aún no cubre. Fuente oficial: <a href="https://www.bcn.cl/leychile/navegar?idNorma=1209272" style="color:#5B6ABF;font-weight:700">Ley 21.719 · BCN Ley Chile ↗</a></div></div>';}
+h+='</div>';
+  h+=roiMatPdf(laws,lc);
+  var foraLey=ctrlsFueraContexto(laws);
+ if(foraLey.length){h+='<div style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">Tienes controles fuera de tu contexto legal</h3>';
+  h+='<div style="font-size:11.5px;padding:2px 0;border-left:3px solid #E67E22;padding-left:8px">Marcaste como implementados controles que <b>ninguna de tus leyes aplicables exige</b> en el escenario respondido: '+foraLey.map(function(c){return '<b style="color:#E67E22">'+esc(c)+'</b>';}).join(', ')+'. Revisa si te fueron vendidos como obligatorios: pueden ser sobredimensionamiento o parte de una referencia voluntaria (BOD 26-04).</div>';
+  h+='</div>';}
+ h+='<div style="margin-top:14px;border-top:1px solid #ddd;padding-top:8px;font-size:10px;color:#666">Fuentes: Ley 21.663 · Ley 21.719 · Ley 21.595 · NCG 538 (CMF) · BOD 26-04 (CISA, referencia voluntaria). Herramienta de visualización, no asesoría legal. Elaborado con HF-PRES-2026-001 · Hackfluency.</div>';
+ /* ==== Anexo: cobertura y fidelidad del modelo frente a la ley ==== */
+ h+='<div style="margin-top:18px;border-top:2px solid #1A1A18;padding-top:12px"><h3 style="margin:0 0 6px;font-size:15px">Anexo — Transparencia del alcance del modelo (qué mide y qué queda fuera)</h3>';
+ h+='<p style="margin:0 0 10px;font-size:11px;color:#555">Este anexo transparenta el <b>alcance del modelo</b>: qué obligaciones de cada norma cubre este informe y cuáles quedan fuera (controles técnicos vs. obligaciones organizacionales). No es una checklist adicional. Cada norma enlaza a su fuente oficial.</p>';
+ COVERAGE.forEach(function(co){
+  h+='<div style="border:1px solid '+lawColor[co.id]+';border-left:5px solid '+lawColor[co.id]+';border-radius:8px;margin-bottom:10px;overflow:hidden">';
+  h+='<div style="background:#1A1A18;color:#fff;font-weight:700;font-size:12px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center"><span>'+co.id+' — '+esc(co.name)+'</span><span style="font-size:9.5px;padding:2px 8px;border-radius:8px;background:'+covColor((co.pct>=60?'ok':(co.pct>=35?'par':'gap')))+';color:#fff;font-weight:800">Cobertura técnica '+co.pct+'%</span></div>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:10.5px">';
+  h+='<tr style="background:rgba(0,0,0,.03);font-weight:700"><td style="padding:4px 12px;border-bottom:1px solid #ddd;width:12%">Estado</td><td style="padding:4px 12px;border-bottom:1px solid #ddd">Obligación de la norma</td><td style="padding:4px 12px;border-bottom:1px solid #ddd">Base legal</td><td style="padding:4px 12px;border-bottom:1px solid #ddd">En nuestro modelo</td></tr>';
+  (co.rows||[]).forEach(function(r){
+   h+='<tr><td style="padding:3px 12px;border-bottom:1px solid #eee;color:'+covColor(r.st)+';font-weight:800">'+covMark(r.st)+' '+(r.st==='ok'?'Cubierto':(r.st==='par'?'Parcial':'Brecha'))+'</td>'
+    +'<td style="padding:3px 12px;border-bottom:1px solid #eee;font-weight:600">'+esc(r.t)+'</td>'
+    +'<td style="padding:3px 12px;border-bottom:1px solid #eee">'+esc(r.a||'—')+'</td>'
+    +'<td style="padding:3px 12px;border-bottom:1px solid #eee;color:#666">'+esc(r.na||'')+'</td></tr>';
+  });
+  h+='<tr><td colspan="4" style="padding:5px 12px;font-size:9.5px"><a href="'+esc(co.url)+'" style="color:#5B6ABF;font-weight:700;text-decoration:underline">Fuente oficial: '+esc(co.src)+' ↗</a></td></tr>';
+  h+='</table></div>';
+ });
+ h+='<div style="font-size:9px;color:#888;margin-top:4px">Leyenda: ✓ Cubierto · ◐ Parcial · ✗ Brecha. El modelo prioriza controles técnicos de seguridad sobre obligaciones organizacionales; esta cobertura no constituye asesoría legal.</div></div>';
+ var docHtml='<!DOCTYPE html><html><head><meta charset="utf-8"><title>HF-PRES-2026-001 — Autodiagnóstico</title><style>@page{margin:14mm}html,body{margin:0;padding:0}body{font-family:Segoe UI,Arial,sans-serif;color:#1A1A18;background:#fff;font-size:12px;line-height:1.55;padding:0 28px}table{border-collapse:collapse}</style></head><body>'+h+'</body></html>';
+ var pw=window.open('','_blank');
+ if(pw&&pw.document){pw.document.open();pw.document.write(docHtml);pw.document.close();setTimeout(function(){try{pw.focus();pw.print();}catch(e){}},450);return;}
+ var fr=document.createElement('iframe');fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';document.body.appendChild(fr);
+ var fd=fr.contentDocument;fd.open();fd.write(docHtml);fd.close();setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){}},450);setTimeout(function(){var p=fr.parentNode;if(p)p.removeChild(fr);},60000);
+}
+function resetAll(){diagState={oiv:null,cmf:null,datos:null};diagHave=[];renderChecklist();
+ var yn=document.querySelectorAll('.yn button');for(var i=0;i<yn.length;i++){yn[i].className='';var t=yn[i].textContent;if(t.indexOf('Sí')===0)yn[i].className='y';else if(t.indexOf('No')===0)yn[i].className='n';}
+ var rb=document.getElementById('resbody');if(rb)rb.innerHTML='';var rt=document.getElementById('restitle');if(rt)rt.textContent='';go(0);}
+function go(i){var mx=maxReachable();if(i>cur&&i>mx)i=cur;cur=i;Array.prototype.forEach.call(deck.children,function(el,k){el.classList.toggle('active',k===cur);});document.getElementById('step-cur').textContent=stepOf[cur]||(cur+1);document.getElementById('step-tot').textContent=stepTot;document.getElementById('progfill').style.width=Math.round((cur+1)/slides.length*100)+'%';document.getElementById('btn-prev').disabled=cur===0;document.getElementById('btn-next').disabled=cur===slides.length-1||cur>=mx;var d=document.getElementById('dots');d.innerHTML='';for(var x=0;x<slides.length;x++){var di=document.createElement('i');if(x===cur)di.className='on';d.appendChild(di);}
+ if(cur===slides.length-2){var rb=document.getElementById('resbody');if(rb&&!rb.innerHTML.trim()){document.getElementById('restitle').textContent='Aún no tienes resultado';rb.innerHTML='<div class="prio no-gap"><h4>Completa los pasos anteriores</h4><div class="dst">Responde las preguntas y marca los controles que ya usas, luego pulsa "Ver mi resultado".</div></div><div style="margin-top:26px;text-align:center"><button class="btn big" onclick="go(6)">Ir a marcar mis controles →</button></div>';}}
+}
+function next(){if(cur===slides.length-1){return;}if(deck.children[cur].querySelector('#goCalc')){calc();return;}go(cur+1);}
+function prev(){go(Math.max(0,cur-1));}
+function esc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function toggleGloss(card){var e=card.querySelector('.ext');e.classList.toggle('open');}
+function openExt(card){card.querySelector('.ext').classList.add('open');}
+document.getElementById('btn-next').onclick=next;document.getElementById('btn-prev').onclick=prev;
+window.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')next();if(e.key==='ArrowLeft')prev();});
+function init(){slides=build();deck.innerHTML=slides.join('');stepOf=[];var last=1;for(var i=0;i<slides.length;i++){var m=slides[i].match(/Paso (\d+)/);if(m)last=parseInt(m[1],10);stepOf.push(last);}stepTot=Math.max.apply(null,stepOf);go(0);}
+init();
+</script>
+</body>
+</html>
