@@ -132,10 +132,6 @@ const { t } = getTranslations(locale);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet"></noscript>
 
-    <!-- TrustBox script -->
-    <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
-    <!-- End TrustBox script -->
-
     <title>{title}</title>
     <ClientRouter />
 
@@ -234,14 +230,20 @@ const { t } = getTranslations(locale);
       var fab = document.getElementById('hf-fab');
       if (!c || !fab) return;
 
-      // Load RumbleTalk — re-create launcher whenever the container is empty
-      // (View Transition swaps replace the DOM/scripts, so detect by state, not a global flag)
-      var needsSdk = true;
-      for (var i = 0; i < c.children.length; i++) {
-        var ch = c.children[i];
-        if (ch.tagName === 'IMG' || (ch.tagName === 'DIV' && ch.getBoundingClientRect().height > 0)) { needsSdk = false; break; }
-      }
-      if (needsSdk) {
+      // Defer the cross-origin RumbleTalk SDK until first interaction,
+      // keeping the state-based detection so the SPA fix survives View Transitions.
+      var sdkLoaded = false;
+      var needsLauncher = function() {
+        for (var i = 0; i < c.children.length; i++) {
+          var ch = c.children[i];
+          if (ch.tagName === 'IMG' || (ch.tagName === 'DIV' && ch.getBoundingClientRect().height > 0)) { return false; }
+        }
+        return true;
+      };
+      function loadSdk() {
+        sdkLoaded = true;
+        // Only inject if the launcher isn't already present (re-enter after a swap)
+        if (!needsLauncher()) return;
         var s = document.createElement('script');
         s.src = 'https://rumbletalk.com/client/?1Yejiy6L';
         s.async = true;
@@ -294,7 +296,10 @@ const { t } = getTranslations(locale);
       // Safety net for attribute-less style changes
       setInterval(sync, 800);
 
+      // Load the SDK lazily on first engagement with the FAB (keeps cross-origin script off the critical path)
+      fab.addEventListener('pointerdown', function() { if (!sdkLoaded) { loadSdk(); } });
       fab.addEventListener('click', function() {
+        loadSdk();
         // Mobile: open in new tab (RumbleTalk inline doesn't work on mobile)
         if (window.innerWidth < 768) {
           window.open('https://rumbletalk.com/client/chat.php?1Yejiy6L', '_blank', 'noopener');
