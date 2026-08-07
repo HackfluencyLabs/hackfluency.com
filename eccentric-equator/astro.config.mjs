@@ -7,6 +7,9 @@ export default defineConfig({
   site: 'https://www.hackfluency.com',
   base: '/',
   output: 'static',
+  build: {
+    inlineStylesheets: 'always',
+  },
   integrations: [
     react(),
     sitemap({
