@@ -29,7 +29,7 @@ const {
   locale = 'es',
   robots = 'index, follow',
   viewportDesktop = false,
-  enableGlobalEcharts = true,
+  enableGlobalEcharts = false,
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL;
@@ -195,12 +195,12 @@ const { t } = getTranslations(locale);
     <a href="#main-content" class="skip-link">{locale === 'es' ? 'Saltar al contenido principal' : 'Skip to main content'}</a>
     <slot />
     <SubscriptionPopup locale={locale} />
-    {!hideThemeSelector && <ThemeSelector client:idle variant="floating" transition:persist />}
+    {!hideThemeSelector && <ThemeSelector client:visible variant="floating" transition:persist />}
 
     <!-- RumbleTalk embed (hidden container, click toggles chat) -->
     <div id="rt-d6023b7d7713a023f5e73ab154aa7c08" data-floating="true" data-side="left" data-width="700" data-height="500"
       data-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-      style="position:fixed; bottom:0; left:0; z-index:1;">
+      style="position:fixed; bottom:0; left:0; z-index:2147483000;" transition:persist="hf-rt">
     </div>
 
     <!-- Custom floating button -->
@@ -213,7 +213,7 @@ const { t } = getTranslations(locale);
 
     <style>
       .hf-fab {
-        position: fixed; bottom: 24px; left: 24px; z-index: 9999;
+        position: fixed; bottom: 24px; left: 24px; z-index: 2147483000;
         width: 54px; height: 54px; border-radius: 50%;
         background: linear-gradient(135deg, #00D26A, #00994D);
         color: #0a0a0a; border: none; cursor: pointer;
@@ -228,17 +228,25 @@ const { t } = getTranslations(locale);
       .hf-fab svg { width: 24px; height: 24px; }
     </style>
 
-    <script is:inline>
+    <script is:inline data-astro-rerun>
     (function(){
       var c = document.getElementById('rt-d6023b7d7713a023f5e73ab154aa7c08');
       var fab = document.getElementById('hf-fab');
       if (!c || !fab) return;
 
-      // Load RumbleTalk
-      var s = document.createElement('script');
-      s.src = 'https://rumbletalk.com/client/?1Yejiy6L';
-      s.async = true;
-      document.body.appendChild(s);
+      // Load RumbleTalk — re-create launcher whenever the container is empty
+      // (View Transition swaps replace the DOM/scripts, so detect by state, not a global flag)
+      var needsSdk = true;
+      for (var i = 0; i < c.children.length; i++) {
+        var ch = c.children[i];
+        if (ch.tagName === 'IMG' || (ch.tagName === 'DIV' && ch.getBoundingClientRect().height > 0)) { needsSdk = false; break; }
+      }
+      if (needsSdk) {
+        var s = document.createElement('script');
+        s.src = 'https://rumbletalk.com/client/?1Yejiy6L';
+        s.async = true;
+        document.body.appendChild(s);
+      }
 
       // Ring until first click
       var KEY = 'hf-ring';
@@ -253,38 +261,50 @@ const { t } = getTranslations(locale);
           fab.style.boxShadow = up ? '0 4px 20px rgba(0,210,106,0.3)' : '0 0 40px 12px rgba(0,210,106,0.6)';
         }, 700);
       }
-      var chatOpen = false;
       startRing();
 
-      function clickChat() {
+      // Real open state = the RumbleTalk panel DIV is visible and sized
+      function isOpen() {
+        for (var i = 0; i < c.children.length; i++) {
+          var k = c.children[i];
+          if (k.tagName === 'DIV' &&
+              getComputedStyle(k).visibility === 'visible' &&
+              k.getBoundingClientRect().height >= 50) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Sync the FAB with the widget's REAL state (open = hide FAB, closed = show)
+      function sync() {
+        if (isOpen()) {
+          clearInterval(ring);
+          localStorage.setItem(KEY, '1');
+          fab.style.display = 'none';
+        } else {
+          fab.style.display = 'flex';
+        }
+      }
+
+      // Re-sync whenever the widget's DOM changes (open via X, close via X, etc.)
+      try {
+        new MutationObserver(sync).observe(c, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+      } catch (e) {}
+      // Safety net for attribute-less style changes
+      setInterval(sync, 800);
+
+      fab.addEventListener('click', function() {
         // Mobile: open in new tab (RumbleTalk inline doesn't work on mobile)
         if (window.innerWidth < 768) {
           window.open('https://rumbletalk.com/client/chat.php?1Yejiy6L', '_blank', 'noopener');
           return;
         }
-        if (chatOpen) return;
-        chatOpen = true;
-        clearInterval(ring);
-        fab.style.transform = '';
-        fab.style.boxShadow = '0 4px 20px rgba(0,210,106,0.3)';
-        localStorage.setItem(KEY, '1');
-        fab.style.display = 'none';
         var img = c.querySelector('img');
-        if (img) img.click();
-      }
-
-      // Close chat when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!chatOpen) return;
-        if (c.contains(e.target)) return;
-        if (fab.contains(e.target)) return;
-        var img = c.querySelector('img');
-        if (img) img.click();
-        fab.style.display = 'flex';
-        chatOpen = false;
+        if (img) img.click();   // toggle the widget via its launcher
+        sync();                 // reflect state immediately
       });
-
-      fab.addEventListener('click', clickChat);
+      sync();
     })();
     </script>
   </body>

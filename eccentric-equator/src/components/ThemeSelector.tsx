@@ -53,7 +53,7 @@ export default function ThemeSelector({ variant = 'floating' }: ThemeSelectorPro
         position: 'fixed',
         bottom: '24px',
         right: '24px',
-        zIndex: 9999,
+        zIndex: 2147483000,
       }
     : {
         position: 'relative',
