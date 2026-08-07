@@ -349,7 +349,7 @@ const values = [
 <nav class="nav">
   <div class="nav-container">
     <a href={base} class="logo" aria-label="Hackfluency - Go to homepage">
-      <img src={`${base}HFNeon.png`} alt="Hackfluency logo" width="56" height="56" class="logo-img" />
+      <img src={`${base}HFNeon.png`} alt="Hackfluency logo" width="56" class="logo-img" />
       <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
     </a>
     <div class="nav-links">
@@ -504,10 +504,15 @@ const values = [
         </div>
         <div class="diag-actions">
           <a href="/research/autodiagnostico/" class="paper-cta paper-cta--primary">
-            {locale === 'es' ? 'Hacer mi autodiagnóstico →' : 'Run my own assessment →'}
+            <span class="cta-line cta-line--main">
+              {locale === 'es' ? 'Diagnóstico Guiado Gratis →' : 'Guided Assessment Free →'}
+            </span>
+            <span class="cta-line cta-line--sub">
+              {locale === 'es' ? 'Obtén tu reporte' : 'Get your report'}
+            </span>
           </a>
           <a href="/research/articles/convergencia-normativa" class="paper-cta">
-            {locale === 'es' ? 'Ver informe completo' : 'View full report'}
+            {locale === 'es' ? 'Explorar el análisis →' : 'Explore the analysis →'}
           </a>
         </div>
       </div>
@@ -964,7 +969,7 @@ const values = [
     <div class="footer-content">
       <div class="footer-brand">
         <a href={base} class="logo footer-logo" aria-label="Hackfluency - Go to homepage">
-          <img src={`${base}HFNeon.png`} alt="Hackfluency logo" width="56" height="56" class="footer-logo-img" />
+          <img src={`${base}HFNeon.png`} alt="Hackfluency logo" width="56" class="footer-logo-img" />
           <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
         </a>
         <p class="footer-tagline">{t('footer.tagline')}</p>
@@ -1088,7 +1093,7 @@ const values = [
 
   .logo-img {
     width: clamp(36px, 4vw, 56px);
-    height: clamp(36px, 4vw, 56px);
+    height: auto;
     filter: none;
   }
 
@@ -2881,7 +2886,7 @@ const values = [
 
   .footer-logo-img {
     width: 48px;
-    height: 48px;
+    height: auto;
   }
 
   .footer-tagline {
@@ -3139,14 +3144,13 @@ const values = [
     overflow: hidden;
     border: 1px solid var(--hf-border, #222);
     background: white;
-    min-height: 730px;
   }
   html[data-theme-mode="light"] .paper-sankey {
     background: white;
     border-color: #e0e4ea;
   }
 
-  .hf-sankey-iframe { width: 100%; height: 730px; border: none; display: block; }
+  .hf-sankey-iframe { width: 100%; aspect-ratio: 5 / 3; border: none; display: block; }
 
   /* Mobile: preview image + CTA instead of iframe */
   .sankey-mobile-preview { display: none; }
@@ -3192,7 +3196,7 @@ const values = [
   }
   .diag-unit { font-size: 0.9rem; font-weight: 700; margin-left: 2px; color: var(--hf-text-muted, #888); }
   .diag-caption { font-size: 0.75rem; color: var(--hf-text-muted, #888); line-height: 1.4; }
-  .diag-actions { display: flex; flex-direction: column; gap: 8px; }
+  .diag-actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
   .paper-cta {
     display: inline-block;
     font-size: 0.85rem;
@@ -3203,21 +3207,59 @@ const values = [
     border: 1px solid var(--hf-accent-border, rgba(0,210,106,0.3));
     border-radius: 8px;
     text-align: center;
+    background: color-mix(in srgb, var(--hf-text) 7%, transparent);
     transition: all 0.2s;
   }
   .paper-cta:hover {
-    background: var(--hf-accent-dim);
+    background: color-mix(in srgb, var(--hf-text) 12%, transparent);
     border-color: var(--hf-accent);
   }
   .paper-cta--primary {
     background: var(--hf-accent);
     border-color: var(--hf-accent);
     color: var(--hf-text-on-accent, #000);
+    padding: 14px 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    animation:
+      hfCtaNudge 3.2s ease-in-out infinite,
+      hfCtaGlowPrim 2.6s ease-in-out infinite;
+  }
+  .cta-line--main { font-size: 1.05rem; line-height: 1.2; }
+  .cta-line--sub {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.9;
+    letter-spacing: 0.02em;
   }
   .paper-cta--primary:hover {
     background: var(--hf-accent-light, var(--hf-accent));
     border-color: var(--hf-accent-light, var(--hf-accent));
     color: var(--hf-text-on-accent, #000);
+    animation-play-state: paused;
+  }
+  /* Diferenciado: ver informe completo -> respiracion suave + glow tenue (sin salto) */
+  .paper-cta:not(.paper-cta--primary) {
+    animation: hfCtaBreathe 4s ease-in-out infinite;
+  }
+  @keyframes hfCtaNudge {
+    0%, 22%, 100% { transform: translateY(0) scale(1); }
+    8%   { transform: translateY(-3px) scale(1.02); }
+    16%  { transform: translateY(0) scale(0.99); }
+  }
+  @keyframes hfCtaGlowPrim {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,210,106,0.55); }
+    50%      { box-shadow: 0 0 14px 6px rgba(0,210,106,0.35); }
+  }
+  @keyframes hfCtaBreathe {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0,210,106,0); }
+    50%      { transform: scale(1.02); box-shadow: 0 0 10px 3px rgba(0,210,106,0.18); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .paper-cta--primary,
+    .paper-cta:not(.paper-cta--primary) { animation: none; }
   }
 
   @media (max-width: 767px) {
