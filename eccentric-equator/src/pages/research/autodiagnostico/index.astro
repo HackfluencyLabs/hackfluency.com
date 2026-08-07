@@ -1,0 +1,38 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL;
+const title = 'Autodiagnóstico Regulatorio — ¿Qué leyes te aplican? | Hackfluency';
+const description = 'Descubre en menos de 2 minutos qué leyes te aplican (Ley 21.663, 21.719, 21.595, NCG 538, BOD 26-04) y qué controles faltan por implementar. Todo explicado sin tecnicismos.';
+---
+
+<Layout
+  locale="es"
+  title={title}
+  description={description}
+  hideThemeSelector={true}
+  robots="index, follow"
+>
+  <main class="autodiag-wrap">
+    <iframe
+      class="autodiag-frame"
+      src={`${base}assets/reports/autodiagnostico_presentacion.html`}
+      title="Autodiagnóstico Regulatorio — presentación interactiva"
+      loading="eager"
+    ></iframe>
+  </main>
+</Layout>
+
+<style>
+  .autodiag-wrap {
+    position: fixed;
+    inset: 0;
+    background: #1a1a18;
+  }
+  .autodiag-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+</style>

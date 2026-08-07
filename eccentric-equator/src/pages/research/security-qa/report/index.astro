@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../../layouts/Layout.astro";
 import { getLocale } from "../../../../i18n/utils";
+import ToolHomeNav from "../../../../components/ToolHomeNav.astro";
 
 const locale = getLocale(Astro.url);
 const t = (en, es) => locale === 'en' ? en : es;
@@ -34,6 +35,8 @@ const description = t(
 */
 ---
 <Layout locale={locale} title={title} description={description} hideThemeSelector={true} robots="noindex, nofollow">
+
+<ToolHomeNav locale={locale} />
 
 <main class="r-main" id="r-main">
 <div class="r-container" id="r-report-content">
@@ -422,7 +425,7 @@ const description = t(
 
 <style is:global>
 html { font-size: 16px; } body { background: var(--hf-bg); }
-.r-main { padding-top: 60px; padding-bottom: 80px; }
+.r-main { padding-top: 116px; padding-bottom: 80px; }
 .r-container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
 .r-cover { margin-bottom: 40px; padding: 32px 0 24px; }
 .r-cover-head { display:flex; align-items:center; gap:10px; margin-bottom:24px; }

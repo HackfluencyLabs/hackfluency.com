@@ -13,6 +13,7 @@ const htmlContent = readFileSync('src/assets/reports/convergencia_normativa.html
   description="Mapa interactivo con 31 controles y 5 marcos legales (Ley 21.663, 21.719, 21.595, NCG 538, BOD 26-04). Cada conexión revela el artículo exacto. ¿Qué controles cubren tu obligación?"
   hideThemeSelector={true}
   viewportDesktop={true}
+  enableGlobalEcharts={false}
 >
   <Fragment set:html={htmlContent} />
   <ArticleGate locale={locale} />

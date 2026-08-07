@@ -1,0 +1,78 @@
+---
+interface Props {
+  locale?: 'es' | 'en';
+  backLabel?: string;
+}
+const { locale = 'es', backLabel } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const homeHref = locale === 'es' ? '/' : '/en';
+const backHref = locale === 'es' ? '/research' : '/en/research';
+const label = backLabel ?? (locale === 'es' ? '← Investigación' : '← Research');
+const ariaHome = locale === 'es' ? 'Volver a la página de inicio de Hackfluency' : 'Back to Hackfluency home page';
+---
+
+<a class="tool-nav" href={homeHref} aria-label={ariaHome}>
+  <img src={`${base}HFNeon.png`} alt="" width="26" height="26" class="tool-nav-logo" aria-hidden="true" />
+  <span class="tool-nav-wordmark">
+    <span class="tool-nav-hack">Hack</span><span class="tool-nav-fluency">fluency</span>
+  </span>
+</a>
+<a class="tool-nav-back" href={backHref}>{label}</a>
+
+<style>
+  .tool-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px;
+    background: color-mix(in srgb, var(--hf-bg) 90%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--hf-border);
+    text-decoration: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .tool-nav-logo {
+    width: 24px;
+    height: 24px;
+    filter: drop-shadow(0 0 5px var(--hf-accent-glow));
+    flex-shrink: 0;
+  }
+
+  .tool-nav-wordmark { display: flex; }
+  .tool-nav-hack { color: var(--hf-accent); }
+  .tool-nav-fluency { color: var(--hf-text); }
+
+  .tool-nav-back {
+    margin-left: auto;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hf-text-muted);
+    text-decoration: none;
+    padding: 7px 14px;
+    border: 1px solid var(--hf-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .tool-nav-back:hover {
+    color: var(--hf-accent);
+    border-color: var(--hf-accent-border);
+    background: var(--hf-accent-dim);
+  }
+
+  @media (max-width: 480px) {
+    .tool-nav { padding: 0 14px; }
+  }
+</style>

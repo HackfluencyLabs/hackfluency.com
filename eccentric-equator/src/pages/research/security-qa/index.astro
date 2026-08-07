@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import ToolHomeNav from '../../../components/ToolHomeNav.astro';
 
 const locale = 'en';
 const title = 'LLM Security Audit Tool — Test any AI for data leakage | Hackfluency Observatory';
@@ -7,6 +8,8 @@ const description = 'LLM behavioral security audit — test any AI model for dat
 ---
 
 <Layout locale={locale} title={title} description={description} hideThemeSelector={true}>
+
+<ToolHomeNav locale={locale} />
 
 <main class="hf-qa">
 <div class="hf-qa-container">
@@ -305,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <style is:global>
 html { font-size: 16px; }
-.hf-qa { padding-top: 100px; padding-bottom: 60px; background: var(--hf-bg); min-height: 100vh; }
+.hf-qa { padding-top: 116px; padding-bottom: 60px; background: var(--hf-bg); min-height: 100vh; }
 .hf-qa-container { max-width: 780px; margin: 0 auto; padding: 0 24px; }
 .hf-qa-hdr { margin-bottom: 36px; }
 .hf-qa-ref { font-size: 0.72rem; color: var(--hf-accent); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; letter-spacing: 0.03em; }

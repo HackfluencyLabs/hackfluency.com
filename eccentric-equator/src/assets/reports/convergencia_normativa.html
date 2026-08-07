@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Convergencia Normativa - Chile 2026</title>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js" data-astro-rerun></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 body{background:#F7F5F0;font-family:Segoe UI,Inter,Arial,sans-serif;color:#1A1A18;font-size:15px;line-height:1.5}
@@ -41,6 +41,16 @@ body{background:#F7F5F0;font-family:Segoe UI,Inter,Arial,sans-serif;color:#1A1A1
 .ctrl-chips{display:flex;flex-wrap:wrap;gap:6px}
 .ctrl-chip{background:#fff;border:1px solid #DEE2E6;border-radius:6px;padding:4px 10px;font-size:11px;color:#495057}
 .footer{text-align:center;font-size:12px;color:#6C757D;margin-top:36px;padding-top:18px;border-top:1px solid #E9ECEF}
+.hf-cta-footer{margin-top:48px;padding:36px 28px;background:#fff;border:1px solid #E9ECEF;border-radius:12px}
+.hf-cta-inner{max-width:720px;margin:0 auto;text-align:center}
+.hf-cta-kicker{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#2D6A4F;margin-bottom:10px}
+.hf-cta-title{font-size:20px;font-weight:800;color:#1A1A18;margin:0 0 10px;line-height:1.3}
+.hf-cta-desc{font-size:13.5px;color:#495057;line-height:1.6;margin:0 0 22px}
+.hf-cta-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
+.hf-cta-btn{display:inline-block;background:#2D6A4F;color:#fff;font-weight:700;font-size:13px;text-decoration:none;padding:12px 26px;border-radius:8px;transition:background .2s}
+.hf-cta-btn:hover{background:#24543f}
+.hf-cta-home{display:inline-block;font-size:13px;font-weight:600;color:#6C757D;text-decoration:none;padding:12px 18px}
+.hf-cta-home:hover{color:#2D6A4F;text-decoration:underline}
 .footer p{margin-bottom:4px}
 .footer .src{font-size:11px;color:#ADB5BD}
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.container{padding:15px}}
@@ -135,7 +145,7 @@ body{background:#F7F5F0;font-family:Segoe UI,Inter,Arial,sans-serif;color:#1A1A1
     <div style="font-size:16px;font-weight:700;color:#1A1A18;margin-bottom:6px">&iquest;No sabes por d&oacute;nde empezar?</div>
     <div style="font-size:13.5px;color:#495057;line-height:1.6">Responde el <b>Autodiagn&oacute;stico Regulatorio</b> (menos de 2 minutos): te dice qu&eacute; leyes te aplican y qu&eacute; controles te faltan por implementar, sin tecnicismos.</div>
   </div>
-  <a href="/assets/reports/autodiagnostico_presentacion.html" target="_blank" style="background:#2D6A4F;color:white;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:10px;white-space:nowrap;display:inline-block">Comenzar autodiagn&oacute;stico &rarr;</a>
+  <a href="/research/autodiagnostico/" style="background:#2D6A4F;color:white;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:10px;white-space:nowrap;display:inline-block">Comenzar autodiagn&oacute;stico &rarr;</a>
 </div>
 
 <div id="law-hierarchy"></div>
@@ -242,7 +252,7 @@ La prensa especializada report&oacute; como primera sanci&oacute;n del nuevo r&e
     <p style="color:#ADB5BD;font-size:10px;margin-top:2px">&copy; 2026 Hackfluency. Este documento es una herramienta de visualizaci&oacute;n de convergencia regulatoria. No constituye asesor&iacute;a legal. &Uacute;ltima actualizaci&oacute;n: Julio 2026.</p>
 </div>
 </div>
-<script>
+<script data-astro-rerun>
 /* ===== Modelo 3 capas: Leyes -> Estandares -> Controles ===== */
 var LEY_CODES=['21.663','21.719','21.595','NCG'];
 var LAWCOL={'21.663':'#DC3545','21.719':'#5B6ABF','21.595':'#6F42C1','NCG':'#E67E22'};
@@ -902,5 +912,18 @@ box.innerHTML=html;
 window.addEventListener('resize',function(){c2.resize();});
 renderLawHierarchy();
 </script>
+<div class="hf-cta-footer">
+  <div class="hf-cta-inner">
+    <div class="hf-cta-text">
+      <div class="hf-cta-kicker">Hackfluency · Chile 2026</div>
+      <h3 class="hf-cta-title">¿Quieres cerrar la brecha con un plan accionable?</h3>
+      <p class="hf-cta-desc">Agenda una conversación de 30 minutos con nuestro equipo de investigación y convierte este mapa en una hoja de ruta priorizada para tu organización.</p>
+    </div>
+    <div class="hf-cta-actions">
+      <a class="hf-cta-btn" href="https://www.hackfluency.com/#contact">Iniciar conversación →</a>
+      <a class="hf-cta-home" href="https://www.hackfluency.com/">← hackfluency.com</a>
+    </div>
+  </div>
+</div>
 </body>
 </html>

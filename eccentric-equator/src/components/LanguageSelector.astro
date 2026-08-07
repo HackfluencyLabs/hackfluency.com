@@ -15,7 +15,7 @@ const targetFlag = locale === 'es' ? '🇺🇸' : '🇪🇸';
   href={targetPath}
   class="lang-switcher"
   title={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
-  aria-label={locale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+  aria-label={locale === 'es' ? `Switch to English (${currentLabel})` : `Cambiar a Español (${currentLabel})`}
 >
   <span class="lang-switcher-label" aria-hidden="true">{currentFlag}</span>
   <span class="lang-switcher-code">{currentLabel}</span>

@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
+import ToolHomeNav from '../../../../components/ToolHomeNav.astro';
 import { getLocale } from '../../../../i18n/utils';
 
 const locale = getLocale(Astro.url);
@@ -59,6 +60,8 @@ const faqSchema = {
 <Fragment slot="head">
 <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 </Fragment>
+
+<ToolHomeNav locale={locale} />
 
 <main class="faq-main">
 <div class="faq-container">
@@ -425,6 +428,19 @@ const faqSchema = {
 </div>
 </main>
 
+<!-- Footer -->
+<footer class="r-footer" aria-label={t('Footer', 'Pie de página')}>
+  <div class="r-container">
+    <div class="r-footer-inner">
+      <a href={locale === 'es' ? '/research' : '/en/research'} class="r-footer-home">{t('← Research', '← Investigación')}</a>
+      <span class="r-footer-copy">{t('© 2026 Hackfluency. All rights reserved.', '© 2026 Hackfluency. Todos los derechos reservados.')}</span>
+      <a href={locale === 'es' ? '/#contact' : '/en#contact'} class="r-footer-cta">
+        {t('Start a Conversation', 'Iniciar Conversación')}
+      </a>
+    </div>
+  </div>
+</footer>
+
 <style is:global>
 /* ============================================
    HACKFLUENCY FAQ — Design System
@@ -432,7 +448,7 @@ const faqSchema = {
 html { font-size: 16px; }
 
 /* MAIN */
-.faq-main { padding-top: 80px; padding-bottom: 80px; background: var(--hf-bg); min-height: 100vh; }
+.faq-main { padding-top: 108px; padding-bottom: 80px; background: var(--hf-bg); min-height: 100vh; }
 .faq-container { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
 
 /* HERO */
@@ -565,6 +581,58 @@ a.faq-report-btn:hover { opacity:0.9; transform:translateY(-1px); animation:none
   .faq-hero-stats { gap:8px; }
   .faq-stat { min-width:50px; padding:8px 10px; }
   .faq-cl-item { flex-direction:column; gap:2px; }
+}
+
+/* ── Footer ── */
+.r-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.r-footer {
+  background: var(--hf-bg-secondary);
+  border-top: 1px solid var(--hf-border);
+  padding: 28px 0;
+}
+
+.r-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.r-footer-home {
+  font-size: 0.85rem;
+  color: var(--hf-text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.r-footer-home:hover {
+  color: var(--hf-accent);
+}
+
+.r-footer-copy {
+  font-size: 0.8rem;
+  color: var(--hf-text-dim);
+}
+
+.r-footer-cta {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hf-accent);
+  text-decoration: none;
+  padding: 7px 16px;
+  border: 1px solid var(--hf-accent-border);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.r-footer-cta:hover {
+  background: var(--hf-accent-dim);
 }
 </style>
 

@@ -20,6 +20,15 @@ const tools = (locale === 'es' ? [
     url: "https://codered.hackfluency.com",
     status: "active",
   },
+  {
+    name: "HF-QA-2026-001",
+    subtitle: "Cuestionario conductual para auditar extracción de información en LLMs",
+    description: "Herramienta estática de auditoría conductual con 50+ preguntas en 8 secciones, sin backend ni infraestructura. Copia el cuestionario en cualquier chat de IA y mide cuánta información revela el modelo — parámetros de configuración, fragmentos de políticas y detalles arquitectónicos. Incluye reporte comparativo de benchmarks y FAQ.",
+    tags: ["IA", "Auditoría Conductual", "LLM"],
+    date: "Junio 2026",
+    url: "/research/security-qa/faq/",
+    status: "active",
+  },
 ] : [
   {
     name: "CodeRed",
@@ -28,6 +37,15 @@ const tools = (locale === 'es' ? [
     tags: ["Offensive Security", "Autonomous Systems", "MCP Architecture"],
     date: "March 2026",
     url: "https://codered.hackfluency.com",
+    status: "active",
+  },
+  {
+    name: "HF-QA-2026-001",
+    subtitle: "Behavioral questionnaire to audit information extraction from LLMs",
+    description: "Static behavioral audit tool with 50+ questions across 8 sections, no backend and no infrastructure. Paste the questionnaire into any AI chat and measure how much information the model discloses — configuration parameters, policy fragments and architectural details. Includes comparative benchmark report and FAQ.",
+    tags: ["AI", "Behavioral Audit", "LLM"],
+    date: "June 2026",
+    url: "/research/security-qa/faq/",
     status: "active",
   },
 ]);
@@ -77,8 +95,8 @@ const tools = (locale === 'es' ? [
               <time class="rt-date">{tool.date}</time>
               <a
                 href={tool.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={tool.url.startsWith('http') ? '_blank' : undefined}
+                rel={tool.url.startsWith('http') ? 'noopener noreferrer' : undefined}
                 class="rt-link-btn"
                 aria-label={t('tooling.explore').replace('{name}', tool.name)}
               >
@@ -238,10 +256,12 @@ const tools = (locale === 'es' ? [
 
   .rt-card-name {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.7rem;
+    font-size: clamp(1.15rem, 3.4vw, 1.7rem);
     font-weight: 700;
     color: var(--hf-text);
     line-height: 1;
+    overflow-wrap: break-word;
+    min-width: 0;
   }
 
   .rt-status {

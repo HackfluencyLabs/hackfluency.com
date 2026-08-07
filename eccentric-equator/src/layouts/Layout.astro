@@ -17,6 +17,7 @@ export interface Props {
   locale?: Language;
   robots?: string;
   viewportDesktop?: boolean;
+  enableGlobalEcharts?: boolean;
 }
 
 const {
@@ -28,6 +29,7 @@ const {
   locale = 'es',
   robots = 'index, follow',
   viewportDesktop = false,
+  enableGlobalEcharts = true,
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL;
@@ -90,7 +92,7 @@ const { t } = getTranslations(locale);
       base-uri 'self';
       manifest-src 'self';
     ">
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    {enableGlobalEcharts && <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>}
     <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16.png`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
     <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon.png`} />
@@ -202,12 +204,12 @@ const { t } = getTranslations(locale);
     </div>
 
     <!-- Custom floating button -->
-    <div id="hf-fab" class="hf-fab" aria-label="Conversar">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <button type="button" id="hf-fab" class="hf-fab" aria-label="Conversar">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M17 11a2 2 0 0 1-2 2H5l-3 3V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z" opacity="0.35" style="translate:-4px -3px"/>
         <path d="M21 15a2 2 0 0 1-2 2H9l-3 3V9a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/>
       </svg>
-    </div>
+    </button>
 
     <style>
       .hf-fab {

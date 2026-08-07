@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=1200, minimum-scale=0.25, maximum-scale=5, user-scalable=yes">
 <title>Autodiagnóstico Regulatorio — Chile 2026</title>
 <style>
 :root{--bg:#1A1A18;--bg2:#232321;--card:#262624;--line:#383836;--txt:#F5F5F4;--mut:#B0B0AA;--dim:#8A8A84;--lc:#DC3545;--lo:#5B6ABF;--lm:#6F42C1;--ng:#E67E22;--bd:#28A745;--ok:#2D6A4F}
@@ -11,6 +11,9 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Segoe U
 body{overflow:hidden}
 #top{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(26,26,24,.82);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:50}
 #brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px;font-size:15px}
+#brand-home{color:#F5F4ED;cursor:pointer;transition:opacity .2s;display:inline-flex}
+#brand-home:hover{opacity:.8}
+#brand-home #brand{color:#F5F4ED}
 #brand .dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--lc),var(--ng));box-shadow:0 0 12px rgba(230,126,34,.5);flex:0 0 auto}
 #btsub{display:block;font-weight:400;color:var(--mut);font-size:11px;letter-spacing:.3px;margin-top:1px}
 #stepper{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--mut);font-weight:600}
@@ -154,7 +157,7 @@ h2{font-size:clamp(24px,3.4vw,40px);font-weight:800;letter-spacing:-.5px;margin:
 </head>
 <body>
 <div id="top">
-  <div id="brand"><span class="dot"></span><div>HACKFLUENCY<div id="btsub">Autodiagnóstico Regulatorio · Chile 2026</div></div></div>
+  <a href="https://www.hackfluency.com/" id="brand-home" title="Hackfluency" aria-label="Hackfluency" style="text-decoration:none"><div id="brand"><span class="dot"></span><div>HACKFLUENCY<div id="btsub">Autodiagnóstico Regulatorio · Chile 2026</div></div></div></a>
   <div id="stepper">Paso <b id="step-cur">1</b>/<span id="step-tot">1</span><div id="progwrap"><div id="progfill"></div></div></div>
 </div>
 <div id="deck"></div>
@@ -442,7 +445,7 @@ var le=leyEstandares(laws);
     h+='<div class="prio" style="border-left-style:dashed"><div class="dst">Marcaste como implementados controles que <b>ninguna de tus leyes aplicables exige</b> en el escenario respondido. No es un problema, pero conviene revisar si fueron vendidos como obligatorios: pueden ser sobredimensionamiento o parte de una referencia voluntaria (BOD 26-04).</div>';
     h+='<div class="reqs" style="margin-top:8px">'+foraLey.map(function(c){return '<div class="rq miss"><span class="rqmark" style="background:#E67E22">◐</span><span>'+esc(c)+'</span></div>';}).join('')+'</div></div></div>';}
   }
- document.getElementById('resbody').innerHTML=h+'<div class="row-btn" style="margin-top:28px"><button class="btn big" onclick="diagBuildReport()">Descargar reporte PDF ↓</button><button class="btn ghost big" onclick="go(slides.length-1)">Ver cobertura del modelo →</button><button class="btn ghost big" onclick="resetAll()">Repetir diagnóstico ↺</button></div>';
+ document.getElementById('resbody').innerHTML=h+'<div class="row-btn" style="margin-top:28px"><button class="btn big" onclick="diagBuildReport()">Descargar reporte PDF ↓</button><button class="btn ghost big" onclick="go(slides.length-1)">Ver cobertura del modelo →</button><button class="btn ghost big" onclick="resetAll()">Repetir diagnóstico ↺</button></div><div style="margin-top:26px;padding:20px 24px;border:1px solid var(--line);border-radius:14px;background:rgba(45,106,79,.07);text-align:center"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ng);margin-bottom:6px">Siguiente paso</div><div style="font-size:15px;font-weight:800;color:var(--txt);margin-bottom:12px">Convierte este diagnóstico en un plan accionable</div><a href="https://www.hackfluency.com/#contact" style="display:inline-block;background:var(--ng);color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none">Start a conversation →</a></div>';
 }
 /* Controles que el usuario marcó como implementados pero que NINGUNA ley aplicable a su
    escenario los exige. Resultado util: deteccion de sobredimension / 'venta de humo'. */
