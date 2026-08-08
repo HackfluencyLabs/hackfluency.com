@@ -881,7 +881,7 @@ const CTIDashboardInner: React.FC = () => {
     });
 
     // Backfill isLight on every node so CTINode can adjust contrast without re-read of document
-    newNodes.forEach(n => { (n.data as CTINodeData).isLight = currentTheme.isLight; });
+    newNodes.forEach(n => { (n.data as unknown as CTINodeData).isLight = currentTheme.isLight; });
 
     setNodes(newNodes);
     setEdges(newEdges);

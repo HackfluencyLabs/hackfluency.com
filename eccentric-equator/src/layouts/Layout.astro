@@ -1,8 +1,9 @@
 ---
 import SubscriptionPopup from '../components/SubscriptionPopup.astro';
+import PdfDownloadGate from '../components/articles/PdfDownloadGate.astro';
 import { ClientRouter } from 'astro:transitions';
 import ThemeInit from '../components/ThemeInit.astro';
-import ThemeSelector from '../components/ThemeSelector';
+import ThemeSelector from '../components/ThemeSelector.astro';
 import LanguageSelector from '../components/LanguageSelector.astro';
 import { getTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/translations';
@@ -191,7 +192,8 @@ const { t } = getTranslations(locale);
     <a href="#main-content" class="skip-link">{locale === 'es' ? 'Saltar al contenido principal' : 'Skip to main content'}</a>
     <slot />
     <SubscriptionPopup locale={locale} />
-    {!hideThemeSelector && <ThemeSelector client:visible variant="floating" transition:persist />}
+    <PdfDownloadGate locale={locale} />
+    {!hideThemeSelector && <ThemeSelector variant="floating" />}
 
     <!-- RumbleTalk embed (hidden container, click toggles chat) -->
     <div id="rt-d6023b7d7713a023f5e73ab154aa7c08" data-floating="true" data-side="left" data-width="700" data-height="500"

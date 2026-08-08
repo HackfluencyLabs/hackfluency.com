@@ -561,13 +561,14 @@ const t = (locale === 'en' ? {
 <script>
 (function() {
   const tabs = document.querySelectorAll('.zt-tab');
-  const cards = document.getElementById('zt-cards');
+  const cards = document.getElementById('zt-cards') as HTMLElement | null;
+  if (!cards) return;
 
   tabs.forEach(function(tab) {
     tab.addEventListener('click', function() {
       tabs.forEach(function(t) { t.classList.remove('active'); });
       tab.classList.add('active');
-      const view = tab.dataset.view;
+      const view = (tab as HTMLElement).dataset.view;
       cards.classList.remove('single', 'single-a', 'single-b');
       if (view === 'a') { cards.classList.add('single', 'single-a'); }
       else if (view === 'b') { cards.classList.add('single', 'single-b'); }

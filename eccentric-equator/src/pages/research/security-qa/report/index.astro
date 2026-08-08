@@ -4,7 +4,7 @@ import { getLocale } from "../../../../i18n/utils";
 import ToolHomeNav from "../../../../components/ToolHomeNav.astro";
 
 const locale = getLocale(Astro.url);
-const t = (en, es) => locale === 'en' ? en : es;
+const t = (en: string, es: string) => locale === 'en' ? en : es;
 
 const title = t("LLM Behavioral Security Assessment Report | Hackfluency Research", "Informe de Evaluación de Seguridad LLM | Hackfluency Research");
 const description = t(
@@ -287,7 +287,7 @@ const description = t(
 <script>
 (function() {
   // ── Obfuscation layer ─────────────────────────────────
-  var _k = function(s) { return atob(s); };
+  var _k = function(s: string) { return atob(s); };
   var _S = _k('aGZfcmVwb3J0X3Rva2Vu');
   var _T = _k('cnB0b2tlbg==');
   var _C = _k('aGZfcmVwb3J0X2FjY2Vzcw==');
@@ -296,19 +296,19 @@ const description = t(
   var _src = 'Hackfluency'; // matches subscription.ts source column
   var _ttl = 10;
   var _timer = null;
-  var _ctr = null;
+  var _ctr: number | null = null;
   var _timerDone = false;
 
   // ── Locale ────────────────────────────────────────────
-  var l = location.pathname.startsWith('/en/') ? 'en' : 'es';
-  var tr = {
+  var l: 'en' | 'es' = location.pathname.startsWith('/en/') ? 'en' : 'es';
+  var tr: Record<string, { en: string; es: string }> = {
     invalid: { en: 'Invalid email', es: 'Email inválido' },
     sending: { en: 'Sending...', es: 'Enviando...' },
     success: { en: 'Check your email — we sent the link.', es: 'Revisa tu correo — te enviamos el enlace.' },
     error: { en: 'Error. Try again.', es: 'Error. Intenta de nuevo.' },
     expired: { en: 'Session expired. Refreshing...', es: 'Sesión expirada. Refrescando...' }
   };
-  function trx(k) { return (tr[k] && tr[k][l]) || tr[k].en; }
+  function trx(k: string) { return (tr[k] && tr[k][l]) || tr[k].en; }
 
   // ── Session token ─────────────────────────────────────
   function genToken() { return Date.now().toString(36) + '-' + Math.random().toString(36).substr(2,16) + '-' + Math.random().toString(36).substr(2,8); }
@@ -325,17 +325,17 @@ const description = t(
   }
 
   // ── Cookie helpers ────────────────────────────────────
-  function setC(n, v, d) { try { var e = new Date(); e.setDate(e.getDate() + d); document.cookie = n + '=' + v + '; path=/; expires=' + e.toUTCString() + '; SameSite=Lax'; } catch(e) {} }
-  function getC(n) { try { return document.cookie.split('; ').reduce(function(a,c){ var kv=c.split('='); return kv[0]===n?kv[1]:a; },''); } catch(e) { return ''; } }
+  function setC(n: string, v: string, d: number) { try { var e = new Date(); e.setDate(e.getDate() + d); document.cookie = n + '=' + v + '; path=/; expires=' + e.toUTCString() + '; SameSite=Lax'; } catch(e) {} }
+  function getC(n: string) { try { return document.cookie.split('; ').reduce(function(a: string, c: string){ var kv=c.split('='); return kv[0]===n?kv[1]:a; },''); } catch(e) { return ''; } }
 
   // ── DOM refs ──────────────────────────────────────────
-  var gate = document.getElementById('r-gate');
-  var content = document.getElementById('r-report-content');
-  var printBar = document.getElementById('r-print-bar');
-  var form = document.getElementById('r-gate-form');
-  var emailInput = document.getElementById('r-gate-email');
-  var submitBtn = document.getElementById('r-gate-submit');
-  var msgEl = document.getElementById('r-gate-msg');
+  const gate = document.getElementById('r-gate') as HTMLElement;
+  const content = document.getElementById('r-report-content') as HTMLElement;
+  const printBar = document.getElementById('r-print-bar') as HTMLElement;
+  const form = document.getElementById('r-gate-form') as HTMLFormElement;
+  const emailInput = document.getElementById('r-gate-email') as HTMLInputElement;
+  const submitBtn = document.getElementById('r-gate-submit') as HTMLButtonElement;
+  const msgEl = document.getElementById('r-gate-msg') as HTMLElement;
 
   // ── Gate dismissal protection (MutationObserver) ────
   if (gate && !(getC(_C) === '1')) {
@@ -343,7 +343,7 @@ const description = t(
       for (var i = 0; i < muts.length; i++) {
         var removed = muts[i].removedNodes;
         for (var j = 0; j < removed.length; j++) {
-          if (removed[j] === gate || removed[j].querySelector && removed[j].querySelector('#r-gate')) {
+          if (removed[j] === gate || ((removed[j] as Element).querySelector && (removed[j] as Element).querySelector('#r-gate'))) {
             // Gate removed — regenerate token and reload
             refreshToken();
             location.reload();
@@ -362,12 +362,12 @@ const description = t(
     if (!msgEl) return;
     msgEl.textContent = '⏱ ' + remaining + 's';
     msgEl.className = 'r-gate-msg r-gate-msg-info';
-    if (_ctr) clearInterval(_ctr);
-    _ctr = setInterval(function() {
+    if (_ctr) window.clearInterval(_ctr);
+    _ctr = window.setInterval(function() {
       remaining--;
       if (msgEl) msgEl.textContent = '⏱ ' + remaining + 's';
       if (remaining <= 0) {
-        clearInterval(_ctr); _ctr = null;
+window.clearInterval(_ctr ?? undefined); _ctr = null;
         _timerDone = true;
         refreshToken();
         if (msgEl) { msgEl.textContent = ''; msgEl.className = 'r-gate-msg'; }
@@ -397,7 +397,7 @@ const description = t(
       submitBtn.classList.add('loading');
       submitBtn.disabled = true;
       _timerDone = true; // stop timer from firing
-      if (_ctr) { clearInterval(_ctr); _ctr = null; }
+      if (_ctr) { window.clearInterval(_ctr); _ctr = null; }
       if (msgEl) { msgEl.textContent = trx('sending'); msgEl.className = 'r-gate-msg r-gate-msg-info'; }
 
       fetch(_U, {
@@ -565,4 +565,8 @@ html { font-size: 16px; } body { background: var(--hf-bg); }
 </style>
 
 </Layout>
+
+
+
+
 

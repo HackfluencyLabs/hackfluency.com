@@ -91,7 +91,7 @@ const articles = (locale === 'es' ? [
 ]);
 
 // Tag → color mapping (shared across ES/EN via tag key)
-const tagColorMap = {
+const tagColorMap: Record<string, string> = {
   'Sociedad': '#F59E0B', 'Society': '#F59E0B',
   'Psicología': '#EC4899', 'Psychology': '#EC4899',
   'Tecnología': '#3B82F6', 'Technology': '#3B82F6',
@@ -106,8 +106,8 @@ const tagColorMap = {
 };
 
 // Collect unique tags preserving order of first appearance
-const allTags = [];
-const seen = new Set();
+const allTags: string[] = [];
+const seen = new Set<string>();
 articles.forEach(a => a.tags.forEach(t => {
   if (!seen.has(t)) { seen.add(t); allTags.push(t); }
 }));
@@ -127,7 +127,7 @@ articles.forEach(a => a.tags.forEach(t => {
       </p>
       <div class="ra-tag-filter">
         {allTags.map(tag => (
-          <button class="ra-tag-filter-btn" data-tag={tag} style={`--tag-color: ${tagColorMap[tag] || '#888'}`}>{tag}</button>
+          <button class="ra-tag-filter-btn" data-tag={tag} style={`--tag-color: ${(tagColorMap as Record<string, string>)[tag] || '#888'}`}>{tag}</button>
         ))}
       </div>
       <div class="ra-meta-row">
@@ -153,7 +153,7 @@ articles.forEach(a => a.tags.forEach(t => {
             <div class="ra-card-top">
               <div class="ra-tags">
                 {article.tags.map(tag => (
-                  <span class="ra-tag" data-tag={tag} style={`--tag-color: ${tagColorMap[tag] || '#888'}`}>{tag}</span>
+                  <span class="ra-tag" data-tag={tag} style={`--tag-color: ${(tagColorMap as Record<string, string>)[tag] || '#888'}`}>{tag}</span>
                 ))}
               </div>
               <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;">
@@ -709,13 +709,13 @@ articles.forEach(a => a.tags.forEach(t => {
 
 <script>
   (function() {
-    var grid = document.querySelector('.ra-grid');
+    const grid = document.querySelector('.ra-grid') as HTMLElement;
     if (!grid) return;
 
     var isMobile = window.matchMedia('(max-width: 640px)').matches;
 
     // Compact/Full toggle
-    var btn = document.getElementById('ra-view-toggle');
+    const btn = document.getElementById('ra-view-toggle') as HTMLButtonElement;
     if (btn) {
       var labels = btn.textContent === 'Compact view' || btn.textContent === 'Full view'
         ? { compact: 'Full view', full: 'Compact view' }
@@ -736,7 +736,7 @@ articles.forEach(a => a.tags.forEach(t => {
     }
 
     // 1-column / 2-column layout toggle
-    var layBtn = document.getElementById('ra-layout-toggle');
+    const layBtn = document.getElementById('ra-layout-toggle') as HTMLButtonElement;
     if (layBtn) {
       var layLabels = layBtn.textContent === 'Grid view' || layBtn.textContent === 'Single column'
         ? { grid: 'Single column', single: 'Grid view' }
@@ -760,8 +760,8 @@ articles.forEach(a => a.tags.forEach(t => {
     if (filterBtns.length) {
       filterBtns.forEach(function(btn) {
         btn.addEventListener('click', function() {
-          var tag = btn.dataset.tag;
-          var isActive = btn.classList.toggle('is-active');
+          var tag = (btn as HTMLElement).dataset.tag;
+          var isActive = (btn as HTMLElement).classList.toggle('is-active');
           var anyActive = document.querySelector('.ra-tag-filter-btn.is-active');
 
           if (anyActive) {
@@ -772,15 +772,15 @@ articles.forEach(a => a.tags.forEach(t => {
               var match = false;
               document.querySelectorAll('.ra-tag-filter-btn.is-active').forEach(function(activeBtn) {
                 tags.forEach(function(t) {
-                  if (t.dataset.tag === activeBtn.dataset.tag) match = true;
+                  if ((t as HTMLElement).dataset.tag === (activeBtn as HTMLElement).dataset.tag) match = true;
                 });
               });
-              card.classList.toggle('is-highlighted', match);
+              (card as HTMLElement).classList.toggle('is-highlighted', match);
             });
           } else {
             grid.classList.remove('is-filtered');
             document.querySelectorAll('.ra-card-link').forEach(function(card) {
-              card.classList.remove('is-highlighted');
+              (card as HTMLElement).classList.remove('is-highlighted');
             });
           }
         });
@@ -788,3 +788,4 @@ articles.forEach(a => a.tags.forEach(t => {
     }
   })();
 </script>
+

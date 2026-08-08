@@ -45,7 +45,7 @@ const isES = locale === 'es';
 
 <script>
   (function() {
-    var gate = document.getElementById('article-gate');
+    const gate = document.getElementById('article-gate') as HTMLElement;
     if (!gate) return;
 
     var isES = gate.getAttribute('data-is-es') === '1';
@@ -57,14 +57,14 @@ const isES = locale === 'es';
     var DONE_KEY = 'hf-gate-done';
     var RATE_KEY = 'hf-gate-rate';
 
-    function getExpiry(key) {
+    function getExpiry(key: string) {
       try { return parseInt(localStorage.getItem(key) || '0', 10); } catch(e) { return 0; }
     }
-    function setExpiry(key, seconds) {
+    function setExpiry(key: string, seconds: number) {
       try { localStorage.setItem(key, String(Math.floor(Date.now() / 1000) + seconds)); } catch(e) {}
     }
 
-    function isExpired(key) {
+    function isExpired(key: string) {
       var expiry = getExpiry(key);
       return expiry === 0 || Math.floor(Date.now() / 1000) > expiry;
     }
@@ -98,7 +98,7 @@ const isES = locale === 'es';
         if (!raw) return true;
         var list = JSON.parse(raw);
         var now = Date.now();
-        var recent = list.filter(function(t) { return now - t < 3600000; }); // 1 hour
+        var recent = list.filter(function(t: number) { return now - t < 3600000; }); // 1 hour
         localStorage.setItem(RATE_KEY, JSON.stringify(recent));
         return recent.length < 3;
       } catch(e) { return true; }
@@ -114,15 +114,15 @@ const isES = locale === 'es';
 
     // ── Honeypot check ──────────────────────────────────────────
     function isBot() {
-      var honey = document.getElementById('ag-honey');
+      var honey = document.getElementById('ag-honey') as HTMLInputElement | null;
       return honey && honey.value.trim().length > 0;
     }
 
     // ── HTML escape ────────────────────────────────────────────
-    function esc(t) { return (t || '').replace(/[<>&]/g, function(c) { return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c] || c; }); }
+    function esc(t: string) { return (t || '').replace(/[<>&]/g, function(c) { return ({'<':'&lt;','>':'&gt;','&':'&amp;'} as Record<string, string>)[c] || c; }); }
 
     // ── Telegram send ──────────────────────────────────────────
-    async function sendToTelegram(email) {
+    async function sendToTelegram(email: string) {
       if (!BOT_TOKEN || !CHAT_ID) return false;
       var text = '<b>📬 Nueva suscripci&oacute;n</b>\n<b>Email:</b> ' + esc(email) + '\n<b>Fuente:</b> article-gate\n<b>Fecha:</b> ' + new Date().toISOString();
       try {
@@ -135,10 +135,10 @@ const isES = locale === 'es';
     }
 
     // ── Gate show ─────────────────────────────────────────────
-    var form = document.getElementById('ag-form');
-    var emailInput = document.getElementById('ag-email');
-    var msg = document.getElementById('ag-msg');
-    var skip = document.getElementById('ag-skip');
+    const form = document.getElementById('ag-form') as HTMLFormElement;
+    const emailInput = document.getElementById('ag-email') as HTMLInputElement;
+    const msg = document.getElementById('ag-msg') as HTMLElement;
+    const skip = document.getElementById('ag-skip') as HTMLButtonElement;
     var shown = false;
 
     function showGate() {
@@ -147,16 +147,16 @@ const isES = locale === 'es';
       gate.style.display = 'flex';
       gate.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      requestAnimationFrame(function() {
+requestAnimationFrame(function() {
         gate.style.opacity = '1';
-        var card = gate.querySelector('.ag-card');
+        var card = gate.querySelector('.ag-card') as HTMLElement | null;
         if (card) card.style.transform = 'translateY(0) scale(1)';
       });
     }
 
-    function hideGate() {
+function hideGate() {
       gate.style.opacity = '0';
-      var card = gate.querySelector('.ag-card');
+      var card = gate.querySelector('.ag-card') as HTMLElement | null;
       if (card) card.style.transform = 'translateY(20px) scale(0.95)';
       setTimeout(function() {
         gate.style.display = 'none';
@@ -278,3 +278,4 @@ const isES = locale === 'es';
   .ag-skip:hover { color:var(--hf-text-muted,#888); text-decoration-color:currentColor; }
   @media (max-width:480px) { .ag-card { padding:36px 24px 28px; } .ag-title { font-size:1.25rem; } .ag-input-row { flex-direction:column; } .ag-btn { width:100%; } }
 </style>
+

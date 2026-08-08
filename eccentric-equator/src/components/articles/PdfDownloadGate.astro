@@ -1,0 +1,237 @@
+---
+interface Props {
+  locale: 'es' | 'en';
+  /** Archivo PDF a descargar al completar el gate. */
+  pdfUrl?: string;
+}
+const { locale, pdfUrl = '/assets/reports/convergencia_normativa.pdf' } = Astro.props;
+const isES = locale === 'es';
+---
+
+<!-- Gate obligatorio de correo antes de descargar un informe PDF.
+     Flujo: CTA (data-pdf-gate="URL") → preventDefault → abre este modal →
+     email válido → Telegram (mismo pipeline que ArticleGate) → descarga forzada.
+     Cualquier elemento con [data-pdf-gate] activa el gate con esa URL. -->
+<div id="pdf-gate" class="pdf-gate" aria-hidden="true"
+  data-is-es={isES ? '1' : '0'}
+  data-pdf-url={pdfUrl}
+  data-bot-token={import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN}
+  data-chat-id={import.meta.env.PUBLIC_TELEGRAM_CHAT_ID}>
+  <div class="pg-overlay"></div>
+  <div class="pg-card" role="dialog" aria-modal="true" aria-labelledby="pg-title">
+    <div class="pg-header">
+      <span class="pg-badge">{isES ? 'INFORME COMPLETO · PDF' : 'FULL REPORT · PDF'}</span>
+      <h3 id="pg-title" class="pg-title">
+        {isES ? 'Ingresa tu correo para proceder a la descarga' : 'Enter your email to proceed with the download'}
+      </h3>
+      <p class="pg-sub">
+        {isES
+          ? 'El informe completo de Convergencia Normativa (7 páginas, con todos los gráficos y la lista de verificación Ley → Estándar → Control). Sin spam, cancela cuando quieras.'
+          : 'The full Regulatory Convergence report (7 pages, with all charts and the Law → Standard → Control checklist). No spam, unsubscribe anytime.'}
+      </p>
+    </div>
+    <form id="pg-form" class="pg-form">
+      <!-- Honeypot: invisible to humans, bots fill it -->
+      <input type="text" id="pg-honey" class="pg-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <div class="pg-input-row">
+        <input type="email" id="pg-email" required
+          placeholder={isES ? 'tu@email.com' : 'your@email.com'}
+          aria-label={isES ? 'Tu correo electrónico' : 'Your email'}
+          autocomplete="email" />
+        <button type="submit" class="pg-btn">
+          {isES ? 'Descargar PDF' : 'Download PDF'}
+        </button>
+      </div>
+      <p id="pg-msg" class="pg-msg"></p>
+    </form>
+    <button id="pg-close" class="pg-close" type="button" aria-label={isES ? 'Cerrar' : 'Close'}>
+      {isES ? 'No, gracias — cerrar' : 'No thanks — close'}
+    </button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var gate = document.getElementById('pdf-gate') as HTMLElement & { _pendingUrl?: string };
+    if (!gate) return;
+
+    var isES = gate.getAttribute('data-is-es') === '1';
+    var BOT_TOKEN = gate.getAttribute('data-bot-token');
+    var CHAT_ID = gate.getAttribute('data-chat-id');
+    var DEFAULT_URL = gate.getAttribute('data-pdf-url') ?? '';
+
+    // ── Rate limiting (mismo esquema que ArticleGate, clave propia) ──
+    var RATE_KEY = 'hf-pdfgate-rate';
+    function checkRateLimit() {
+      try {
+        var raw = localStorage.getItem(RATE_KEY);
+        if (!raw) return true;
+        var list = JSON.parse(raw);
+        var now = Date.now();
+        var recent = list.filter(function(t: number) { return now - t < 3600000; });
+        localStorage.setItem(RATE_KEY, JSON.stringify(recent));
+        return recent.length < 5;
+      } catch(e) { return true; }
+    }
+    function trackRateLimit() {
+      try {
+        var raw = localStorage.getItem(RATE_KEY);
+        var list = raw ? JSON.parse(raw) : [];
+        list.push(Date.now());
+        localStorage.setItem(RATE_KEY, JSON.stringify(list.slice(-10)));
+      } catch(e) {}
+    }
+
+    // ── Honeypot check ──────────────────────────────────────────
+    function isBot() {
+      var honey = document.getElementById('pg-honey') as HTMLInputElement;
+      return honey && honey.value.trim().length > 0;
+    }
+
+    // ── HTML escape ────────────────────────────────────────────
+    var escMap: Record<string, string> = {'<':'&lt;','>':'&gt;','&':'&amp;'};
+    function esc(t: string) { return (t || '').replace(/[<>&]/g, function(c: string) { return escMap[c] || c; }); }
+
+    // ── Telegram send (fuente: pdf-gate) ────────────────────────
+    async function sendToTelegram(email: string) {
+      if (!BOT_TOKEN || !CHAT_ID) return false;
+      var text = '<b>\U0001F4C4 Descarga de informe (PDF)</b>\n<b>Email:</b> ' + esc(email) + '\n<b>Fuente:</b> pdf-gate\n<b>Fecha:</b> ' + new Date().toISOString();
+      try {
+        var r = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: Number(CHAT_ID), text: text, parse_mode: 'HTML' }),
+        });
+        return r.ok;
+      } catch(e) { return false; }
+    }
+
+    // ── Descarga forzada (anchor temporal con download) ─────────
+    function triggerDownload(url: string) {
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = url.split('/').pop() || 'informe.pdf';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ a.remove(); }, 300);
+    }
+
+    // ── Modal state ─────────────────────────────────────────────
+    const form = document.getElementById('pg-form') as HTMLFormElement;
+    const emailInput = document.getElementById('pg-email') as HTMLInputElement;
+    const msg = document.getElementById('pg-msg') as HTMLElement;
+    const closeBtn = document.getElementById('pg-close') as HTMLButtonElement;
+    var overlay = gate.querySelector('.pg-overlay');
+    var shown = false;
+
+    function showGate(url?: string) {
+      gate._pendingUrl = url || DEFAULT_URL;
+      if (shown) return;
+      shown = true;
+      gate.style.display = 'flex';
+      gate.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(function() {
+        gate.style.opacity = '1';
+        var card = gate.querySelector('.pg-card') as HTMLElement | null;
+        if (card) card.style.transform = 'translateY(0) scale(1)';
+      });
+      if (emailInput) emailInput.focus();
+    }
+
+    function hideGate() {
+      gate.style.opacity = '0';
+      var card = gate.querySelector('.pg-card') as HTMLElement | null;
+      if (card) card.style.transform = 'translateY(20px) scale(0.95)';
+      setTimeout(function() {
+        gate.style.display = 'none';
+        gate.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }, 400);
+      shown = false;
+    }
+
+    // ── Disparo global ──
+    // data-pdf-gate:      intercepta SIEMPRE el click y abre el gate (modo forzado).
+    // data-pdf-gate-auto: solo intercepta en viewport <1024px (mobile); en desktop
+    //                     deja el href nativo intacto (navegación normal).
+    document.addEventListener('click', function(ev) {
+      var el = (ev.target as HTMLElement | null)?.closest('[data-pdf-gate], [data-pdf-gate-auto]');
+      if (!el) return;
+      var forced = el.hasAttribute('data-pdf-gate');
+      var url = el.getAttribute('data-pdf-gate') || el.getAttribute('data-pdf-gate-auto');
+      if (!forced && window.innerWidth >= 1024) return; // auto: comportamiento nativo en desktop
+      ev.preventDefault();
+      showGate(url || undefined);
+    }, true);
+
+    // Exponer API por si algo necesita abrir el gate programáticamente
+    (window as unknown as { hfPdfGate?: { open: (url?: string) => void } }).hfPdfGate = { open: showGate };
+
+    // ── Cierre ──────────────────────────────────────────────────
+    if (closeBtn) closeBtn.addEventListener('click', hideGate);
+    if (overlay) overlay.addEventListener('click', hideGate);
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape' && shown) { hideGate(); document.removeEventListener('keydown', onEsc); }
+    });
+
+    // ── Submit → Telegram → descarga ────────────────────────────
+    if (form && emailInput && msg) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (isBot()) { hideGate(); return; }
+        if (!checkRateLimit()) {
+          msg.textContent = isES ? 'Demasiados intentos. Intenta más tarde.' : 'Too many attempts. Try later.';
+          msg.className = 'pg-msg pg-msg--error';
+          return;
+        }
+        var email = emailInput.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          msg.textContent = isES ? 'Email inválido' : 'Invalid email';
+          msg.className = 'pg-msg pg-msg--error';
+          return;
+        }
+        msg.textContent = isES ? 'Verificando...' : 'Checking...';
+        msg.className = 'pg-msg pg-msg--info';
+        trackRateLimit();
+        var ok = await sendToTelegram(email);
+        if (ok) {
+          msg.textContent = isES ? '¡Listo! Descargando tu informe ↓' : 'Done! Downloading your report ↓';
+          msg.className = 'pg-msg pg-msg--success';
+          setTimeout(function() {
+            triggerDownload(gate._pendingUrl || DEFAULT_URL);
+            hideGate();
+          }, 800);
+        } else {
+          msg.textContent = isES ? 'Error. Intenta de nuevo.' : 'Error. Try again.';
+          msg.className = 'pg-msg pg-msg--error';
+        }
+      });
+    }
+  })();
+</script>
+
+<style>
+  .pdf-gate { display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center; opacity:0; transition:opacity .4s ease; font-family:'Inter',system-ui,sans-serif; }
+  .pg-overlay { position:absolute; inset:0; background:rgba(0,0,0,.78); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .pg-card { position:relative; background:var(--hf-bg-card,#111); border:1px solid var(--hf-accent-border,rgba(0,210,106,.3)); border-radius:20px; padding:48px 40px 36px; max-width:480px; width:90%; text-align:center; transform:translateY(20px) scale(.95); transition:transform .4s cubic-bezier(.16,1,.3,1); box-shadow:0 30px 80px rgba(0,0,0,.6); }
+  .pg-badge { display:inline-block; font-size:.6rem; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--hf-accent,#00D26A); padding:4px 12px; border:1px solid var(--hf-accent-border,rgba(0,210,106,.3)); border-radius:100px; margin-bottom:20px; }
+  .pg-title { font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:700; color:var(--hf-text,#fff); margin-bottom:12px; line-height:1.3; }
+  .pg-sub { font-size:.88rem; color:var(--hf-text-muted,#888); line-height:1.6; margin-bottom:28px; }
+  .pg-form { display:flex; flex-direction:column; gap:12px; }
+  .pg-honey { position:absolute; left:-9999px; top:-9999px; opacity:0; height:0; width:0; overflow:hidden; }
+  .pg-input-row { display:flex; gap:8px; }
+  .pg-input-row input { flex:1; padding:14px 16px; background:var(--hf-bg,#0a0a0a); border:1px solid var(--hf-border,#222); border-radius:10px; color:var(--hf-text,#fff); font-size:.9rem; font-family:inherit; outline:none; transition:border-color .2s; min-height:48px; }
+  .pg-input-row input:focus { border-color:var(--hf-accent,#00D26A); }
+  .pg-btn { padding:14px 24px; background:var(--hf-accent,#00D26A); color:var(--hf-text-on-accent,#000); border:none; border-radius:10px; font-size:.85rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:background .2s; min-height:48px; }
+  .pg-btn:hover { background:var(--hf-accent-light,#00FF7F); }
+  .pg-msg { font-size:.8rem; min-height:1.2em; }
+  .pg-msg--error { color:var(--accent,#E31B23); }
+  .pg-msg--success { color:var(--primary,#00D26A); }
+  .pg-msg--info { color:var(--hf-text-muted,#888); }
+  .pg-close { display:inline-block; margin-top:20px; background:none; border:none; color:var(--hf-text-dim,#666); font-size:.8rem; cursor:pointer; font-family:inherit; text-decoration:underline; text-underline-offset:3px; text-decoration-color:transparent; transition:all .2s; }
+  .pg-close:hover { color:var(--hf-text-muted,#888); text-decoration-color:currentColor; }
+  @media (max-width:480px) { .pg-card { padding:36px 24px 28px; } .pg-title { font-size:1.2rem; } .pg-input-row { flex-direction:column; } .pg-btn { width:100%; } }
+</style>
+
+

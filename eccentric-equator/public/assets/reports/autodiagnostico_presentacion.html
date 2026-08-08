@@ -168,10 +168,10 @@ h2{font-size:clamp(24px,3.4vw,40px);font-weight:800;letter-spacing:-.5px;margin:
 <script>
 /* ===== MODELO CANONICO — misma fuente que Sankey y ROI (convergencia_normativa.html) ===== */
 var STD_DEFS=[
- {n:'ISO 27001 (SGSI)',leyes:{'21.663':'exige','21.719':'satisface'},ctrls:['SGSI ISO 27001','Evaluacion Riesgos','Auditoria Pentest','Capacitacion','Due Diligence Terceros','Plan Continuidad','Monitoreo SOC 24x7','Delegado Ciberseguridad']},
+ {n:'ISO 27001 (SGSI)',leyes:{'21.663':'exige','21.719':'satisface'},ctrls:['SGSI ISO 27001','Evaluacion Riesgos','Auditoria Pentest','Capacitacion','Debida Diligencia de Terceros','Plan Continuidad','Monitoreo SOC 24x7','Delegado Ciberseguridad']},
  {n:'NCG 538 (Regulacion CMF)',leyes:{'NCG':'exige','21.719':'satisface'},ctrls:['MFA Autenticacion','Cifrado AES / TLS']},
- {n:'BOD 26-04 (Gest. Vulnerabilidades)',leyes:{'21.663':'satisface'},ctrls:['Reporte Incidentes','Auditoria Pentest','Canal Disclosure']},
- {n:'Reporte y Notificacion',leyes:{'21.663':'exige','21.719':'exige'},ctrls:['Reporte Incidentes','Canal Disclosure']},
+ {n:'BOD 26-04 (Gest. Vulnerabilidades)',leyes:{'21.663':'satisface'},ctrls:['Informe de Incidentes','Auditoria Pentest','Canal de Divulgacion']},
+ {n:'Informe y Notificacion',leyes:{'21.663':'exige','21.719':'exige'},ctrls:['Informe de Incidentes','Canal de Divulgacion']},
  {n:'Modelo de Prevencion de Delitos (Ley 20.393)',leyes:{'21.595':'exige'},ctrls:['Encargado de Prevencion','Matriz Riesgo Penal','Protocolos Prevencion','Canal Denuncias','Evaluacion Independiente']}
 ];
 var MULTAS={'21.663':40000,'21.719':20000}; // UTM techo legal (Ley 21.663 Art.40; 21.719). 21.595 y NCG 538: sin multa UTM pero con sancion (penal / CMF).
@@ -194,11 +194,11 @@ for(var di=0;di<STD_DEFS.length;di++){var sdD=STD_DEFS[di];
  }}
 var lawName={'21.663':'Ley 21.663 — Ciberseguridad e Infraestructura Crítica','21.719':'Ley 21.719 — Protección de Datos Personales','21.595':'Ley 21.595 — Delitos Económicos','NCG':'NCG 538 — CMF','BOD':'BOD 26-04 — CISA (voluntaria)'};
 var lawColor={'21.663':'#DC3545','21.719':'#5B6ABF','21.595':'#6F42C1','NCG':'#E67E22','BOD':'#28A745'};
-var ctrlDesc={'SGSI ISO 27001':'Tu sistema de gestión de seguridad','MFA Autenticacion':'Doble verificación en todas las cuentas','Reporte Incidentes':'Aviso de incidentes 3h / 72h / 15d','Delegado Ciberseguridad':'Delegado oficial de ciberseguridad','Plan Continuidad':'Plan para seguir operando ante una crisis','Cifrado AES / TLS':'Cifrado al enviar y al guardar datos','Auditoria Pentest':'Simulacros de ataque y auditorías','Capacitacion':'Capacitación recurrente del personal','Evaluacion Riesgos':'Evaluación de riesgos formal','Monitoreo SOC 24x7':'Vigilancia y respuesta las 24 horas','Canal Disclosure':'Canal público de alertas (security.txt)','Due Diligence Terceros':'Revisión de proveedores y socios','Encargado de Prevencion':'Encargado de prevención designado (Art.4 Ley 20.393)','Matriz Riesgo Penal':'Matriz de riesgo penal de las actividades de la empresa','Protocolos Prevencion':'Protocolos internos de prevención y sanción','Canal Denuncias':'Canal seguro de denuncias, confidencial y anónimo','Evaluacion Independiente':'Evaluación periódica por entidad independiente'};
+var ctrlDesc={'SGSI ISO 27001':'Tu sistema de gestión de seguridad','MFA Autenticacion':'Doble verificación en todas las cuentas','Informe de Incidentes':'Aviso de incidentes 3h / 72h / 15d','Delegado Ciberseguridad':'Delegado oficial de ciberseguridad','Plan Continuidad':'Plan para seguir operando ante una crisis','Cifrado AES / TLS':'Cifrado al enviar y al guardar datos','Auditoria Pentest':'Simulacros de ataque y auditorías','Capacitacion':'Capacitación recurrente del personal','Evaluacion Riesgos':'Evaluación de riesgos formal','Monitoreo SOC 24x7':'Vigilancia y respuesta las 24 horas','Canal de Divulgacion':'Canal público de alertas (security.txt)','Debida Diligencia de Terceros':'Revisión de proveedores y socios','Encargado de Prevencion':'Encargado de prevención designado (Art.4 Ley 20.393)','Matriz Riesgo Penal':'Matriz de riesgo penal de las actividades de la empresa','Protocolos Prevencion':'Protocolos internos de prevención y sanción','Canal Denuncias':'Canal seguro de denuncias, confidencial y anónimo','Evaluacion Independiente':'Evaluación periódica por entidad independiente'};
 var gloss={
  'SGSI ISO 27001':['Tu sistema de gestión de seguridad','Es la forma de ordenar tus defensas. Ser ISO 27001 significa que ese sistema está por un estándar reconocido.'],
  'MFA Autenticacion':['Doble verificación','Además de la clave, pides un segundo dato (por ejemplo, un código al celular) para confirmar que eres tú.'],
- 'Reporte Incidentes':['Aviso de incidentes','Un proceso para avisar rápido: alerta temprana en 3 horas, informe en 72 horas e informe final en 15 días.'],
+ 'Informe de Incidentes':['Aviso de incidentes','Un proceso para avisar rápido: alerta temprana en 3 horas, informe en 72 horas e informe final en 15 días.'],
  'Cifrado AES / TLS':['Cifrado de información','Conviertes los datos en un código para que nadie los lea: al enviarlos (TLS) y al guardarlos (AES).'],
  'Delegado Ciberseguridad':['Encargado de la seguridad','La persona responsable en tu empresa de cuidar la ciberseguridad.'],
  'Plan Continuidad':['Plan de respaldo','El plan para que tu empresa siga funcionando si ocurre una crisis o un ataque.'],
@@ -206,8 +206,8 @@ var gloss={
  'Capacitacion':['Capacitación','Entrenar a tu personal para que no caiga en engaños y sepa reaccionar.'],
  'Evaluacion Riesgos':['Gestión de riesgos','Analizas los peligros sobre tu información y decides qué proteger primero.'],
  'Monitoreo SOC 24x7':['Vigilancia continua','Un equipo que vigila tus sistemas las 24 horas y actúa ante cualquier alerta.'],
- 'Canal Disclosure':['Canal de alertas','Un aviso público para que personas buenas puedan avisarte de errores de seguridad.'],
- 'Due Diligence Terceros':['Revisión de socios','Verificar que tus proveedores y socios cuiden la información antes de trabajar con ellos.'],
+ 'Canal de Divulgacion':['Canal de alertas','Un aviso público para que personas buenas puedan avisarte de errores de seguridad.'],
+ 'Debida Diligencia de Terceros':['Revisión de socios','Verificar que tus proveedores y socios cuiden la información antes de trabajar con ellos.'],
  'Encargado de Prevencion':['Encargado de prevención','La persona responsable de operar el modelo de prevención de delitos (Ley 20.393).'],
  'Matriz Riesgo Penal':['Matriz de riesgo penal','El mapa de delitos a los que tu empresa está expuesta y cómo prevenirlos.'],
  'Protocolos Prevencion':['Protocolos internos','Reglas internas de prevención y sanciones para evitar delitos económicos.'],
@@ -223,7 +223,7 @@ var COVERAGE=[
    {t:'Gobernanza y funciones de ciberseguridad',st:'par',a:'Art. 8 letra a',na:'SGSI + Capacitación'},
    {t:'Gestión de riesgos de ciberseguridad',st:'par',a:'Art. 8',na:'SGSI (cláusula 6)'},
    {t:'Medidas técnicas y organizacionales',st:'ok',a:'Art. 8',na:'SGSI + MFA + Cifrado'},
-   {t:'Notificación de incidentes a la ANCI',st:'ok',a:'Arts. 9 y 11',na:'Reporte Incidentes'},
+   {t:'Notificación de incidentes a la ANCI',st:'ok',a:'Arts. 9 y 11',na:'Informe de Incidentes'},
    {t:'Auditoría y cumplimiento continuo',st:'par',a:'Art. 8',na:'Monitoreo SOC 24x7'},
    {t:'Continuidad de negocio / resiliencia',st:'par',a:'Art. 8',na:'Plan Continuidad'},
    {t:'Coordinación con ENCs y sector público',st:'gap',a:'Art. 8',na:'No modelado'},
@@ -237,7 +237,7 @@ var COVERAGE=[
    {t:'Confidencialidad, integridad, disponibilidad',st:'ok',a:'Art. 14 quinquies letra b',na:'SGSI ISO 27001'},
    {t:'Restauración de disponibilidad',st:'par',a:'Art. 14 quinquies c',na:'Respaldo / DR'},
    {t:'Verificación y evaluación de medidas',st:'par',a:'Art. 14 quinquies d',na:'SOC + SGSI'},
-   {t:'Notificación de brechas (72h)',st:'ok',a:'Art. 14 sexies',na:'Reporte Incidentes'},
+   {t:'Notificación de brechas (72h)',st:'ok',a:'Art. 14 sexies',na:'Informe de Incidentes'},
    {t:'Información y transparencia',st:'gap',a:'Art. 14 ter',na:'No modelado'},
    {t:'Protección desde el diseño y por defecto',st:'gap',a:'Art. 14 quáter',na:'No modelado'},
    {t:'Evaluación de impacto (EIPD)',st:'gap',a:'Art. 15 ter',na:'No modelado'},
@@ -354,7 +354,7 @@ function showDone(k,v){var sl=document.querySelector('.slide.active .yn');if(sl)
 var deck=document.getElementById('deck'),cur=0;
 var slides=[],stepOf=[],stepTot=1;
 function escTo(lst){return lst.map(function(x){return x;})}
-// Inventario abierto: el checklist del Paso 3 muestra SIEMPRE los 17 controles (independiente de las respuestas previas). Se asume criterio del usuario; el reporte cruza inventario vs contexto legal.
+// Inventario abierto: la lista de verificación del Paso 3 muestra SIEMPRE los 17 controles (independiente de las respuestas previas). Se asume criterio del usuario; el informe cruza inventario vs contexto legal.
 function renderChecklist(){var app=CTRLS.slice();var h='<div class="cklist">';app.forEach(function(nm){var g=gloss[nm]||[''];h+='<div class="ck" data-n="'+nm+'" onclick="toggleCk(this)"><div class="tick">✓</div><div><div class="nm">'+esc(nm)+'</div><div class="ds">'+esc(ctrlDesc[nm]||'')+'</div></div><span class="gloss">'+(g[0]||'')+'</span></div>';});h+='</div>';document.getElementById('ckwrap').innerHTML=h;document.getElementById('goCalc').disabled=false;}
 function build(){
  var S=[];
@@ -381,7 +381,7 @@ S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 2 · Voca
     +'<div class="hint">toca para ver obligaciones →</div>'
     +'<div class="ext"><div class="covship">Obligaciones de la norma vs. nuestro modelo</div>'+covRowsHtml(co)+'</div></div>';
   });
-  S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 5 · Transparencia del alcance del modelo</div><h2>Qué mide este informe y qué queda fuera</h2><div class="sub">Nuestro informe se centra en controles técnicos. A continuación puedes ver el nivel de fidelidad de este reporte y su modelamiento respecto de la ley actual: qué obligaciones cubre el modelo y cuáles quedan fuera.</div><div class="grid g2">'+cCover+'</div><div class="sub" style="margin-top:20px;font-size:12.5px;color:var(--dim)"><b style="color:var(--mut)">Leyenda:</b> <span style="color:#2D6A4F">✓ Cubierto</span> · <span style="color:#E67E22">◐ Parcial</span> · <span style="color:#DC3545">✗ Brecha</span> — El modelo prioriza controles técnicos de seguridad sobre obligaciones organizacionales; la cobertura no es asesoría legal. Ver fuentes oficiales para el texto completo.</div></div></div>');
+  S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 5 · Transparencia del alcance del modelo</div><h2>Qué mide este informe y qué queda fuera</h2><div class="sub">Nuestro informe se centra en controles técnicos. A continuación puedes ver el nivel de fidelidad de este informe y su modelamiento respecto de la ley actual: qué obligaciones cubre el modelo y cuáles quedan fuera.</div><div class="grid g2">'+cCover+'</div><div class="sub" style="margin-top:20px;font-size:12.5px;color:var(--dim)"><b style="color:var(--mut)">Leyenda:</b> <span style="color:#2D6A4F">✓ Cubierto</span> · <span style="color:#E67E22">◐ Parcial</span> · <span style="color:#DC3545">✗ Brecha</span> — El modelo prioriza controles técnicos de seguridad sobre obligaciones organizacionales; la cobertura no es asesoría legal. Ver fuentes oficiales para el texto completo.</div></div></div>');
  return S;
 }
 function toggleCk(el){el.classList.toggle('on');}
@@ -400,7 +400,7 @@ function renderResult(){
  if(!laws.length){h+='<div class="prio no-gap"><h4>Sin leyes que cumplir 🎉</h4><div class="dst">Con el escenario respondido no te aplican requisitos legales.</div></div>';}
  else{
 var le=leyEstandares(laws);
-   h+='<div class="sec"><h3>→ Checklist para cumplir cada ley</h3>';
+   h+='<div class="sec"><h3>→ Lista de verificación para cumplir cada ley</h3>';
    le.forEach(function(o){
     var cov=lc[o.law].covered;
     h+='<div class="ley" style="border-left:4px solid '+lawColor[o.law]+'">';
@@ -445,7 +445,7 @@ var le=leyEstandares(laws);
     h+='<div class="prio" style="border-left-style:dashed"><div class="dst">Marcaste como implementados controles que <b>ninguna de tus leyes aplicables exige</b> en el escenario respondido. No es un problema, pero conviene revisar si fueron vendidos como obligatorios: pueden ser sobredimensionamiento o parte de una referencia voluntaria (BOD 26-04).</div>';
     h+='<div class="reqs" style="margin-top:8px">'+foraLey.map(function(c){return '<div class="rq miss"><span class="rqmark" style="background:#E67E22">◐</span><span>'+esc(c)+'</span></div>';}).join('')+'</div></div></div>';}
   }
- document.getElementById('resbody').innerHTML=h+'<div class="row-btn" style="margin-top:28px"><button class="btn big" onclick="diagBuildReport()">Descargar reporte PDF ↓</button><button class="btn ghost big" onclick="go(slides.length-1)">Ver cobertura del modelo →</button><button class="btn ghost big" onclick="resetAll()">Repetir diagnóstico ↺</button></div><div style="margin-top:26px;padding:20px 24px;border:1px solid var(--line);border-radius:14px;background:rgba(45,106,79,.07);text-align:center"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ng);margin-bottom:6px">Siguiente paso</div><div style="font-size:15px;font-weight:800;color:var(--txt);margin-bottom:12px">Convierte este diagnóstico en un plan accionable</div><a href="https://www.hackfluency.com/#contact" style="display:inline-block;background:var(--ng);color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none">Start a conversation →</a></div>';
+ document.getElementById('resbody').innerHTML=h+'<div class="row-btn" style="margin-top:28px"><button class="btn big" onclick="diagBuildReport()">Descargar informe PDF ↓</button><button class="btn ghost big" onclick="go(slides.length-1)">Ver cobertura del modelo →</button><button class="btn ghost big" onclick="resetAll()">Repetir diagnóstico ↺</button></div><div style="margin-top:26px;padding:20px 24px;border:1px solid var(--line);border-radius:14px;background:rgba(45,106,79,.07);text-align:center"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ng);margin-bottom:6px">Siguiente paso</div><div style="font-size:15px;font-weight:800;color:var(--txt);margin-bottom:12px">Convierte este diagnóstico en un plan accionable</div><a href="https://www.hackfluency.com/#contact" style="display:inline-block;background:var(--ng);color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none">Iniciar conversación →</a></div>';
 }
 /* Controles que el usuario marcó como implementados pero que NINGUNA ley aplicable a su
    escenario los exige. Resultado util: deteccion de sobredimension / 'venta de humo'. */
@@ -463,7 +463,7 @@ function ctrlsFueraContexto(laws){
    columnas = controles exigidos por al menos una ley aplicable, en orden de implementación
    'máxima cobertura primero' (nº de leyes que destapan, desempate por orden en STD_DEFS);
    celda coloreada = esa ley EXIGE ese control; ◆ = última celda requerida por la ley (hito de cobertura). */
-var SHORTCTRL={'SGSI ISO 27001':'SGSI','Evaluacion Riesgos':'Riesgos','Auditoria Pentest':'Pentest','Capacitacion':'Capacitac.','Due Diligence Terceros':'DD Terceros','Plan Continuidad':'Continuidad','Monitoreo SOC 24x7':'SOC','Delegado Ciberseguridad':'Delegado','MFA Autenticacion':'MFA','Cifrado AES / TLS':'Cifrado','Reporte Incidentes':'Reporte Inc.','Canal Disclosure':'Canal Disc.','Encargado de Prevencion':'Enc. Prev.','Matriz Riesgo Penal':'Matriz Penal','Protocolos Prevencion':'Protocolos','Canal Denuncias':'Denuncias','Evaluacion Independiente':'Eval. Indep.'};
+var SHORTCTRL={'SGSI ISO 27001':'SGSI','Evaluacion Riesgos':'Riesgos','Auditoria Pentest':'Pentest','Capacitacion':'Capacitac.','Debida Diligencia de Terceros':'DD Terceros','Plan Continuidad':'Continuidad','Monitoreo SOC 24x7':'SOC','Delegado Ciberseguridad':'Delegado','MFA Autenticacion':'MFA','Cifrado AES / TLS':'Cifrado','Informe de Incidentes':'Informe Inc.','Canal de Divulgacion':'Canal Divulg.','Encargado de Prevencion':'Enc. Prev.','Matriz Riesgo Penal':'Matriz Penal','Protocolos Prevencion':'Protocolos','Canal Denuncias':'Denuncias','Evaluacion Independiente':'Eval. Indep.'};
 function roiMat(laws,lc){
   var uni=ctrlUnion(laws);
   function covers(ctrl){var n=0;for(var i=0;i<laws.length;i++){if(lc[laws[i]].req.indexOf(ctrl)>=0)n++;}return n;}
@@ -524,13 +524,13 @@ function diagBuildReport(){
  var today=new Date(),dateStr=today.getDate()+'/'+(today.getMonth()+1)+'/'+today.getFullYear();
  var h='<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1A1A18;padding-bottom:10px;margin-bottom:14px">';
  h+='<div><div style="font-size:20px;font-weight:800;color:#1A1A18">HACKFLUENCY</div><div style="font-size:11px;color:#555">Convergencia Normativa Chile 2026 — Autodiagnóstico</div></div></div>';
- h+='<div style="display:flex;gap:8px;margin-bottom:12px"><div style="background:#1A1A18;color:#fff;padding:6px 12px;border-radius:8px;font-size:11px"><b>Fecha:</b>'+dateStr+'</div><div style="background:#1A1A18;color:#fff;padding:6px 12px;border-radius:8px;font-size:11px"><b>Reporte:</b> HF-PRES-2026-001</div></div>';
+ h+='<div style="display:flex;gap:8px;margin-bottom:12px"><div style="background:#1A1A18;color:#fff;padding:6px 12px;border-radius:8px;font-size:11px"><b>Fecha:</b>'+dateStr+'</div><div style="background:#1A1A18;color:#fff;padding:6px 12px;border-radius:8px;font-size:11px"><b>Informe:</b> HF-PRES-2026-001</div></div>';
  if(covLaws.length===laws.length&&laws.length>0){h+='<div style="background:#2D6A4F;color:#fff;font-weight:800;font-size:14px;padding:8px 12px;border-radius:8px;margin-bottom:10px">Estás al día 🎉 — cumples las leyes aplicables a tu escenario</div>';}
   h+='<h3 style="margin:0 0 6px;font-size:15px">Resumen ejecutivo</h3>';
  h+='<p style="margin:0 0 10px;font-size:12px">Según tu escenario respondido, te aplican <b>'+laws.length+' ley(es)</b>. Hoy cubres <b>'+covLaws.length+' ('+pct+'%)</b> de tus leyes y tienes implementados <b>'+onCtrls+' de '+uni.length+'</b> controles exigidos. Una ley queda cubierta cuando TODOS los controles de sus estándares obligatorios están implementados.</p>';
  for(var i=0;i<laws.length;i++){h+='<span style="background:'+lawColor[laws[i]]+';color:#fff;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:10px;margin-right:6px">'+(lawName[laws[i]].split(' — ')[0])+'</span>';}
  var le=leyEstandares(laws);
- if(le.length){h+='<div style="margin-top:16px"><h3 style="margin:0 0 8px;font-size:15px">Checklist para cumplir cada ley</h3>';
+ if(le.length){h+='<div style="margin-top:16px"><h3 style="margin:0 0 8px;font-size:15px">Lista de verificación para cumplir cada ley</h3>';
   le.forEach(function(o){
    var cov=lc[o.law].covered;
    h+='<div style="border:1px solid '+lawColor[o.law]+';border-left:5px solid '+lawColor[o.law]+';border-radius:8px;margin-bottom:10px;overflow:hidden">';
@@ -578,7 +578,7 @@ h+='</div>';
  h+='<div style="margin-top:14px;border-top:1px solid #ddd;padding-top:8px;font-size:10px;color:#666">Fuentes: Ley 21.663 · Ley 21.719 · Ley 21.595 · NCG 538 (CMF) · BOD 26-04 (CISA, referencia voluntaria). Herramienta de visualización, no asesoría legal. Elaborado con HF-PRES-2026-001 · Hackfluency.</div>';
  /* ==== Anexo: cobertura y fidelidad del modelo frente a la ley ==== */
  h+='<div style="margin-top:18px;border-top:2px solid #1A1A18;padding-top:12px"><h3 style="margin:0 0 6px;font-size:15px">Anexo — Transparencia del alcance del modelo (qué mide y qué queda fuera)</h3>';
- h+='<p style="margin:0 0 10px;font-size:11px;color:#555">Este anexo transparenta el <b>alcance del modelo</b>: qué obligaciones de cada norma cubre este informe y cuáles quedan fuera (controles técnicos vs. obligaciones organizacionales). No es una checklist adicional. Cada norma enlaza a su fuente oficial.</p>';
+ h+='<p style="margin:0 0 10px;font-size:11px;color:#555">Este anexo transparenta el <b>alcance del modelo</b>: qué obligaciones de cada norma cubre este informe y cuáles quedan fuera (controles técnicos vs. obligaciones organizacionales). No es una lista de verificación adicional. Cada norma enlaza a su fuente oficial.</p>';
  COVERAGE.forEach(function(co){
   h+='<div style="border:1px solid '+lawColor[co.id]+';border-left:5px solid '+lawColor[co.id]+';border-radius:8px;margin-bottom:10px;overflow:hidden">';
   h+='<div style="background:#1A1A18;color:#fff;font-weight:700;font-size:12px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center"><span>'+co.id+' — '+esc(co.name)+'</span><span style="font-size:9.5px;padding:2px 8px;border-radius:8px;background:'+covColor((co.pct>=60?'ok':(co.pct>=35?'par':'gap')))+';color:#fff;font-weight:800">Cobertura técnica '+co.pct+'%</span></div>';

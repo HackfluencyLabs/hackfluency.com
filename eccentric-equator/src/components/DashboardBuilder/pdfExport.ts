@@ -181,7 +181,6 @@ export async function exportDashboardToPDF(
       author: 'Hackfluency',
       creator: 'Hackfluency Strategy Dashboard',
       keywords: 'cybersecurity, strategy, roadmap, security planning',
-      creationDate: new Date(),
     });
 
     const logoImg = new Image();

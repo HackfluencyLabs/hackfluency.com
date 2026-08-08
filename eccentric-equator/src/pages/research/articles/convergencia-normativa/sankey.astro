@@ -14,30 +14,30 @@ const LEYES = [
   { code: '21.595', label: '21.595', color: '#6F42C1' },
   { code: 'NCG',    label: 'NCG 538', color: '#E67E22' },
 ];
-const STD = [
-  { n: 'ISO 27001 (SGSI)',                    ley: { '21.663': 'exige', '21.719': 'satisface' }, ctrls: ['SGSI ISO 27001','Evaluacion Riesgos','Auditoria Pentest','Capacitacion','Due Diligence Terceros','Plan Continuidad','Monitoreo SOC 24x7','Delegado Ciberseguridad'] },
+const STD: { n: string; ley: Record<string, string>; ctrls: string[] }[] = [
+  { n: 'ISO 27001 (SGSI)',                    ley: { '21.663': 'exige', '21.719': 'satisface' }, ctrls: ['SGSI ISO 27001','Evaluacion Riesgos','Auditoria Pentest','Capacitacion','Debida Diligencia de Terceros','Plan Continuidad','Monitoreo SOC 24x7','Delegado Ciberseguridad'] },
   { n: 'NCG 538 (Regulacion CMF)',            ley: { 'NCG': 'exige', '21.719': 'satisface' },  ctrls: ['MFA Autenticacion','Cifrado AES / TLS'] },
-  { n: 'BOD 26-04 (Gest. Vulnerabilidades)',  ley: { '21.663': 'satisface' },                  ctrls: ['Reporte Incidentes','Auditoria Pentest','Canal Disclosure'] },
-  { n: 'Reporte y Notificacion',              ley: { '21.663': 'exige', '21.719': 'exige' },   ctrls: ['Reporte Incidentes','Canal Disclosure'] },
+  { n: 'BOD 26-04 (Gest. Vulnerabilidades)',  ley: { '21.663': 'satisface' },                  ctrls: ['Informe de Incidentes','Auditoria Pentest','Canal de Divulgacion'] },
+  { n: 'Informe y Notificacion',                         ley: { '21.663': 'exige', '21.719': 'exige' },   ctrls: ['Informe de Incidentes','Canal de Divulgacion'] },
   { n: 'Modelo de Prevencion de Delitos (Ley 20.393)', ley: { '21.595': 'exige' },              ctrls: ['Encargado de Prevencion','Matriz Riesgo Penal','Protocolos Prevencion','Canal Denuncias','Evaluacion Independiente'] },
 ];
 // Controles unicos en orden de primera aparicion
-const CTRL = (() => { const seen = {}; const out = []; STD.forEach(s => s.ctrls.forEach(c => { if (!seen[c]) { seen[c] = 1; out.push(c); } })); return out; })();
+const CTRL: string[] = (() => { const seen: Record<string, number> = {}; const out: string[] = []; STD.forEach(s => s.ctrls.forEach(c => { if (!seen[c]) { seen[c] = 1; out.push(c); } })); return out; })();
 // Conteo de estandares que comparten cada control (transversal = >=2)
-const ctrlCount = {};
+const ctrlCount: Record<string, number> = {};
 STD.forEach(s => s.ctrls.forEach(c => { ctrlCount[c] = (ctrlCount[c] || 0) + 1; }));
 // Estandar OBLIGATORIO = al menos una ley lo 'exige'
-const obligStd = {};
+const obligStd: Record<string, boolean> = {};
 STD.forEach(s => { obligStd[s.n] = Object.values(s.ley).indexOf('exige') >= 0; });
 
 // --- Aristas Ley->Est (rel exige/satisface) ---
-const LK_LE = [];
+const LK_LE: { s: string; t: string; rel: string }[] = [];
 STD.forEach(s => { for (const law in s.ley) {
   const rel = s.ley[law];
   LK_LE.push({ s: law, t: s.n, rel });
 }});
 // --- Aristas Est->Ctrl (trans/oblig) ---
-const LK_EC = [];
+const LK_EC: { s: string; t: string; trans: boolean; oblig: boolean }[] = [];
 STD.forEach(s => { s.ctrls.forEach(c => {
   const isTrans = ctrlCount[c] >= 2;
   LK_EC.push({ s: s.n, t: c, trans: isTrans, oblig: obligStd[s.n] });
@@ -46,38 +46,38 @@ STD.forEach(s => { s.ctrls.forEach(c => {
 // --- Layout: 3 columnas ---
 const W = 1500, H = 900, PAD = 60;
 const xL = 140, xC = 680, xR = 1330;      // centros de columna
-const pillW = (name) => name.length * 10 + 34;   // mas ancha para fuente mas grande/bold
+const pillW = (name: string) => name.length * 10 + 34;   // mas ancha para fuente mas grande/bold
 const usable = H - 2 * PAD;
-const colY = (n) => { const step = usable / n; return Array.from({ length: n }, (_, i) => PAD + step * i + step / 2); };
-const capH = (n, cap) => Math.min(usable / n - 6, cap);
+const colY = (n: number) => { const step = usable / n; return Array.from({ length: n }, (_, i) => PAD + step * i + step / 2); };
+const capH = (n: number, cap: number) => Math.min(usable / n - 6, cap);
 const yL = colY(LEYES.length), yC = colY(STD.length), yR = colY(CTRL.length);
 const hL = capH(LEYES.length, 56), hC = capH(STD.length, 84), hR = capH(CTRL.length, 30);
 
-const idOf = (c) => 'body-' + c.replace('#', '');
-const leyW = {}, stdW = {}, ctrlW = {};
+const idOf = (c: string) => 'body-' + c.replace('#', '');
+const leyW: Record<string, number> = {}, stdW: Record<string, number> = {}, ctrlW: Record<string, number> = {};
 LEYES.forEach((d, i) => leyW[d.code] = pillW(d.label));
 STD.forEach((d, i) => stdW[d.n] = pillW(d.n));
 CTRL.forEach((d, i) => ctrlW[d] = pillW(d));
 
 const GAP = 4;
-const edgePath = (x1, y1, x2, y2) => {
+const edgePath = (x1: number, y1: number, x2: number, y2: number) => {
   const dx = (x2 - x1) * 0.45;
   return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
 };
 
 // Color/grosor/patron por semantica (replica hover/filtro del canonico, estatico)
-function styleOfLE(rel) {
+function styleOfLE(rel: string) {
   if (rel === 'exige') return { c: '#E01111', w: 4, dash: null, op: 0.9 };
   return { c: '#1E6FD9', w: 2.5, dash: '7 6', op: 0.5 };
 }
-function styleOfEC(trans, oblig) {
+function styleOfEC(trans: boolean, oblig: boolean) {
   if (trans) return { c: '#9AA0A6', w: 2.5, dash: '7 6', op: 0.55 };
   if (oblig) return { c: '#E01111', w: 2, dash: null, op: 0.45 };
   return { c: '#9AA0A6', w: 2, dash: '7 6', op: 0.45 };
 }
 
 let paths = '';
-const pushEdge = (x1, y1, x2, y2, st) => {
+const pushEdge = (x1: number, y1: number, x2: number, y2: number, st: { c: string; w: number; dash: string | null; op: number }) => {
   const d = edgePath(x1, y1, x2, y2);
   const dur = (5.8 + Math.random() * 1.6).toFixed(2);
   const del = (-Math.random() * 4).toFixed(2);
@@ -105,7 +105,7 @@ LK_EC.forEach(e => {
 });
 
 // --- Nodos: cada pill es una tarjeta GLASS independiente de su color (sin animacion) ---
-const glassOf = (n, w, cx, cy, hEc, rxV, dark) => {
+const glassOf = (n: { c: string; text: string }, w: number, cx: number, cy: number, hEc: number, rxV: number, dark = false) => {
   const x = cx - w / 2, y = cy - hEc / 2;
   return `<g class="node">
   <rect class="halo" x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${hEc + 6}" rx="${rxV + 2}" fill="${n.c}" opacity="0.4" filter="url(#blur)"/>
@@ -117,13 +117,13 @@ const glassOf = (n, w, cx, cy, hEc, rxV, dark) => {
   </g>`;
 };
 let blocks = '';
-LEYES.forEach((d, i) => {
+LEYES.forEach((d: { code: string; label: string; color: string }, i: number) => {
   blocks += glassOf({ c: d.color, text: d.label }, pillW(d.label), xL, yL[i], hL, 14);
 });
-STD.forEach((d, i) => {
+STD.forEach((d: { n: string; ley: Record<string, string>; ctrls: string[] }, i: number) => {
   blocks += glassOf({ c: '#7FA8DC', text: d.n }, pillW(d.n), xC, yC[i], hC, 14, true);
 });
-CTRL.forEach((d, i) => {
+CTRL.forEach((d: string, i: number) => {
   blocks += glassOf({ c: '#28A745', text: d }, pillW(d), xR, yR[i], hR, 10);
 });
 

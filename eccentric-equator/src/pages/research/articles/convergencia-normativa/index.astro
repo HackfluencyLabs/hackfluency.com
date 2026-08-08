@@ -5,16 +5,79 @@ import { readFileSync } from 'fs';
 
 const locale = 'es';
 const htmlContent = readFileSync('src/assets/reports/convergencia_normativa.html', 'utf-8');
+const pdfUrl = '/assets/reports/convergencia_normativa.pdf';
 ---
 
 <Layout
   locale={locale}
   title="Convergencia Normativa Chile 2026 — Mapa de Controles vs Leyes | Hackfluency"
-  description="Mapa interactivo con 31 controles y 5 marcos legales (Ley 21.663, 21.719, 21.595, NCG 538, BOD 26-04). Cada conexión revela el artículo exacto. ¿Qué controles cubren tu obligación?"
+  description="Mapa interactivo con 31 controles y 5 marcos legales (Ley 21.663, 21.719, 21.595, NCG 538, BOD 26-04). Descarga el informe completo en PDF."
   hideThemeSelector={true}
-  viewportDesktop={true}
   enableGlobalEcharts={false}
 >
-  <Fragment set:html={htmlContent} />
+  <!-- ══════════════════════════════════════════════════════════════
+       VISTA MOBILE (<1024px): landing de descarga del PDF íntegro.
+       No se navega a una "versión web reducida": el informe se
+       descarga tal cual (7 páginas A4). Gate de correo obligatorio.
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="report-mobile" aria-label="Descarga del informe">
+    <div class="rm-inner">
+      <span class="rm-badge">INFORME COMPLETO · PDF · 7 PÁGINAS</span>
+      <h1 class="rm-title">Convergencia Normativa <span class="rm-accent">Chile 2026</span></h1>
+      <p class="rm-lede">Mapa de controles vs. leyes con cada conexión legal exacta: el <b>Sankey</b>
+        (4 leyes → 5 estándares → 31 controles), la <b>matriz ROI de cobertura</b> por control,
+        la <b>lista de verificación Ley → Estándar → Control</b> y las recomendaciones para Directores y Responsables de Seguridad de la Información (CISOs).</p>
+      <ul class="rm-features">
+        <li>Sankey interactivo de convergencia (estático en el PDF)</li>
+        <li>ROI: matriz de cobertura legal por control y hitos de multa</li>
+        <li>Lista de verificación completa Ley → Estándar → Control</li>
+        <li>Recomendaciones ejecutivas y fuentes verificables</li>
+      </ul>
+      <a href={pdfUrl} class="rm-cta" data-pdf-gate={pdfUrl}>
+        {locale === 'es' ? 'Descargar informe completo (PDF) ↓' : 'Download full report (PDF) ↓'}
+      </a>
+      <p class="rm-note">{locale === 'es'
+        ? 'Al descargar aceptas recibir investigaciones de Hackfluency. Sin spam, cancela cuando quieras.'
+        : 'By downloading you agree to receive Hackfluency research. No spam, unsubscribe anytime.'}</p>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════════
+       VISTA DESKTOP (≥1024px): el informe web interactivo completo +
+       botón flotante de descarga en PDF.
+       ═════════════════════════════════════════════════════════════ -->
+  <div class="report-desktop" id="report-full">
+    <Fragment set:html={htmlContent} />
+    <a class="rd-dl" data-pdf-gate={pdfUrl} href={pdfUrl}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+      {locale === 'es' ? 'Descargar PDF' : 'Download PDF'}
+    </a>
+  </div>
   <ArticleGate locale={locale} />
 </Layout>
+
+<style>
+  /* ── Mobile-first: por defecto mostramos la landing de descarga ── */
+  .report-desktop { display: none; }
+  .report-mobile { display: block; min-height: 100vh; }
+  .rm-inner { max-width: 640px; margin: 0 auto; padding: 64px 24px 80px; display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+  .rm-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--hf-accent, #00D26A); border: 1px solid var(--hf-accent-border, rgba(0,210,106,.3)); padding: 6px 14px; border-radius: 100px; }
+  .rm-title { font-family: 'Space Grotesk', sans-serif; font-size: 34px; line-height: 1.08; letter-spacing: -1px; color: var(--hf-text, #fff); margin: 0; }
+  .rm-accent { color: var(--hf-accent, #00D26A); }
+  .rm-lede { font-size: 16px; line-height: 1.65; color: var(--hf-text-secondary, #ccc); margin: 0; }
+  .rm-lede b { color: var(--hf-text, #fff); }
+  .rm-features { list-style: none; display: flex; flex-direction: column; gap: 9px; padding: 0; margin: 4px 0 0; }
+  .rm-features li { position: relative; padding-left: 22px; font-size: 14px; color: var(--hf-text-muted, #888); line-height: 1.5; }
+  .rm-features li::before { content: ''; position: absolute; left: 0; top: 7px; width: 9px; height: 9px; border-radius: 3px; background: var(--hf-accent, #00D26A); opacity: .8; }
+  .rm-cta { display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; padding: 16px 28px; background: var(--hf-accent, #00D26A); color: var(--hf-text-on-accent, #000); border-radius: 14px; font-weight: 800; font-size: 16px; text-decoration: none; box-shadow: 0 8px 28px rgba(0,210,106,.25); transition: transform .15s, box-shadow .2s; }
+  .rm-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,210,106,.35); }
+  .rm-note { font-size: 12px; color: var(--hf-text-dim, #666); margin: 0; }
+  .rd-dl { position: fixed; right: 24px; bottom: 24px; z-index: 2147483000; display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: #2D6A4F; color: #fff !important; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; box-shadow: 0 6px 24px rgba(45,106,79,.4); transition: transform .15s, box-shadow .2s; }
+  .rd-dl:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(45,106,79,.5); }
+
+  /* ── Desktop: reporte completo visible, landing oculta ── */
+  @media (min-width: 1024px) {
+    .report-mobile { display: none; }
+    .report-desktop { display: block; }
+  }
+</style>

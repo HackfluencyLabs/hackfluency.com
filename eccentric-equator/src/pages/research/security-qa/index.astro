@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
   ta.select();
   try { document.execCommand('copy'); } catch(e) {}
   document.body.removeChild(ta);
-  var btn = document.querySelector('.hf-copy-btn');
+  var btn = document.querySelector('.hf-copy-btn') as HTMLButtonElement;
   if (btn) { btn.textContent = '\u2705 Copied!'; setTimeout(function() { btn.textContent = '\U0001f4cb Copy plain text version'; }, 2000); }
   });
 });

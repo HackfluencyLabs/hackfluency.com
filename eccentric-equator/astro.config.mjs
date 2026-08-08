@@ -20,11 +20,11 @@ export default defineConfig({
           en: 'en-US',
         },
       },
-      serialize: (entry) => ({
+      serialize: (entry) => /** @type {import('@astrojs/sitemap').SitemapItem} */ ({
         ...entry,
-        changefreq: entry.changefreq || 'monthly',
-        priority: entry.priority || 0.5,
-        lastmod: entry.lastmod || new Date().toISOString().split('T')[0],
+        changefreq: entry.changefreq ?? 'monthly',
+        priority: entry.priority ?? 0.5,
+        lastmod: entry.lastmod ?? new Date().toISOString().split('T')[0],
       }),
     }),
   ],
