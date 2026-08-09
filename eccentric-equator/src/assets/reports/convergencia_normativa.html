@@ -436,7 +436,7 @@ return '<b style=font-size:13px>'+nm+'</b><br/><span style=color:#ccc;font-size:
 return '<b style=font-size:13px>'+nm+'</b><br/><span style=color:#ccc;font-size:12px>Control operativo</span><br/><span style=color:#aaa;font-size:11px>'+(CTRL_DESC2[nm]||'')+'</span>';}},
 series:[{type:'sankey',layout:'force',nodeWidth:16,nodeGap:10,draggable:true,
 cursor:'default',
-right:'16%',left:'12%',bottom:14,top:14,
+right:'16%',left:(window.matchMedia&&window.matchMedia('print').matches)?'12%':'16%',bottom:14,top:14,
 emphasis:{focus:'none'},
 blur:{lineStyle:{opacity:0.04}},
 label:{fontSize:11,fontWeight:'bold',color:'#1A1A18',formatter:function(p){var nm=(p&&p.name)||'';if(nm.length<=18)return nm;var w=nm.split(' '),lines=[],cur='';for(var i=0;i<w.length;i++){var t=(cur+' '+w[i]).trim();if(t.length>18){if(cur.trim())lines.push(cur.trim());cur=w[i];}else cur=t;}if(cur.trim())lines.push(cur.trim());return lines.join('\n');}},
@@ -554,8 +554,11 @@ function drawSatisfaceOverlay(){
     var geo=edgeGeo[L.source+'->'+L.target]||{};
     /* Centro vertical de la banda del ribbon en cada extremo: base del nodo + offset
        de banda + mitad del alto. Asi el trazo coincide con la banda real capturada. */
-    var y0=topPx+ps.y+(geo.sy!==undefined?geo.sy:0)+(geo.dy!==undefined?geo.dy/2:0);
-    var y1=topPx+pt.y+(geo.ty!==undefined?geo.ty:0)+(geo.dy!==undefined?geo.dy/2:0);
+    /* Anclaje EN EL CENTRO del nodo fuente/destino (no en el centro de la banda): el
+       trazo sale/entra al medio de la barra, no pegada a su borde superior. La X sigue
+       alineada con la columna del nodo. */
+    var y0=topPx+ps.y+ps.dy/2;
+    var y1=topPx+pt.y+pt.dy/2;
     var x0=leftPx+ps.x+nodeW,x1=leftPx+pt.x;
     var midx=(x0+x1)/2;
     var color=L.lineStyle.color||'#1E6FD9';
@@ -924,6 +927,11 @@ function toggleLawFilter(law){
 if(activeLaws[law]){delete activeLaws[law];}else{activeLaws[law]=true;}
 applyLawFilter();
 }
+/* Los botones del DOM usan onclick= inline -> requieren las funciones en window.
+   Todo este script vive dentro de init() (scope local), así que las exponemos
+   explícitamente al ámbito global para que los filtros sigan funcionando. */
+window.toggleLawFilter=toggleLawFilter;
+window.toggleTypeFilter=toggleTypeFilter;
 /* ===== Alterna orientacion de columnas por TIPO: 'std' (Estándares) y 'ctrl' (Controles).
    Es independiente del filtro por LEY y SOLO afecta al Sankey (nunca toca el ROI).
    Al activar un tipo se guarda la columna opuesta e intermedia; ambos pueden combinarse.
