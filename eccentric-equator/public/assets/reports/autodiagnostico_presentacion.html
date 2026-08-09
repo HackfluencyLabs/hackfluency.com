@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=1200, minimum-scale=0.25, maximum-scale=5, user-scalable=yes">
 <title>Autodiagnóstico Regulatorio — Chile 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <style>
 :root{--bg:#1A1A18;--bg2:#232321;--card:#262624;--line:#383836;--txt:#F5F5F4;--mut:#B0B0AA;--dim:#8A8A84;--lc:#DC3545;--lo:#5B6ABF;--lm:#6F42C1;--ng:#E67E22;--bd:#28A745;--ok:#2D6A4F}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -142,16 +143,17 @@ h2{font-size:clamp(24px,3.4vw,40px);font-weight:800;letter-spacing:-.5px;margin:
 .cov-r .ob b{font-weight:700}
 .cov-r .via{display:block;font-size:11px;color:var(--dim);margin-top:1px}
 .cov-badge{font-size:10px;font-weight:800;border:1px solid;border-radius:8px;padding:2px 7px;white-space:nowrap;flex:0 0 auto}
-/* ===== ROI de Cumplimiento: Matriz de Cobertura Legal por Control (chart del informe de convergencia) ===== */
-.roim-wrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg2);padding:10px 12px}
-.roim{border-collapse:collapse;font-size:10.5px;width:100%}
-.roim th{font-weight:800;color:var(--mut);padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap;text-transform:uppercase;font-size:9.5px;letter-spacing:.4px}
-.roim td{border:1px solid rgba(56,56,54,.6);width:26px;height:26px;text-align:center;font-weight:800;color:#fff}
-.roim .roim-law{width:auto;min-width:150px;color:var(--txt);text-align:left;font-weight:700;background:transparent;white-space:nowrap}
-.roim .roim-law .roim-fine{display:block;font-size:10px;color:var(--dim);font-weight:600;margin-top:2px}
-.roim .roim-cell{color:transparent}
-.roim .roim-cell.req{opacity:.55}
-.roim .roim-cell.hit{outline:2px solid #fff;opacity:1}
+/* ===== ROI de Cumplimiento: Matriz de Cobertura Legal por Control =====
+   Replica EXACTA del chart 'ROI en el cumplimiento' del informe de convergencia
+   (convergencia_normativa.html): heatmap ECharts con fondo blanco. */
+.roi-hub-wrap{background:#fff;border-radius:14px;border:1px solid var(--line);padding:18px 18px 12px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
+.roi-hub-wrap h4{margin:0 0 4px;font-size:18px;font-weight:800;color:#1A1A18}
+.roi-hub-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#495057;margin:10px 0 6px;line-height:1.5}
+.roi-hub-legend .k{display:inline-flex;align-items:center;gap:6px}
+.roi-hub-legend .sw{display:inline-block;width:12px;height:12px;border-radius:2px;flex:0 0 auto}
+.roi-hub-legend .ln{display:inline-block;width:20px;border-top:2px dashed #38404A;vertical-align:middle}
+#chart-roi{width:100%;height:380px}
+.roi-hub-fn{font-size:11px;color:#6C757D;margin-top:6px;text-align:right;line-height:1.5}
 @media(max-width:700px){.metrics{grid-template-columns:1fr}.qbox{padding:20px}
 </style>
 </head>
@@ -387,6 +389,7 @@ S.push('<div class="slide"><div class="inner"><div class="kicker">Paso 2 · Voca
 function toggleCk(el){el.classList.toggle('on');}
 function calc(){var c=document.querySelectorAll('.ck.on');diagHave=[];c.forEach(function(x){diagHave.push(x.getAttribute('data-n'));});renderResult();go(slides.length-2);}
 function renderResult(){
+ if(__roiC2){try{__roiC2.dispose();}catch(e){}__roiC2=null;}
  var laws=applicableLaws();var lc=leyCobertura(laws);
  var covLaws=laws.filter(function(l){return lc[l].covered;});
  var pct=laws.length?Math.round(covLaws.length/laws.length*100):0;
@@ -446,6 +449,7 @@ var le=leyEstandares(laws);
     h+='<div class="reqs" style="margin-top:8px">'+foraLey.map(function(c){return '<div class="rq miss"><span class="rqmark" style="background:#E67E22">◐</span><span>'+esc(c)+'</span></div>';}).join('')+'</div></div></div>';}
   }
  document.getElementById('resbody').innerHTML=h+'<div class="row-btn" style="margin-top:28px"><button class="btn big" onclick="diagBuildReport()">Descargar informe PDF ↓</button><button class="btn ghost big" onclick="go(slides.length-1)">Ver cobertura del modelo →</button><button class="btn ghost big" onclick="resetAll()">Repetir diagnóstico ↺</button></div><div style="margin-top:26px;padding:20px 24px;border:1px solid var(--line);border-radius:14px;background:rgba(45,106,79,.07);text-align:center"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ng);margin-bottom:6px">Siguiente paso</div><div style="font-size:15px;font-weight:800;color:var(--txt);margin-bottom:12px">Convierte este diagnóstico en un plan accionable</div><a href="https://www.hackfluency.com/#contact" target="_top" style="display:inline-block;background:var(--ng);color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none">Iniciar conversación →</a></div>';
+ setTimeout(initRoiChart,150);
 }
 /* Controles que el usuario marcó como implementados pero que NINGUNA ley aplicable a su
    escenario los exige. Resultado util: deteccion de sobredimension / 'venta de humo'. */
@@ -457,64 +461,117 @@ function ctrlsFueraContexto(laws){
   return out;
 }
 /* ===== ROI de Cumplimiento: Matriz de Cobertura Legal por Control =====
-   Replica el chart 'ROI de Cumplimiento' del informe de convergencia (convergencia_normativa.html):
-   filas = leyes aplicables con su techo de multa en UTM, o su tipo de sanción cuando no hay
-   monto (21.595 = sanción penal con presidio; NCG 538 = sanción administrativa CMF);
-   columnas = controles exigidos por al menos una ley aplicable, en orden de implementación
-   'máxima cobertura primero' (nº de leyes que destapan, desempate por orden en STD_DEFS);
-   celda coloreada = esa ley EXIGE ese control; ◆ = última celda requerida por la ley (hito de cobertura). */
-var SHORTCTRL={'SGSI ISO 27001':'SGSI','Evaluacion Riesgos':'Riesgos','Auditoria Pentest':'Pentest','Capacitacion':'Capacitac.','Debida Diligencia de Terceros':'DD Terceros','Plan Continuidad':'Continuidad','Monitoreo SOC 24x7':'SOC','Delegado Ciberseguridad':'Delegado','MFA Autenticacion':'MFA','Cifrado AES / TLS':'Cifrado','Informe de Incidentes':'Informe Inc.','Canal de Divulgacion':'Canal Divulg.','Encargado de Prevencion':'Enc. Prev.','Matriz Riesgo Penal':'Matriz Penal','Protocolos Prevencion':'Protocolos','Canal Denuncias':'Denuncias','Evaluacion Independiente':'Eval. Indep.'};
-function roiMat(laws,lc){
-  var uni=ctrlUnion(laws);
-  function covers(ctrl){var n=0;for(var i=0;i<laws.length;i++){if(lc[laws[i]].req.indexOf(ctrl)>=0)n++;}return n;}
-  function sev(ctrl){var s=0;for(var i=0;i<laws.length;i++){if(lc[laws[i]].req.indexOf(ctrl)>=0)s=Math.max(s,lawSev(laws[i]));}return s;}
-  var order=uni.slice().sort(function(a,b){var sa=sev(a),sb=sev(b);if(sb!==sa)return sb-sa;var ca=covers(a),cb=covers(b);if(cb!==ca)return cb-ca;return CTRLS.indexOf(a)-CTRLS.indexOf(b);});
-  var idx={};order.forEach(function(c,i){idx[c]=i;});
-  var doneAt={};
-  laws.forEach(function(l){var last=-1;lc[l].req.forEach(function(c){if(idx[c]>last)last=idx[c];});doneAt[l]=last;});
-  return {order:order,doneAt:doneAt,reqOf:lc,laws:laws};
+   REPLICA EXACTA del chart 'ROI en el cumplimiento' del informe de convergencia
+   (convergencia_normativa.html): mismo modelo canónico (STD_DEFS), mismas 4 filas
+   de leyes, mismas columnas en orden 'máxima cobertura primero' y mismos hitos. */
+var ROI_LAWS=['21.663','21.719','NCG','21.595'];
+function roiMatData(){
+  var lawCtrl={},lawOrder={},ordIdx=0;
+  for(var i=0;i<ROI_LAWS.length;i++){lawCtrl[ROI_LAWS[i]]=[];}
+  for(var s=0;s<STD_DEFS.length;s++){var sd=STD_DEFS[s];
+    for(var lk in sd.leyes){if(sd.leyes[lk]!=='exige')continue;
+      for(var c=0;c<sd.ctrls.length;c++){var cc=sd.ctrls[c];
+        if(lawCtrl[lk].indexOf(cc)<0)lawCtrl[lk].push(cc);
+        if(!(cc in lawOrder))lawOrder[cc]=ordIdx++;}}}
+  var ctrlLaws={};
+  for(var cl in lawCtrl){for(var cv=0;cv<lawCtrl[cl].length;cv++){var co=lawCtrl[cl][cv];(ctrlLaws[co]=ctrlLaws[co]||[]).push(cl);}}
+  var allCtrls=Object.keys(ctrlLaws);
+  allCtrls.sort(function(a,b){var d=ctrlLaws[b].length-ctrlLaws[a].length;return d!==0?d:lawOrder[a]-lawOrder[b];});
+  return {lawCtrl:lawCtrl,allCtrls:allCtrls};
+}
+function roiLawDone(allCtrls,lawCtrl){
+  var doneCtrls={},lawDone={};
+  for(var cp=0;cp<allCtrls.length;cp++){
+    var ctrl=allCtrls[cp];doneCtrls[ctrl]=true;
+    for(var ax=0;ax<ROI_LAWS.length;ax++){var L=ROI_LAWS[ax];if(lawDone[L])continue;
+      var need=lawCtrl[L],ok=true;
+      for(var nk=0;nk<need.length;nk++){if(!doneCtrls[need[nk]]){ok=false;break;}}
+      if(ok)lawDone[L]=cp+1;}}
+  return lawDone;
+}
+var __roiC2=null;
+function initRoiChart(){
+  var el=document.getElementById('chart-roi');
+  if(!el||__roiC2||typeof echarts==='undefined')return;
+  var D=roiMatData(),allCtrls=D.allCtrls,lawCtrl=D.lawCtrl;
+  var lawDone=roiLawDone(allCtrls,lawCtrl);
+  var roiHeat=[],heatMap={};
+  for(var hy=0;hy<ROI_LAWS.length;hy++){
+    var lawH=ROI_LAWS[hy],needH=lawCtrl[lawH];
+    for(var hx=0;hx<allCtrls.length;hx++){
+      var ctrlH=allCtrls[hx],reqH=needH.indexOf(ctrlH)>=0;
+      heatMap[hx+','+hy]={law:lawH,required:reqH};
+      roiHeat.push({value:[hx,hy,reqH?1:0],itemStyle:{color:reqH?lawColor[lawH]:'#9AA0A6',opacity:reqH?0.5:0.14,borderWidth:1,borderColor:'#fff'}});
+    }}
+  var roiMilestones=[];
+  for(var hm=0;hm<ROI_LAWS.length;hm++){
+    var lawM=ROI_LAWS[hm],endIdx=lawDone[lawM]!=null?lawDone[lawM]-1:allCtrls.length-1;
+    var fineM=MULTAS[lawM];
+    var sanM=lawM==='21.595'?'sanc. penal':(lawM==='NCG'?'sanc. CMF':'');
+    roiMilestones.push([{coord:[0,hm],lineStyle:{color:lawColor[lawM],type:'dashed',width:1.6,opacity:0.9}},
+      {coord:[endIdx,hm],label:{formatter:lawM+(fineM?'  '+fmtUTM(fineM):(sanM?'  ('+sanM+')':'  (voluntaria)')),color:lawColor[lawM],fontSize:11,fontWeight:'bold',position:'end',align:'left',distance:6,
+        backgroundColor:'#fff',borderColor:lawColor[lawM],borderWidth:1,borderRadius:4,padding:[2,5]}}]);
+  }
+  var c2=echarts.init(el);
+  c2.setOption({
+  tooltip:{trigger:'item',confine:true,formatter:function(p){
+    if(p.componentType!=='series')return '';
+    var x=p.value[0],y=p.value[1],info=heatMap[x+','+y];
+    var law=ROI_LAWS[y],fine=MULTAS[law],ctrl=allCtrls[x];
+    var sanTxt=law==='21.595'?' &mdash; sanci&oacute;n penal (presidio e inhabilidades)':(law==='NCG'?' &mdash; sanci&oacute;n administrativa CMF (multas e inhabilidades)':'');
+    return '<b>'+esc(ctrl)+'</b><br/><span style=color:'+lawColor[law]+'>&#9632;</span> <b>'+esc(law)+'</b>'+(fine?' &mdash; techo de multa <b>'+fmtUTM(fine)+'</b> ('+fmtCLPm(fine)+')':sanTxt)+
+      '<br/><span style=color:#6C757D>Requerido por esta ley:</span> <b>'+(info.required?'S&iacute; (exige su est&aacute;ndar)':'No')+'</b>'+
+      '<br/><span style=color:#6C757D>Ley se completa en paso:</span> '+(lawDone[law]!=null?lawDone[law]:'-')+
+      '<br/><span style=color:#6C757D>Controles requeridos:</span> '+lawCtrl[law].length;}},
+  grid:{left:132,right:160,top:14,bottom:80},
+  xAxis:{type:'category',data:allCtrls,axisLabel:{fontSize:9,interval:0,rotate:38,color:'#6C757D',width:86,overflow:'break'},axisLine:{lineStyle:{color:'#DEE2E6'}},axisTick:{show:false},splitArea:{show:false}},
+  yAxis:{type:'category',data:ROI_LAWS,inverse:true,axisLabel:{fontSize:12,fontWeight:'bold',color:'#38404A',
+    formatter:function(v){return v+(MULTAS[v]?'  {m|'+fmtUTM(MULTAS[v])+'}':(v==='21.595'?'  {m|sanc. penal}':(v==='NCG'?'  {m|sanc. CMF}':'  {m|voluntaria}')));},
+    rich:{m:{color:'#fff',fontSize:9,fontWeight:'bold',backgroundColor:'#C00',borderRadius:3,padding:[1,5]}}},
+    axisLine:{show:false},axisTick:{show:false},splitArea:{show:false}},
+  series:[{name:'Cobertura por ley',type:'heatmap',data:roiHeat,
+    markLine:{symbol:'none',silent:true,animation:false,data:roiMilestones,lineStyle:{type:'dashed'}},
+    emphasis:{itemStyle:{borderColor:'#000',borderWidth:1}}}
+  ]});
+  function setROIHover(hy){
+    var data=roiHeat.map(function(d){
+      var o=d.value[1]===hy?(d.value[2]?0.95:0.22):(d.value[2]?0.14:0.05);
+      return {value:d.value,itemStyle:{color:d.itemStyle.color,opacity:o,borderWidth:1,borderColor:'#fff'}};
+    });
+    c2.setOption({series:[{data:data}]});
+  }
+  c2.on('mouseover',function(p){if(p.componentType==='series'&&p.seriesType==='heatmap'&&p.value)setROIHover(p.value[1]);});
+  c2.on('mouseout',function(){setROIHover(null);});
+  __roiC2=c2;
 }
 function roiMatWeb(laws,lc){
-  var m=roiMat(laws,lc);
-  var h='<div class="sec"><h3>→ ROI de Cumplimiento: Matriz de Cobertura Legal por Control</h3>';
-  h+='<div class="roim-wrap"><table class="roim"><thead><tr><th>Ley (techo de multa o sanción)</th>';
-  m.order.forEach(function(c){h+='<th title="'+esc(c)+'">'+esc(SHORTCTRL[c]||c)+'</th>';});
-  h+='</tr></thead><tbody>';
-  m.laws.forEach(function(l){
-    var fine=MULTAS[l];
-    var sanTxt=(l==='21.595'?'sanción penal (presidio)':(l==='NCG'?'sanción CMF (multas)':'sin sanción modelada'));
-    h+='<tr><td class="roim-law"><span style="color:'+lawColor[l]+'">■ '+esc(l)+'</span><span class="roim-fine">'+(fine?fmtUTM(fine)+' ('+fmtCLPm(fine)+')':sanTxt)+'</span></td>';
-    m.order.forEach(function(c,i){
-      var req=m.reqOf[l].req.indexOf(c)>=0,hit=m.doneAt[l]===i;
-      h+='<td class="roim-cell'+(req?' req':'')+(hit?' hit':'')+'" style="background:'+(req?lawColor[l]:'transparent')+'" title="'+esc(c)+(req?' — '+esc(l)+' lo exige':' — no exigido por '+esc(l))+'">'+(hit?'◆':'')+'</td>';
-    });
-    h+='</tr>';
-  });
-  h+='</tbody></table></div>';
-  h+='<div class="dst" style="font-size:12px;color:var(--dim);margin-top:8px">Celda de color = control <b>exigido</b> por esa ley. <b>◆</b> = último control que completa la ley (hito de cobertura). En la priorización manda la <b>proximidad</b>: primero los hitos (◆) que completan leyes, luego los que más las acercan a cerrarse, sin importar que haya multa — una ley sin multa UTM a 1 paso gana ante una con multa a muchos pasos. La severidad (riesgo penal y multa del techo) desempata. Las leyes sin multa en UTM <b>igual sancionan</b>: 21.595 = penal (presidio), NCG 538 = administrativa CMF (multas/inhabilidades).</div>';
-  h+='</div>';
+  var h='<div class="sec"><h3>→ ROI en el cumplimiento: Matriz de Cobertura Legal por Control</h3>';
+  h+='<div class="roi-hub-wrap"><h4>ROI en el cumplimiento: Matriz de Cobertura Legal por Control</h4>';
+  h+='<div class="roi-hub-legend">'+roiLegendHtml()+'</div>';
+  h+='<div id="chart-roi"></div>';
+  h+='<div class="roi-hub-fn">Matriz derivada de <b>STD_DEFS</b> (misma fuente que el mapa de convergencia): cada fila es una ley y las celdas de color son los controles que esa ley exige v&iacute;a sus est&aacute;ndares. Las columnas siguen el orden de implementaci&oacute;n de <b>m&aacute;xima cobertura primero</b> (informes que cubren más leyes primero). La l&iacute;nea punteada de cada ley marca el <b>hito de multa</b>: el rango de controles que hay que implementar para cubrirla y su techo verificable &mdash; 21.719 = 20.000 UTM, 21.663 = 40.000 UTM (paso 10, ISO + Informe). 21.595 y NCG 538 no definen multa en UTM pero <b>s&iacute; sancionan</b> (penal / administrativa CMF). Son techos m&aacute;ximos de sanci&oacute;n; la sanci&oacute;n concreta la determina la autoridad caso a caso.</div>';
+  h+='</div></div>';
   return h;
 }
+function roiLegendHtml(){
+  return '<span class="k"><span class="sw" style="background:#DC3545"></span>Celda color = <b>control requerido</b> por esa ley</span>'+
+    '<span class="k"><span class="sw" style="background:#9AA0A6;opacity:.4"></span>Celda gris = <b>no requerido</b> por la ley</span>'+
+    '<span class="k"><span class="ln"></span>L&iacute;nea punteada = <b>hito de multa</b> (techo verificable)</span>';
+}
 function roiMatPdf(laws,lc){
-  var m=roiMat(laws,lc);
-  var h='<div style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">ROI de Cumplimiento: Matriz de Cobertura Legal por Control</h3>';
-  h+='<table style="width:100%;border-collapse:collapse;font-size:9px">';
-  h+='<tr style="background:rgba(0,0,0,.03)"><td style="padding:4px 6px;border:1px solid #ddd;font-weight:700">Ley (techo de multa o sanción)</td>';
-  m.order.forEach(function(c){h+='<td style="padding:4px 2px;border:1px solid #ddd;font-weight:700;text-align:center" title="'+esc(c)+'">'+esc(SHORTCTRL[c]||c)+'</td>';});
-  h+='</tr>';
-  m.laws.forEach(function(l){
-    var fine=MULTAS[l];
-    var sanTxt=(l==='21.595'?' · sanción penal':(l==='NCG'?' · sanción CMF':' · sin sanción modelada'));
-    h+='<tr><td style="padding:3px 6px;border:1px solid #ddd;font-weight:700;white-space:nowrap">'+esc(l)+(fine?' · '+fmtUTM(fine):sanTxt)+'</td>';
-    m.order.forEach(function(c,i){
-      var req=m.reqOf[l].req.indexOf(c)>=0,hit=m.doneAt[l]===i;
-      h+='<td style="padding:3px 2px;border:1px solid #ddd;text-align:center;background:'+(req?lawColor[l]+'55':'transparent')+';font-weight:800;color:'+(req?'#1A1A18':'transparent')+'">'+(hit?'◆':'')+'</td>';
-    });
-    h+='</tr>';
-  });
-  h+='</table>';
-  h+='<div style="font-size:9px;color:#888;margin-top:4px">Celda de color = control exigido por esa ley; ◆ = hito de cobertura (último control que completa la ley). La priorización manda por proximidad a cerrar una ley (◆ primero, luego los que más la acercan), y la severidad desempata; una ley sin multa UTM a 1 paso gana ante una con multa a muchos pasos. Las leyes sin multa UTM igual sancionan (21.595 = penal con presidio, NCG 538 = sanción administrativa CMF).</div></div>';
+  var imgSrc='';
+  try{if(__roiC2){imgSrc=__roiC2.getDataURL({type:'png',pixelRatio:2,backgroundColor:'#fff'});}}catch(e){}
+  var h='<div style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">ROI en el cumplimiento: Matriz de Cobertura Legal por Control</h3>';
+  h+='<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:#555;margin-bottom:4px">'+roiLegendHtmlPdf()+'</div>';
+  if(imgSrc){h+='<img src="'+imgSrc+'" style="width:100%;border:1px solid #ddd;border-radius:6px"/>';}
+  else{h+='<div style="font-size:10px;color:#888">(Gr&aacute;fico no disponible en esta vista; consulta el informe web interactivo del autodiagn&oacute;stico.)</div>';}
+  h+='<div style="font-size:8.5px;color:#888;margin-top:4px">Matriz derivada de <b>STD_DEFS</b> (misma fuente que el informe de convergencia): columnas en orden de <b>m&aacute;xima cobertura primero</b>; l&iacute;nea punteada = <b>hito de multa</b> (techo verificable: 21.663 = 40.000 UTM; 21.719 = 20.000 UTM; 21.595 = sanci&oacute;n penal; NCG 538 = sanci&oacute;n CMF). Techos m&aacute;ximos de sanci&oacute;n; la sanci&oacute;n concreta la determina la autoridad caso a caso.</div></div>';
   return h;
+}
+function roiLegendHtmlPdf(){
+  return '<span><span style="display:inline-block;width:10px;height:10px;background:#DC3545;vertical-align:middle;margin-right:4px"></span>Celda color = <b>control requerido</b></span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#9AA0A6;opacity:.4;vertical-align:middle;margin-right:4px"></span>Celda gris = <b>no requerido</b></span>'+
+    '<span><span style="display:inline-block;width:18px;border-top:2px dashed #38404A;vertical-align:middle;margin-right:4px"></span>L&iacute;nea punteada = <b>hito de multa</b></span>';
 }
 function diagBuildReport(){
  var laws=applicableLaws();var lc=leyCobertura(laws);
