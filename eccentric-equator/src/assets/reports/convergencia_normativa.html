@@ -367,7 +367,7 @@ var nd=[],lk=[];
 var LAWLOFF={'21.663':20,'21.719':20};
 for(var li=0;li<LEY_CODES.length;li++){nd.push({name:LEY_CODES[li],itemStyle:{color:LAWCOL[LEY_CODES[li]]},label:{offset:[0,(LAWLOFF[LEY_CODES[li]]||10)]}});}
 var stdSeen={};
-for(var si=0;si<STD_DEFS.length;si++){var sd=STD_DEFS[si];nd.push({name:sd.n,itemStyle:{color:'#2F2F2F'}});stdSeen[sd.n]=true;}
+for(var si=0;si<STD_DEFS.length;si++){var sd=STD_DEFS[si];nd.push({name:sd.n,itemStyle:{color:'#2F2F2F'},label:{offset:[0,28]}});stdSeen[sd.n]=true;}
 var ctrlSeen={};
 for(var sj=0;sj<STD_DEFS.length;sj++){for(var cj=0;cj<STD_DEFS[sj].ctrls.length;cj++){var cc=STD_DEFS[sj].ctrls[cj];if(!ctrlSeen[cc]){ctrlSeen[cc]=1;nd.push({name:cc,itemStyle:{color:'#28A745'}});}}}
 /* --- Aristas Ley->Estandar y Estandar->Control --- */
