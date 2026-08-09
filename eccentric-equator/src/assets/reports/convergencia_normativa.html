@@ -364,7 +364,8 @@ var STD_DEFS=[
 var c1=echarts.init(document.getElementById('chart-sankey'));
 /* --- Nodos en 3 columnas --- */
 var nd=[],lk=[];
-for(var li=0;li<LEY_CODES.length;li++){nd.push({name:LEY_CODES[li],itemStyle:{color:LAWCOL[LEY_CODES[li]]}});}
+var LAWLOFF={'21.663':20,'21.719':20};
+for(var li=0;li<LEY_CODES.length;li++){nd.push({name:LEY_CODES[li],itemStyle:{color:LAWCOL[LEY_CODES[li]]},label:{offset:[0,(LAWLOFF[LEY_CODES[li]]||10)]}});}
 var stdSeen={};
 for(var si=0;si<STD_DEFS.length;si++){var sd=STD_DEFS[si];nd.push({name:sd.n,itemStyle:{color:'#2F2F2F'}});stdSeen[sd.n]=true;}
 var ctrlSeen={};
@@ -378,7 +379,7 @@ for(var cc0=0;cc0<STD_DEFS.length;cc0++){for(var cc1=0;cc1<STD_DEFS[cc0].ctrls.l
 var obligStd={};
 for(var ob=0;ob<STD_DEFS.length;ob++){var hasExige=false;for(var ok in STD_DEFS[ob].leyes){if(STD_DEFS[ob].leyes[ok]==='exige'){hasExige=true;}}obligStd[STD_DEFS[ob].n]=hasExige;}
 for(var sk=0;sk<STD_DEFS.length;sk++){var sd2=STD_DEFS[sk];
- for(var lawKey in sd2.leyes){var rel=sd2.leyes[lawKey]==='exige';lk.push({source:lawKey,target:sd2.n,value:1,rel:rel?'exige':'satisface',trans:false,sname:(LAWNAME_SHORT[lawKey]||lawKey),lineStyle:{color:rel?'#E01111':'#1E6FD9',type:rel?'solid':'dotted',opacity:rel?0.95:0.25,width:rel?4:2.5},art:(rel?'Estándar exigido por ':'Estándar que satisface ')+lawKey+' -> '+sd2.n});}
+ for(var lawKey in sd2.leyes){var rel=sd2.leyes[lawKey]==='exige';var lv=(lawKey==='21.663'||lawKey==='21.719')?0.66:1;lk.push({source:lawKey,target:sd2.n,value:lv,rel:rel?'exige':'satisface',trans:false,sname:(LAWNAME_SHORT[lawKey]||lawKey),lineStyle:{color:rel?'#E01111':'#1E6FD9',type:rel?'solid':'dotted',opacity:rel?0.95:0.25,width:rel?4:2.5},art:(rel?'Estándar exigido por ':'Estándar que satisface ')+lawKey+' -> '+sd2.n});}
  for(var ck=0;ck<sd2.ctrls.length;ck++){var isTrans=(ctrlCount[sd2.ctrls[ck]]>=2);var thisOblig=obligStd[sd2.n];var clrCC=thisOblig?'#E01111':'#28A745';var typCC=isTrans?'dotted':'solid';lk.push({source:sd2.n,target:sd2.ctrls[ck],value:1,trans:isTrans,oblig:thisOblig,lineStyle:{color:clrCC,type:typCC,opacity:isTrans?0.3:0.2,width:isTrans?2.5:2},art:'Control requerido por '+sd2.n+' -> '+sd2.ctrls[ck]});}
 }
 /* Cascade por ley: que estandares exige cada ley (para resaltar la cadena ley->estandar->controles al hoverear la ley) */
@@ -868,7 +869,9 @@ if(!typeVisibleIn(n.name)){op=0.15;lop=0.15;sil=false;}
 else{op=1;lop=1;}
 }
 /* Reposo: todo a plena */
-return {name:n.name,silent:sil,itemStyle:{color:n.itemStyle.color,opacity:op},label:{opacity:lop}};
+var lb={opacity:lop};
+if(n.label&&n.label.offset)lb.offset=n.label.offset;
+return {name:n.name,silent:sil,itemStyle:{color:n.itemStyle.color,opacity:op},label:lb};
 });
 c1.setOption({series:[{data:data,emphasis:{focus:'none'}}]});
 }
