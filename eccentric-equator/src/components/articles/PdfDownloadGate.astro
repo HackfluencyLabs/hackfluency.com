@@ -116,7 +116,7 @@ const isES = locale === 'es';
       setTimeout(function(){ a.remove(); }, 300);
     }
 
-    // ── Modal state ─────────────────────────────────────────────
+// ── Modal state ─────────────────────────────────────────────
     const form = document.getElementById('pg-form') as HTMLFormElement;
     const emailInput = document.getElementById('pg-email') as HTMLInputElement;
     const msg = document.getElementById('pg-msg') as HTMLElement;
@@ -124,7 +124,19 @@ const isES = locale === 'es';
     var overlay = gate.querySelector('.pg-overlay');
     var shown = false;
 
+    // ── Reset: dismiss del gate = el próximo click vuelve a abrirlo ─
+    // Limpia el formulario (email/msg residuales) y borra cualquier
+    // cooldown persistente de gates/skips para que la descarga del PDF
+    // pueda volver a ofrecerse siempre que el usuario vuelva a pulsar.
+    function resetGate() {
+      if (emailInput) emailInput.value = '';
+      if (msg) { msg.textContent = ''; msg.className = 'pg-msg'; }
+      gate._pendingUrl = '';
+      try { localStorage.removeItem('hf-gate-skip'); localStorage.removeItem('hf-gate-skip-count'); } catch(e) {}
+    }
+
     function showGate(url?: string) {
+      resetGate();
       gate._pendingUrl = url || DEFAULT_URL;
       if (shown) return;
       shown = true;
