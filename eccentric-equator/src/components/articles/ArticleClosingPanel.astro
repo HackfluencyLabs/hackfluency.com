@@ -35,8 +35,48 @@ const isES = locale === 'es';
   </div>
 </div>
 
-<!-- Iine script -->
-<script src="https://cdn.jsdelivr.net/gh/welpo/iine@main/iine.mini.js" data-astro-rerun></script>
+<!-- Iine wrapper: inicializa el widget "like" en cada navegación.
+     iine.mini.js solo se inicializa en el evento DOMContentLoaded, que con
+     View Transitions (SPA) no vuelve a dispararse. El listener que iine
+     registra en `document` persiste entre navegaciones, así que cargamos el
+     script una sola vez y re-despachamos DOMContentLoaded cuando hay un
+     botón sin inicializar en el DOM nuevo. -->
+<script is:inline data-astro-rerun>
+(function () {
+  var btn = document.querySelector('.iine-button');
+  if (!btn) return;
+
+  var dispatch = function () {
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+  };
+  var needsInit = function () {
+    var b = document.querySelector('.iine-button');
+    return b && !b.querySelector('.icon');
+  };
+
+  var boot = function () {
+    var s = document.getElementById('hf-iine-script');
+    if (!s) {
+      s = document.createElement('script');
+      s.id = 'hf-iine-script';
+      s.src = 'https://cdn.jsdelivr.net/gh/welpo/iine@main/iine.mini.js';
+      s.onload = function () {
+        if (needsInit()) dispatch();
+      };
+      document.head.appendChild(s);
+      return;
+    }
+    // Ya cargado: el listener de iine sigue vivo en `document`
+    if (needsInit()) dispatch();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
 
 <!-- Chat banner click handler -->
 <script is:inline data-astro-rerun>
