@@ -79,7 +79,9 @@ const { t } = getTranslations(locale);
     display: none;
     position: fixed;
     inset: 0;
-    z-index: 9999;
+    /* Por debajo de los gates (r-gate 9999 / pdf-gate 9998) para que
+       el popup nunca intercepte taps destinados a un gate. */
+    z-index: 9997;
     background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -580,6 +582,19 @@ const { t } = getTranslations(locale);
     }
   }
 
+  // ── ¿Hay un gate visible? El popup nunca debe flotar sobre un gate
+  // (r-gate del report, pdf-gate, article-gate): interceptaría los taps.
+  function isGateVisible() {
+    const gates = ['#r-gate', '#pdf-gate', '#article-gate'];
+    for (const sel of gates) {
+      const el = document.querySelector(sel) as HTMLElement | null;
+      if (el && el.style.display !== 'none' && getComputedStyle(el).display !== 'none') {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function showPopup() {
     if (popupShown || !popupEl || !card) return;
     // No abrir si el popup está suprimido: los triggers globales
@@ -591,6 +606,9 @@ const { t } = getTranslations(locale);
     ) {
       return;
     }
+    // No abrir si un gate está visible (timer/scroll/mouseleave):
+    // el popup quedaría encima y tragaría los taps del gate.
+    if (isGateVisible()) return;
     popupShown = true;
     cleanupTriggers();
     popupEl.style.display = 'flex';
