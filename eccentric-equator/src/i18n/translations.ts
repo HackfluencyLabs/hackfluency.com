@@ -311,6 +311,9 @@ export const translations: Record<Language, Translations> = {
     'partners.tag': 'Socios Estratégicos',
     'partners.title': 'Red de Partners',
     'partners.subtitle': 'Empresas e instituciones que confían en el observatorio para servicios especializados de ciberseguridad, investigación e instrumentos — ya sea como canal o como colaborador directo.',
+    'partners.agilChile.desc': 'Empresa de tecnología: IA, talento y ciberseguridad. Partner estratégico en servicios de ciberseguridad — pentesting, red team y assessment entregados a través de su ecosistema.',
+    'partners.upcoming.title': 'Próximamente',
+    'partners.upcoming.desc': 'Institutos, laboratorios, herramientas y entidades que se suman al observatorio.',
 
     /* ── Miembros ── */
     'member.marcelo.role': 'Arquitecto Principal · Sistemas Complejos',
@@ -357,6 +360,22 @@ export const translations: Record<Language, Translations> = {
     'form.networkError': 'Error de red. Escríbenos a inquiry@hackfluency.com',
     'form.required': 'Email y descripción son obligatorios.',
     'form.emailInvalid': 'Email inválido.',
+
+    /* ── Auth (Login) ── */
+    'auth.verifying': 'Verificando acceso…',
+    'login.title': 'Panel de Estrategia',
+    'login.magicSent': '¡Enlace mágico enviado!',
+    'login.subtitle': 'Inicia sesión con tu email para acceder a los dashboards',
+    'login.emailLabel': 'Dirección de email',
+    'login.emailPlaceholder': 'nombre@empresa.com',
+    'login.sendLink': 'Enviar enlace mágico',
+    'login.or': 'o',
+    'login.viewRoadmap': 'Ver hoja de ruta de seguridad',
+    'login.sentTo': 'Enviamos un enlace mágico a',
+    'login.sentInstructions': 'Puedes cerrar esta pestaña. Haz clic en el enlace de tu email para iniciar sesión automáticamente y acceder al dashboard.',
+    'login.useDifferent': 'Usar otro email',
+    'login.failed': 'No se pudo enviar el enlace de acceso.',
+    'login.networkTimeout': 'No pudimos conectar con el servidor. Inténtalo de nuevo en unos segundos.',
   },
 
   en: {
@@ -881,6 +900,9 @@ export const translations: Record<Language, Translations> = {
     'partners.tag': 'Strategic Partners',
     'partners.title': 'Partner Network',
     'partners.subtitle': 'Companies and institutions that trust the observatory for specialized cybersecurity services, research, and instruments — whether as a channel or direct collaborator.',
+    'partners.agilChile.desc': 'Tech company: AI, talent, and cybersecurity. Strategic partner in cybersecurity services — pentesting, red team, and assessments delivered through its ecosystem.',
+    'partners.upcoming.title': 'Coming Soon',
+    'partners.upcoming.desc': 'Institutes, labs, tools, and entities joining the observatory.',
 
     /* ── Members ── */
     'member.marcelo.role': 'Principal Architect · Complex Systems',
@@ -927,6 +949,22 @@ export const translations: Record<Language, Translations> = {
     'form.networkError': 'Network error. Email us at inquiry@hackfluency.com',
     'form.required': 'Email and description are required.',
     'form.emailInvalid': 'Invalid email.',
+
+    /* ── Auth (Login) ── */
+    'auth.verifying': 'Verifying access…',
+    'login.title': 'Strategy Dashboard',
+    'login.magicSent': 'Magic Link Sent!',
+    'login.subtitle': 'Sign in with your email to access dashboards',
+    'login.emailLabel': 'Email Address',
+    'login.emailPlaceholder': 'name@company.com',
+    'login.sendLink': 'Send Magic Link',
+    'login.or': 'or',
+    'login.viewRoadmap': 'View Security Roadmap',
+    'login.sentTo': 'We\'ve sent a magic link to',
+    'login.sentInstructions': 'You can close this tab now. Click the link in your email to automatically sign in and access the dashboard.',
+    'login.useDifferent': 'Use a different email',
+    'login.failed': 'Failed to send login link.',
+    'login.networkTimeout': 'We couldn\'t reach the server. Try again in a few seconds.',
   },
 };
 

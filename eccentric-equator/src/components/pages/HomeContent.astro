@@ -348,7 +348,7 @@ const values = [
 <!-- Navigation -->
 <nav class="nav">
   <div class="nav-container">
-    <a href={base} class="logo" aria-label="Hackfluency - Go to homepage">
+    <a href={base} class="logo" aria-label={locale === 'es' ? 'Hackfluency - Ir al inicio' : 'Hackfluency - Go to homepage'}>
       <img src={`${base}HFNeon.webp`} alt="Hackfluency logo" width="56" class="logo-img" />
       <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
     </a>
@@ -771,13 +771,13 @@ const values = [
         <p class="member-role">{t('member.marcelo.role')}</p>
         <p class="member-desc">{t('member.marcelo.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--digital" title="Digital">
+          <span class="m-lens m-lens--digital" title={t('about.panel.digital')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
-            <span>Digital</span>
+            <span>{t('about.panel.digital')}</span>
           </span>
-          <span class="m-lens m-lens--philosophy" title="Filosófico">
+          <span class="m-lens m-lens--philosophy" title={t('about.panel.philosophy')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></svg>
-            <span>Filosófico</span>
+            <span>{t('about.panel.philosophy')}</span>
           </span>
         </div>
       </div>
@@ -788,9 +788,9 @@ const values = [
         <p class="member-role">{t('member.victor.role')}</p>
         <p class="member-desc">{t('member.victor.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--digital" title="Digital">
+          <span class="m-lens m-lens--digital" title={t('about.panel.digital')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
-            <span>Digital</span>
+            <span>{t('about.panel.digital')}</span>
           </span>
         </div>
       </div>
@@ -801,13 +801,13 @@ const values = [
         <p class="member-role">{t('member.cinthia.role')}</p>
         <p class="member-desc">{t('member.cinthia.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--human" title="Humano">
+          <span class="m-lens m-lens--human" title={t('about.panel.human')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            <span>Humano</span>
+            <span>{t('about.panel.human')}</span>
           </span>
-          <span class="m-lens m-lens--social" title="Social">
+          <span class="m-lens m-lens--social" title={t('about.panel.social')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
-            <span>Social</span>
+            <span>{t('about.panel.social')}</span>
           </span>
         </div>
       </div>
@@ -819,9 +819,9 @@ const values = [
         <p class="member-role">{t('member.daniel.role')}</p>
         <p class="member-desc">{t('member.daniel.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--social" title="Social">
+          <span class="m-lens m-lens--social" title={t('about.panel.social')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
-            <span>Social</span>
+            <span>{t('about.panel.social')}</span>
           </span>
         </div>
       </div>
@@ -843,14 +843,14 @@ const values = [
           <img src="/assets/agilchile-logo.webp" alt="Ágil Chile logo" width="72" height="72" class="partner-logo-img" />
         </div>
         <h3 class="partner-name">Ágil Chile</h3>
-        <p class="partner-desc">Tech company: IA, talento y ciberseguridad. Partner estratégico en servicios de ciberseguridad — pentesting, red team y assessment entregados a través de su ecosistema.</p>
+        <p class="partner-desc">{t('partners.agilChile.desc')}</p>
       </a>
       <div class="partner-item partner-item--placeholder">
         <div class="partner-icon">
           <svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="30" stroke="var(--hf-border)" stroke-width="1" fill="none" stroke-dasharray="4 4"/><text x="40" y="46" text-anchor="middle" fill="var(--hf-text-dim)" font-size="28" font-family="Space Grotesk,sans-serif" font-weight="300">+</text></svg>
         </div>
-        <h3 class="partner-name">Próximamente</h3>
-        <p class="partner-desc">Institutos, laboratorios, herramientas y entidades que se suman al observatorio.</p>
+        <h3 class="partner-name">{t('partners.upcoming.title')}</h3>
+        <p class="partner-desc">{t('partners.upcoming.desc')}</p>
       </div>
     </div>
   </div>
@@ -962,7 +962,7 @@ const values = [
   <div class="container">
     <div class="footer-content">
       <div class="footer-brand">
-        <a href={base} class="logo footer-logo" aria-label="Hackfluency - Go to homepage">
+        <a href={base} class="logo footer-logo" aria-label={locale === 'es' ? 'Hackfluency - Ir al inicio' : 'Hackfluency - Go to homepage'}>
           <img src={`${base}HFNeon.webp`} alt="Hackfluency logo" width="56" class="footer-logo-img" />
           <span class="logo-text"><span class="logo-hack">Hack</span><span class="logo-fluency">fluency</span></span>
         </a>
@@ -987,8 +987,8 @@ const values = [
         </nav>
         <nav class="footer-column" aria-label={t('footer.connectTitle')}>
           <h3>{t('footer.connectTitle')}</h3>
-          <a href="https://www.linkedin.com/company/hackfluency" target="_blank" rel="noopener noreferrer" aria-label="Follow Hackfluency on LinkedIn">LinkedIn</a>
-          <a href="https://matrix.to/#/#eXcomm:matrix.org" target="_blank" rel="noopener noreferrer" aria-label="Join our Matrix community">Matrix</a>
+<a href="https://www.linkedin.com/company/hackfluency" target="_blank" rel="noopener noreferrer" aria-label={locale === 'es' ? 'Sigue a Hackfluency en LinkedIn' : 'Follow Hackfluency on LinkedIn'}>LinkedIn</a>
+  <a href="https://matrix.to/#/#eXcomm:matrix.org" target="_blank" rel="noopener noreferrer" aria-label={locale === 'es' ? 'Únete a nuestra comunidad de Matrix' : 'Join our Matrix community'}>Matrix</a>
         </nav>
       </div>
       </div>

@@ -4,6 +4,7 @@ import { withTimeout } from '../../lib/withTimeout';
 import Login from './Login';
 import type { Session } from '@supabase/supabase-js';
 import { AuthProvider } from './AuthContext';
+import { t } from '../../i18n/translations';
 import type { SavedDashboard } from '../DashboardBuilder/dashboardStorage';
 
 interface AuthWrapperProps {
@@ -12,6 +13,7 @@ interface AuthWrapperProps {
 }
 
 function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
+  const locale: 'es' | 'en' = typeof window !== 'undefined' && window.location.pathname.startsWith('/en') ? 'en' : 'es';
   const [session, setSession] = useState<Session | null>(null);
   const [authorizedDashboards, setAuthorizedDashboards] = useState<Set<string>>(new Set());
   const [dashboards, setDashboards] = useState<SavedDashboard[]>([]);
@@ -200,7 +202,7 @@ function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
             }}
           />
           <span style={{ fontSize: '13px', color: 'var(--hf-text-disabled, #4a4a4a)', letterSpacing: '0.5px' }}>
-            Verifying access…
+            {t('auth.verifying', locale)}
           </span>
         </div>
 

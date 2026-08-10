@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { withTimeout } from '../../lib/withTimeout';
+import { t } from '../../i18n/translations';
 import './auth.css';
 
+function getLocale(): 'es' | 'en' {
+  if (typeof window === 'undefined') return 'es';
+  return window.location.pathname.startsWith('/en') ? 'en' : 'es';
+}
+
 function Login() {
+  const locale = getLocale();
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,9 +41,9 @@ function Login() {
     } catch (err: unknown) {
       console.error('Login error:', err);
       if (err instanceof Error && err.name === 'TimeoutError') {
-        setError('No pudimos conectar con el servidor. Inténtalo de nuevo en unos segundos.');
+        setError(t('login.networkTimeout', locale));
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to send login link.');
+        setError(err instanceof Error ? err.message : t('login.failed', locale));
       }
     } finally {
       setLoading(false);
@@ -54,14 +61,14 @@ function Login() {
               <span className="logo-fluency">fluency</span>
             </span>
           </div>
-          <h1 className="auth-title">Strategy Dashboard</h1>
+          <h1 className="auth-title">{t('login.title', locale)}</h1>
           {emailSent ? (
             <p className="auth-subtitle" style={{ color: 'var(--hf-accent, #00D26A)' }}>
-              Magic Link Sent!
+              {t('login.magicSent', locale)}
             </p>
           ) : (
             <p className="auth-subtitle">
-              Sign in with your email to access dashboards
+              {t('login.subtitle', locale)}
             </p>
           )}
         </header>
@@ -80,10 +87,10 @@ function Login() {
               </svg>
             </div>
             <p className="success-message">
-              We've sent a magic link to <strong>{email}</strong>.
+              {t('login.sentTo', locale)} <strong>{email}</strong>.
             </p>
             <p className="success-instruction">
-              You can close this tab now. Click the link in your email to automatically sign in and access the dashboard.
+              {t('login.sentInstructions', locale)}
             </p>
             <button 
               className="auth-back-button"
@@ -92,18 +99,18 @@ function Login() {
                 setError(null);
               }}
             >
-              Use a different email
+              {t('login.useDifferent', locale)}
             </button>
           </div>
         ) : (
           <form className="auth-form" onSubmit={handleMagicLink}>
             <div className="auth-form-group">
-              <label htmlFor="email" className="auth-label">Email Address</label>
+              <label htmlFor="email" className="auth-label">{t('login.emailLabel', locale)}</label>
               <input
                 type="email"
                 id="email"
                 className="auth-input"
-                placeholder="name@company.com"
+                placeholder={t('login.emailPlaceholder', locale)}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -111,18 +118,18 @@ function Login() {
               />
             </div>
             <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? <div className="spinner-small" /> : 'Send Magic Link'}
+              {loading ? <div className="spinner-small" /> : t('login.sendLink', locale)}
             </button>
             
             <div className="auth-divider">
-              <span>or</span>
+              <span>{t('login.or', locale)}</span>
             </div>
             
             <a href="/SecurityRoadmap.HF" className="auth-button-secondary">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
               </svg>
-              View Security Roadmap
+              {t('login.viewRoadmap', locale)}
             </a>
           </form>
         )}
