@@ -582,6 +582,15 @@ const { t } = getTranslations(locale);
 
   function showPopup() {
     if (popupShown || !popupEl || !card) return;
+    // No abrir si el popup está suprimido: los triggers globales
+    // (mouseleave) pueden invocar showPopup() incluso fuera del bind.
+    if (
+      sessionStorage.getItem('hf_popup_done') ||
+      getCookie(SUPPRESS_COOKIE) ||
+      getCookie(DISMISS_COOKIE)
+    ) {
+      return;
+    }
     popupShown = true;
     cleanupTriggers();
     popupEl.style.display = 'flex';
@@ -662,7 +671,17 @@ const { t } = getTranslations(locale);
     scrollFired = false;
     lastLeave = 0;
 
-    // Suppression checks — fresh per bind
+    // ── Close / dismiss ─── SIEMPRE vinculado, incluso si suprimido:
+    // mouseleave (global) puede mostrar el popup; los botones deben
+    // responder sí o sí. El guard de supresión solo corta los triggers.
+    if (closeBtn) closeBtn.addEventListener('click', () => hidePopup(true));
+    if (notNowBtn) notNowBtn.addEventListener('click', () => hidePopup(true));
+    popupEl.addEventListener('click', (e) => {
+      if (e.target === popupEl) hidePopup(true);
+    });
+
+    // Suppression checks — fresh per bind. Corta SOLO los triggers de
+    // apertura (timer/scroll); los botones de cierre ya quedaron arriba.
     if (
       sessionStorage.getItem('hf_popup_done') ||
       getCookie(SUPPRESS_COOKIE) ||
@@ -676,13 +695,6 @@ const { t } = getTranslations(locale);
 
     // ── Scroll trigger (50%) with throttle ───────────────────────
     window.addEventListener('scroll', onScroll, { passive: true });
-
-    // ── Close / dismiss ──────────────────────────────────────────
-    if (closeBtn) closeBtn.addEventListener('click', () => hidePopup(true));
-    if (notNowBtn) notNowBtn.addEventListener('click', () => hidePopup(true));
-    popupEl.addEventListener('click', (e) => {
-      if (e.target === popupEl) hidePopup(true);
-    });
 
     // ── Email validation ─────────────────────────────────────────
     if (emailInp && msgEl) {

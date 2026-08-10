@@ -285,15 +285,14 @@ const description = t(
 </main>
 
 <script>
-(function() {
+  import { sendTelegram } from '../../../../lib/telegram';
+  (function() {
   // ── Obfuscation layer ─────────────────────────────────
   var _k = function(s: string) { return atob(s); };
   var _S = _k('aGZfcmVwb3J0X3Rva2Vu');
   var _T = _k('cnB0b2tlbg==');
   var _C = _k('aGZfcmVwb3J0X2FjY2Vzcw==');
-  var _U = _k('aHR0cHM6Ly95Zm9mbWF3YnZsb250dWd5Z2Zjai5zdXBhYmFzZS5jby9yZXN0L3YxL2VtYWlscw==');
-  var _K = _k('c2JfcHVibGlzaGFibGVfRUZJMTJENEFhTzJZN281Z3lXckItZ19pLS1UNUFyeg==');
-  var _src = 'Hackfluency'; // matches subscription.ts source column
+  var _src = 'report-gate'; // source column for Telegram pipeline
   var _ttl = 10;
   var _timer = null;
   var _ctr: number | null = null;
@@ -400,12 +399,8 @@ window.clearInterval(_ctr ?? undefined); _ctr = null;
       if (_ctr) { window.clearInterval(_ctr); _ctr = null; }
       if (msgEl) { msgEl.textContent = trx('sending'); msgEl.className = 'r-gate-msg r-gate-msg-info'; }
 
-      fetch(_U, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': _K, 'Authorization': 'Bearer ' + _K, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ email: email, source: _src })
-      }).then(function(r) {
-        if (r.status === 201 || r.status === 204 || r.status === 409) {
+      sendTelegram('subscribe', { email: email, source: _src }).then(function(ok) {
+        if (ok) {
           setC(_C, '1', 30);
           if (gate) gate.style.display = 'none';
           if (printBar) printBar.style.display = 'flex';

@@ -266,6 +266,15 @@ const isES = locale === 'es';
       // sobrevive a los swaps, así que se evalúa fresco en cada bind)
       if (!isExpired(SKIP_KEY) || !isExpired(DONE_KEY)) return;
 
+      // ── Form submit ────────────────────────────────────────────
+      // Se vincula ANTES de los triggers: la vía "scroll ya pasado"
+      // (deep-link / scroll restaurado) hace `showGate(); return;` y
+      // saldría del bind sin llegar a los botones si estuvieran abajo.
+      if (form && emailInput && msg) form.addEventListener('submit', onSubmit);
+
+      // ── Skip → progressive cooldown ────────────────────────────
+      if (skip) skip.addEventListener('click', onSkip);
+
       // ── Trigger logic ──────────────────────────────────────────
       var article = document.querySelector('article') || document.querySelector('.art-content') || document.querySelector('main');
       if (article) {
@@ -305,12 +314,6 @@ const isES = locale === 'es';
         };
         window.addEventListener('scroll', fallbackScroll, { passive: true });
       }
-
-      // ── Form submit ────────────────────────────────────────────
-      if (form && emailInput && msg) form.addEventListener('submit', onSubmit);
-
-      // ── Skip → progressive cooldown ────────────────────────────
-      if (skip) skip.addEventListener('click', onSkip);
     }
 
     // ── ESC key (UNA vez; `document` persiste entre swaps SPA) ──
