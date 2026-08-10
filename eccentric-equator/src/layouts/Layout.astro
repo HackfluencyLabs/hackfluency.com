@@ -233,7 +233,12 @@ const { t } = getTranslations(locale);
 
       // Defer the cross-origin RumbleTalk SDK until first interaction,
       // keeping the state-based detection so the SPA fix survives View Transitions.
-      var sdkLoaded = false;
+      // Global guard: the SDK must be injected at most ONCE per session. On
+      // View Transitions (ClientRouter) the window survives but this script
+      // re-runs, so a closure-local flag would re-inject the SDK and RumbleTalk
+      // throws "Trying to create a duplicate chat" — breaking login/dashboards/CTI.
+      var S = window.__hfRt = window.__hfRt || {};
+      var sdkLoaded = !!S.sdkLoaded;
       var needsLauncher = function() {
         for (var i = 0; i < c.children.length; i++) {
           var ch = c.children[i];
@@ -242,6 +247,10 @@ const { t } = getTranslations(locale);
         return true;
       };
       function loadSdk() {
+        // Never re-inject: if the SDK already initialized this session, the chat
+        // widget already exists and re-running its script breaks it.
+        if (S.sdkLoaded) return;
+        S.sdkLoaded = true;
         sdkLoaded = true;
         // Only inject if the launcher isn't already present (re-enter after a swap)
         if (!needsLauncher()) return;
@@ -258,11 +267,13 @@ const { t } = getTranslations(locale);
 
       function startRing() {
         if (localStorage.getItem(KEY)) return;
+        if (S.ringTimer) clearInterval(S.ringTimer);
         ring = setInterval(function() {
           up = !up;
           fab.style.transform = up ? 'scale(1)' : 'scale(1.08)';
           fab.style.boxShadow = up ? '0 4px 20px rgba(0,210,106,0.3)' : '0 0 40px 12px rgba(0,210,106,0.6)';
         }, 700);
+        S.ringTimer = ring;
       }
       startRing();
 
@@ -291,11 +302,22 @@ const { t } = getTranslations(locale);
       }
 
       // Re-sync whenever the widget's DOM changes (open via X, close via X, etc.)
+      // Reuse a session-wide observer instead of stacking a new one per navigation.
+      if (S.obs) S.obs.disconnect();
       try {
-        new MutationObserver(sync).observe(c, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+        S.obs = new MutationObserver(sync);
+        S.obs.observe(c, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
       } catch (e) {}
-      // Safety net for attribute-less style changes
-      setInterval(sync, 800);
+      // Safety net for attribute-less style changes (single timer per session)
+      if (S.timer) clearInterval(S.timer);
+      S.timer = setInterval(sync, 800);
+
+      // Toggle the chat; retry a few ticks while the SDK (async) spawns its launcher
+      function openChat(tries) {
+        var img = c.querySelector('img');
+        if (img) { img.click(); return; }
+        if (tries > 0) setTimeout(function() { openChat(tries - 1); }, 250);
+      }
 
       // Load the SDK lazily on first engagement with the FAB (keeps cross-origin script off the critical path)
       fab.addEventListener('pointerdown', function() { if (!sdkLoaded) { loadSdk(); } });
@@ -306,8 +328,7 @@ const { t } = getTranslations(locale);
           window.open('https://rumbletalk.com/client/chat.php?1Yejiy6L', '_blank', 'noopener');
           return;
         }
-        var img = c.querySelector('img');
-        if (img) img.click();   // toggle the widget via its launcher
+        openChat(12);           // toggle the widget via its launcher (waits for SDK)
         sync();                 // reflect state immediately
       });
       sync();
