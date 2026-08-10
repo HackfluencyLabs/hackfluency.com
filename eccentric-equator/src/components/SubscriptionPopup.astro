@@ -470,6 +470,14 @@ const { t } = getTranslations(locale);
 <script>
   import { subscribeEmail } from '../lib/subscription';
 
+  // ── Ciclo de vida SPA (View Transitions) ─────────────────────────
+  // Este módulo bundle se ejecuta UNA sola vez. Al navegar con el
+  // ClientRouter el <body> se reemplaza pero `document` persiste: los
+  // listeners globales (mouseleave / Escape) se registran UNA vez aquí
+  // fuera; los nodos se resuelven frescos en cada bind vía
+  // `astro:page-load`. La supresión "una vez por sesión" vive en
+  // sessionStorage/cookies, así que se re-evalúa en cada bind.
+
   const popupLocale = location.pathname.startsWith('/en') ? 'en' : 'es';
 
   // ── Translations ──────────────────────────────────────────────
@@ -517,32 +525,28 @@ const { t } = getTranslations(locale);
   // ── Suppression checks ────────────────────────────────────────
   const SUPPRESS_COOKIE = 'hf_popup_suppress';
   const DISMISS_COOKIE  = 'hf_popup_dismiss';
-  const popupEl = document.getElementById('hf-popup-overlay') as HTMLElement;
 
-  if (
-    !popupEl ||
-    sessionStorage.getItem('hf_popup_done') ||
-    getCookie(SUPPRESS_COOKIE) ||
-    getCookie(DISMISS_COOKIE)
-  ) {
-    // Suppressed — bail silently
-  } else {
-    const card    = document.getElementById('hf-popup-card') as HTMLElement;
-    const closeBtn  = document.getElementById('hf-popup-close') as HTMLButtonElement;
-    const form      = document.getElementById('popup-subscribe-form') as HTMLFormElement;
-    const emailInp  = document.getElementById('popup-email-input') as HTMLInputElement;
-    const msgEl     = document.getElementById('popup-form-message') as HTMLParagraphElement;
-    const submitBtn = document.getElementById('popup-submit-btn') as HTMLButtonElement;
-    const notNowBtn = document.getElementById('popup-not-now') as HTMLButtonElement;
+  // ── Configuration ─────────────────────────────────────────────
+  const TRIGGER_DELAY    = 20_000;      // 20s
+  const SCROLL_THRESHOLD = 0.5;          // 50%
 
-    // ── Configuration ─────────────────────────────────────────────
-    const TRIGGER_DELAY    = 20_000;      // 20s
-    const SCROLL_THRESHOLD = 0.5;          // 50%
+  // ── Estado module-scoped (resuelto fresco en cada bind) ───────
+  let popupEl: HTMLElement | null = null;
+  let card: HTMLElement | null = null;
+  let closeBtn: HTMLButtonElement | null = null;
+  let form: HTMLFormElement | null = null;
+  let emailInp: HTMLInputElement | null = null;
+  let msgEl: HTMLParagraphElement | null = null;
+  let submitBtn: HTMLButtonElement | null = null;
+  let notNowBtn: HTMLButtonElement | null = null;
 
-    let popupShown = false;
+  let popupShown = false;
+  let scrollFired = false;
+  let lastLeave = 0;
+  let timer: number | undefined;
 
-    // ── Helpers ──────────────────────────────────────────────────
-    function sanitize(email: string): string {
+  // ── Helpers ──────────────────────────────────────────────────
+  function sanitize(email: string): string {
     return email.trim().replace(/[^a-zA-Z0-9@._-]/g, '');
   }
 
@@ -555,12 +559,29 @@ const { t } = getTranslations(locale);
   }
 
   function setMsg(text: string, type: string) {
+    if (!msgEl) return;
     msgEl.textContent = text;
     msgEl.className = `popup-msg ${type}`;
   }
 
+  // ── Limpieza de triggers del bind anterior (SPA) ──────────────
+  function cleanupTriggers() {
+    if (timer) { clearTimeout(timer); timer = undefined; }
+    window.removeEventListener('scroll', onScroll);
+  }
+
+  // ── Scroll trigger (50%) with throttle ───────────────────────
+  function onScroll() {
+    if (scrollFired) return;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (docHeight > 0 && window.scrollY / docHeight >= SCROLL_THRESHOLD) {
+      scrollFired = true;
+      showPopup();
+    }
+  }
+
   function showPopup() {
-    if (popupShown) return;
+    if (popupShown || !popupEl || !card) return;
     popupShown = true;
     cleanupTriggers();
     popupEl.style.display = 'flex';
@@ -573,12 +594,14 @@ const { t } = getTranslations(locale);
   }
 
   function hidePopup(suppress = true) {
+    if (!popupEl || !card) return;
     card.classList.remove('popup-enter');
     card.classList.add('popup-exit');
     popupEl.classList.remove('overlay-enter');
     popupEl.classList.add('overlay-exit');
     const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
     setTimeout(() => {
+      if (!popupEl || !card) return;
       popupEl.style.display = 'none';
       card.classList.remove('popup-exit');
       popupEl.classList.remove('overlay-exit');
@@ -596,30 +619,9 @@ const { t } = getTranslations(locale);
     setTimeout(() => hidePopup(false), 1500);
   }
 
-  function cleanupTriggers() {
-    clearTimeout(timer);
-    document.removeEventListener('mouseleave', onMouseLeave);
-    window.removeEventListener('scroll', onScroll);
-  }
-
-  // ── Timed trigger ────────────────────────────────────────────
-  const timer = setTimeout(showPopup, TRIGGER_DELAY);
-
-  // ── Scroll trigger (50%) with throttle ───────────────────────
-  let scrollFired = false;
-  function onScroll() {
-    if (scrollFired) return;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    if (docHeight > 0 && window.scrollY / docHeight >= SCROLL_THRESHOLD) {
-      scrollFired = true;
-      showPopup();
-    }
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  // ── Exit intent with throttle ────────────────────────────────
-  let lastLeave = 0;
+  // ── Exit intent (UNA vez; `document` persiste entre swaps SPA) ─
   function onMouseLeave(e: MouseEvent) {
+    if (!popupEl) return;
     const now = Date.now();
     if (now - lastLeave < 500) return;
     lastLeave = now;
@@ -627,66 +629,113 @@ const { t } = getTranslations(locale);
   }
   document.addEventListener('mouseleave', onMouseLeave);
 
-  // ── Escape key ───────────────────────────────────────────────
+  // ── Escape key (UNA vez; `document` persiste entre swaps SPA) ─
   function onKeyDown(e: KeyboardEvent) {
     if (e.key === 'Escape' && popupShown) hidePopup(true);
   }
   document.addEventListener('keydown', onKeyDown);
 
-  // ── Close / dismiss ──────────────────────────────────────────
-  if (closeBtn) closeBtn.addEventListener('click', () => hidePopup(true));
-  if (notNowBtn) notNowBtn.addEventListener('click', () => hidePopup(true));
-  if (popupEl) popupEl.addEventListener('click', (e) => {
-    if (e.target === popupEl) hidePopup(true);
-  });
+  // ── Bind: resuelve nodos frescos + monta triggers ─────────────
+  function bindPopup() {
+    popupEl = document.getElementById('hf-popup-overlay') as HTMLElement | null;
+    if (!popupEl) return;
+    // Evita re-vincular dos veces sobre el mismo nodo (astro:page-load + load inicial)
+    if (popupEl.dataset.hfBound === '1') return;
+    popupEl.dataset.hfBound = '1';
 
-  // ── Email validation ─────────────────────────────────────────
-  if (emailInp && msgEl) {
-    emailInp.addEventListener('input', () => {
-      const val = emailInp.value;
-      if (!val) { setMsg('', ''); return; }
-      const result = validate(sanitize(val));
-      result.valid
-        ? setMsg(msgs.validEmail, 'success')
-        : setMsg(result.error!, 'error');
+    // Limpia triggers del bind anterior (nodo distinto tras el swap SPA):
+    // el timer/scroll apuntan al contexto viejo. Debe ir DESPUÉS del guard:
+    // si el nodo ya está bound, sus triggers están vivos y no hay que tocarlos.
+    cleanupTriggers();
+
+    card    = document.getElementById('hf-popup-card') as HTMLElement | null;
+    closeBtn  = document.getElementById('hf-popup-close') as HTMLButtonElement | null;
+    form      = document.getElementById('popup-subscribe-form') as HTMLFormElement | null;
+    emailInp  = document.getElementById('popup-email-input') as HTMLInputElement | null;
+    msgEl     = document.getElementById('popup-form-message') as HTMLParagraphElement | null;
+    submitBtn = document.getElementById('popup-submit-btn') as HTMLButtonElement | null;
+    notNowBtn = document.getElementById('popup-not-now') as HTMLButtonElement | null;
+
+    // Inicialización por bind: en cada navegación SPA el estado vuelve
+    // a cero; la supresión (sessionStorage/cookies) sobrevive al swap.
+    popupShown = false;
+    scrollFired = false;
+    lastLeave = 0;
+
+    // Suppression checks — fresh per bind
+    if (
+      sessionStorage.getItem('hf_popup_done') ||
+      getCookie(SUPPRESS_COOKIE) ||
+      getCookie(DISMISS_COOKIE)
+    ) {
+      return; // Suppressed — bail silently
+    }
+
+    // ── Timed trigger ────────────────────────────────────────────
+    timer = window.setTimeout(showPopup, TRIGGER_DELAY);
+
+    // ── Scroll trigger (50%) with throttle ───────────────────────
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // ── Close / dismiss ──────────────────────────────────────────
+    if (closeBtn) closeBtn.addEventListener('click', () => hidePopup(true));
+    if (notNowBtn) notNowBtn.addEventListener('click', () => hidePopup(true));
+    popupEl.addEventListener('click', (e) => {
+      if (e.target === popupEl) hidePopup(true);
     });
-  }
 
-  // ── Form submission ──────────────────────────────────────────
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // ── Email validation ─────────────────────────────────────────
+    if (emailInp && msgEl) {
+      emailInp.addEventListener('input', () => {
+        if (!emailInp) return;
+        const val = emailInp.value;
+        if (!val) { setMsg('', ''); return; }
+        const result = validate(sanitize(val));
+        result.valid
+          ? setMsg(msgs.validEmail, 'success')
+          : setMsg(result.error!, 'error');
+      });
+    }
 
-      const email = sanitize(emailInp.value);
-      const check = validate(email);
-      if (!check.valid) { setMsg(check.error!, 'error'); return; }
+    // ── Form submission ──────────────────────────────────────────
+    if (form && emailInp && submitBtn) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-      submitBtn.classList.add('loading');
-      submitBtn.disabled = true;
-      setMsg(msgs.sending, 'info');
+        const email = sanitize(emailInp!.value);
+        const check = validate(email);
+        if (!check.valid) { setMsg(check.error!, 'error'); return; }
 
-      try {
-        const result = await subscribeEmail(email);
+        submitBtn!.classList.add('loading');
+        submitBtn!.disabled = true;
+        setMsg(msgs.sending, 'info');
 
-        if (result.success) {
-          setMsg(msgs.success, 'success');
-          emailInp.value = '';
-          dismissForever();
-          return;
+        try {
+          const result = await subscribeEmail(email);
+
+          if (result.success) {
+            setMsg(msgs.success, 'success');
+            emailInp!.value = '';
+            dismissForever();
+            return;
+          }
+          if (result.message === 'Already subscribed.') {
+            setMsg(msgs.alreadySubscribed, 'warning');
+            dismissForever();
+            return;
+          }
+          setMsg(result.message || msgs.error, 'error');
+        } catch {
+          setMsg(msgs.networkError, 'error');
+        } finally {
+          submitBtn!.classList.remove('loading');
+          submitBtn!.disabled = false;
         }
-        if (result.message === 'Already subscribed.') {
-          setMsg(msgs.alreadySubscribed, 'warning');
-          dismissForever();
-          return;
-        }
-        setMsg(result.message || msgs.error, 'error');
-      } catch {
-        setMsg(msgs.networkError, 'error');
-      } finally {
-        submitBtn.classList.remove('loading');
-        submitBtn.disabled = false;
-      }
-    });
+      });
+    }
   }
-  }
+
+  // ── Bind inicial + en cada navegación SPA ─────────────────────
+  bindPopup();
+  document.addEventListener('astro:page-load', bindPopup);
 </script>
