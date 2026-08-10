@@ -78,16 +78,34 @@ const isES = locale === 'es';
 })();
 </script>
 
-<!-- Chat banner click handler -->
+<!-- Chat banner click handler:
+     Desktop: carga el SDK de RumbleTalk si falta y abre la burbuja.
+     Mobile: RumbleTalk inline no funciona en mobile → nueva pestaña (misma lógica que el FAB). -->
 <script is:inline data-astro-rerun>
 document.addEventListener('click', function(e) {
   var banner = e.target.closest('#art-chat-banner');
   if (!banner) return;
+
   var floating = document.getElementById('rt-d6023b7d7713a023f5e73ab154aa7c08');
-  if (floating) {
-    var img = floating.querySelector('img');
-    if (img) img.click();
+  if (!floating) return;
+
+  // Mobile: abrir en nueva pestaña (RumbleTalk inline no funciona en mobile)
+  if (window.innerWidth < 768) {
+    window.open('https://rumbletalk.com/client/chat.php?1Yejiy6L', '_blank', 'noopener');
+    return;
   }
+
+  // Desktop: abrir la burbuja, cargando el SDK si aún no está
+  var img = floating.querySelector('img');
+  if (img) { img.click(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://rumbletalk.com/client/?1Yejiy6L';
+  s.async = true;
+  s.onload = function () {
+    var i = floating.querySelector('img');
+    if (i) i.click();
+  };
+  document.body.appendChild(s);
 });
 </script>
 
