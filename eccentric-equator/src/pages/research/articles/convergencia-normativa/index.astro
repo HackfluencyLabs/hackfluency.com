@@ -56,18 +56,20 @@ const pdfUrl = '/assets/reports/convergencia_normativa.pdf';
   <ArticleGate locale={locale} />
 </Layout>
 
-<script>
+<script is:inline data-astro-rerun>
   // En navegación SPA (ClientRouter) el CDN de ECharts inyectado vía set:html
   // (convergencia_normativa.html) NO se re-ejecuta: `window.echarts` queda
   // indefinido y el guard del fragmento espera con setInterval sin éxito.
-  // Reinyectamos el CDN aquí (este script sí corre en cada navegación).
-  const hasEcharts = typeof (globalThis as { echarts?: unknown }).echarts !== 'undefined';
-  if (!hasEcharts && !document.getElementById('echarts-cdn-inject')) {
-    const s = document.createElement('script');
-    s.id = 'echarts-cdn-inject';
-    s.src = 'https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js';
-    s.async = true;
-    document.head.appendChild(s);
+  // Por eso reinyectamos el CDN aquí. Este script DEBE ser `is:inline` +
+  // `data-astro-rerun`: solo así Astro lo vuelve a ejecutar en cada
+  // navegación ClientRouter (un <script> módulo plano solo corre en cargas
+  // completas de documento y el bug reaparecía al navegar desde el home).
+  if (typeof globalThis.echarts === 'undefined' && !document.getElementById('echarts-cdn-inject')) {
+    var e = document.createElement('script');
+    e.id = 'echarts-cdn-inject';
+    e.src = 'https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js';
+    e.async = true;
+    document.head.appendChild(e);
   }
 </script>
 
