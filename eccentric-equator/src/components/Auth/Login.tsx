@@ -40,7 +40,7 @@ function Login() {
       <div className="auth-card">
         <header className="auth-header">
           <div className="auth-logo">
-            <img src="/HFNeon.png" alt="Hackfluency" />
+            <img src="/HFNeon.webp" alt="Hackfluency" />
             <span className="auth-logo-text">
               <span className="logo-hack">Hack</span>
               <span className="logo-fluency">fluency</span>

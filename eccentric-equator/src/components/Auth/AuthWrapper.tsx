@@ -169,7 +169,7 @@ function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
         {/* Brand logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '32px' }}>
           <img
-            src="/HFNeon.png"
+            src="/HFNeon.webp"
             alt="Hackfluency"
             style={{ width: '36px', height: '36px', objectFit: 'contain' }}
           />
