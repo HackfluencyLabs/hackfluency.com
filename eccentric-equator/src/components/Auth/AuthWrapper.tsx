@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
+import { withTimeout } from '../../lib/withTimeout';
 import Login from './Login';
 import type { Session } from '@supabase/supabase-js';
 import { AuthProvider } from './AuthContext';
@@ -24,10 +25,17 @@ function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
   }, [dashboards]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (!session) setLoading(false);
-    });
+    withTimeout(supabase.auth.getSession(), 3000)
+      .then(({ data: { session } }) => {
+        setSession(session);
+        if (!session) setLoading(false);
+      })
+      .catch(() => {
+        // Supabase unreachable — show the login screen instead of hanging
+        // on the loader forever. The user can retry.
+        setSession(null);
+        setLoading(false);
+      });
 
     const {
       data: { subscription },

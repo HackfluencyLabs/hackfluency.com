@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { withTimeout } from '../../lib/withTimeout';
 import './auth.css';
 
 function Login() {
@@ -16,20 +17,27 @@ function Login() {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-          emailRedirectTo: `${window.location.origin}/dashboards`,
-        },
-      });
+      const { error } = await withTimeout(
+        supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: false,
+            emailRedirectTo: `${window.location.origin}/dashboards`,
+          },
+        }),
+        8000
+      );
 
       if (error) throw error;
 
       setEmailSent(true);
     } catch (err: unknown) {
       console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to send login link.');
+      if (err instanceof Error && err.name === 'TimeoutError') {
+        setError('No pudimos conectar con el servidor. Inténtalo de nuevo en unos segundos.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to send login link.');
+      }
     } finally {
       setLoading(false);
     }

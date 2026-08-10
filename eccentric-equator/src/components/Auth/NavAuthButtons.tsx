@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { withTimeout } from '../../lib/withTimeout';
 import type { Session } from '@supabase/supabase-js';
 import { t } from '../../i18n/translations';
 import './auth.css';
@@ -26,22 +27,38 @@ function localePath(path: string): string {
 
 const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const locale = getLocale();
 
+  // No getSession() on mount: the home page never pokes Supabase for
+  // anonymous visitors. Only the reactive listener is kept (it reads
+  // local storage, no network), so a logged-in user still gets their
+  // dropdown immediately on navigation.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      setLoading(false);
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Lazy session check: only runs when the user actually clicks
+  // "Iniciar Sesión". With a timeout so a paused/unreachable Supabase
+  // never hangs the click — we fall back to the login page.
+  const handleSignIn = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    try {
+      const { data } = await withTimeout(supabase.auth.getSession(), 3000);
+      if (data.session) {
+        setSession(data.session);
+        setMenuOpen(true);
+        return;
+      }
+    } catch {
+      // Supabase unreachable — fall through to the login page below.
+    }
+    window.location.href = localePath('/dashboards');
+  };
 
   const handleLogout = async () => {
     setMenuOpen(false);
@@ -71,22 +88,11 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
     if (e.key === 'Escape') setMenuOpen(false);
   }
 
-  // While loading, render skeleton to avoid CLS
-  if (loading) {
-    if (mobile) return null;
-    return (
-      <>
-        <div style={{ width: '70px', height: '36px', borderRadius: '8px', background: 'color-mix(in srgb, var(--hf-text) 4%, transparent)' }} />
-        <a href={getContactUrl()} className="nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
-      </>
-    );
-  }
-
   if (mobile) {
     if (!session) {
       return (
         <>
-          <a href={localePath('/dashboards')} className="mobile-nav-btn-signin">{t('nav.signIn', locale)}</a>
+          <a href={localePath('/dashboards')} className="mobile-nav-btn-signin" onClick={handleSignIn}>{t('nav.signIn', locale)}</a>
           <a href={getContactUrl()} className="mobile-nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
         </>
       );
@@ -105,7 +111,7 @@ const NavAuthButtons: React.FC<NavAuthButtonsProps> = ({ mobile = false }) => {
   if (!session) {
     return (
       <>
-        <a href={localePath('/dashboards')} className="nav-btn-dashboard">{t('nav.signIn', locale)}</a>
+        <a href={localePath('/dashboards')} className="nav-btn-dashboard" onClick={handleSignIn}>{t('nav.signIn', locale)}</a>
         <a href={getContactUrl()} className="nav-cta" style={{color: '#ffffff'}}>{t('common.bookCall', locale)}</a>
       </>
     );
