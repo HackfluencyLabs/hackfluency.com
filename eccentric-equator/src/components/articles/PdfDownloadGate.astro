@@ -52,13 +52,49 @@ const isES = locale === 'es';
 
 <script>
   (function() {
-    var gate = document.getElementById('pdf-gate') as HTMLElement & { _pendingUrl?: string };
-    if (!gate) return;
+    // ── Ciclo de vida SPA (View Transitions) ─────────────────────────
+    // Los módulos bundle de Astro se ejecutan UNA sola vez (la primera
+    // página). Al navegar con el ClientRouter el <body> se reemplaza pero
+    // `document` persiste: los listeners globales aguantan el swap, pero las
+    // referencias a nodos quedan apuntando al DOM viejo.
+    // Solución: re-vincular en cada navegación vía `astro:page-load` +
+    // resolviendo los nodos frescos en cada bind. Listeners de `document`
+    // (click del CTA / ESC) se registran UNA sola vez aquí fuera.
+    var gate = null as HTMLElement & { _pendingUrl?: string } | null;
+    var isES = false;
+    var BOT_TOKEN: string | null = null;
+    var CHAT_ID: string | null = null;
+    var DEFAULT_URL = '';
+    var form: HTMLFormElement | null = null;
+    var emailInput: HTMLInputElement | null = null;
+    var msg: HTMLElement | null = null;
+    var closeBtn: HTMLButtonElement | null = null;
+    var overlay: Element | null = null;
+    var shown = false;
 
-    var isES = gate.getAttribute('data-is-es') === '1';
-    var BOT_TOKEN = gate.getAttribute('data-bot-token');
-    var CHAT_ID = gate.getAttribute('data-chat-id');
-    var DEFAULT_URL = gate.getAttribute('data-pdf-url') ?? '';
+    function bindGate() {
+      gate = document.getElementById('pdf-gate') as HTMLElement & { _pendingUrl?: string } | null;
+      if (!gate) return;
+      // Evita re-vincular dos veces sobre el mismo nodo (astro:page-load + load inicial)
+      if (gate.dataset.hfBound === '1') return;
+      gate.dataset.hfBound = '1';
+
+      isES = gate.getAttribute('data-is-es') === '1';
+      BOT_TOKEN = gate.getAttribute('data-bot-token');
+      CHAT_ID = gate.getAttribute('data-chat-id');
+      DEFAULT_URL = gate.getAttribute('data-pdf-url') ?? '';
+
+      form = document.getElementById('pg-form');
+      emailInput = document.getElementById('pg-email');
+      msg = document.getElementById('pg-msg');
+      closeBtn = document.getElementById('pg-close');
+      overlay = gate.querySelector('.pg-overlay');
+
+      if (closeBtn) closeBtn.addEventListener('click', hideGate);
+      if (overlay) overlay.addEventListener('click', hideGate);
+      if (form) form.addEventListener('submit', onSubmit);
+      shown = false;
+    }
 
     // ── Rate limiting (mismo esquema que ArticleGate, clave propia) ──
     var RATE_KEY = 'hf-pdfgate-rate';
@@ -116,26 +152,19 @@ const isES = locale === 'es';
       setTimeout(function(){ a.remove(); }, 300);
     }
 
-// ── Modal state ─────────────────────────────────────────────
-    const form = document.getElementById('pg-form') as HTMLFormElement;
-    const emailInput = document.getElementById('pg-email') as HTMLInputElement;
-    const msg = document.getElementById('pg-msg') as HTMLElement;
-    const closeBtn = document.getElementById('pg-close') as HTMLButtonElement;
-    var overlay = gate.querySelector('.pg-overlay');
-    var shown = false;
-
-    // ── Reset: dismiss del gate = el próximo click vuelve a abrirlo ─
+// ── Reset: dismiss del gate = el próximo click vuelve a abrirlo ─
     // Limpia el formulario (email/msg residuales) y borra cualquier
     // cooldown persistente de gates/skips para que la descarga del PDF
     // pueda volver a ofrecerse siempre que el usuario vuelva a pulsar.
     function resetGate() {
       if (emailInput) emailInput.value = '';
       if (msg) { msg.textContent = ''; msg.className = 'pg-msg'; }
-      gate._pendingUrl = '';
+      if (gate) gate._pendingUrl = '';
       try { localStorage.removeItem('hf-gate-skip'); localStorage.removeItem('hf-gate-skip-count'); } catch(e) {}
     }
 
     function showGate(url?: string) {
+      if (!gate) return;
       resetGate();
       gate._pendingUrl = url || DEFAULT_URL;
       if (shown) return;
@@ -144,6 +173,7 @@ const isES = locale === 'es';
       gate.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
       requestAnimationFrame(function() {
+        if (!gate) return;
         gate.style.opacity = '1';
         var card = gate.querySelector('.pg-card') as HTMLElement | null;
         if (card) card.style.transform = 'translateY(0) scale(1)';
@@ -152,10 +182,12 @@ const isES = locale === 'es';
     }
 
     function hideGate() {
+      if (!gate) return;
       gate.style.opacity = '0';
       var card = gate.querySelector('.pg-card') as HTMLElement | null;
       if (card) card.style.transform = 'translateY(20px) scale(0.95)';
       setTimeout(function() {
+        if (!gate) return;
         gate.style.display = 'none';
         gate.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
@@ -163,7 +195,40 @@ const isES = locale === 'es';
       shown = false;
     }
 
-    // ── Disparo global ──
+    // ── Submit → Telegram → descarga (se vincula en cada bind) ──
+    async function onSubmit(e: Event) {
+      if (!form || !emailInput || !msg) return;
+      e.preventDefault();
+      if (isBot()) { hideGate(); return; }
+      if (!checkRateLimit()) {
+        msg.textContent = isES ? 'Demasiados intentos. Intenta más tarde.' : 'Too many attempts. Try later.';
+        msg.className = 'pg-msg pg-msg--error';
+        return;
+      }
+      var email = emailInput.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.textContent = isES ? 'Email inválido' : 'Invalid email';
+        msg.className = 'pg-msg pg-msg--error';
+        return;
+      }
+      msg.textContent = isES ? 'Verificando...' : 'Checking...';
+      msg.className = 'pg-msg pg-msg--info';
+      trackRateLimit();
+      var ok = await sendToTelegram(email);
+      if (ok) {
+        msg.textContent = isES ? '¡Listo! Descargando tu informe ↓' : 'Done! Downloading your report ↓';
+        msg.className = 'pg-msg pg-msg--success';
+        setTimeout(function() {
+          triggerDownload((gate && gate._pendingUrl) || DEFAULT_URL);
+          hideGate();
+        }, 800);
+      } else {
+        msg.textContent = isES ? 'Error. Intenta de nuevo.' : 'Error. Try again.';
+        msg.className = 'pg-msg pg-msg--error';
+      }
+    }
+
+    // ── Disparo global (UNA vez; `document` persiste entre swaps SPA) ──
     // data-pdf-gate:      intercepta SIEMPRE el click y abre el gate (modo forzado).
     // data-pdf-gate-auto: solo intercepta en viewport <1024px (mobile); en desktop
     //                     deja el href nativo intacto (navegación normal).
@@ -180,46 +245,14 @@ const isES = locale === 'es';
     // Exponer API por si algo necesita abrir el gate programáticamente
     (window as unknown as { hfPdfGate?: { open: (url?: string) => void } }).hfPdfGate = { open: showGate };
 
-    // ── Cierre ──────────────────────────────────────────────────
-    if (closeBtn) closeBtn.addEventListener('click', hideGate);
-    if (overlay) overlay.addEventListener('click', hideGate);
-    document.addEventListener('keydown', function onEsc(e) {
-      if (e.key === 'Escape' && shown) { hideGate(); document.removeEventListener('keydown', onEsc); }
+    // ── Cierre con ESC (UNA vez) ────────────────────────────────
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && shown) hideGate();
     });
 
-    // ── Submit → Telegram → descarga ────────────────────────────
-    if (form && emailInput && msg) {
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        if (isBot()) { hideGate(); return; }
-        if (!checkRateLimit()) {
-          msg.textContent = isES ? 'Demasiados intentos. Intenta más tarde.' : 'Too many attempts. Try later.';
-          msg.className = 'pg-msg pg-msg--error';
-          return;
-        }
-        var email = emailInput.value.trim();
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          msg.textContent = isES ? 'Email inválido' : 'Invalid email';
-          msg.className = 'pg-msg pg-msg--error';
-          return;
-        }
-        msg.textContent = isES ? 'Verificando...' : 'Checking...';
-        msg.className = 'pg-msg pg-msg--info';
-        trackRateLimit();
-        var ok = await sendToTelegram(email);
-        if (ok) {
-          msg.textContent = isES ? '¡Listo! Descargando tu informe ↓' : 'Done! Downloading your report ↓';
-          msg.className = 'pg-msg pg-msg--success';
-          setTimeout(function() {
-            triggerDownload(gate._pendingUrl || DEFAULT_URL);
-            hideGate();
-          }, 800);
-        } else {
-          msg.textContent = isES ? 'Error. Intenta de nuevo.' : 'Error. Try again.';
-          msg.className = 'pg-msg pg-msg--error';
-        }
-      });
-    }
+    // ── Bind inicial + en cada navegación SPA ───────────────────
+    bindGate();
+    document.addEventListener('astro:page-load', bindGate);
   })();
 </script>
 

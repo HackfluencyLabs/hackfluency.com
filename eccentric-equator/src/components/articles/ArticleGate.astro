@@ -45,12 +45,31 @@ const isES = locale === 'es';
 
 <script>
   (function() {
-    const gate = document.getElementById('article-gate') as HTMLElement;
-    if (!gate) return;
+    // ── Ciclo de vida SPA (View Transitions) ─────────────────────────
+    // Los módulos bundle de Astro se ejecutan UNA sola vez (la primera
+    // página). Al navegar con el ClientRouter el <body> se reemplaza pero
+    // `document` persiste: los listeners globales aguantan el swap, pero las
+    // referencias a nodos quedan apuntando al DOM viejo.
+    // Solución: re-vincular en cada navegación vía `astro:page-load` +
+    // resolviendo los nodos frescos en cada bind. Listeners de `document`
+    // (ESC) se registran UNA sola vez aquí fuera.
+    var gate = null as HTMLElement | null;
+    var isES = false;
+    var BOT_TOKEN: string | null = null;
+    var CHAT_ID: string | null = null;
+    var form: HTMLFormElement | null = null;
+    var emailInput: HTMLInputElement | null = null;
+    var msg: HTMLElement | null = null;
+    var skip: HTMLButtonElement | null = null;
+    var shown = false;
+    var escDone = false;
 
-    var isES = gate.getAttribute('data-is-es') === '1';
-    var BOT_TOKEN = gate.getAttribute('data-bot-token');
-    var CHAT_ID = gate.getAttribute('data-chat-id');
+    // ── Guards para limpiar triggers del bind anterior (SPA) ─────────
+    var sentinel: HTMLElement | null = null;
+    var obs: IntersectionObserver | null = null;
+    var scrollCheck: (() => void) | null = null;
+    var fallbackTimer: number | undefined;
+    var fallbackScroll: (() => void) | null = null;
 
     // ── Re-engagement & rate limiting ────────────────────────────
     var SKIP_KEY = 'hf-gate-skip';
@@ -85,11 +104,6 @@ const isES = locale === 'es';
 
     // Already subscribed? 90d cooldown
     var SUB_COOLDOWN = 7776000; // 90 days
-
-    // Check if gate should be suppressed
-    var skipUntil = getExpiry(SKIP_KEY);
-    var doneUntil = getExpiry(DONE_KEY);
-    if (!isExpired(SKIP_KEY) || !isExpired(DONE_KEY)) return;
 
     // ── Rate limiter: max 3 submits per hour ────────────────────
     function checkRateLimit() {
@@ -134,125 +148,187 @@ const isES = locale === 'es';
       } catch(e) { return false; }
     }
 
-    // ── Gate show ─────────────────────────────────────────────
-    const form = document.getElementById('ag-form') as HTMLFormElement;
-    const emailInput = document.getElementById('ag-email') as HTMLInputElement;
-    const msg = document.getElementById('ag-msg') as HTMLElement;
-    const skip = document.getElementById('ag-skip') as HTMLButtonElement;
-    var shown = false;
-
+    // ── Gate show/hide ─────────────────────────────────────────
     function showGate() {
-      if (shown) return;
+      if (!gate || shown) return;
       shown = true;
       gate.style.display = 'flex';
       gate.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        if (!gate) return;
         gate.style.opacity = '1';
         var card = gate.querySelector('.ag-card') as HTMLElement | null;
         if (card) card.style.transform = 'translateY(0) scale(1)';
       });
     }
 
-function hideGate() {
+    // Nota: `shown` NO se resetea aquí a propósito — una vez descartado
+    // (skip/ESC/suscrito) el gate no vuelve a abrirse en la misma página.
+    // bindGate() lo resetea en cada navegación SPA.
+    function hideGate() {
+      if (!gate) return;
       gate.style.opacity = '0';
       var card = gate.querySelector('.ag-card') as HTMLElement | null;
       if (card) card.style.transform = 'translateY(20px) scale(0.95)';
       setTimeout(function() {
+        if (!gate) return;
         gate.style.display = 'none';
         gate.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
       }, 400);
     }
 
-    // ── Trigger logic ──────────────────────────────────────────
-    var article = document.querySelector('article') || document.querySelector('.art-content') || document.querySelector('main');
-    if (article) {
-      var triggerPx = article.offsetTop + article.offsetHeight * 0.35;
-      if (window.scrollY > triggerPx) { showGate(); return; }
-      var sentinel = document.createElement('div');
-      sentinel.style.cssText = 'height:1px;width:100%;position:absolute;pointer-events:none;';
-      sentinel.style.top = triggerPx + 'px';
-      document.body.appendChild(sentinel);
-
-      var obs = new IntersectionObserver(function(entries) {
-        if (entries.some(function(e) { return e.isIntersecting; })) {
-          showGate(); obs.disconnect();
-        }
-      }, { threshold: 0 });
-      obs.observe(sentinel);
-
-      var scrollFired = false;
-      var scrollCheck = function() {
-        if (scrollFired || shown) return;
-        if (window.scrollY > triggerPx) { scrollFired = true; showGate(); window.removeEventListener('scroll', scrollCheck); }
-      };
-      window.addEventListener('scroll', scrollCheck, { passive: true });
-    } else {
-      var timer = setTimeout(showGate, 3000);
-      window.addEventListener('scroll', function onScroll() {
-        if (window.scrollY > window.innerHeight) { clearTimeout(timer); showGate(); window.removeEventListener('scroll', onScroll); }
-      }, { passive: true });
+    // ── Skip → progressive cooldown (se vincula en cada bind) ──
+    function onSkip() {
+      incrementSkipCount();
+      setExpiry(SKIP_KEY, getSkipCooldown());
+      hideGate();
     }
 
-    // ── Form submit ────────────────────────────────────────────
-    if (form && emailInput && msg) {
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // ── Form submit (se vincula en cada bind) ──────────────────
+    async function onSubmit(e: Event) {
+      if (!form || !emailInput || !msg) return;
+      e.preventDefault();
 
-        // Honeypot: silent reject for bots
-        if (isBot()) { hideGate(); setExpiry(DONE_KEY, SUB_COOLDOWN); return; }
+      // Honeypot: silent reject for bots
+      if (isBot()) { hideGate(); setExpiry(DONE_KEY, SUB_COOLDOWN); return; }
 
-        // Rate limit check
-        if (!checkRateLimit()) {
-          msg.textContent = isES ? 'Demasiados intentos. Intenta más tarde.' : 'Too many attempts. Try later.';
-          msg.className = 'ag-msg ag-msg--error';
-          return;
-        }
+      // Rate limit check
+      if (!checkRateLimit()) {
+        msg.textContent = isES ? 'Demasiados intentos. Intenta más tarde.' : 'Too many attempts. Try later.';
+        msg.className = 'ag-msg ag-msg--error';
+        return;
+      }
 
-        var email = emailInput.value.trim();
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          msg.textContent = isES ? 'Email inválido' : 'Invalid email';
-          msg.className = 'ag-msg ag-msg--error';
-          return;
-        }
+      var email = emailInput.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.textContent = isES ? 'Email inválido' : 'Invalid email';
+        msg.className = 'ag-msg ag-msg--error';
+        return;
+      }
 
-        msg.textContent = isES ? 'Enviando...' : 'Sending...';
-        msg.className = 'ag-msg ag-msg--info';
-        trackRateLimit();
+      msg.textContent = isES ? 'Enviando...' : 'Sending...';
+      msg.className = 'ag-msg ag-msg--info';
+      trackRateLimit();
 
-        var ok = await sendToTelegram(email);
-        if (ok) {
-          msg.textContent = isES ? '¡Suscrito! Continúa leyendo ↓' : 'Subscribed! Continue reading ↓';
-          msg.className = 'ag-msg ag-msg--success';
-          setExpiry(DONE_KEY, SUB_COOLDOWN); // 90d re-engagement
-          localStorage.removeItem(SKIP_KEY);
-          setTimeout(hideGate, 1500);
-        } else {
-          msg.textContent = isES ? 'Error. Intenta de nuevo.' : 'Error. Try again.';
-          msg.className = 'ag-msg ag-msg--error';
-        }
-      });
+      var ok = await sendToTelegram(email);
+      if (ok) {
+        msg.textContent = isES ? '¡Suscrito! Continúa leyendo ↓' : 'Subscribed! Continue reading ↓';
+        msg.className = 'ag-msg ag-msg--success';
+        setExpiry(DONE_KEY, SUB_COOLDOWN); // 90d re-engagement
+        localStorage.removeItem(SKIP_KEY);
+        setTimeout(hideGate, 1500);
+      } else {
+        msg.textContent = isES ? 'Error. Intenta de nuevo.' : 'Error. Try again.';
+        msg.className = 'ag-msg ag-msg--error';
+      }
     }
 
-    // ── Skip → progressive cooldown ────────────────────────────
-    if (skip) {
-      skip.addEventListener('click', function() {
+    // ── Limpieza de triggers del bind anterior ─────────────────
+    // El sentinel vive en <body> (que persiste entre swaps SPA) y el
+    // observer/scroll apuntan a nodos muertos: hay que desmontarlos en
+    // cada bind o se acumulan y disparan gates fantasma.
+    function cleanupTriggers() {
+      if (obs) { obs.disconnect(); obs = null; }
+      if (sentinel) { sentinel.remove(); sentinel = null; }
+      if (scrollCheck) { window.removeEventListener('scroll', scrollCheck); scrollCheck = null; }
+      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = undefined; }
+      if (fallbackScroll) { window.removeEventListener('scroll', fallbackScroll); fallbackScroll = null; }
+    }
+
+    // ── Bind: resuelve nodos frescos + monta triggers ──────────
+    function bindGate() {
+      gate = document.getElementById('article-gate') as HTMLElement | null;
+      if (!gate) return;
+      // Evita re-vincular dos veces sobre el mismo nodo (astro:page-load + load inicial)
+      if (gate.dataset.hfBound === '1') return;
+      gate.dataset.hfBound = '1';
+
+      // Limpia triggers del bind anterior (nodo distinto tras el swap SPA):
+      // el sentinel vive en <body> (persiste) y el observer/scroll apuntan a
+      // nodos muertos. Debe ir DESPUÉS del guard: si el nodo ya está bound,
+      // sus triggers están vivos y no hay que tocarlos.
+      cleanupTriggers();
+
+      isES = gate.getAttribute('data-is-es') === '1';
+      BOT_TOKEN = gate.getAttribute('data-bot-token');
+      CHAT_ID = gate.getAttribute('data-chat-id');
+
+      form = document.getElementById('ag-form') as HTMLFormElement | null;
+      emailInput = document.getElementById('ag-email') as HTMLInputElement | null;
+      msg = document.getElementById('ag-msg') as HTMLElement | null;
+      skip = document.getElementById('ag-skip') as HTMLButtonElement | null;
+      shown = false;
+      escDone = false;
+
+      // Check if gate should be suppressed (persistido en localStorage:
+      // sobrevive a los swaps, así que se evalúa fresco en cada bind)
+      if (!isExpired(SKIP_KEY) || !isExpired(DONE_KEY)) return;
+
+      // ── Trigger logic ──────────────────────────────────────────
+      var article = document.querySelector('article') || document.querySelector('.art-content') || document.querySelector('main');
+      if (article) {
+        var triggerPx = article.offsetTop + article.offsetHeight * 0.35;
+        if (window.scrollY > triggerPx) { showGate(); return; }
+        sentinel = document.createElement('div');
+        sentinel.style.cssText = 'height:1px;width:100%;position:absolute;pointer-events:none;';
+        sentinel.style.top = triggerPx + 'px';
+        document.body.appendChild(sentinel);
+
+        obs = new IntersectionObserver(function(entries) {
+          if (entries.some(function(e) { return e.isIntersecting; })) {
+            showGate();
+            if (obs) { obs.disconnect(); obs = null; }
+          }
+        }, { threshold: 0 });
+        obs.observe(sentinel);
+
+        var scrollFired = false;
+        scrollCheck = function() {
+          if (scrollFired || shown) return;
+          if (window.scrollY > triggerPx) {
+            scrollFired = true;
+            showGate();
+            if (scrollCheck) { window.removeEventListener('scroll', scrollCheck); scrollCheck = null; }
+          }
+        };
+        window.addEventListener('scroll', scrollCheck, { passive: true });
+      } else {
+        fallbackTimer = window.setTimeout(showGate, 3000);
+        fallbackScroll = function() {
+          if (window.scrollY > window.innerHeight) {
+            if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = undefined; }
+            showGate();
+            if (fallbackScroll) { window.removeEventListener('scroll', fallbackScroll); fallbackScroll = null; }
+          }
+        };
+        window.addEventListener('scroll', fallbackScroll, { passive: true });
+      }
+
+      // ── Form submit ────────────────────────────────────────────
+      if (form && emailInput && msg) form.addEventListener('submit', onSubmit);
+
+      // ── Skip → progressive cooldown ────────────────────────────
+      if (skip) skip.addEventListener('click', onSkip);
+    }
+
+    // ── ESC key (UNA vez; `document` persiste entre swaps SPA) ──
+    // Trata ESC como skip (cooldown progresivo). `escDone` evita que
+    // ESC re-disparado sobre el mismo gate ya descartado siga sumando
+    // cooldowns (shown queda true tras hideGate a propósito).
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && shown && !escDone) {
+        escDone = true;
         incrementSkipCount();
         setExpiry(SKIP_KEY, getSkipCooldown());
         hideGate();
-      });
-    }
-
-    // ── ESC key ────────────────────────────────────────────────
-    document.addEventListener('keydown', function onEsc(e) {
-      if (e.key === 'Escape' && shown) {
-        incrementSkipCount();
-        setExpiry(SKIP_KEY, getSkipCooldown());
-        hideGate();
-        document.removeEventListener('keydown', onEsc);
       }
     });
+
+    // ── Bind inicial + en cada navegación SPA ───────────────────
+    bindGate();
+    document.addEventListener('astro:page-load', bindGate);
   })();
 </script>
 
@@ -278,4 +354,3 @@ function hideGate() {
   .ag-skip:hover { color:var(--hf-text-muted,#888); text-decoration-color:currentColor; }
   @media (max-width:480px) { .ag-card { padding:36px 24px 28px; } .ag-title { font-size:1.25rem; } .ag-input-row { flex-direction:column; } .ag-btn { width:100%; } }
 </style>
-
