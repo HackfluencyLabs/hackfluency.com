@@ -146,13 +146,13 @@ h2{font-size:clamp(24px,3.4vw,40px);font-weight:800;letter-spacing:-.5px;margin:
 /* ===== ROI de Cumplimiento: Matriz de Cobertura Legal por Control =====
    Replica EXACTA del chart 'ROI en el cumplimiento' del informe de convergencia
    (convergencia_normativa.html): heatmap ECharts con fondo blanco. */
-.roi-hub-wrap{background:#fff;border-radius:14px;border:1px solid var(--line);padding:18px 18px 12px;box-shadow:0 4px 18px rgba(0,0,0,.3)}
+.roi-hub-wrap{background:#fff;border-radius:14px;border:1px solid var(--line);padding:18px 18px 12px;box-shadow:0 4px 18px rgba(0,0,0,.3);overflow-x:auto}
 .roi-hub-wrap h4{margin:0 0 4px;font-size:18px;font-weight:800;color:#1A1A18}
 .roi-hub-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#495057;margin:10px 0 6px;line-height:1.5}
 .roi-hub-legend .k{display:inline-flex;align-items:center;gap:6px}
 .roi-hub-legend .sw{display:inline-block;width:12px;height:12px;border-radius:2px;flex:0 0 auto}
 .roi-hub-legend .ln{display:inline-block;width:20px;border-top:2px dashed #38404A;vertical-align:middle}
-#chart-roi{width:100%;height:380px}
+#chart-roi{width:100%;min-width:940px;height:380px}
 .roi-hub-fn{font-size:11px;color:#6C757D;margin-top:6px;text-align:right;line-height:1.5}
 @media(max-width:700px){.metrics{grid-template-columns:1fr}.qbox{padding:20px}
 </style>
@@ -523,7 +523,7 @@ function initRoiChart(){
       '<br/><span style=color:#6C757D>Requerido por esta ley:</span> <b>'+(info.required?'S&iacute; (exige su est&aacute;ndar)':'No')+'</b>'+
       '<br/><span style=color:#6C757D>Ley se completa en paso:</span> '+(lawDone[law]!=null?lawDone[law]:'-')+
       '<br/><span style=color:#6C757D>Controles requeridos:</span> '+lawCtrl[law].length;}},
-  grid:{left:132,right:160,top:14,bottom:80},
+  grid:{left:135,right:150,top:14,bottom:80},
   xAxis:{type:'category',data:allCtrls,axisLabel:{fontSize:9,interval:0,rotate:38,color:'#6C757D',width:86,overflow:'break'},axisLine:{lineStyle:{color:'#DEE2E6'}},axisTick:{show:false},splitArea:{show:false}},
   yAxis:{type:'category',data:ROI_LAWS,inverse:true,axisLabel:{fontSize:12,fontWeight:'bold',color:'#38404A',
     formatter:function(v){return v+(MULTAS[v]?'  {m|'+fmtUTM(MULTAS[v])+'}':(v==='21.595'?'  {m|sanc. penal}':(v==='NCG'?'  {m|sanc. CMF}':'  {m|voluntaria}')));},
