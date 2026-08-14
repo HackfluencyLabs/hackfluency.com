@@ -84,10 +84,10 @@ const isES = locale === 'es';
       CHAT_ID = gate.getAttribute('data-chat-id');
       DEFAULT_URL = gate.getAttribute('data-pdf-url') ?? '';
 
-      form = document.getElementById('pg-form');
-      emailInput = document.getElementById('pg-email');
+      form = document.getElementById('pg-form') as HTMLFormElement | null;
+      emailInput = document.getElementById('pg-email') as HTMLInputElement | null;
       msg = document.getElementById('pg-msg');
-      closeBtn = document.getElementById('pg-close');
+      closeBtn = document.getElementById('pg-close') as HTMLButtonElement | null;
       overlay = gate.querySelector('.pg-overlay');
 
       if (closeBtn) closeBtn.addEventListener('click', hideGate);
