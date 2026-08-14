@@ -1,5 +1,5 @@
 ---
-import NavAuthButtons from '../Auth/NavAuthButtons';
+import NavAuthButtons from '../Auth/NavAuthButtons.astro';
 import LanguageSelector from '../LanguageSelector.astro';
 import { getTranslations } from '../../i18n/utils';
 import type { Language } from '../../i18n/translations';
@@ -360,7 +360,7 @@ const values = [
     </div>
     <div class="nav-actions">
       <LanguageSelector locale={locale} />
-      <NavAuthButtons client:only="react" />
+      <NavAuthButtons locale={locale} />
     </div>
     <button class="mobile-menu-btn" aria-label={t('nav.menuOpen')} aria-expanded="false" aria-controls="mobile-menu">
       <span></span>
@@ -380,7 +380,7 @@ const values = [
       </nav>
       <div class="mobile-nav-actions">
         <LanguageSelector locale={locale} />
-        <NavAuthButtons client:only="react" mobile={true} />
+        <NavAuthButtons locale={locale} mobile={true} />
       </div>
     </div>
   </div>
