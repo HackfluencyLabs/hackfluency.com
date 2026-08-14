@@ -8,7 +8,7 @@ export default defineConfig({
   base: '/',
   output: 'static',
   build: {
-    inlineStylesheets: 'always',
+    inlineStylesheets: 'auto',
   },
   integrations: [
     react(),
