@@ -71,7 +71,7 @@ export const translations: Record<Language, Translations> = {
       'Análisis de sesgos cognitivos, dinámicas organizacionales y cultura de seguridad. El riesgo no es solo técnico — es humano.',
     'services.research.title': 'Instrumentos y Herramientas',
     'services.research.desc':
-      'Investigación técnica independiente y herramientas propietarias — incluyendo CodeRed — que generan innovación aplicada en cada proyecto.',
+      'Investigación técnica independiente y herramientas propietarias — incluyendo RedBrain — que generan innovación aplicada en cada proyecto.',
     'services.dataPrivacy.title': 'Privacidad y Datos',
     'services.dataPrivacy.desc':
       'Análisis de exposición de datos, cumplimiento normativo y arquitecturas de privacidad desde el diseño. Evaluamos el riesgo desde lo técnico y lo contextual.',
@@ -271,11 +271,11 @@ export const translations: Record<Language, Translations> = {
     'tooling.upcoming.desc':
       'Más herramientas surgen de nuestro pipeline de investigación. Las Notas de Arquitectura y los Artículos a menudo se cristalizan en sistemas de producción. Sigue el ',
     'tooling.upcoming.link': 'Hub de Investigación',
-    'tooling.origin.title': 'El Origen de CodeRed',
+    'tooling.origin.title': 'El Origen de RedBrain',
     'tooling.origin.note': 'Nota',
     'tooling.origin.article': 'Artículo',
     'tooling.origin.tooling': 'Herramienta',
-    'tooling.origin.aria': 'Nota de Arquitectura sobre Agentes Red Team Autónomos se convirtió en Artículo de Investigación "Arquitectura de Sistemas Ofensivos MCP" se convirtió en la herramienta CodeRed',
+    'tooling.origin.aria': 'Nota de Arquitectura sobre Agentes Red Team Autónomos se convirtió en Artículo de Investigación "Arquitectura de Sistemas Ofensivos MCP" se convirtió en la herramienta RedBrain',
     'research.flowAria': 'Flujo de producción de conocimiento: Nota de Arquitectura evoluciona a Artículo de Investigación, que evoluciona a Implementación de Herramienta',
     'notes.evolution.aria': 'Notas evolucionan a Artículos y a Herramientas',
     'tooling.footer.back': '← Investigación',
@@ -446,7 +446,7 @@ export const translations: Record<Language, Translations> = {
       'Analysis of cognitive biases, organizational dynamics, and security culture. Risk is not just technical — it is human.',
     'services.research.title': 'Instruments & Tooling',
     'services.research.desc':
-      'Independent technical research and proprietary tooling — including CodeRed — generating applied innovation across every engagement.',
+      'Independent technical research and proprietary tooling — including RedBrain — generating applied innovation across every engagement.',
     'services.dataPrivacy.title': 'Privacy & Data',
     'services.dataPrivacy.desc':
       'Data exposure analysis, regulatory compliance, and privacy-by-design architectures. We assess risk from both technical and contextual perspectives.',
@@ -646,11 +646,11 @@ export const translations: Record<Language, Translations> = {
     'tooling.upcoming.desc':
       'Additional tooling emerges from our research pipeline. Architecture Notes and Articles often crystallize into production systems. Follow the ',
     'tooling.upcoming.link': 'Research Hub',
-    'tooling.origin.title': 'The Origin of CodeRed',
+    'tooling.origin.title': 'The Origin of RedBrain',
     'tooling.origin.note': 'Note',
     'tooling.origin.article': 'Article',
     'tooling.origin.tooling': 'Tooling',
-    'tooling.origin.aria': 'Architecture Note on Autonomous Red Team Agents became Research Article "Architecture of MCP-Driven Offensive Systems" became CodeRed tooling',
+    'tooling.origin.aria': 'Architecture Note on Autonomous Red Team Agents became Research Article "Architecture of MCP-Driven Offensive Systems" became RedBrain tooling',
     'research.flowAria': 'Knowledge production flow: Architecture Note evolves into Research Article, which evolves into Tooling Implementation',
     'notes.evolution.aria': 'Notes evolve into Articles and into Tooling',
     'tooling.footer.back': '← Research',
