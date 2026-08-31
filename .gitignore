@@ -66,3 +66,6 @@ eccentric-equator/src/components/DashboardBuilder/styles.css
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Homepage redesign iteration screenshots (debug, not part of product)
+homepage-*.png
