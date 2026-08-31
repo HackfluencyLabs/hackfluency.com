@@ -26,7 +26,7 @@ export async function exportDashboardToPDF(
   // Find the canvas element
   const canvasElement = document.querySelector(canvasSelector) as HTMLElement;
   if (!canvasElement) {
-    console.error('Canvas element not found');
+    if (import.meta.env.DEV) console.error('Canvas element not found');
     throw new Error('Unable to generate PDF: canvas element not found.');
   }
 
@@ -306,7 +306,7 @@ export async function exportDashboardToPDF(
     pdf.save(filename);
 
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    if (import.meta.env.DEV) console.error('Error generating PDF:', error);
     throw error instanceof Error ? error : new Error('Failed to generate PDF. Please try again.');
   } finally {
     // Restore original state

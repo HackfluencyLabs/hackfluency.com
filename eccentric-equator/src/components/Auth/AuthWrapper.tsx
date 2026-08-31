@@ -84,7 +84,7 @@ function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
           .select('dashboard_id');
 
         if (accessError) {
-          console.error('Error fetching authorizations:', accessError);
+          if (import.meta.env.DEV) console.error('Error fetching authorizations:', accessError);
           setAuthorizedDashboards(new Set());
           setDashboards([]);
           return;
@@ -104,7 +104,7 @@ function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
           .in('id', authorizedIds);
 
         if (dashboardError) {
-          console.error('Error fetching dashboard data:', dashboardError);
+          if (import.meta.env.DEV) console.error('Error fetching dashboard data:', dashboardError);
           setDashboards([]);
         } else if (dashboardData) {
           const parsedDashboards: SavedDashboard[] = dashboardData.map(row => {
@@ -126,8 +126,8 @@ function AuthWrapper({ children, allowPublic = false }: AuthWrapperProps) {
           });
           setDashboards(parsedDashboards);
         }
-      } catch (err) {
-        console.error('Authorization fetch failed:', err);
+} catch (err) {
+      if (import.meta.env.DEV) console.error('Authorization fetch failed:', err);
         setAuthorizedDashboards(new Set());
         setDashboards([]);
       } finally {

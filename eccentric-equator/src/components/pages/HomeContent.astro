@@ -337,7 +337,7 @@ const values = [
           message.textContent = subscribeForm?.getAttribute('data-msg-error') ?? result.message;
 
         } catch (error) {
-          console.error(error);
+          if (import.meta.env.DEV) console.error(error);
           message.textContent = subscribeForm?.getAttribute('data-msg-network') ?? '';
           message.className = "form-message error";
         }

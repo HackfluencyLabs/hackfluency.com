@@ -31,7 +31,7 @@ function safeStorageGet(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch (error) {
-    console.error(`Error reading from localStorage [${key}]:`, error);
+    if (import.meta.env.DEV) console.error(`Error reading from localStorage [${key}]:`, error);
     return null;
   }
 }
@@ -42,7 +42,7 @@ function safeStorageSet(key: string, value: string): boolean {
     localStorage.setItem(key, value);
     return true;
   } catch (error) {
-    console.error(`Error writing to localStorage [${key}]:`, error);
+    if (import.meta.env.DEV) console.error(`Error writing to localStorage [${key}]:`, error);
     if (error instanceof DOMException && 
         (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
       throw new Error('Storage limit reached. Please delete old dashboards or versions.');
@@ -58,7 +58,7 @@ export function getAllDashboards(): SavedDashboard[] {
   try {
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error parsing dashboards from storage:', error);
+    if (import.meta.env.DEV) console.error('Error parsing dashboards from storage:', error);
     return [];
   }
 }
@@ -281,7 +281,7 @@ function getAllVersions(): DashboardVersion[] {
   try {
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error parsing versions from storage:', error);
+    if (import.meta.env.DEV) console.error('Error parsing versions from storage:', error);
     return [];
   }
 }

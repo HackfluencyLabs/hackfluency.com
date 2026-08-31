@@ -496,7 +496,7 @@ const CTIDashboardInner: React.FC = () => {
         .from('TEST')
         .download(filename);
       if (downloadError || !fileBlob) {
-        console.error('Supabase Storage error:', downloadError);
+        if (import.meta.env.DEV) console.error('Supabase Storage error:', downloadError);
         throw new Error('Could not access intelligence data');
       }
       const text = await fileBlob.text();
@@ -506,7 +506,7 @@ const CTIDashboardInner: React.FC = () => {
       setError(null);
     } catch (err) {
       setError('Intelligence data currently unavailable');
-      console.error('Failed to load CTI dashboard:', err);
+      if (import.meta.env.DEV) console.error('Failed to load CTI dashboard:', err);
     } finally {
       setLoading(false);
     }

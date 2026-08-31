@@ -83,3 +83,7 @@ preview-lh*.json
 preview.pid
 # Backup of pre-edit PDF report
 convergencia_normativa.backup.pdf
+# Abandoned base64 PNG dump (legacy logo work file)
+temp_logo.txt
+# Internal planning docs (workflow metadata, not for public repo)
+docs/_internal/

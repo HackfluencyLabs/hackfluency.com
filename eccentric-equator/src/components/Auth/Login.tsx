@@ -39,7 +39,7 @@ function Login() {
 
       setEmailSent(true);
     } catch (err: unknown) {
-      console.error('Login error:', err);
+      if (import.meta.env.DEV) console.error('Login error:', err);
       if (err instanceof Error && err.name === 'TimeoutError') {
         setError(t('login.networkTimeout', locale));
       } else {
