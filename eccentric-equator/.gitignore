@@ -67,3 +67,19 @@ eccentric-equator/src/components/DashboardBuilder/styles.css
 # Misc
 *.bak
 *.orig
+
+# --- HFDEV session/debug artifacts ---
+# Temporary debug snapshots (do not commit)
+.tmp_*.png
+.tmp_*.txt
+.tmp_pdf_check/
+# ROI heatmap verification screenshots (autodiag commits)
+autodiag_roi*.png
+autodiag-roi-*.png
+verify-roi-*.png
+# Lighthouse / preview server reports (regenerated on demand)
+lighthouse-report/
+preview-lh*.json
+preview.pid
+# Backup of pre-edit PDF report
+convergencia_normativa.backup.pdf
