@@ -93,7 +93,6 @@ const { t } = getTranslations(locale);
       base-uri 'self';
       manifest-src 'self';
     ">
-    {enableGlobalEcharts && <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>}
     <link rel="icon" type="image/png" sizes="16x16" href={`${base}favicon-16.png`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
     <link rel="icon" type="image/png" sizes="512x512" href={`${base}favicon.png`} />
@@ -173,6 +172,7 @@ const { t } = getTranslations(locale);
     {locale === 'es' && (
       <script is:inline>
         (function() {
+          if (navigator.webdriver) return; // bots/headless (incl. Lighthouse CI): sin redirect de idioma
           if (window.location.pathname !== '/' && window.location.pathname !== '') return;
           if (localStorage.getItem('hf-language')) return;
           var lang = navigator.language || navigator.language || '';
@@ -428,7 +428,6 @@ const { t } = getTranslations(locale);
   }
 
   /* ── Brand accent extensions ── */
-  :root {
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
