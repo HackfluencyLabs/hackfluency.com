@@ -86,11 +86,11 @@ export const translations: Record<Language, Translations> = {
 
     /* ── About ── */
     'about.tag': 'El Grupo',
-    'about.title': 'Grupo de Investigación Interdisciplinario',
+    'about.title': 'Observatorio Interdisciplinario',
     'about.text1':
-      'Somos un colectivo de profesionales independientes — amigos, colegas — que comparten una visión, una cultura y un ethos de indagación rigurosa. Nos reunimos cuando un problema lo amerita.',
+      'Un observatorio independiente que aúna investigación rigurosa y operación. Diseñamos servicios para banca, TI, retail y consultoría internacional — desde Red Team y OSINT hasta flujos con IA y orquestación de equipos técnicos.',
     'about.text2':
-      'Cada miembro mantiene su independencia profesional. Todos compartimos la convicción de que los problemas más complejos no se resuelven desde una sola disciplina: requieren correlacionar ingeniería, psicología, sociología, filosofía de la ciencia y pensamiento estratégico.',
+      'Cada miembro mantiene su independencia. Nos convoca el problema, no la orgánica: correlacionamos ingeniería, psicología, sociología y filosofía de la ciencia para entender el riesgo donde lo técnico, lo humano y lo social convergen.',
     'about.panel.digital': 'Digital',
     'about.panel.digitalDesc': 'Arquitectura y automatización a escala',
     'about.panel.human': 'Humano',
@@ -316,8 +316,8 @@ export const translations: Record<Language, Translations> = {
     'partners.upcoming.desc': 'Institutos, laboratorios, herramientas y entidades que se suman al observatorio.',
 
     /* ── Miembros ── */
-    'member.marcelo.role': 'Arquitecto Principal · Sistemas Complejos',
-    'member.marcelo.desc': 'Formación en filosofía de la ciencia y sistemas complejos. Modelamiento interdisciplinario, arquitectura ofensiva e investigación. La filosofía y los sistemas complejos como habilidad integradora entre disciplinas.',
+    'member.marcelo.role': 'Director de Investigación · Arquitecto de Seguridad Ofensiva',
+    'member.marcelo.desc': 'Pensamiento adversarial aplicado a sistemas IA y organizaciones. 10+ años operando Red Team en banca, TI y retail — de malware/exploit a arquitectura — e integrando OSINT/CTI, automatización e IA con filosofía de sistemas complejos. CRTP · CEH · AWSE. Autor: Red Team LogBook. BSides Chile.',
     'member.cinthia.role': 'Consultora Asociada · Sistemas Sociales y Comportamiento',
     'member.cinthia.desc': 'Áreas humanas: sistemas sociales, psicología analítica, comportamiento, privacidad y capacitación. Autora del artículo «El odio como identidad» sobre radicalización adolescente digital.',
     'member.victor.name': 'Victor Cayupil',
@@ -461,11 +461,11 @@ export const translations: Record<Language, Translations> = {
 
     /* ── About ── */
     'about.tag': 'The Group',
-    'about.title': 'Interdisciplinary Research Group',
+    'about.title': 'Interdisciplinary Observatory',
     'about.text1':
-      'We are a collective of independent professionals — friends, colleagues — who share a vision, a culture, and an ethos of rigorous inquiry. We convene when a problem demands it.',
+      'An independent observatory blending rigorous research with operational delivery. We design services for banking, IT, retail and intl. consulting — from Red Team and OSINT to AI-enabled workflows and technical team orchestration.',
     'about.text2':
-      'Each member maintains their professional independence. All of us share the conviction that the most complex problems cannot be solved from a single discipline: they require correlating engineering, psychology, sociology, philosophy of science, and strategic thinking.',
+      'Each member stays independent. The problem convenes us: we correlate engineering, psychology, sociology and philosophy of science to map risk where technical, human and social layers converge.',
     'about.panel.digital': 'Digital',
     'about.panel.digitalDesc': 'Architecture & automation at scale',
     'about.panel.human': 'Human',
@@ -905,8 +905,8 @@ export const translations: Record<Language, Translations> = {
     'partners.upcoming.desc': 'Institutes, labs, tools, and entities joining the observatory.',
 
     /* ── Members ── */
-    'member.marcelo.role': 'Principal Architect · Complex Systems',
-    'member.marcelo.desc': 'Background in philosophy of science and complex systems. Interdisciplinary modeling, offensive architecture, and research. Philosophy and complex systems as the integrating thread across disciplines.',
+    'member.marcelo.role': 'Research Director · Offensive Security Architect',
+    'member.marcelo.desc': 'Adversarial thinking for AI systems and organizations. 10+ years running Red Team ops across banking, IT and retail — from malware/exploit to architecture — bridging OSINT/CTI, automation and AI with philosophy of complex systems. CRTP · CEH · AWSE. Author: Red Team LogBook. BSides Chile speaker.',
     'member.cinthia.role': 'Associate Consultant · Social Systems & Behavior',
     'member.cinthia.desc': 'Human-focused areas: social systems, analytical psychology, behavior, privacy, and training. Author of «Hatred as Identity» on adolescent digital radicalization.',
     'member.victor.name': 'Victor Cayupil',

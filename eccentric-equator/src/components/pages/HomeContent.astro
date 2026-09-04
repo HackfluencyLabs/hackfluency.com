@@ -771,13 +771,13 @@ const values = [
         <p class="member-role">{t('member.marcelo.role')}</p>
         <p class="member-desc">{t('member.marcelo.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--digital" title={t('about.panel.digital')}>
+          <span class="m-lens m-lens--digital" title={locale === 'es' ? 'Adversarial · Red Team, OSINT/CTI y arquitectura ofensiva' : 'Adversarial · Red Team, OSINT/CTI & offensive architecture'}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
-            <span>{t('about.panel.digital')}</span>
+            <span>Adversarial</span>
           </span>
-          <span class="m-lens m-lens--philosophy" title={t('about.panel.philosophy')}>
+          <span class="m-lens m-lens--philosophy" title={locale === 'es' ? 'Sistémico · Filosofía de la ciencia e IA y complejidad organizacional' : 'Systemic · Philosophy of science & AI and organizational complexity'}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></svg>
-            <span>{t('about.panel.philosophy')}</span>
+            <span>{locale === 'es' ? 'Sistémico' : 'Systemic'}</span>
           </span>
         </div>
       </div>
