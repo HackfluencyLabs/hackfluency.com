@@ -85,19 +85,45 @@ jobs:
           mkdir -p ./dist
           tar -xvf ./artifact/artifact.tar -C ./dist
 
-      - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli
+      - name: Install Lighthouse
+        run: npm install -g lighthouse@13.4.1
 
-      - name: Run Lighthouse CI
+      - name: Run Lighthouse
         id: lighthouse
         run: |
-          # Start a local server to serve the built site
-          npx serve dist -l 8080 --single &
+          # Start a local static server. python3 http.server avoids the npx serve
+          # on-demand install race and is compatible with the runner's Chrome.
+          python3 -m http.server 8080 --directory dist &
           SERVER_PID=$!
-          sleep 5
-          
-          # Run Lighthouse collect (without strict assertions)
-          lhci collect --url=http://localhost:8080/ --numberOfRuns=1
+
+          # Wait for server to be ready (up to 30s) to avoid Chrome interstitial
+          # when the runner is under load and the port binds slowly.
+          for i in {1..30}; do
+            if curl -sf -o /dev/null http://localhost:8080/; then
+              echo "Server ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+          if ! curl -sf -o /dev/null http://localhost:8080/; then
+            echo "Server failed to start"
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Run Lighthouse 13.x, which supports the runner's Chrome 152
+          mkdir -p .lighthouseci
+          lighthouse http://localhost:8080/ \
+            --output=json \
+            --output-path=./.lighthouseci/lhr-0.json \
+            --quiet \
+            --chrome-flags="--headless --no-sandbox --disable-gpu --disable-dev-shm-usage"
+          LH_EXIT=$?
+          kill $SERVER_PID 2>/dev/null || true
+          if [ $LH_EXIT -ne 0 ]; then
+            echo "Lighthouse failed with exit code $LH_EXIT"
+            exit 1
+          fi
           
           # Debug: List lighthouse output directory
           echo "📂 Listing .lighthouseci directory:"
