@@ -805,13 +805,13 @@ const values = [
         <p class="member-role">{t('member.cinthia.role')}</p>
         <p class="member-desc">{t('member.cinthia.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--human" title={t('about.panel.human')}>
+          <span class="m-lens m-lens--human" title={locale === 'es' ? 'Humana · Sistemas sociales, psicología analítica y comportamiento' : 'Human · Social systems, analytical psychology & behavior'}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            <span>{t('about.panel.human')}</span>
+            <span>{locale === 'es' ? 'Humana' : 'Human'}</span>
           </span>
-          <span class="m-lens m-lens--social" title={t('about.panel.social')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
-            <span>{t('about.panel.social')}</span>
+          <span class="m-lens m-lens--comunicacion" title={locale === 'es' ? 'Comunicación · Divulgación, apoyo directivo y capacitación' : 'Communication · Outreach, executive support & training'}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>{locale === 'es' ? 'Comunicación' : 'Communication'}</span>
           </span>
         </div>
       </div>
@@ -2465,6 +2465,7 @@ const values = [
   .m-lens--sistemico { color: var(--hf-accent-analysis); border-color: color-mix(in srgb, var(--hf-accent-analysis) 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--hf-accent-analysis) 12%, var(--hf-bg)) 0%, color-mix(in srgb, var(--hf-accent-analysis) 4%, var(--hf-bg)) 100%); }
   .m-lens--gobierno { color: #0E7490; border-color: color-mix(in srgb, #0E7490 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, #0E7490 12%, var(--hf-bg)) 0%, color-mix(in srgb, #0E7490 4%, var(--hf-bg)) 100%); }
   .m-lens--operacion { color: #B45309; border-color: color-mix(in srgb, #B45309 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, #B45309 12%, var(--hf-bg)) 0%, color-mix(in srgb, #B45309 4%, var(--hf-bg)) 100%); }
+  .m-lens--comunicacion { color: #0E9AA6; border-color: color-mix(in srgb, #0E9AA6 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, #0E9AA6 12%, var(--hf-bg)) 0%, color-mix(in srgb, #0E9AA6 4%, var(--hf-bg)) 100%); }
 
   .member-name {
     font-family: 'Space Grotesk', sans-serif;

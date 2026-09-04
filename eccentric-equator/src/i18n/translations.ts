@@ -318,8 +318,8 @@ export const translations: Record<Language, Translations> = {
     /* ── Miembros ── */
     'member.marcelo.role': 'Director de Investigación · Arquitecto de Seguridad Ofensiva',
     'member.marcelo.desc': 'Pensamiento adversarial aplicado a sistemas IA y organizaciones. 10+ años operando Red Team en banca, TI y retail — de malware/exploit a arquitectura — e integrando OSINT/CTI, automatización e IA con filosofía de sistemas complejos. CRTP · CEH · AWSE. Autor: Red Team LogBook. BSides Chile.',
-    'member.cinthia.role': 'Consultora Asociada · Sistemas Sociales y Comportamiento',
-    'member.cinthia.desc': 'Áreas humanas: sistemas sociales, psicología analítica, comportamiento, privacidad y capacitación. Autora del artículo «El odio como identidad» sobre radicalización adolescente digital.',
+    'member.cinthia.role': 'Asistente de investigación · Seguridad digital y sistemas sociales',
+    'member.cinthia.desc': 'Seguridad digital aplicada a sistemas sociales: comportamiento, privacidad y capacitación. Apoyo investigativo en artículos y servicios a terceros. Autora del artículo «El odio como identidad» sobre radicalización adolescente digital.',
     'member.victor.name': 'Victor Cayupil',
     'member.victor.role': 'Partner — CISO & Head de Ciberseguridad · Ágil Chile',
     'member.victor.desc': '19 años liderando seguridad en banca y seguros regulados — Falabella Financiero, Banco Falabella, Grupo Security y BNP Paribas LATAM (6 países). Gobierno, SOC/CSIRT, IAM/PAM y Cloud/DevSecOps bajo marcos NIST, ISO 27001, PCI y GDPR. Hoy board member en Ágil Chile impulsando portafolio de ciberseguridad e IA. CISSP.',
@@ -907,8 +907,8 @@ export const translations: Record<Language, Translations> = {
     /* ── Members ── */
     'member.marcelo.role': 'Research Director · Offensive Security Architect',
     'member.marcelo.desc': 'Adversarial thinking for AI systems and organizations. 10+ years running Red Team ops across banking, IT and retail — from malware/exploit to architecture — bridging OSINT/CTI, automation and AI with philosophy of complex systems. CRTP · CEH · AWSE. Author: Red Team LogBook. BSides Chile speaker.',
-    'member.cinthia.role': 'Associate Consultant · Social Systems & Behavior',
-    'member.cinthia.desc': 'Human-focused areas: social systems, analytical psychology, behavior, privacy, and training. Author of «Hatred as Identity» on adolescent digital radicalization.',
+    'member.cinthia.role': 'Research Assistant · Digital security & social systems',
+    'member.cinthia.desc': 'Digital security applied to social systems: behavior, privacy, and training. Research support on articles and services for third parties. Author of «Hatred as Identity» on adolescent digital radicalization.',
     'member.victor.name': 'Victor Cayupil',
     'member.victor.role': 'Partner — CISO & Cybersecurity Head · Ágil Chile',
     'member.victor.desc': '19 years leading security in regulated banking & insurance — Falabella Financiero, Banco Falabella, Grupo Security and BNP Paribas LATAM (6 countries). Governance, SOC/CSIRT, IAM/PAM and Cloud/DevSecOps under NIST, ISO 27001, PCI and GDPR. Now board member at Ágil Chile building cybersecurity & AI portfolio. CISSP.',
