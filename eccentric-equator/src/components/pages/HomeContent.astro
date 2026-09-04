@@ -781,16 +781,20 @@ const values = [
           </span>
         </div>
       </div>
-      <!-- Victor Cayupil — consultor asociado Ágil Chile -->
+      <!-- Victor Cayupil — Partner Ágil Chile -->
       <div class="member-card">
         <div class="member-photo"><img src="/assets/victor-cayupil.webp" alt="Victor Cayupil" class="member-photo-img" width="120" height="120"/></div>
         <h3 class="member-name">{t('member.victor.name')}</h3>
         <p class="member-role">{t('member.victor.role')}</p>
         <p class="member-desc">{t('member.victor.desc')}</p>
         <div class="member-lenses">
-          <span class="m-lens m-lens--digital" title={t('about.panel.digital')}>
+          <span class="m-lens m-lens--philosophy" title={locale === 'es' ? 'Gobierno · NIST, ISO 27001, PCI, GDPR y marco normativo' : 'Governance · NIST, ISO 27001, PCI, GDPR & compliance'}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></svg>
+            <span>{locale === 'es' ? 'Gobierno' : 'Governance'}</span>
+          </span>
+          <span class="m-lens m-lens--digital" title={locale === 'es' ? 'Operación · SOC/CSIRT, IAM/PAM y Cloud/DevSecOps' : 'Operations · SOC/CSIRT, IAM/PAM & Cloud/DevSecOps'}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
-            <span>{t('about.panel.digital')}</span>
+            <span>{locale === 'es' ? 'Operación' : 'Operations'}</span>
           </span>
         </div>
       </div>
