@@ -94,24 +94,8 @@ jobs:
           # Start a local server to serve the built site
           npx serve dist -l 8080 --single &
           SERVER_PID=$!
-
-          # Wait for server to be ready (health check, up to 30s)
-          # Replaces fragile `sleep 5` to avoid CHROME_INTERSTITIAL_ERROR
-          # when runners are under load and serve takes longer to bind the port.
-          echo "Waiting for server to be ready..."
-          for i in {1..30}; do
-            if curl -sf -o /dev/null http://localhost:8080/; then
-              echo "Server ready after ${i}s"
-              break
-            fi
-            sleep 1
-          done
-          if ! curl -sf -o /dev/null http://localhost:8080/; then
-            echo "Server failed to start within 30s"
-            kill $SERVER_PID 2>/dev/null || true
-            exit 1
-          fi
-
+          sleep 5
+          
           # Run Lighthouse collect (without strict assertions)
           lhci collect --url=http://localhost:8080/ --numberOfRuns=1
           
