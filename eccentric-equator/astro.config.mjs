@@ -13,13 +13,6 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      i18n: {
-        defaultLocale: 'es',
-        locales: {
-          es: 'es-ES',
-          en: 'en-US',
-        },
-      },
       serialize: (entry) => /** @type {import('@astrojs/sitemap').SitemapItem} */ ({
         ...entry,
         changefreq: entry.changefreq ?? 'monthly',
@@ -28,11 +21,4 @@ export default defineConfig({
       }),
     }),
   ],
-  i18n: {
-    defaultLocale: 'es',
-    locales: ['es', 'en'],
-    routing: {
-      prefixDefaultLocale: false,
-    },
-  },
 });

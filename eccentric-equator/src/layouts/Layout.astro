@@ -1,10 +1,6 @@
 ---
-import SubscriptionPopup from '../components/SubscriptionPopup.astro';
-import PdfDownloadGate from '../components/articles/PdfDownloadGate.astro';
 import { ClientRouter } from 'astro:transitions';
 import ThemeInit from '../components/ThemeInit.astro';
-import ThemeSelector from '../components/ThemeSelector.astro';
-import LanguageSelector from '../components/LanguageSelector.astro';
 import { getTranslations } from '../i18n/utils';
 import type { Language } from '../i18n/translations';
 
@@ -22,8 +18,8 @@ export interface Props {
 }
 
 const {
-  title = "Hackfluency — Observatorio de Sistemas Complejos | Ciberseguridad, IA & Regulatorio Chile",
-  description = "Investigaci\u00F3n aplicada en ciberseguridad, inteligencia artificial y convergencia regulatoria. An\u00E1lisis, instrumentos y evidencia para Chile y LATAM.",
+  title = "HFLUENCY — Just a group of specialists",
+  description = "HFLUENCY — Just a group of specialists. Solo un grupo de especialistas.",
   ogImage = "/HFNeon.png",
   ogType = "website",
   hideThemeSelector = false,
@@ -61,7 +57,6 @@ const { t } = getTranslations(locale);
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval'
         https://cdn.jsdelivr.net
-        https://rumbletalk.com
         https://widget.trustpilot.com
         http://widget.trustpilot.com
         https://*.trustpilot.com
@@ -69,17 +64,13 @@ const { t } = getTranslations(locale);
         https://unpkg.com
         https://static.cloudflareinsights.com;
       style-src 'self' 'unsafe-inline'
-        https://fonts.googleapis.com
-        https://rumbletalk.com;
+        https://fonts.googleapis.com;
       font-src 'self'
         https://fonts.gstatic.com
         data:;
       img-src 'self' https: data:;
       connect-src 'self'
         https://api.telegram.org
-        https://rumbletalk.com
-        https://*.rumbletalk.net
-        wss://*.rumbletalk.net
         https://widget.trustpilot.com
         http://widget.trustpilot.com
         https://*.trustpilot.com
@@ -87,8 +78,6 @@ const { t } = getTranslations(locale);
         https://vhiweeypifbwacashxjz.supabase.co
         https://cloudflareinsights.com;
       frame-src 'self'
-        https://rumbletalk.com
-        https://*.rumbletalk.net
         https://*.trustpilot.com;
       form-action 'self'
         https://api.telegram.org;
@@ -107,7 +96,6 @@ const { t } = getTranslations(locale);
 
     <!-- Hreflang -->
     <link rel="alternate" hreflang="es" href={esURL} />
-    <link rel="alternate" hreflang="en" href={enCanonical} />
     <link rel="alternate" hreflang="x-default" href={esURL} />
 
     <!-- Open Graph -->
@@ -116,8 +104,8 @@ const { t } = getTranslations(locale);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageURL} />
-    <meta property="og:site_name" content="Hackfluency" />
-    <meta property="og:locale" content={locale === 'es' ? 'es_ES' : 'en_US'} />
+    <meta property="og:site_name" content="HFLUENCY" />
+    <meta property="og:locale" content="es_ES" />
 
     <slot name="head" />
     <!-- Twitter / X -->
@@ -130,8 +118,8 @@ const { t } = getTranslations(locale);
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet"></noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null;">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet"></noscript>
 
     <title>{title}</title>
     <ClientRouter />
@@ -140,7 +128,7 @@ const { t } = getTranslations(locale);
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "Hackfluency",
+      "name": "HFLUENCY",
       "url": canonicalURL,
       "description": description,
       "foundingDate": "2024",
@@ -161,182 +149,21 @@ const { t } = getTranslations(locale);
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Hackfluency",
+      "name": "HFLUENCY",
       "url": `https://www.hackfluency.com${currentPath}`,
       "description": description,
-      "inLanguage": locale === 'es' ? 'es-ES' : 'en-US',
+      "inLanguage": "es-ES",
     })} />
 
     <!-- Theme flash prevention -->
     <ThemeInit />
-
-    <!-- Language redirect on first visit (only for root /) -->
-    {locale === 'es' && (
-      <script is:inline>
-        (function() {
-          if (navigator.webdriver) return; // bots/headless (incl. Lighthouse CI): sin redirect de idioma
-          if (window.location.pathname !== '/' && window.location.pathname !== '') return;
-          if (localStorage.getItem('hf-language')) return;
-          var lang = navigator.language || navigator.language || '';
-          if (lang.startsWith('en')) {
-            localStorage.setItem('hf-language', 'en');
-            window.location.replace('/en');
-          } else {
-            localStorage.setItem('hf-language', 'es');
-          }
-        })();
-      </script>
-    )}
   </head>
   <body>
     <!-- Skip link for keyboard navigation -->
     <a href="#main-content" class="skip-link">{locale === 'es' ? 'Saltar al contenido principal' : 'Skip to main content'}</a>
     <slot />
-    <SubscriptionPopup locale={locale} />
-    <PdfDownloadGate locale={locale} />
-    {!hideThemeSelector && <ThemeSelector variant="floating" />}
 
-    <!-- RumbleTalk embed (hidden container, click toggles chat) -->
-    <div id="rt-d6023b7d7713a023f5e73ab154aa7c08" data-floating="true" data-side="left" data-width="700" data-height="500"
-      data-image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-      style="position:fixed; bottom:0; left:0; z-index:2147483000;" transition:persist="hf-rt">
-    </div>
-
-    <!-- Custom floating button -->
-    <button type="button" id="hf-fab" class="hf-fab" aria-label="Conversar">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M17 11a2 2 0 0 1-2 2H5l-3 3V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z" opacity="0.35" style="translate:-4px -3px"/>
-        <path d="M21 15a2 2 0 0 1-2 2H9l-3 3V9a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/>
-      </svg>
-    </button>
-
-    <style>
-      .hf-fab {
-        position: fixed; bottom: 24px; left: 24px; z-index: 2147483000;
-        width: 54px; height: 54px; border-radius: 50%;
-        background: linear-gradient(135deg, #00D26A, #00994D);
-        color: #0a0a0a; border: none; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 20px rgba(0,210,106,0.3);
-        transition: transform 0.2s, box-shadow 0.2s;
-        animation: hfPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
-      }
-      @keyframes hfPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-      .hf-fab:hover { transform: scale(1.12); box-shadow: 0 6px 30px rgba(0,210,106,0.5); }
-      .hf-fab:active { transform: scale(0.92); }
-      .hf-fab svg { width: 24px; height: 24px; }
-    </style>
-
-    <script is:inline data-astro-rerun>
-    (function(){
-      var c = document.getElementById('rt-d6023b7d7713a023f5e73ab154aa7c08');
-      var fab = document.getElementById('hf-fab');
-      if (!c || !fab) return;
-
-      // Defer the cross-origin RumbleTalk SDK until first interaction,
-      // keeping the state-based detection so the SPA fix survives View Transitions.
-      // Global guard: the SDK must be injected at most ONCE per session. On
-      // View Transitions (ClientRouter) the window survives but this script
-      // re-runs, so a closure-local flag would re-inject the SDK and RumbleTalk
-      // throws "Trying to create a duplicate chat" — breaking login/dashboards/CTI.
-      var S = window.__hfRt = window.__hfRt || {};
-      var sdkLoaded = !!S.sdkLoaded;
-      var needsLauncher = function() {
-        for (var i = 0; i < c.children.length; i++) {
-          var ch = c.children[i];
-          if (ch.tagName === 'IMG' || (ch.tagName === 'DIV' && ch.getBoundingClientRect().height > 0)) { return false; }
-        }
-        return true;
-      };
-      function loadSdk() {
-        // Never re-inject: if the SDK already initialized this session, the chat
-        // widget already exists and re-running its script breaks it.
-        if (S.sdkLoaded) return;
-        S.sdkLoaded = true;
-        sdkLoaded = true;
-        // Only inject if the launcher isn't already present (re-enter after a swap)
-        if (!needsLauncher()) return;
-        var s = document.createElement('script');
-        s.src = 'https://rumbletalk.com/client/?1Yejiy6L';
-        s.async = true;
-        document.body.appendChild(s);
-      }
-
-      // Ring until first click
-      var KEY = 'hf-ring';
-      var up = true;
-      var ring;
-
-      function startRing() {
-        if (localStorage.getItem(KEY)) return;
-        if (S.ringTimer) clearInterval(S.ringTimer);
-        ring = setInterval(function() {
-          up = !up;
-          fab.style.transform = up ? 'scale(1)' : 'scale(1.08)';
-          fab.style.boxShadow = up ? '0 4px 20px rgba(0,210,106,0.3)' : '0 0 40px 12px rgba(0,210,106,0.6)';
-        }, 700);
-        S.ringTimer = ring;
-      }
-      startRing();
-
-      // Real open state = the RumbleTalk panel DIV is visible and sized
-      function isOpen() {
-        for (var i = 0; i < c.children.length; i++) {
-          var k = c.children[i];
-          if (k.tagName === 'DIV' &&
-              getComputedStyle(k).visibility === 'visible' &&
-              k.getBoundingClientRect().height >= 50) {
-            return true;
-          }
-        }
-        return false;
-      }
-
-      // Sync the FAB with the widget's REAL state (open = hide FAB, closed = show)
-      function sync() {
-        if (isOpen()) {
-          clearInterval(ring);
-          localStorage.setItem(KEY, '1');
-          fab.style.display = 'none';
-        } else {
-          fab.style.display = 'flex';
-        }
-      }
-
-      // Re-sync whenever the widget's DOM changes (open via X, close via X, etc.)
-      // Reuse a session-wide observer instead of stacking a new one per navigation.
-      if (S.obs) S.obs.disconnect();
-      try {
-        S.obs = new MutationObserver(sync);
-        S.obs.observe(c, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
-      } catch (e) {}
-      // Safety net for attribute-less style changes (single timer per session)
-      if (S.timer) clearInterval(S.timer);
-      S.timer = setInterval(sync, 800);
-
-      // Toggle the chat; retry a few ticks while the SDK (async) spawns its launcher
-      function openChat(tries) {
-        var img = c.querySelector('img');
-        if (img) { img.click(); return; }
-        if (tries > 0) setTimeout(function() { openChat(tries - 1); }, 250);
-      }
-
-      // Load the SDK lazily on first engagement with the FAB (keeps cross-origin script off the critical path)
-      fab.addEventListener('pointerdown', function() { if (!sdkLoaded) { loadSdk(); } });
-      fab.addEventListener('click', function() {
-        loadSdk();
-        // Mobile: open in new tab (RumbleTalk inline doesn't work on mobile)
-        if (window.innerWidth < 768) {
-          window.open('https://rumbletalk.com/client/chat.php?1Yejiy6L', '_blank', 'noopener');
-          return;
-        }
-        openChat(12);           // toggle the widget via its launcher (waits for SDK)
-        sync();                 // reflect state immediately
-      });
-      sync();
-    })();
-    </script>
-  </body>
+</body>
 </html>
 
 <style is:global>
@@ -509,6 +336,5 @@ const { t } = getTranslations(locale);
       padding: 0 64px;
     }
   }
-
 
 </style>
