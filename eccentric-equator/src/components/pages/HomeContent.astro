@@ -1,6 +1,8 @@
 ---
 import CertTicker from '../CertTicker.astro';
 const base = import.meta.env.BASE_URL;
+const botToken = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
+const chatId = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
 ---
 
 <nav class="nav">
@@ -49,69 +51,80 @@ const base = import.meta.env.BASE_URL;
   </footer>
 </main>
 
-<script>
-  document.addEventListener('astro:page-load', () => {
-    const prompt = document.querySelector('.contact-prompt');
-    const target = document.getElementById('contact');
-    if (prompt && target) {
-      prompt.addEventListener('click', (e) => {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
-    const form = document.getElementById('contact-form');
-    const msg = document.getElementById('contact-msg');
-    if (form && msg) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const data = new FormData(form as HTMLFormElement);
-        const name = String(data.get('name') || '').trim();
-        const email = String(data.get('email') || '').trim();
-        const message = String(data.get('message') || '').trim();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          msg.textContent = 'Revisa tu email';
-          msg.style.color = 'var(--hf-accent)';
-          return;
-        }
-        if (!message) {
-          msg.textContent = 'Escribe tu mensaje';
-          return;
-        }
-        const btn = form.querySelector('.contact-btn') as HTMLButtonElement | null;
-        const orig = btn ? btn.textContent : '';
-        if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
-        msg.textContent = 'Enviando...';
-        msg.style.color = 'var(--hf-text-muted)';
-        try {
-          const BOT_TOKEN = import.meta.env.PUBLIC_TELEGRAM_BOT_TOKEN;
-          const CHAT_ID = import.meta.env.PUBLIC_TELEGRAM_CHAT_ID;
-          if (!BOT_TOKEN || !CHAT_ID) throw new Error('no token');
-          const esc = (t: string) => (t || '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c] || c));
-          const text = '<b>🔬 Nuevo contacto — HFLUENCY</b>\n<b>Nombre:</b> ' + esc(name || '(sin nombre)') + '\n<b>Email:</b> ' + esc(email) + '\n<b>Mensaje:</b>\n' + esc(message) + '\n<b>Fecha:</b> ' + new Date().toISOString();
-          const res = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: Number(CHAT_ID), text, parse_mode: 'HTML' }),
-          });
-          if (res.ok) {
-            msg.textContent = 'Gracias — te contactamos pronto.';
+<script is:inline data-cfasync="false" define:vars={{ botToken, chatId }}>
+  (function() {
+    const BOT_TOKEN = botToken;
+    const CHAT_ID = chatId;
+    function initContact() {
+      const prompt = document.querySelector('.contact-prompt');
+      const target = document.getElementById('contact');
+      if (prompt && target && !prompt.dataset.bound) {
+        prompt.dataset.bound = '1';
+        prompt.addEventListener('click', (e) => {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      const form = document.getElementById('contact-form');
+      const msg = document.getElementById('contact-msg');
+      if (form && msg && !form.dataset.bound) {
+        form.dataset.bound = '1';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = new FormData(form);
+          const name = String(data.get('name') || '').trim();
+          const email = String(data.get('email') || '').trim();
+          const message = String(data.get('message') || '').trim();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msg.textContent = 'Revisa tu email';
             msg.style.color = 'var(--hf-accent)';
-            (form as HTMLFormElement).reset();
-          } else {
-            msg.textContent = 'Error al enviar. Intenta de nuevo.';
-            msg.style.color = 'var(--hf-accent)';
+            return;
           }
-        } catch {
-          msg.textContent = 'Error de red. Intenta de nuevo.';
-          msg.style.color = 'var(--hf-accent)';
-        } finally {
-          if (btn) { btn.disabled = false; btn.textContent = orig; }
-          setTimeout(() => { if (msg.textContent !== 'Gracias — te contactamos pronto.') msg.textContent = ''; }, 4000);
-          setTimeout(() => { if (msg.textContent === 'Gracias — te contactamos pronto.') msg.textContent = ''; }, 4000);
-        }
-      });
+          if (!message) {
+            msg.textContent = 'Escribe tu mensaje';
+            return;
+          }
+          const btn = form.querySelector('.contact-btn');
+          const orig = btn ? btn.textContent : '';
+          if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+          msg.textContent = 'Enviando...';
+          msg.style.color = 'var(--hf-text-muted)';
+          try {
+            if (!BOT_TOKEN || !CHAT_ID) throw new Error('no token');
+            const esc = (t) => (t || '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c] || c));
+            const text = '<b>🔬 Nuevo contacto — HFLUENCY</b>\n<b>Nombre:</b> ' + esc(name || '(sin nombre)') + '\n<b>Email:</b> ' + esc(email) + '\n<b>Mensaje:</b>\n' + esc(message) + '\n<b>Fecha:</b> ' + new Date().toISOString();
+            const res = await fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: Number(CHAT_ID), text, parse_mode: 'HTML' }),
+            });
+            if (res.ok) {
+              msg.textContent = 'Gracias — te contactamos pronto.';
+              msg.style.color = 'var(--hf-accent)';
+              form.reset();
+            } else {
+              msg.textContent = 'Error al enviar. Intenta de nuevo.';
+              msg.style.color = 'var(--hf-accent)';
+            }
+          } catch {
+            msg.textContent = 'Error de red. Intenta de nuevo.';
+            msg.style.color = 'var(--hf-accent)';
+          } finally {
+            if (btn) { btn.disabled = false; btn.textContent = orig; }
+            setTimeout(() => { if (msg.textContent !== 'Gracias — te contactamos pronto.') msg.textContent = ''; }, 4000);
+            setTimeout(() => { if (msg.textContent === 'Gracias — te contactamos pronto.') msg.textContent = ''; }, 4000);
+          }
+        });
+      }
     }
-  });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initContact);
+    } else {
+      initContact();
+    }
+    document.addEventListener('astro:page-load', initContact);
+    document.addEventListener('astro:after-swap', initContact);
+  })();
 </script>
 
 <style>
