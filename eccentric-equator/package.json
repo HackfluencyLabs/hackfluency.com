@@ -15,7 +15,7 @@
     "@astrojs/sitemap": "^3.7.3",
     "@supabase/supabase-js": "^2.93.3",
     "@xyflow/react": "^12.10.0",
-    "astro": "^7.1.6",
+    "astro": "^7.2.8",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "i18next": "^25.8.8",
