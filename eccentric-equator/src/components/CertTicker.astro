@@ -1,0 +1,161 @@
+---
+const certs = [
+  { id: "ejpt", name: "eJPT", org: "INE Security", file: "/assets/certs/ejpt.svg", href: "https://ine.com/security/certifications/ejpt-certification" },
+  { id: "emapt", name: "eMAPT", org: "INE Security", file: "/assets/certs/emapt.svg", href: "https://ine.com/security/certifications/emapt-certification" },
+  { id: "ecppt", name: "eCPPT", org: "INE Security", file: "/assets/certs/ecppt.svg", href: "https://ine.com/security/certifications/ecppt-certification" },
+  { id: "ewptx", name: "eWPTXv2", org: "INE Security", file: "/assets/certs/ewptx.png", href: "https://ine.com/security/certifications/ewptx-certification" },
+  { id: "oscp", name: "OSCP", org: "OffSec", file: "/assets/certs/oscp.png", href: "https://www.offsec.com/courses/pen-200/" },
+  { id: "osep", name: "OSEP", org: "OffSec", file: "/assets/certs/osep.png", href: "https://www.offsec.com/courses/pen-300/" },
+  { id: "crtp", name: "CRTP", org: "Altered Security", file: "/assets/certs/crtp.png", href: "https://www.alteredsecurity.com/adlab" },
+  { id: "crta", name: "CRTA", org: "CyberWarFare Labs", file: "/assets/certs/crta.png", href: "https://cyberwarfare.live/product/red-team-analyst-crta/" },
+  { id: "bsp", name: "BSCP", org: "PortSwigger", file: "/assets/certs/bscp.png", href: "https://portswigger.net/web-security/certification" },
+  { id: "bugbounty", name: "Bug Bounty", org: "Hacktivists", file: "/assets/certs/bugbounty.png", href: "https://hacktivists.in" },
+  { id: "cibedefensa", name: "Ciberdefensa", org: "Diplomado Chile", file: "/assets/certs/ciberdefensa.png", href: "https://diplomadociberseguridad.com/diplomado-en-ciberdefensa-y-blue-team/" },
+  { id: "spartan", name: "Zero2Auto", org: "Zero2Automated", file: "/assets/certs/spartan.png", href: "https://www.0ffset.net/training/zero2auto/" },
+  { id: "ccna", name: "CCNA", org: "Cisco", file: "/assets/certs/ccna.png", href: "https://www.cisco.com/site/us/en/learn/training-certifications/certifications/enterprise/ccna/index.html" },
+  { id: "aws", name: "AWS SAA", org: "Amazon", file: "/assets/certs/aws.png", href: "https://aws.amazon.com/certification/certified-solutions-architect-associate/" },
+  { id: "ceh", name: "CEH Master", org: "EC-Council", file: "/assets/certs/ceh.png", href: "https://www.eccouncil.org/train-certify/ceh-master/" },
+];
+const doubled = [...certs, ...certs];
+---
+
+<section class="cert-ticker" aria-label="Certificaciones del equipo">
+  <div class="cert-ticker-track" id="cert-ticker-track">
+    <div class="cert-ticker-inner" id="cert-ticker-inner">
+      {doubled.map((c) => (
+        <a
+          class="cert-item"
+          href={c.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`${c.name} — ${c.org} ↗`}
+          aria-label={`${c.name} — ${c.org}`}
+        >
+          <img src={c.file} alt={`${c.name} logo`} class="cert-logo" loading="lazy" width="48" height="48" />
+          <span class="cert-name">{c.name}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cert-ticker {
+    background: var(--hf-bg-secondary, #0a0505);
+    border-top: 1px solid color-mix(in srgb, var(--hf-accent) 12%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--hf-accent) 12%, transparent);
+    padding: 16px 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .cert-ticker::before,
+  .cert-ticker::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .cert-ticker::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--hf-bg-secondary) 0%, transparent 100%);
+  }
+  .cert-ticker::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--hf-bg-secondary) 0%, transparent 100%);
+  }
+  .cert-ticker-track {
+    overflow: hidden;
+    width: 100%;
+  }
+  .cert-ticker-inner {
+    display: flex;
+    gap: 0;
+    width: max-content;
+    animation: certScroll 42s linear infinite;
+    will-change: transform;
+  }
+  .cert-ticker:hover .cert-ticker-inner {
+    animation-play-state: paused;
+  }
+  @keyframes certScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .cert-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px;
+    margin: 0 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid color-mix(in srgb, var(--hf-border) 60%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--hf-bg) 70%, transparent);
+    backdrop-filter: blur(4px);
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .cert-item:hover {
+    border-color: color-mix(in srgb, var(--hf-accent) 35%, transparent);
+    background: color-mix(in srgb, var(--hf-accent) 6%, var(--hf-bg));
+    transform: translateY(-1px);
+  }
+  .cert-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    filter: saturate(1.22) contrast(1.06) brightness(1.03);
+    opacity: 0.96;
+    transition: filter 0.22s, opacity 0.22s, transform 0.22s;
+  }
+  .cert-item:hover .cert-logo {
+    filter: saturate(1.35) contrast(1.02) brightness(1.04);
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  .cert-fallback {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    color: var(--hf-accent);
+    background: color-mix(in srgb, var(--hf-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--hf-accent) 22%, transparent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cert-name {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    color: var(--hf-text-secondary);
+  }
+  .cert-item:hover .cert-name {
+    color: var(--hf-text);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cert-ticker-inner { animation: none; transform: none; }
+  }
+</style>
+
+<script is:inline>
+  (function(){
+    var inner = document.getElementById('cert-ticker-inner');
+    if(!inner) return;
+    var total = 0;
+    for(var i=0;i<inner.children.length;i++) total += inner.children[i].offsetWidth + 16;
+    var dur = Math.max(28, total/90);
+    inner.style.setProperty('--dur', dur+'s');
+    inner.style.animationDuration = dur+'s';
+  })();
+</script>

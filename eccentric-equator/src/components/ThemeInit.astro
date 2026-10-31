@@ -1,0 +1,125 @@
+---
+/**
+ * ThemeInit.astro
+ * ===============
+ * Inline script component that applies the persisted theme's CSS variables
+ * to <html> immediately, before any paint. This prevents flash of wrong theme.
+ * 
+ * Included by Layout.astro. The script runs synchronously in <head>.
+ */
+---
+
+<script is:inline>
+(function() {
+  var STORAGE_KEY = 'hf-theme';
+  var DEFAULT = 'crimson';
+
+  // Theme data — minimal copy for inline script (no imports possible)
+  var themes = {
+    'crimson': { l:0, a:'#FF4455',al:'#FF6B7A',ad:'#CC3344',ag:'rgba(255,68,85,0.6)',ai:'rgba(255,68,85,0.1)',ab:'rgba(255,68,85,0.3)',as:'#FF6B35', bg:'#0a0505',bg2:'#110808',bgc:'#110808',bg3:'#0d0707',bgx:'#050202',bgt:'#2a1515',bge:'#1a0f0f', b1:'#2a1515',b2:'#351a1a',bs:'rgba(255,68,85,0.1)', t:'#fff5f5',ts:'#ddbfbf',tm:'#997777',td:'#775555',tD:'#552f2f',ta:'#000000', tb:'#3a1f1f',mm:'rgba(5,0,0,0.8)',nb:'linear-gradient(180deg,#1a0f0f 0%,#0d0505 100%)',nB:'#2a1515' }
+  };
+
+  function applyStoredTheme() {
+    try {
+      var id = localStorage.getItem(STORAGE_KEY) || DEFAULT;
+      var th = themes[id] || themes[DEFAULT];
+      var h = document.documentElement;
+      var s = h.style;
+
+      h.setAttribute('data-theme', id);
+      h.setAttribute('data-theme-mode', th.l ? 'light' : 'dark');
+
+    // Apply CSS custom properties
+    s.setProperty('--hf-accent', th.a);
+    s.setProperty('--hf-accent-light', th.al);
+    s.setProperty('--hf-accent-dark', th.ad);
+    s.setProperty('--hf-accent-glow', th.ag);
+    s.setProperty('--hf-accent-dim', th.ai);
+    s.setProperty('--hf-accent-border', th.ab);
+    s.setProperty('--hf-accent-secondary', th.as);
+    s.setProperty('--hf-accent-human', th.ah || '#9C5E4D');
+    s.setProperty('--hf-accent-privacy', th.ap || '#1E3A5F');
+    s.setProperty('--hf-accent-analysis', th.aan || '#6C4F9E');
+    s.setProperty('--hf-accent-philosophy', th.aph || '#7A6A4E');
+    s.setProperty('--hf-bg', th.bg);
+    s.setProperty('--hf-bg-secondary', th.bg2);
+    s.setProperty('--hf-bg-card', th.bgc);
+    s.setProperty('--hf-bg-tertiary', th.bg3);
+    s.setProperty('--hf-bg-code', th.bgx);
+    s.setProperty('--hf-bg-track', th.bgt);
+    s.setProperty('--hf-bg-elevated', th.bge);
+    s.setProperty('--hf-border', th.b1);
+    s.setProperty('--hf-border-secondary', th.b2);
+    s.setProperty('--hf-border-subtle', th.bs);
+    s.setProperty('--hf-text', th.t);
+    s.setProperty('--hf-text-secondary', th.ts);
+    s.setProperty('--hf-text-muted', th.tm);
+    s.setProperty('--hf-text-dim', th.td);
+    s.setProperty('--hf-text-disabled', th.tD);
+    s.setProperty('--hf-text-on-accent', th.ta);
+    s.setProperty('--hf-tab-border', th.tb);
+    s.setProperty('--hf-nav-bg', th.nb);
+    s.setProperty('--hf-nav-border', th.nB);
+
+    // Legacy compat
+    s.setProperty('--primary', th.a);
+    s.setProperty('--primary-light', th.al);
+    s.setProperty('--primary-dark', th.ad);
+    s.setProperty('--primary-glow', th.ag);
+    s.setProperty('--accent', th.as);
+    s.setProperty('--black', th.bg);
+    s.setProperty('--dark', th.bg2);
+    s.setProperty('--dark-lighter', th.bgt);
+    s.setProperty('--white', th.t);
+
+    // Gray scale (mapped to theme tokens)
+    s.setProperty('--gray-900', th.bge);
+    s.setProperty('--gray-800', th.b2);
+    s.setProperty('--gray-700', th.tb);
+    s.setProperty('--gray-600', th.tD);
+    s.setProperty('--gray-500', th.td);
+    s.setProperty('--gray-400', th.tm);
+    s.setProperty('--gray-300', th.ts);
+    s.setProperty('--gray-200', th.l ? th.b2 : '#cccccc');
+    s.setProperty('--gray-100', th.l ? th.b1 : '#e5e5e5');
+
+    // Gradient overrides
+    s.setProperty('--gradient-primary', 'linear-gradient(135deg,' + th.a + ' 0%,' + th.al + ' 100%)');
+    s.setProperty('--gradient-accent', 'linear-gradient(135deg,' + th.as + ' 0%,' + th.as + ' 100%)');
+    s.setProperty('--gradient-dark', 'linear-gradient(180deg,' + th.bg + ' 0%,' + th.bg2 + ' 100%)');
+    s.setProperty('--gradient-glow', 'radial-gradient(ellipse at center,' + th.ag + ' 0%,transparent 70%)');
+    s.setProperty('--gradient-neon', 'linear-gradient(135deg,' + th.a + ' 0%,' + th.al + ' 50%,' + th.al + ' 100%)');
+
+    // CTI compat
+    s.setProperty('--cti-accent', th.a);
+    s.setProperty('--cti-accent-glow', th.ag);
+    s.setProperty('--cti-accent-dim', th.ai);
+    s.setProperty('--cti-accent-border', th.ab);
+    s.setProperty('--cti-bg', th.bg);
+    s.setProperty('--cti-bg-2', th.bg2);
+    s.setProperty('--cti-bg-card', th.bgc);
+    s.setProperty('--cti-bg-3', th.bg3);
+    s.setProperty('--cti-border', th.b1);
+    s.setProperty('--cti-border-2', th.b2);
+    s.setProperty('--cti-text-muted', th.tm);
+    s.setProperty('--cti-text-primary', th.t);
+    s.setProperty('--cti-text-secondary', th.ts);
+    s.setProperty('--cti-text-dim', th.td);
+    s.setProperty('--cti-text-disabled', th.tD);
+    s.setProperty('--cti-bg-track', th.bgt);
+    s.setProperty('--cti-bg-code', th.bgx);
+    s.setProperty('--cti-tab-border', th.tb);
+    } catch(e) {}
+  }
+
+  // Apply immediately (prevents flash of wrong theme)
+  applyStoredTheme();
+
+  // Re-apply after Astro ViewTransitions page swap
+  // (swap clears inline styles & data attributes on <html>)
+  if (!window.__hfThemeInitDone) {
+    window.__hfThemeInitDone = true;
+    document.addEventListener('astro:after-swap', applyStoredTheme);
+  }
+})();
+</script>

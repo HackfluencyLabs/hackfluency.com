@@ -1,0 +1,422 @@
+---
+import CertTicker from '../CertTicker.astro';
+const base = import.meta.env.BASE_URL;
+const contactEndpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT || '';
+---
+
+<nav class="nav">
+  <div class="nav-container">
+    <a href={base} class="logo" aria-label="HFLUENCY - Inicio">
+      <img src={`${base}HFNeon.webp`} alt="HFLUENCY logo" width="56" class="logo-img" />
+      <span class="logo-text"><span class="logo-h">H</span>FLUENCY</span>
+    </a>
+  </div>
+</nav>
+
+<main id="main-content" role="main">
+  <section class="hero-minimal">
+    <div class="hero-minimal-inner">
+      <div class="hero-mark" aria-hidden="true">
+        <img src={`${base}HFNeon.webp`} alt="" width="42" height="42" class="hero-mark-img" loading="eager" />
+      </div>
+      <h1 class="hero-es">Just a group of specialists</h1>
+      <p class="hero-en">Solo un grupo de especialistas</p>
+      <div class="hero-rule" aria-hidden="true"></div>
+    </div>
+  </section>
+  <a href="#contact" class="contact-prompt" aria-label="Contact Us - Contacto">
+    <span class="contact-prompt-en">Contact Us</span>
+    <span class="contact-prompt-es">Contacto</span>
+    <span class="contact-prompt-arrow" aria-hidden="true">↓</span>
+  </a>
+  <CertTicker />
+  <section id="contact" class="contact-section">
+    <div class="contact-container">
+      <h2 class="contact-title">Contact</h2>
+      <p class="contact-subtitle">Contacto</p>
+      <form class="contact-form" id="contact-form" onsubmit="return false;">
+        <div class="contact-row">
+          <input type="text" name="name" placeholder="Nombre" aria-label="Nombre" required />
+          <input type="email" name="email" placeholder="Email" aria-label="Email" required />
+        </div>
+        <textarea name="message" placeholder="Cuéntanos tu caso..." aria-label="Mensaje" rows="4" required></textarea>
+        <button type="submit" class="contact-btn">Enviar</button>
+        <p class="contact-msg" id="contact-msg" role="status"></p>
+      </form>
+    </div>
+  </section>
+  <footer class="footer-minimal" aria-label="Footer">
+    <span>HACKFLUENCY INTERNATIONAL</span>
+  </footer>
+</main>
+
+<script is:inline data-cfasync="false" define:vars={{ contactEndpoint }}>
+  (function() {
+    const ENDPOINT = contactEndpoint;
+    function initContact() {
+      const prompt = document.querySelector('.contact-prompt');
+      const target = document.getElementById('contact');
+      if (prompt && target && !prompt.dataset.bound) {
+        prompt.dataset.bound = '1';
+        prompt.addEventListener('click', (e) => {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      const form = document.getElementById('contact-form');
+      const msg = document.getElementById('contact-msg');
+      if (form && msg && !form.dataset.bound) {
+        form.dataset.bound = '1';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = new FormData(form);
+          const name = String(data.get('name') || '').trim();
+          const email = String(data.get('email') || '').trim();
+          const message = String(data.get('message') || '').trim();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msg.textContent = 'Revisa tu email';
+            msg.style.color = 'var(--hf-accent)';
+            return;
+          }
+          if (!message) {
+            msg.textContent = 'Escribe tu mensaje';
+            return;
+          }
+          const btn = form.querySelector('.contact-btn');
+          const orig = btn ? btn.textContent : '';
+          if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+          msg.textContent = 'Enviando...';
+          msg.style.color = 'var(--hf-text-muted)';
+          try {
+            if (!ENDPOINT) {
+              const subject = encodeURIComponent('Contacto desde hackfluency.com — ' + (name || email));
+              const body = encodeURIComponent(message + '\n\n—\n' + (name || '') + '\n' + email);
+              window.location.href = 'mailto:inquiry@hackfluency.com?subject=' + subject + '&body=' + body;
+              msg.textContent = 'Abriendo tu cliente de correo…';
+              msg.style.color = 'var(--hf-text-muted)';
+              return;
+            }
+            const res = await fetch(ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, message }),
+            });
+            if (res.ok) {
+              msg.textContent = 'Gracias — te contactamos pronto.';
+              msg.style.color = 'var(--hf-accent)';
+              form.reset();
+            } else {
+              msg.textContent = 'Error al enviar. Intenta de nuevo.';
+              msg.style.color = 'var(--hf-accent)';
+            }
+          } catch {
+            msg.textContent = 'Error de red. Intenta de nuevo.';
+            msg.style.color = 'var(--hf-accent)';
+          } finally {
+            if (btn) { btn.disabled = false; btn.textContent = orig; }
+            setTimeout(() => { if (msg.textContent !== 'Gracias — te contactamos pronto.') msg.textContent = ''; }, 4000);
+            setTimeout(() => { if (msg.textContent === 'Gracias — te contactamos pronto.') msg.textContent = ''; }, 4000);
+          }
+        });
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initContact);
+    } else {
+      initContact();
+    }
+    document.addEventListener('astro:page-load', initContact);
+    document.addEventListener('astro:after-swap', initContact);
+  })();
+</script>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--hf-nav-bg, var(--hf-bg));
+    border-bottom: 1px solid var(--hf-nav-border, var(--hf-border));
+    backdrop-filter: blur(8px);
+  }
+  .nav-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+  .logo-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+  .logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hf-text);
+  }
+  .logo-h {
+    color: #9F1A2B;
+  }
+
+  .hero-minimal {
+    min-height: 78vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 72px 24px 12px;
+    background: var(--hf-bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-minimal::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 720px;
+    height: 720px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center, var(--hf-accent-glow) 0%, transparent 62%);
+    opacity: 0.07;
+    pointer-events: none;
+  }
+  .hero-minimal::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 720px;
+    height: 720px;
+    transform: translate(-50%, -50%);
+    background-image: url('/HFNeon-bg.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.14;
+    image-rendering: -webkit-optimize-contrast;
+    mask-image: radial-gradient(ellipse at center, black 42%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 42%, transparent 78%);
+    pointer-events: none;
+  }
+  .hero-minimal-inner {
+    text-align: center;
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-mark {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .hero-mark-img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    opacity: 0.92;
+    filter: drop-shadow(0 0 10px var(--hf-accent-glow));
+  }
+  .hero-es {
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.6rem, 6.2vw, 4.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.032em;
+    color: var(--hf-text);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .hero-en {
+    margin-top: 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: clamp(0.78rem, 1.6vw, 1.05rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--hf-text-muted);
+    opacity: 0.32;
+    filter: blur(0.4px);
+  }
+  .hero-rule {
+    width: 64px;
+    height: 1.5px;
+    background: var(--hf-accent);
+    opacity: 0.85;
+    margin: 32px auto 0;
+    position: relative;
+  }
+  .hero-rule::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    background: var(--hf-accent);
+    transform: translate(-50%, -50%) rotate(45deg);
+    opacity: 1;
+    box-shadow: 0 0 8px var(--hf-accent-glow);
+  }
+
+  .contact-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0 4px;
+    margin-top: -4px;
+    text-decoration: none;
+    color: var(--hf-text-muted);
+    opacity: 0.52;
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+  .contact-prompt:hover { opacity: 0.85; }
+  .contact-prompt-en {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--hf-text-dim);
+  }
+  .contact-prompt-es {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--hf-text-muted);
+    opacity: 0.7;
+  }
+  .contact-prompt-arrow {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    color: var(--hf-accent);
+    animation: arrowWiggle 3.2s ease-in-out infinite;
+  }
+  @keyframes arrowWiggle {
+    0%, 82%, 100% { transform: translateY(0); opacity: 0.9; }
+    87% { transform: translateY(4px); opacity: 1; }
+    92% { transform: translateY(0); }
+  }
+
+  .contact-section {
+    padding: 56px 24px 80px;
+    background: var(--hf-bg);
+    border-top: 1px solid color-mix(in srgb, var(--hf-border) 40%, transparent);
+  }
+  .contact-container {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .contact-title {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    color: var(--hf-text);
+    margin: 0 0 6px;
+    text-align: center;
+  }
+  .contact-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: var(--hf-text-muted);
+    text-align: center;
+    margin: 0 0 24px;
+    opacity: 0.8;
+  }
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .contact-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--hf-bg-secondary);
+    border: 1px solid var(--hf-border);
+    border-radius: 10px;
+    color: var(--hf-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .contact-form input::placeholder,
+  .contact-form textarea::placeholder { color: var(--hf-text-dim); }
+  .contact-form input:focus,
+  .contact-form textarea:focus { border-color: var(--hf-accent); }
+  .contact-form textarea { resize: vertical; min-height: 96px; }
+  .contact-btn {
+    margin-top: 4px;
+    padding: 12px 20px;
+    background: var(--hf-accent);
+    color: var(--hf-text-on-accent);
+    border: none;
+    border-radius: 999px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .contact-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .contact-btn:active { transform: translateY(0); }
+  .contact-msg {
+    min-height: 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    color: var(--hf-accent);
+    text-align: center;
+    margin: 4px 0 0;
+  }
+
+  .footer-minimal {
+    padding: 28px 24px 32px;
+    text-align: center;
+    border-top: 1px solid color-mix(in srgb, var(--hf-border) 22%, transparent);
+    background: var(--hf-bg);
+  }
+  .footer-minimal span {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 0.62rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--hf-text-dim);
+    opacity: 0.45;
+  }
+
+  @media (max-width: 640px) {
+    .contact-row { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 768px) {
+    .nav-container { padding: 18px 40px; }
+    .hero-mark { margin-bottom: 32px; }
+  }
+</style>
+
+<!-- purge cache 2026-09-16T02:25Z -->
+
+<!-- force purge 2026-09-16T02:27Z -->

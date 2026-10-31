@@ -1,0 +1,16 @@
+name = "hackfluency-contact"
+main = "contact.js"
+compatibility_date = "2026-10-01"
+
+# Ruta pública: el Worker intercepta /api/* en el dominio del sitio
+# antes de que el request llegue a GitHub Pages.
+routes = [
+  { pattern = "www.hackfluency.com/api/*", zone_name = "hackfluency.com" }
+]
+
+# El token y el chat_id NO van acá: se cargan como secretos.
+#   npx wrangler secret put TELEGRAM_BOT_TOKEN
+#   npx wrangler secret put TELEGRAM_CHAT_ID
+
+[vars]
+ALLOWED_ORIGIN = "https://www.hackfluency.com"
